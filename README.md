@@ -18,7 +18,7 @@ Travelers often struggle with organizing all their ideas and options when planni
 ### Sensor use
 GPS is used to find nearby restaurants, museums, and activities based on the user's current location.
 
-### Ofline mode
+### Offline mode
 - Users can save travel ideas (restaurants, museums, activities) offline and still access them without network connectivity.
 - Previously planned schedules or itineraries can be downloaded and viewed offline, allowing for uninterrupted access even in areas with poor connectivity.
 - A “Connected” vs. “Offline” status indicator informs users of their current connectivity, prompting a refresh when back online.
