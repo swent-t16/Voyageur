@@ -1,4 +1,4 @@
-package com.android.sample
+package com.android.voyageur
 
 import kotlin.math.sqrt
 
