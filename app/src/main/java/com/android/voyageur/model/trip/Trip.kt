@@ -9,7 +9,7 @@ data class Trip(
     val participants: Array<String>,
     val description: String,
     val name: String,
-    val location: Location,
+    val locations: Array<Location>,
     val startDate: Timestamp,
     val endDate: Timestamp,
     val activities: Array<Any>, // TODO : replace this with activity model
