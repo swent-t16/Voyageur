@@ -186,6 +186,7 @@ dependencies {
 
     //Preview
     implementation(libs.androidx.ui.tooling.preview.android)
+    implementation(libs.test.core.ktx)
 
     // Testing Unit
     testImplementation(libs.junit)
