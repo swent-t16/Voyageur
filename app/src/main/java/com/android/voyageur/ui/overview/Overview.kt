@@ -1,4 +1,4 @@
-package com.android.sample.ui.overview
+package com.android.voyageur.ui.overview
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold

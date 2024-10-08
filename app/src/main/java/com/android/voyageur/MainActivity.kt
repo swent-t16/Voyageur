@@ -17,7 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import com.android.sample.ui.navigation.NavigationActions
 import com.android.sample.ui.navigation.Route
 import com.android.sample.ui.navigation.Screen
-import com.android.sample.ui.overview.OverviewScreen
+import com.android.voyageur.ui.overview.OverviewScreen
 import com.android.sample.ui.profile.ProfileScreen
 import com.android.sample.ui.search.SearchScreen
 import com.android.voyageur.resources.C
