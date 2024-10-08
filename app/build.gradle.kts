@@ -193,6 +193,7 @@ dependencies {
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.mockk.agent)
     testImplementation(libs.json)
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.0.0-beta05")
 
     // Test UI
     androidTestImplementation(libs.androidx.junit)
