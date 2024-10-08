@@ -1,4 +1,4 @@
-package com.android.sample.ui.navigation
+package com.android.voyageur.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu

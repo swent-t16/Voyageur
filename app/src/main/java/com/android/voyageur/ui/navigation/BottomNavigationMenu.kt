@@ -1,4 +1,4 @@
-package com.android.sample.ui.navigation
+package com.android.voyageur.ui.navigation
 
 //noinspection UsingMaterialAndMaterial3Libraries
 //noinspection UsingMaterialAndMaterial3Libraries

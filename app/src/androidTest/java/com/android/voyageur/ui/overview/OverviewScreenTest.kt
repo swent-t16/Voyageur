@@ -1,11 +1,10 @@
-package com.android.sample.ui.overview
+package com.android.voyageur.ui.overview
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import com.android.sample.ui.navigation.NavigationActions
-import com.android.sample.ui.navigation.Route
-import com.android.voyageur.ui.overview.OverviewScreen
+import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Route
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

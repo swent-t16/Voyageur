@@ -6,9 +6,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import com.android.sample.ui.navigation.BottomNavigationMenu
-import com.android.sample.ui.navigation.LIST_TOP_LEVEL_DESTINATION
-import com.android.sample.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.BottomNavigationMenu
+import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
+import com.android.voyageur.ui.navigation.NavigationActions
 
 @Composable
 fun OverviewScreen(

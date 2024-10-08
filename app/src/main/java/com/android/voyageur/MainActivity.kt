@@ -14,12 +14,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.android.sample.ui.navigation.NavigationActions
-import com.android.sample.ui.navigation.Route
-import com.android.sample.ui.navigation.Screen
+import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Route
+import com.android.voyageur.ui.navigation.Screen
 import com.android.voyageur.ui.overview.OverviewScreen
-import com.android.sample.ui.profile.ProfileScreen
-import com.android.sample.ui.search.SearchScreen
+import com.android.voyageur.ui.profile.ProfileScreen
+import com.android.voyageur.ui.search.SearchScreen
 import com.android.voyageur.resources.C
 import com.android.voyageur.ui.theme.SampleAppTheme
 
