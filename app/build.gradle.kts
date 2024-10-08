@@ -181,6 +181,12 @@ dependencies {
     // Networking with OkHttp
     implementation(libs.okhttp)
 
+    // Material3
+    implementation(libs.androidx.material3.android)
+
+    //Preview
+    implementation(libs.androidx.ui.tooling.preview.android)
+
     // Testing Unit
     testImplementation(libs.junit)
     androidTestImplementation(libs.mockk)
