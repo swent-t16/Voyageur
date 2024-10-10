@@ -35,13 +35,13 @@ class TripRepositoryFirebaseTest {
       Trip(
           "1",
           "creator",
-          emptyArray(),
+          emptyList(),
           "description",
           "name",
-          emptyArray(),
+          emptyList(),
           Timestamp.now(),
           Timestamp.now(),
-          emptyArray(),
+          emptyList(),
           TripType.TOURISM)
 
   @Before

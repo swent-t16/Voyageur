@@ -1,7 +1,10 @@
 package com.android.voyageur.model.trip
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -16,13 +19,13 @@ class TripsViewModel(private val tripsRepository: TripRepository) : ViewModel() 
           Trip(
               "",
               "",
-              emptyArray(),
+              emptyList(),
               "",
               "",
-              emptyArray(),
+              emptyList(),
               Timestamp.now(),
               Timestamp.now(),
-              emptyArray(),
+              emptyList(),
               TripType.TOURISM))
   var selectedTrip: StateFlow<Trip> = _selectedTrip
 
@@ -30,6 +33,16 @@ class TripsViewModel(private val tripsRepository: TripRepository) : ViewModel() 
     tripsRepository.init {
       tripsRepository.getTrips(onSuccess = { _trips.value = it }, onFailure = {})
     }
+  }
+
+  companion object {
+    val Factory: ViewModelProvider.Factory =
+        object : ViewModelProvider.Factory {
+          @Suppress("UNCHECKED CAST")
+          override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return TripsViewModel(TripRepositoryFirebase(Firebase.firestore)) as T
+          }
+        }
   }
 
   fun selectTrip(trip: Trip) {

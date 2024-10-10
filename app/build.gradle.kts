@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.sonar)
     id("jacoco")
+    alias(libs.plugins.gms)
 }
 
 android {
@@ -214,6 +215,7 @@ dependencies {
 
     testImplementation(libs.kotlinx.coroutines.test)
 
+    implementation("com.google.firebase:firebase-core:9.6.1")
 
     // Google Maps Compose library
     val mapsComposeVersion = "4.4.1"
@@ -262,3 +264,4 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
         include("outputs/code_coverage/debugAndroidTest/connected/*/coverage.ec")
     })
 }
+
