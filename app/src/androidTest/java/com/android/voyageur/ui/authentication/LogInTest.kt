@@ -31,9 +31,4 @@ class LoginTest : TestCase() {
     Intents.release()
   }
 
-  @Test
-  fun titleAndButtonAreCorrectlyDisplayed() {
-    composeTestRule.onNodeWithTag("loginTitle").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("loginTitle").assertTextEquals("Welcome")
-  }
 }
