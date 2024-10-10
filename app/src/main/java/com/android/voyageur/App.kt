@@ -10,7 +10,7 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
-import com.android.voyageur.ui.overview.AddTripScreen
+import com.android.voyageur.ui.overview.OverviewScreen
 import com.android.voyageur.ui.profile.ProfileScreen
 import com.android.voyageur.ui.search.SearchScreen
 
@@ -26,7 +26,7 @@ fun VoyageurApp() {
         route = Route.OVERVIEW,
     ) {
       composable(Screen.OVERVIEW) {
-        AddTripScreen(tripsViewModel = tripsViewModel, navigationActions = navigationActions)
+        OverviewScreen(tripsViewModel = tripsViewModel, navigationActions = navigationActions)
       }
     }
     navigation(
