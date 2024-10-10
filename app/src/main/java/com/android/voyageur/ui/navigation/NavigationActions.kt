@@ -12,15 +12,21 @@ object Route {
   const val OVERVIEW = "Overview"
   const val SEARCH = "Search"
   const val PROFILE = "Profile"
+  const val AUTH = "Auth"
 }
 
 object Screen {
   const val OVERVIEW = "Overview Screen"
   const val SEARCH = "Search Screen"
   const val PROFILE = "Profile Screen"
+  const val AUTH = "SignIn Screen"
 }
 
-data class TopLevelDestination(val route: String, val icon: ImageVector, val textId: String)
+data class TopLevelDestination(
+    val route: String,
+    val icon: ImageVector,
+    val textId: String,
+)
 
 object TopLevelDestinations {
   val OVERVIEW =
@@ -45,7 +51,6 @@ open class NavigationActions(
    *   bottom navigation bar as we don't want to keep the previous screen in the back stack
    */
   open fun navigateTo(destination: TopLevelDestination) {
-
     navController.navigate(destination.route) {
       // Pop up to the start destination of the graph to
       // avoid building up a large stack of destinations
@@ -81,7 +86,5 @@ open class NavigationActions(
    *
    * @return The current route
    */
-  open fun currentRoute(): String {
-    return navController.currentDestination?.route ?: ""
-  }
+  open fun currentRoute(): String = navController.currentDestination?.route ?: ""
 }
