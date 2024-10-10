@@ -6,13 +6,13 @@ import com.google.firebase.Timestamp
 data class Trip(
     val id: String,
     val creator: String,
-    val participants: Array<String>,
+    val participants: List<String>,
     val description: String,
     val name: String,
-    val locations: Array<Location>,
+    val locations: List<Location>,
     val startDate: Timestamp,
     val endDate: Timestamp,
-    val activities: Array<Any>, // TODO : replace this with activity model
+    val activities: List<Any>, // TODO : replace this with activity model
     val type: TripType,
 ) {
   override fun equals(other: Any?): Boolean {
