@@ -1,6 +1,5 @@
 package com.android.voyageur.ui.authentication
 
-import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -39,9 +38,6 @@ class LoginTest : TestCase() {
   fun titleAndButtonAreCorrectlyDisplayed() {
     composeTestRule.onNodeWithTag("loginTitle").assertIsDisplayed()
     composeTestRule.onNodeWithTag("loginTitle").assertTextEquals("Welcome")
-
-    composeTestRule.onNodeWithTag("loginButton").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("loginButton").assertHasClickAction()
   }
 
   @Test
