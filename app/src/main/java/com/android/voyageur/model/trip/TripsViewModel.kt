@@ -30,19 +30,19 @@ class TripsViewModel(private val tripsRepository: TripRepository) : ViewModel() 
   var selectedTrip: StateFlow<Trip> = _selectedTrip
 
   init {
-      tripsRepository.init {
-          tripsRepository.getTrips(onSuccess = { _trips.value = it }, onFailure = {})
-      }
+    tripsRepository.init {
+      tripsRepository.getTrips(onSuccess = { _trips.value = it }, onFailure = {})
+    }
   }
 
   companion object {
-      val Factory: ViewModelProvider.Factory =
-          object : ViewModelProvider.Factory {
-              @Suppress("UNCHECKED CAST")
-              override fun <T : ViewModel> create(modelClass: Class<T>): T{
-                  return TripsViewModel(TripRepositoryFirebase(Firebase.firestore)) as T
-              }
+    val Factory: ViewModelProvider.Factory =
+        object : ViewModelProvider.Factory {
+          @Suppress("UNCHECKED CAST")
+          override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return TripsViewModel(TripRepositoryFirebase(Firebase.firestore)) as T
           }
+        }
   }
 
   fun selectTrip(trip: Trip) {

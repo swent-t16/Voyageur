@@ -25,8 +25,8 @@ fun VoyageurApp() {
         startDestination = Screen.OVERVIEW,
         route = Route.OVERVIEW,
     ) {
-      composable(Screen.OVERVIEW) {           AddTripScreen(tripsViewModel = tripsViewModel, navigationActions = navigationActions)
-
+      composable(Screen.OVERVIEW) {
+        AddTripScreen(tripsViewModel = tripsViewModel, navigationActions = navigationActions)
       }
     }
     navigation(
