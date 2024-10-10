@@ -20,6 +20,7 @@ object Screen {
   const val SEARCH = "Search Screen"
   const val PROFILE = "Profile Screen"
   const val AUTH = "SignIn Screen"
+  const val ADD_TRIP = "Add Trip Screen"
 }
 
 data class TopLevelDestination(
