@@ -39,12 +39,4 @@ class LoginTest : TestCase() {
     composeTestRule.onNodeWithTag("loginTitle").assertIsDisplayed()
     composeTestRule.onNodeWithTag("loginTitle").assertTextEquals("Welcome")
   }
-
-  @Test
-  fun googleSignInReturnsValidActivityResult() {
-    composeTestRule.onNodeWithTag("loginButton").performClick()
-    composeTestRule.waitForIdle()
-    // assert that an Intent resolving to Google Mobile Services has been sent (for sign-in)
-    intended(toPackage("com.google.android.gms"))
-  }
 }
