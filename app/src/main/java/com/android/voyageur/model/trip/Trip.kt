@@ -2,32 +2,35 @@ package com.android.voyageur.model.trip
 
 import com.android.voyageur.model.location.Location
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.DocumentId
+import com.google.firebase.firestore.Exclude
 
 data class Trip(
-    val id: String,
-    val creator: String,
-    val participants: List<String>,
-    val description: String,
-    val name: String,
-    val locations: List<Location>,
-    val startDate: Timestamp,
-    val endDate: Timestamp,
-    val activities: List<Any>, // TODO : replace this with activity model
-    val type: TripType,
+    @DocumentId
+    val id: String = "",
+    val creator: String = "",
+    val participants: List<String> = emptyList(),
+    val description: String = "",
+    val name: String = "",
+    val locations: List<Location> = emptyList(),
+    val startDate: Timestamp = Timestamp.now(),
+    val endDate: Timestamp = Timestamp.now(),
+    val activities: List<String> = emptyList(), // Replace with specific type when available
+    val type: String = TripType.TOURISM.name // Store enum as String
 ) {
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
+    // Exclude from Firestore serialization
+    @get:Exclude
+    val tripType: TripType
+        get() = TripType.valueOf(type)
 
-    other as Trip
+    override fun equals(other: Any?): Boolean {
+        return other is Trip && id == other.id
+    }
 
-    return id == other.id
-  }
-
-  override fun hashCode(): Int = id.hashCode()
+    override fun hashCode(): Int = id.hashCode()
 }
 
 enum class TripType {
-  BUSINESS,
-  TOURISM,
+    BUSINESS,
+    TOURISM
 }

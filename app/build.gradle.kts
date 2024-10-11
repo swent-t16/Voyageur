@@ -178,6 +178,8 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.auth)
 
+    implementation(libs.coil.compose)
+
 
     // Networking with OkHttp
     implementation(libs.okhttp)
@@ -188,6 +190,8 @@ dependencies {
     //Preview
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.test.core.ktx)
+    implementation(libs.androidx.navigation.testing)
+    implementation(libs.ui.test.junit4.android)
 
     // Testing Unit
     testImplementation(libs.junit)
