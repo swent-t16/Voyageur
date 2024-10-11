@@ -1,5 +1,6 @@
 ./idea
-
+#macOS system files
+.DS_Store
 /build
 /app/build
 local.properties

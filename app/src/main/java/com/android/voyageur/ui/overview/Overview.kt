@@ -1,14 +1,17 @@
 package com.android.voyageur.ui.overview
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -17,11 +20,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,10 +40,11 @@ fun OverviewScreen(
 
   Scaffold(
       floatingActionButton = {
-        // TODO: implement onClick for the Add a ToDo
-        FloatingActionButton(onClick = {}, modifier = Modifier.testTag("createTripButton")) {
-          Icon(Icons.Outlined.Add, "Floating action button")
-        }
+        FloatingActionButton(
+            onClick = { navigationActions.navigateTo(Screen.ADD_TRIP) },
+            modifier = Modifier.testTag("createTripButton")) {
+              Icon(Icons.Outlined.Add, "Floating action button")
+            }
       },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
@@ -58,7 +66,14 @@ fun OverviewScreen(
                 modifier = Modifier.testTag("emptyTripPrompt"))
           } else {
             val sortedTrips = trips.sortedBy { trip -> trip.startDate }
-            LazyColumn { sortedTrips.forEach { trip -> item { TripItem(trip = trip) } } }
+            LazyColumn {
+              sortedTrips.forEach { trip ->
+                item {
+                  TripItem(trip = trip)
+                  Spacer(modifier = Modifier.height(16.dp))
+                }
+              }
+            }
           }
         }
       })
@@ -66,5 +81,15 @@ fun OverviewScreen(
 
 @Composable
 fun TripItem(trip: Trip) {
-  ListItem(headlineContent = { Text(text = trip.name) })
+  // TODO: add a clickable once we implement the Schedule screens
+  Card(
+      modifier = Modifier.fillMaxSize(),
+      content = {
+        Text(
+            text = trip.name,
+            modifier = Modifier.padding(16.dp),
+            fontSize = 20.sp,
+            textAlign = TextAlign.Center)
+      },
+  )
 }
