@@ -16,12 +16,12 @@ data class Trip(
     val startDate: Timestamp = Timestamp.now(),
     val endDate: Timestamp = Timestamp.now(),
     val activities: List<String> = emptyList(), // Replace with specific type when available
-    val type: String = TripType.TOURISM.name // Store enum as String
+    val type: TripType = TripType.TOURISM // Store enum as String
 ) {
     // Exclude from Firestore serialization
     @get:Exclude
     val tripType: TripType
-        get() = TripType.valueOf(type)
+        get() = TripType.valueOf(type.toString())
 
     override fun equals(other: Any?): Boolean {
         return other is Trip && id == other.id

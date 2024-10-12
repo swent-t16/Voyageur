@@ -164,7 +164,7 @@ fun AddTripScreen(
                                 startDate = startTimestamp,
                                 endDate = endTimestamp,
                                 activities = listOf(),
-                                type = tripType.toString())
+                                type = tripType)
                         tripsViewModel.createTrip(trip)
                         navigationActions.goBack()
                       } catch (e: NumberFormatException) {

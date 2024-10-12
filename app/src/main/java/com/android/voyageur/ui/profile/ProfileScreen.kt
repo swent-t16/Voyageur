@@ -13,33 +13,50 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.android.voyageur.model.user.User
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.delay
 
 @Composable
-fun ProfileScreen(navigationActions: NavigationActions) {
-    // Get current Firebase user
+fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
+    // Observing user and loading state from the UserViewModel
+    val user by userViewModel.user.collectAsState()
+    val isLoading by userViewModel.isLoading.collectAsState()
+
+    // Firebase current user
     val currentUser = FirebaseAuth.getInstance().currentUser
 
-    var isLoading by remember { mutableStateOf(true) }
     var isSigningOut by remember { mutableStateOf(false) }
 
     // Handle sign-out with navigation in a LaunchedEffect
     if (isSigningOut) {
         LaunchedEffect(isSigningOut) {
-            delay(300) // Optional delay for smoother navigation
+            delay(300)
             navigationActions.navigateTo(Route.AUTH)
         }
     } else {
         if (currentUser != null) {
-            isLoading = false
+            if (user == null && !isLoading) {
+                // Load user data if not already loaded
+                userViewModel.loadUser(currentUser.uid, currentUser).also {
+                    currentUser.displayName?.let { name ->
+                        userViewModel.updateUser(userViewModel.user.value?.apply { this.name = name } ?: User(id = currentUser.uid, name = name))
+                    }
+                    currentUser.photoUrl?.let { photoUrl ->
+                        userViewModel.updateUser(userViewModel.user.value?.apply { this.profilePicture = photoUrl.toString() } ?: User(id = currentUser.uid, profilePicture = photoUrl.toString()))
+                    }
+                    currentUser.email?.let { email ->
+                        userViewModel.updateUser(userViewModel.user.value?.apply { this.email = email } ?: User(id = currentUser.uid, email = email))
+                    }
+                }
+            }
         } else {
-            // If the user is not logged in, navigate to the sign-in screen
+            // Navigate to AUTH if no current user is logged in
             navigationActions.navigateTo(Route.AUTH)
         }
     }
@@ -67,16 +84,13 @@ fun ProfileScreen(navigationActions: NavigationActions) {
                 } else if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
                 } else {
-                    currentUser?.let { userData ->
+                    user?.let { userData ->
                         ProfileContent(
                             userData = userData,
-                            onSignOut = {
-                                FirebaseAuth.getInstance().signOut()
-                                isSigningOut = true
-                            }
+                            onSignOut = { isSigningOut = true }
                         )
                     } ?: run {
-                        Text(text = "Failed to load user data.", modifier = Modifier.testTag("errorMessage"))
+                        Text("No user data available", modifier = Modifier.testTag("noUserData"))
                     }
                 }
             }
@@ -85,7 +99,7 @@ fun ProfileScreen(navigationActions: NavigationActions) {
 }
 
 @Composable
-fun ProfileContent(userData: FirebaseUser, onSignOut: () -> Unit) {
+fun ProfileContent(userData: User, onSignOut: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -94,43 +108,38 @@ fun ProfileContent(userData: FirebaseUser, onSignOut: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Display profile picture if available
-        if (userData.photoUrl.toString().isNotEmpty()) {
+        // Display the profile picture if available
+        if (userData.profilePicture.isNotEmpty()) {
             Image(
-                painter = rememberAsyncImagePainter(userData.photoUrl),
+                painter = rememberAsyncImagePainter(model = userData.profilePicture),
                 contentDescription = "Profile Picture",
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(128.dp)
                     .clip(CircleShape)
                     .testTag("profilePicture")
             )
         } else {
             Icon(
                 imageVector = Icons.Default.AccountCircle,
-                contentDescription = "Profile Picture",
+                contentDescription = "Default Profile Picture",
                 modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .testTag("defaultProfileIcon")
+                    .size(128.dp)
+                    .testTag("defaultProfilePicture")
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Display user's name
+        // Display user name and email
         Text(
-            text = userData.displayName ?: "No Name",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.testTag("profileName")
+            text = "Name: ${userData.name.takeIf { it.isNotEmpty() } ?: "No name available"}",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.testTag("userName")
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Display user's email
         Text(
-            text = userData.email ?: "No Email",
+            text = "Email: ${userData.email.takeIf { it.isNotEmpty() } ?: "No email available"}",
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.testTag("profileEmail")
+            modifier = Modifier.testTag("userEmail")
         )
 
         Spacer(modifier = Modifier.height(16.dp))
