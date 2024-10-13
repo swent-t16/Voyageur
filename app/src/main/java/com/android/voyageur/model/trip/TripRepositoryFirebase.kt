@@ -1,38 +1,34 @@
 package com.android.voyageur.model.trip
 
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 
 class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository {
     private val collectionPath = "trips"
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     override fun getNewTripId(): String {
         return db.collection(collectionPath).document().id
     }
 
     override fun init(onSuccess: () -> Unit) {
-        db.collection(collectionPath)
-            .get()
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { exception ->
-                Log.e("TripRepositoryFirebase", "Error initializing repository: ", exception)
+        auth.addAuthStateListener { auth ->
+            val user: FirebaseUser? = auth.currentUser
+            if (user != null) {
+                onSuccess()
+            } else {
+                Log.e("TripRepositoryFirebase", "No user found")
             }
+        }
     }
 
     override fun getTrips(onSuccess: (List<Trip>) -> Unit, onFailure: (Exception) -> Unit) {
         db.collection(collectionPath)
             .get()
             .addOnSuccessListener { result ->
-                val trips = result.mapNotNull { document ->
-                    try {
-                        val trip = document.toObject(Trip::class.java)
-                        trip.copy(id = document.id) // Ensure the ID is set
-                    } catch (e: Exception) {
-                        Log.e("TripRepositoryFirebase", "Error parsing trip: ", e)
-                        null
-                    }
-                }
+                val trips = result.map { document -> document.toObject(Trip::class.java) }
                 onSuccess(trips)
             }
             .addOnFailureListener { exception ->
@@ -46,7 +42,7 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
             .document(trip.id)
             .set(trip)
             .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { exception: Exception ->
+            .addOnFailureListener { exception ->
                 Log.e("TripRepositoryFirebase", "Error creating trip: ", exception)
                 onFailure(exception)
             }
@@ -57,7 +53,7 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
             .document(id)
             .delete()
             .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { exception: Exception ->
+            .addOnFailureListener { exception ->
                 Log.e("TripRepositoryFirebase", "Error deleting trip: ", exception)
                 onFailure(exception)
             }
@@ -66,9 +62,9 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
     override fun updateTrip(trip: Trip, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
         db.collection(collectionPath)
             .document(trip.id)
-            .set(trip, SetOptions.merge())
+            .set(trip)
             .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { exception: Exception ->
+            .addOnFailureListener { exception ->
                 Log.e("TripRepositoryFirebase", "Error updating trip: ", exception)
                 onFailure(exception)
             }
