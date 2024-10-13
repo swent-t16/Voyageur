@@ -189,6 +189,7 @@ dependencies {
     testImplementation(libs.junit) {
         exclude("org.junit")
     }
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation(libs.mockk)
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.mockk.agent)
