@@ -16,10 +16,13 @@ import com.google.firebase.FirebaseApp
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    FirebaseApp.initializeApp(this)
+    try {
+      FirebaseApp.initializeApp(this)
+    } catch (e: Exception) {
+      e.printStackTrace()
+    }
     setContent {
       SampleAppTheme {
-        // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
             color = MaterialTheme.colorScheme.background) {

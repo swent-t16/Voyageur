@@ -25,8 +25,11 @@ import org.robolectric.Shadows.shadowOf
 @RunWith(RobolectricTestRunner::class)
 class TripRepositoryFirebaseTest {
   @Mock private lateinit var mockFirestore: FirebaseFirestore
+
   @Mock private lateinit var mockDocumentReference: DocumentReference
+
   @Mock private lateinit var mockCollectionReference: CollectionReference
+
   @Mock private lateinit var mockQuerySnapshot: QuerySnapshot
 
   private lateinit var tripRepository: TripRepositoryFirebase
@@ -42,7 +45,8 @@ class TripRepositoryFirebaseTest {
           Timestamp.now(),
           Timestamp.now(),
           emptyList(),
-          TripType.TOURISM)
+          TripType.TOURISM,
+      )
 
   @Before
   fun setUp() {
@@ -52,6 +56,12 @@ class TripRepositoryFirebaseTest {
     if (FirebaseApp.getApps(ApplicationProvider.getApplicationContext()).isEmpty()) {
       FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
     }
+
+    tripRepository = TripRepositoryFirebase(mockFirestore)
+
+    `when`(mockFirestore.collection(any())).thenReturn(mockCollectionReference)
+    `when`(mockCollectionReference.document(any())).thenReturn(mockDocumentReference)
+    `when`(mockCollectionReference.document()).thenReturn(mockDocumentReference)
 
     tripRepository = TripRepositoryFirebase(mockFirestore)
 
@@ -73,7 +83,9 @@ class TripRepositoryFirebaseTest {
     `when`(mockQuerySnapshot.documents).thenReturn(listOf())
 
     tripRepository.getTrips(
-        onSuccess = {}, onFailure = { fail("Failure callback should not be called") })
+        onSuccess = {},
+        onFailure = { fail("Failure callback should not be called") },
+    )
 
     verify(mockCollectionReference, timeout(100)).get() // Verify that get() was called
   }
@@ -85,7 +97,8 @@ class TripRepositoryFirebaseTest {
 
     tripRepository.getTrips(
         onSuccess = { fail("Success callback should not be called") },
-        onFailure = { assert(it.message == "Test exception") })
+        onFailure = { assert(it.message == "Test exception") },
+    )
   }
 
   @Test
@@ -107,7 +120,8 @@ class TripRepositoryFirebaseTest {
     tripRepository.createTrip(
         trip,
         onSuccess = { fail("Success callback should not be called") },
-        onFailure = { assert(it.message == "Test exception") })
+        onFailure = { assert(it.message == "Test exception") },
+    )
   }
 
   @Test
@@ -129,7 +143,8 @@ class TripRepositoryFirebaseTest {
     tripRepository.deleteTripById(
         "1",
         onSuccess = { fail("Success callback should not be called") },
-        onFailure = { assert(it.message == "Test exception") })
+        onFailure = { assert(it.message == "Test exception") },
+    )
   }
 
   @Test
@@ -151,6 +166,7 @@ class TripRepositoryFirebaseTest {
     tripRepository.updateTrip(
         trip,
         onSuccess = { fail("Success callback should not be called") },
-        onFailure = { assert(it.message == "Test exception") })
+        onFailure = { assert(it.message == "Test exception") },
+    )
   }
 }

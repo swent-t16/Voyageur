@@ -172,6 +172,8 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.auth)
 
+    implementation(libs.coil.compose)
+
     // Networking with OkHttp
     implementation(libs.okhttp)
 
@@ -181,9 +183,13 @@ dependencies {
     // Preview
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.test.core.ktx)
+    implementation(libs.androidx.navigation.testing)
 
     // Testing Unit
-    testImplementation(libs.junit)
+    testImplementation(libs.junit) {
+        exclude("org.junit")
+    }
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation(libs.mockk)
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.mockk.agent)
@@ -194,7 +200,6 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.espresso.intents)
-    androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.inline)
@@ -223,7 +228,7 @@ tasks.withType<Test> {
     // Configure Jacoco for each tests
     configure<JacocoTaskExtension> {
         isIncludeNoLocationClasses = true
-        excludes = listOf("jdk.internal.*")
+        excludes = listOf("jdk.internal.*", "org.junit")
     }
 }
 

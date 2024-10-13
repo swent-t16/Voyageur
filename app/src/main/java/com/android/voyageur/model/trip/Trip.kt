@@ -2,6 +2,7 @@ package com.android.voyageur.model.trip
 
 import com.android.voyageur.model.location.Location
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.Exclude
 
 data class Trip(
     val id: String = "",
@@ -15,13 +16,13 @@ data class Trip(
     val activities: List<Any> = emptyList(), // TODO : replace this with activity model
     val type: TripType = TripType.TOURISM,
 ) {
+  // Exclude from Firestore serialization
+  @get:Exclude
+  val tripType: TripType
+    get() = TripType.valueOf(type.toString())
+
   override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-
-    other as Trip
-
-    return id == other.id
+    return other is Trip && id == other.id
   }
 
   override fun hashCode(): Int = id.hashCode()
@@ -29,5 +30,5 @@ data class Trip(
 
 enum class TripType {
   BUSINESS,
-  TOURISM,
+  TOURISM
 }
