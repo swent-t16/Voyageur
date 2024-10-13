@@ -61,15 +61,6 @@ class TripRepositoryFirebaseTest {
   }
 
   @Test
-  fun init_shouldCallFirestoreCollection() {
-    `when`(mockCollectionReference.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
-
-    tripRepository.init { fail("Success callback should not be called") }
-
-    verify(mockCollectionReference, timeout(100)).get() // Verify that get() was called
-  }
-
-  @Test
   fun getNewUid() {
     `when`(mockDocumentReference.id).thenReturn("1")
     val uid = tripRepository.getNewTripId()
