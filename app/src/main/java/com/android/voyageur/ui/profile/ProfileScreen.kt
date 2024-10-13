@@ -36,6 +36,7 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
     // Handle sign-out with navigation in a LaunchedEffect
     if (isSigningOut) {
         LaunchedEffect(isSigningOut) {
+            userViewModel.signOutUser()
             delay(300)
             navigationActions.navigateTo(Route.AUTH)
         }
