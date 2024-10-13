@@ -22,7 +22,7 @@ fun VoyageurApp() {
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory)
-    val userViewModel: UserViewModel = viewModel(factory = UserViewModel.Factory)
+  val userViewModel: UserViewModel = viewModel(factory = UserViewModel.Factory)
 
   NavHost(navController = navController, startDestination = Route.AUTH) {
     navigation(

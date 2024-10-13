@@ -14,21 +14,21 @@ import com.android.voyageur.ui.theme.SampleAppTheme
 import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        try {
-            FirebaseApp.initializeApp(this)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        setContent {
-            SampleAppTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
-                    color = MaterialTheme.colorScheme.background) {
-                    VoyageurApp()
-                }
-            }
-        }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    try {
+      FirebaseApp.initializeApp(this)
+    } catch (e: Exception) {
+      e.printStackTrace()
     }
+    setContent {
+      SampleAppTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
+            color = MaterialTheme.colorScheme.background) {
+              VoyageurApp()
+            }
+      }
+    }
+  }
 }

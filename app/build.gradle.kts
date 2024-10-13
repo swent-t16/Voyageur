@@ -184,10 +184,11 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.test.core.ktx)
     implementation(libs.androidx.navigation.testing)
-    implementation(libs.ui.test.junit4.android)
 
     // Testing Unit
-    testImplementation(libs.junit)
+    testImplementation(libs.junit) {
+        exclude("org.junit")
+    }
     androidTestImplementation(libs.mockk)
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.mockk.agent)
@@ -198,7 +199,6 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.espresso.intents)
-    androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.inline)
@@ -227,7 +227,7 @@ tasks.withType<Test> {
     // Configure Jacoco for each tests
     configure<JacocoTaskExtension> {
         isIncludeNoLocationClasses = true
-        excludes = listOf("jdk.internal.*")
+        excludes = listOf("jdk.internal.*", "org.junit")
     }
 }
 

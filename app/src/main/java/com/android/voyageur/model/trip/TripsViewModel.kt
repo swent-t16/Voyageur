@@ -27,8 +27,7 @@ class TripsViewModel(private val tripsRepository: TripRepository) : ViewModel() 
               Timestamp.now(),
               Timestamp.now(),
               emptyList(),
-              TripType.TOURISM
-          ))
+              TripType.TOURISM))
   var selectedTrip: StateFlow<Trip> = _selectedTrip
 
   init {

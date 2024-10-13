@@ -24,41 +24,44 @@ import org.robolectric.Shadows.shadowOf
 
 @RunWith(RobolectricTestRunner::class)
 class TripRepositoryFirebaseTest {
-    @Mock private lateinit var mockFirestore: FirebaseFirestore
-    @Mock private lateinit var mockDocumentReference: DocumentReference
-    @Mock private lateinit var mockCollectionReference: CollectionReference
-    @Mock private lateinit var mockQuerySnapshot: QuerySnapshot
+  @Mock private lateinit var mockFirestore: FirebaseFirestore
 
-    private lateinit var tripRepository: TripRepositoryFirebase
+  @Mock private lateinit var mockDocumentReference: DocumentReference
 
-    private val trip =
-        Trip(
-            "1",
-            "creator",
-            emptyList(),
-            "description",
-            "name",
-            emptyList(),
-            Timestamp.now(),
-            Timestamp.now(),
-            emptyList(),
-            TripType.TOURISM)
+  @Mock private lateinit var mockCollectionReference: CollectionReference
 
-    @Before
-    fun setUp() {
-        MockitoAnnotations.openMocks(this)
+  @Mock private lateinit var mockQuerySnapshot: QuerySnapshot
 
-        // Initialize Firebase if necessary
-        if (FirebaseApp.getApps(ApplicationProvider.getApplicationContext()).isEmpty()) {
-            FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
-        }
+  private lateinit var tripRepository: TripRepositoryFirebase
 
-        tripRepository = TripRepositoryFirebase(mockFirestore)
+  private val trip =
+      Trip(
+          "1",
+          "creator",
+          emptyList(),
+          "description",
+          "name",
+          emptyList(),
+          Timestamp.now(),
+          Timestamp.now(),
+          emptyList(),
+          TripType.TOURISM,
+      )
 
-        `when`(mockFirestore.collection(any())).thenReturn(mockCollectionReference)
-        `when`(mockCollectionReference.document(any())).thenReturn(mockDocumentReference)
-        `when`(mockCollectionReference.document()).thenReturn(mockDocumentReference)
+  @Before
+  fun setUp() {
+    MockitoAnnotations.openMocks(this)
+
+    // Initialize Firebase if necessary
+    if (FirebaseApp.getApps(ApplicationProvider.getApplicationContext()).isEmpty()) {
+      FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
     }
+
+    tripRepository = TripRepositoryFirebase(mockFirestore)
+
+    `when`(mockFirestore.collection(any())).thenReturn(mockCollectionReference)
+    `when`(mockCollectionReference.document(any())).thenReturn(mockDocumentReference)
+    `when`(mockCollectionReference.document()).thenReturn(mockDocumentReference)
 
     tripRepository = TripRepositoryFirebase(mockFirestore)
 
@@ -74,90 +77,96 @@ class TripRepositoryFirebaseTest {
     assert(uid == "1")
   }
 
-    @Test
-    fun getTrips_callsDocuments() {
-        `when`(mockCollectionReference.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
-        `when`(mockQuerySnapshot.documents).thenReturn(listOf())
+  @Test
+  fun getTrips_callsDocuments() {
+    `when`(mockCollectionReference.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
+    `when`(mockQuerySnapshot.documents).thenReturn(listOf())
 
-        tripRepository.getTrips(
-            onSuccess = {}, onFailure = { fail("Failure callback should not be called") })
+    tripRepository.getTrips(
+        onSuccess = {},
+        onFailure = { fail("Failure callback should not be called") },
+    )
 
-        verify(mockCollectionReference, timeout(100)).get() // Verify that get() was called
-    }
+    verify(mockCollectionReference, timeout(100)).get() // Verify that get() was called
+  }
 
-    @Test
-    fun IF_getTrips_fails_THEN_callOnFailure() {
-        `when`(mockCollectionReference.get())
-            .thenReturn(Tasks.forException(Exception("Test exception")))
+  @Test
+  fun IF_getTrips_fails_THEN_callOnFailure() {
+    `when`(mockCollectionReference.get())
+        .thenReturn(Tasks.forException(Exception("Test exception")))
 
-        tripRepository.getTrips(
-            onSuccess = { fail("Success callback should not be called") },
-            onFailure = { assert(it.message == "Test exception") })
-    }
+    tripRepository.getTrips(
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { assert(it.message == "Test exception") },
+    )
+  }
 
-    @Test
-    fun createTrip_shouldCallFirestoreCollection() {
-        `when`(mockDocumentReference.set(any())).thenReturn(Tasks.forResult(null)) // Simulate success
+  @Test
+  fun createTrip_shouldCallFirestoreCollection() {
+    `when`(mockDocumentReference.set(any())).thenReturn(Tasks.forResult(null)) // Simulate success
 
-        tripRepository.createTrip(trip, onSuccess = {}, onFailure = {})
+    tripRepository.createTrip(trip, onSuccess = {}, onFailure = {})
 
-        shadowOf(Looper.getMainLooper()).idle()
+    shadowOf(Looper.getMainLooper()).idle()
 
-        verify(mockDocumentReference).set(any())
-    }
+    verify(mockDocumentReference).set(any())
+  }
 
-    @Test
-    fun IF_createTrip_fails_THEN_callOnFailure() {
-        `when`(mockDocumentReference.set(any()))
-            .thenReturn(Tasks.forException(Exception("Test exception")))
+  @Test
+  fun IF_createTrip_fails_THEN_callOnFailure() {
+    `when`(mockDocumentReference.set(any()))
+        .thenReturn(Tasks.forException(Exception("Test exception")))
 
-        tripRepository.createTrip(
-            trip,
-            onSuccess = { fail("Success callback should not be called") },
-            onFailure = { assert(it.message == "Test exception") })
-    }
+    tripRepository.createTrip(
+        trip,
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { assert(it.message == "Test exception") },
+    )
+  }
 
-    @Test
-    fun deleteToDoById_shouldCallDocumentReferenceDelete() {
-        `when`(mockDocumentReference.delete()).thenReturn(Tasks.forResult(null))
+  @Test
+  fun deleteToDoById_shouldCallDocumentReferenceDelete() {
+    `when`(mockDocumentReference.delete()).thenReturn(Tasks.forResult(null))
 
-        tripRepository.deleteTripById("1", onSuccess = {}, onFailure = {})
+    tripRepository.deleteTripById("1", onSuccess = {}, onFailure = {})
 
-        shadowOf(Looper.getMainLooper()).idle() // Ensure all asynchronous operations complete
+    shadowOf(Looper.getMainLooper()).idle() // Ensure all asynchronous operations complete
 
-        verify(mockDocumentReference).delete()
-    }
+    verify(mockDocumentReference).delete()
+  }
 
-    @Test
-    fun IF_deleteTripById_fails_THEN_callOnFailure() {
-        `when`(mockDocumentReference.delete())
-            .thenReturn(Tasks.forException(Exception("Test exception")))
+  @Test
+  fun IF_deleteTripById_fails_THEN_callOnFailure() {
+    `when`(mockDocumentReference.delete())
+        .thenReturn(Tasks.forException(Exception("Test exception")))
 
-        tripRepository.deleteTripById(
-            "1",
-            onSuccess = { fail("Success callback should not be called") },
-            onFailure = { assert(it.message == "Test exception") })
-    }
+    tripRepository.deleteTripById(
+        "1",
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { assert(it.message == "Test exception") },
+    )
+  }
 
-    @Test
-    fun updateTrip_shouldCallDocumentReferenceSet() {
-        `when`(mockDocumentReference.set(any())).thenReturn(Tasks.forResult(null))
+  @Test
+  fun updateTrip_shouldCallDocumentReferenceSet() {
+    `when`(mockDocumentReference.set(any())).thenReturn(Tasks.forResult(null))
 
-        tripRepository.updateTrip(trip, onSuccess = {}, onFailure = {})
+    tripRepository.updateTrip(trip, onSuccess = {}, onFailure = {})
 
-        shadowOf(Looper.getMainLooper()).idle()
+    shadowOf(Looper.getMainLooper()).idle()
 
-        verify(mockDocumentReference).set(any())
-    }
+    verify(mockDocumentReference).set(any())
+  }
 
-    @Test
-    fun IF_updateTrip_fails_THEN_callOnFailure() {
-        `when`(mockDocumentReference.set(any()))
-            .thenReturn(Tasks.forException(Exception("Test exception")))
+  @Test
+  fun IF_updateTrip_fails_THEN_callOnFailure() {
+    `when`(mockDocumentReference.set(any()))
+        .thenReturn(Tasks.forException(Exception("Test exception")))
 
-        tripRepository.updateTrip(
-            trip,
-            onSuccess = { fail("Success callback should not be called") },
-            onFailure = { assert(it.message == "Test exception") })
-    }
+    tripRepository.updateTrip(
+        trip,
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { assert(it.message == "Test exception") },
+    )
+  }
 }
