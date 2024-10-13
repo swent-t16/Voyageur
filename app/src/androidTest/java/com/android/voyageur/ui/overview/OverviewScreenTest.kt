@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -14,6 +15,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 
 class OverviewScreenTest {
@@ -33,7 +35,12 @@ class OverviewScreenTest {
   }
 
   @Test
-  fun displayTextWhenNotFinalized() {
+  fun displayTextWhenEmpty() {
+    `when`(tripRepository.getTrips(any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(0)(listOf())
+    }
+    tripViewModel.getTrips()
+
     composeTestRule.onNodeWithTag("emptyTripPrompt").assertIsDisplayed()
   }
 
@@ -42,6 +49,25 @@ class OverviewScreenTest {
     composeTestRule.onNodeWithTag("overviewScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
     composeTestRule.onNodeWithTag("topBarTitle").assertIsDisplayed()
+  }
+
+  @Test
+  fun overviewDisplaysCard() {
+    // Test contains only one element to test it correctly displays a Card
+    val mockTrips =
+        listOf(
+            Trip(
+                id = "1",
+                creator = "Andreea",
+                participants = listOf("Alex", "Mihai"),
+                name = "Paris Trip",
+            ))
+    `when`(tripRepository.getTrips(any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(0)(mockTrips)
+    }
+    tripViewModel.getTrips()
+    composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("cardItem").assertIsDisplayed()
   }
 
   @Test

@@ -66,7 +66,7 @@ fun OverviewScreen(
                 modifier = Modifier.testTag("emptyTripPrompt"))
           } else {
             val sortedTrips = trips.sortedBy { trip -> trip.startDate }
-            LazyColumn {
+            LazyColumn(modifier = Modifier.testTag("lazyColumn")) {
               sortedTrips.forEach { trip ->
                 item {
                   TripItem(trip = trip)
@@ -83,7 +83,7 @@ fun OverviewScreen(
 fun TripItem(trip: Trip) {
   // TODO: add a clickable once we implement the Schedule screens
   Card(
-      modifier = Modifier.fillMaxSize(),
+      modifier = Modifier.fillMaxSize().testTag("cardItem"),
       content = {
         Text(
             text = trip.name,
