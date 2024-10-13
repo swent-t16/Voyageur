@@ -6,7 +6,7 @@ import java.time.Instant // For timestamp handling
 data class User(
     val id: String,
     var name: String = "",
-    var email: String = "",
+    val email: String = "",
     var profilePicture: String = "",
     var bio: String = "",
     private val _trips: MutableList<Trip> = mutableListOf(),

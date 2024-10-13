@@ -44,9 +44,9 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
     override fun createTrip(trip: Trip, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
         db.collection(collectionPath)
             .document(trip.id)
-            .set(trip, SetOptions.merge())
+            .set(trip)
             .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { exception ->
+            .addOnFailureListener { exception: Exception ->
                 Log.e("TripRepositoryFirebase", "Error creating trip: ", exception)
                 onFailure(exception)
             }
@@ -57,7 +57,7 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
             .document(id)
             .delete()
             .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { exception ->
+            .addOnFailureListener { exception: Exception ->
                 Log.e("TripRepositoryFirebase", "Error deleting trip: ", exception)
                 onFailure(exception)
             }
@@ -68,7 +68,7 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
             .document(trip.id)
             .set(trip, SetOptions.merge())
             .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { exception ->
+            .addOnFailureListener { exception: Exception ->
                 Log.e("TripRepositoryFirebase", "Error updating trip: ", exception)
                 onFailure(exception)
             }

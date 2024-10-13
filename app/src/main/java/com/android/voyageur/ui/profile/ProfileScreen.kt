@@ -51,9 +51,6 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
                     currentUser.photoUrl?.let { photoUrl ->
                         userViewModel.updateUser(userViewModel.user.value?.apply { this.profilePicture = photoUrl.toString() } ?: User(id = currentUser.uid, profilePicture = photoUrl.toString()))
                     }
-                    currentUser.email?.let { email ->
-                        userViewModel.updateUser(userViewModel.user.value?.apply { this.email = email } ?: User(id = currentUser.uid, email = email))
-                    }
                 }
             }
         } else {
