@@ -6,7 +6,6 @@ import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.Exclude
 
 data class Trip(
-    @DocumentId
     val id: String = "",
     val creator: String = "",
     val participants: List<String> = emptyList(),
@@ -15,8 +14,8 @@ data class Trip(
     val locations: List<Location> = emptyList(),
     val startDate: Timestamp = Timestamp.now(),
     val endDate: Timestamp = Timestamp.now(),
-    val activities: List<String> = emptyList(), // Replace with specific type when available
-    val type: TripType = TripType.TOURISM // Store enum as String
+    val activities: List<Any> = emptyList(), // TODO : replace this with activity model
+    val type: TripType = TripType.TOURISM,
 ) {
     // Exclude from Firestore serialization
     @get:Exclude

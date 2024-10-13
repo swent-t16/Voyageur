@@ -7,10 +7,11 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class TripsViewModel(private val tripsRepository: TripRepository) : ViewModel() {
   private val _trips = MutableStateFlow<List<Trip>>(emptyList())
-  var trips: StateFlow<List<Trip>> = _trips
+  val trips: StateFlow<List<Trip>> = _trips.asStateFlow()
 
   // useful for updating trip
   private val _selectedTrip =

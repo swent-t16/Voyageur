@@ -60,12 +60,19 @@ class TripRepositoryFirebaseTest {
         `when`(mockCollectionReference.document()).thenReturn(mockDocumentReference)
     }
 
-    @Test
-    fun getNewUid() {
-        `when`(mockDocumentReference.id).thenReturn("1")
-        val uid = tripRepository.getNewTripId()
-        assert(uid == "1")
-    }
+    tripRepository = TripRepositoryFirebase(mockFirestore)
+
+    `when`(mockFirestore.collection(any())).thenReturn(mockCollectionReference)
+    `when`(mockCollectionReference.document(any())).thenReturn(mockDocumentReference)
+    `when`(mockCollectionReference.document()).thenReturn(mockDocumentReference)
+  }
+
+  @Test
+  fun getNewUid() {
+    `when`(mockDocumentReference.id).thenReturn("1")
+    val uid = tripRepository.getNewTripId()
+    assert(uid == "1")
+  }
 
     @Test
     fun getTrips_callsDocuments() {

@@ -6,23 +6,23 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 
 class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository {
-    private val collectionPath = "trips"
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+  private val collectionPath = "trips"
+  private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     override fun getNewTripId(): String {
         return db.collection(collectionPath).document().id
     }
 
-    override fun init(onSuccess: () -> Unit) {
-        auth.addAuthStateListener { auth ->
-            val user: FirebaseUser? = auth.currentUser
-            if (user != null) {
-                onSuccess()
-            } else {
-                Log.e("TripRepositoryFirebase", "No user found")
-            }
-        }
+  override fun init(onSuccess: () -> Unit) {
+    auth.addAuthStateListener { auth ->
+      val user: FirebaseUser? = auth.currentUser
+      if (user != null) {
+        onSuccess()
+      } else {
+        Log.e("TripRepositoryFirebase", "No user found")
+      }
     }
+  }
 
     override fun getTrips(onSuccess: (List<Trip>) -> Unit, onFailure: (Exception) -> Unit) {
         db.collection(collectionPath)
