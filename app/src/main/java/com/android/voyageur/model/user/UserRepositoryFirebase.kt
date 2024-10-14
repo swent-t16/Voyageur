@@ -72,6 +72,23 @@ class UserRepositoryFirebase(private val db: FirebaseFirestore) : UserRepository
         }
   }
 
+  override fun searchUsers(query: String, onSuccess: (List<User>) -> Unit, onFailure: (Exception) -> Unit) {
+    db.collection(collectionPath)
+        .orderBy("name")
+        .startAt(query)
+        .endAt(query + "\uf8ff")
+        .limit(10)
+        .get()
+        .addOnSuccessListener { documents ->
+          val users = documents.toObjects(User::class.java)
+          onSuccess(users)
+        }
+        .addOnFailureListener { exception ->
+          Log.e("UserRepositoryFirebase", "Error searching users: ", exception)
+          onFailure(exception)
+        }
+  }
+
   fun getNewUserId(): String {
     return db.collection(collectionPath).document().id
   }
