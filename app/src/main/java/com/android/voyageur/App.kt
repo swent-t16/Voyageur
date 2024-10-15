@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.authentication.SignInScreen
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
@@ -21,6 +22,7 @@ fun VoyageurApp() {
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory)
+  val userViewModel: UserViewModel = viewModel(factory = UserViewModel.Factory)
 
   NavHost(navController = navController, startDestination = Route.AUTH) {
     navigation(
@@ -33,7 +35,7 @@ fun VoyageurApp() {
         startDestination = Screen.OVERVIEW,
         route = Route.OVERVIEW,
     ) {
-      composable(Screen.OVERVIEW) { OverviewScreen(navigationActions) }
+      composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigationActions) }
       composable(Screen.ADD_TRIP) { AddTripScreen(tripsViewModel, navigationActions) }
     }
     navigation(
@@ -46,7 +48,7 @@ fun VoyageurApp() {
         startDestination = Screen.PROFILE,
         route = Route.PROFILE,
     ) {
-      composable(Screen.PROFILE) { ProfileScreen(navigationActions) }
+      composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigationActions) }
     }
   }
 }

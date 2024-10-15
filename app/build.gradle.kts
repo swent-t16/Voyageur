@@ -1,5 +1,3 @@
-import com.android.build.api.dsl.Packaging
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -17,7 +15,6 @@ android {
     namespace = "com.android.voyageur"
     compileSdk = 34
 
-
     // Load the API key from local.properties
     val localProperties = Properties()
     val localPropertiesFile = rootProject.file("local.properties")
@@ -26,7 +23,6 @@ android {
     }
 
     val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY") ?: ""
-
 
     defaultConfig {
         applicationId = "com.android.voyageur"
@@ -101,7 +97,6 @@ android {
         }
     }
 
-
     buildFeatures {
         compose = true
         buildConfig = true
@@ -132,9 +127,9 @@ android {
 
 sonar {
     properties {
-        property("sonar.projectKey", "gf_android-sample")
-        property("sonar.projectName", "Android-Sample")
-        property("sonar.organization", "gabrielfleischer")
+        property("sonar.projectKey", "swent-t16_Voyageur")
+        property("sonar.projectName", "Voyageur")
+        property("sonar.organization", "swent-t16")
         property("sonar.host.url", "https://sonarcloud.io")
         // Comma-separated paths to the various directories containing the *.xml JUnit report files. Each path may be absolute or relative to the project base directory.
         property("sonar.junit.reportPaths", "${project.layout.buildDirectory.get()}/test-results/testDebugunitTest/")
@@ -159,7 +154,6 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
 
-
     // Navigation
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.fragment.ktx)
@@ -178,6 +172,7 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.auth)
 
+    implementation(libs.coil.compose)
 
     // Networking with OkHttp
     implementation(libs.okhttp)
@@ -185,12 +180,16 @@ dependencies {
     // Material3
     implementation(libs.androidx.material3.android)
 
-    //Preview
+    // Preview
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.test.core.ktx)
+    implementation(libs.androidx.navigation.testing)
 
     // Testing Unit
-    testImplementation(libs.junit)
+    testImplementation(libs.junit) {
+        exclude("org.junit")
+    }
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation(libs.mockk)
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.mockk.agent)
@@ -201,7 +200,6 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.espresso.intents)
-    androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.inline)
@@ -226,12 +224,11 @@ dependencies {
     implementation("com.google.maps.android:maps-compose-widgets:$mapsComposeVersion")
 }
 
-
 tasks.withType<Test> {
     // Configure Jacoco for each tests
     configure<JacocoTaskExtension> {
         isIncludeNoLocationClasses = true
-        excludes = listOf("jdk.internal.*")
+        excludes = listOf("jdk.internal.*", "org.junit")
     }
 }
 
@@ -243,25 +240,28 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
         html.required = true
     }
 
-    val fileFilter = listOf(
-        "**/R.class",
-        "**/R$*.class",
-        "**/BuildConfig.*",
-        "**/Manifest*.*",
-        "**/*Test*.*",
-        "android/**/*.*",
-        "**/sigchecks/**",
-    )
-    val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
-        exclude(fileFilter)
-    }
+    val fileFilter =
+        listOf(
+            "**/R.class",
+            "**/R$*.class",
+            "**/BuildConfig.*",
+            "**/Manifest*.*",
+            "**/*Test*.*",
+            "android/**/*.*",
+            "**/sigchecks/**",
+        )
+    val debugTree =
+        fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
+            exclude(fileFilter)
+        }
     val mainSrc = "${project.projectDir}/src/main/java"
 
     sourceDirectories.setFrom(files(mainSrc))
     classDirectories.setFrom(files(debugTree))
-    executionData.setFrom(fileTree(project.buildDir) {
-        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
-        include("outputs/code_coverage/debugAndroidTest/connected/*/coverage.ec")
-    })
+    executionData.setFrom(
+        fileTree(project.buildDir) {
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+            include("outputs/code_coverage/debugAndroidTest/connected/*/coverage.ec")
+        },
+    )
 }
-

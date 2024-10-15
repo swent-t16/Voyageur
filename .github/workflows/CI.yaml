@@ -117,3 +117,8 @@ jobs:
         with:
           name: Coverage report
           path: app/build/reports/jacoco/jacocoTestReport
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+        run: ./gradlew sonar --parallel --build-cache
