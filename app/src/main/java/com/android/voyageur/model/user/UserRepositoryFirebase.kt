@@ -72,7 +72,11 @@ class UserRepositoryFirebase(private val db: FirebaseFirestore) : UserRepository
         }
   }
 
-  override fun searchUsers(query: String, onSuccess: (List<User>) -> Unit, onFailure: (Exception) -> Unit) {
+  override fun searchUsers(
+      query: String,
+      onSuccess: (List<User>) -> Unit,
+      onFailure: (Exception) -> Unit
+  ) {
     db.collection(collectionPath)
         .orderBy("name")
         .startAt(query)
