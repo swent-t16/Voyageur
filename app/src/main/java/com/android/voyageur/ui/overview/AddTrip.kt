@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.overview
 
+import android.annotation.SuppressLint
 import android.icu.util.GregorianCalendar
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.voyageur.model.location.Location
@@ -37,6 +39,7 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.firebase.Timestamp
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTripScreen(
@@ -55,16 +58,17 @@ fun AddTripScreen(
   val context = LocalContext.current
 
   Scaffold(
-      // modifier = Modifier.testTag("addTrip"),
+      modifier = Modifier.testTag("addTrip"),
       topBar = {
         TopAppBar(
-            title = { Text("Create a New Trip") },
+            title = { Text("Create a New Trip", Modifier.testTag("addTripTitle")) },
             navigationIcon = {
-              IconButton(onClick = { navigationActions.goBack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = "Back")
-              }
+              IconButton(
+                  onClick = { navigationActions.goBack() }, Modifier.testTag("goBackButton")) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                        contentDescription = "Back")
+                  }
             })
       },
       content = { paddingValues ->
@@ -76,60 +80,62 @@ fun AddTripScreen(
                   onValueChange = { name = it },
                   label = { Text("Trip") },
                   placeholder = { Text("Name the trip") },
-                  modifier = Modifier.fillMaxWidth())
+                  modifier = Modifier.fillMaxWidth().testTag("inputTripTitle"))
 
               OutlinedTextField(
                   value = description,
                   onValueChange = { description = it },
                   label = { Text("Description") },
                   placeholder = { Text("Describe the trip") },
-                  modifier = Modifier.fillMaxWidth())
+                  modifier = Modifier.fillMaxWidth().testTag("inputTripDescription"))
 
               OutlinedTextField(
                   value = creator,
                   onValueChange = { creator = it },
                   label = { Text("Creator") },
                   placeholder = { Text("Assign a creator") },
-                  modifier = Modifier.fillMaxWidth())
+                  modifier = Modifier.fillMaxWidth().testTag("inputTripCreator"))
 
               OutlinedTextField(
                   value = participants,
                   onValueChange = { participants = it },
                   label = { Text("Participants") },
                   placeholder = { Text("Name the participants, comma-separated") },
-                  modifier = Modifier.fillMaxWidth())
+                  modifier = Modifier.fillMaxWidth().testTag("inputTripParticipants"))
 
               OutlinedTextField(
                   value = locations,
                   onValueChange = { locations = it },
                   label = { Text("Locations") },
                   placeholder = { Text("Name the locations, comma-separated") },
-                  modifier = Modifier.fillMaxWidth())
+                  modifier = Modifier.fillMaxWidth().testTag("inputTripLocations"))
 
               OutlinedTextField(
                   value = startDate,
                   onValueChange = { startDate = it },
                   label = { Text("Start Date (DD/MM/YYYY)") },
                   placeholder = { Text("19/01/1975") },
-                  modifier = Modifier.fillMaxWidth())
+                  modifier = Modifier.fillMaxWidth().testTag("inputStartDate"))
 
               OutlinedTextField(
                   value = endDate,
                   onValueChange = { endDate = it },
                   label = { Text("End Date (DD/MM/YYYY)") },
                   placeholder = { Text("19/01/1975") },
-                  modifier = Modifier.fillMaxWidth())
+                  modifier = Modifier.fillMaxWidth().testTag("inputEndDate"))
 
               Row(
                   modifier = Modifier.fillMaxWidth(),
                   horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     RadioButton(
-                        selected = tripType == TripType.BUSINESS,
-                        onClick = { tripType = TripType.BUSINESS })
+                        selected = tripsViewModel.tripType.value == TripType.BUSINESS,
+                        onClick = { tripsViewModel.setTripType(TripType.BUSINESS) },
+                        modifier = Modifier.testTag("tripTypeBusiness"))
                     Text("Business")
                     RadioButton(
-                        selected = tripType == TripType.TOURISM,
-                        onClick = { tripType = TripType.TOURISM })
+                        selected = tripsViewModel.tripType.value == TripType.TOURISM,
+                        onClick = { tripsViewModel.setTripType(TripType.TOURISM) },
+                        modifier = Modifier.testTag("tripTypeTourism"))
                     Text("Tourism")
                   }
 
@@ -192,7 +198,7 @@ fun AddTripScreen(
                     }
                   },
                   enabled = name.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank(),
-                  modifier = Modifier.fillMaxWidth()) {
+                  modifier = Modifier.fillMaxWidth().testTag("tripSave")) {
                     Text("Save Trip")
                   }
             }
