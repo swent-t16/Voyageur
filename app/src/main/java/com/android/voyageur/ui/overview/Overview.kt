@@ -69,7 +69,10 @@ fun OverviewScreen(
             LazyColumn(modifier = Modifier.testTag("lazyColumn")) {
               sortedTrips.forEach { trip ->
                 item {
-                  TripItem(trip = trip)
+                  TripItem(
+                      tripsViewModel = tripsViewModel,
+                      trip = trip,
+                      navigationActions = navigationActions)
                   Spacer(modifier = Modifier.height(16.dp))
                 }
               }
@@ -80,9 +83,13 @@ fun OverviewScreen(
 }
 
 @Composable
-fun TripItem(trip: Trip) {
+fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: NavigationActions) {
   // TODO: add a clickable once we implement the Schedule screens
   Card(
+      onClick = {
+        navigationActions.navigateTo(Screen.BY_DAY)
+        tripsViewModel.selectTrip(trip)
+      },
       modifier = Modifier.fillMaxSize().testTag("cardItem"),
       content = {
         Text(
