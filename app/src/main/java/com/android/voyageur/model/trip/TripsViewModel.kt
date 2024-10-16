@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,9 +30,7 @@ class TripsViewModel(private val tripsRepository: TripRepository) : ViewModel() 
               Timestamp.now(),
               emptyList(),
               TripType.TOURISM,
-              Uri.EMPTY.toString()
-          )
-      )
+              ""))
 
   var selectedTrip: StateFlow<Trip> = _selectedTrip
 
@@ -71,5 +70,20 @@ class TripsViewModel(private val tripsRepository: TripRepository) : ViewModel() 
 
   fun updateTrip(trip: Trip) {
     tripsRepository.updateTrip(trip = trip, onSuccess = { getTrips() }, onFailure = {})
+  }
+
+  fun uploadImageToFirebase(uri: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
+    val storageRef = FirebaseStorage.getInstance().reference
+    val fileRef = storageRef.child("images/${uri.lastPathSegment}")
+    fileRef
+        .putFile(uri)
+        .addOnSuccessListener {
+          fileRef.downloadUrl
+              .addOnSuccessListener { downloadUri ->
+                onSuccess(downloadUri.toString()) // Return the download URL
+              }
+              .addOnFailureListener { exception -> onFailure(exception) }
+        }
+        .addOnFailureListener { exception -> onFailure(exception) }
   }
 }

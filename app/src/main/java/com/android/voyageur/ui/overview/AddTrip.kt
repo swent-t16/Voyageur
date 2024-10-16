@@ -36,223 +36,206 @@ fun AddTripScreen(
     tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory),
     navigationActions: NavigationActions
 ) {
-    var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var creator by remember { mutableStateOf("") }
-    var participants by remember { mutableStateOf("") }
-    var locations by remember { mutableStateOf("") }
-    var startDate by remember { mutableStateOf("") }
-    var endDate by remember { mutableStateOf("") }
-    var tripType by remember { mutableStateOf(TripType.BUSINESS) }
-    var imageUri by remember { mutableStateOf<Uri?>(Uri.EMPTY) }
+  var name by remember { mutableStateOf("") }
+  var description by remember { mutableStateOf("") }
+  var creator by remember { mutableStateOf("") }
+  var participants by remember { mutableStateOf("") }
+  var locations by remember { mutableStateOf("") }
+  var startDate by remember { mutableStateOf("") }
+  var endDate by remember { mutableStateOf("") }
+  var tripType by remember { mutableStateOf(TripType.BUSINESS) }
+  var imageUri by remember { mutableStateOf("") }
 
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri -> uri?.let { imageUri = it } }
-    )
+  val galleryLauncher =
+      rememberLauncherForActivityResult(
+          contract = ActivityResultContracts.GetContent(),
+          onResult = { uri -> uri?.let { imageUri = it.toString() } })
 
-    val context = LocalContext.current
-    val imageId = R.drawable.default_trip_image
+  val context = LocalContext.current
+  val imageId = R.drawable.default_trip_image
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Create a New Trip") },
-                navigationIcon = {
-                    IconButton(onClick = { navigationActions.goBack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (imageUri != Uri.EMPTY) {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = imageUri),
-                        contentDescription = "Selected image",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(5.dp))
-                    )
+  fun createTripWithImage(imageUrl: String) {
+    val calendar = GregorianCalendar()
+    val startParts = startDate.split("/")
+    val endParts = endDate.split("/")
+    if (startParts.size == 3 && endParts.size == 3) {
+      try {
+        calendar.set(startParts[2].toInt(), startParts[1].toInt() - 1, startParts[0].toInt())
+        val startTimestamp = Timestamp(calendar.time)
+        calendar.set(endParts[2].toInt(), endParts[1].toInt() - 1, endParts[0].toInt())
+        val endTimestamp = Timestamp(calendar.time)
+
+        val trip =
+            Trip(
+                id = tripsViewModel.getNewTripId(),
+                creator = creator,
+                participants = participants.split(",").map { it.trim() },
+                description = description,
+                name = name,
+                locations =
+                    locations.split(";").map { locationString ->
+                      val parts = locationString.split(",").map { it.trim() }
+                      if (parts.size >= 2) {
+                        Location(
+                            country = parts[0],
+                            city = parts[1],
+                            county = parts.getOrNull(2),
+                            zip = parts.getOrNull(3))
+                      } else {
+                        Location(country = "Unknown", city = "Unknown", county = null, zip = null)
+                      }
+                    },
+                startDate = startTimestamp,
+                endDate = endTimestamp,
+                activities = listOf(),
+                type = tripType,
+                imageUri = imageUrl // Save the Firebase Storage URL
+                )
+        tripsViewModel.createTrip(trip)
+        navigationActions.goBack()
+      } catch (e: NumberFormatException) {
+        Toast.makeText(context, "Invalid date format", Toast.LENGTH_SHORT).show()
+      }
+    } else {
+      Toast.makeText(context, "Please enter valid start/end dates", Toast.LENGTH_SHORT).show()
+    }
+  }
+
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Create a New Trip") },
+            navigationIcon = {
+              IconButton(onClick = { navigationActions.goBack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                    contentDescription = "Back")
+              }
+            })
+      }) { paddingValues ->
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+          Column(
+              modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
+              verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (imageUri != "") {
+                  Image(
+                      painter = rememberAsyncImagePainter(model = imageUri),
+                      contentDescription = "Selected image",
+                      contentScale = ContentScale.Crop,
+                      modifier =
+                          Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(5.dp)))
                 } else {
-                    Image(
-                        painter = painterResource(id = imageId),
-                        contentDescription = "Default trip image",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(5.dp))
-                    )
+                  Image(
+                      painter = painterResource(id = imageId),
+                      contentDescription = "Default trip image",
+                      contentScale = ContentScale.Crop,
+                      modifier =
+                          Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(5.dp)))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
                     onClick = { galleryLauncher.launch("image/*") },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Select Image from Gallery")
-                }
+                    modifier = Modifier.fillMaxWidth()) {
+                      Text("Select Image from Gallery")
+                    }
 
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Trip") },
                     placeholder = { Text("Name the trip") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    modifier = Modifier.fillMaxWidth())
 
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text("Description") },
                     placeholder = { Text("Describe the trip") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    modifier = Modifier.fillMaxWidth())
 
                 OutlinedTextField(
                     value = creator,
                     onValueChange = { creator = it },
                     label = { Text("Creator") },
                     placeholder = { Text("Assign a creator") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    modifier = Modifier.fillMaxWidth())
 
                 OutlinedTextField(
                     value = participants,
                     onValueChange = { participants = it },
                     label = { Text("Participants") },
                     placeholder = { Text("Name the participants, comma-separated") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    modifier = Modifier.fillMaxWidth())
 
                 OutlinedTextField(
                     value = locations,
                     onValueChange = { locations = it },
                     label = { Text("Locations") },
                     placeholder = { Text("Name the locations, comma-separated") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    modifier = Modifier.fillMaxWidth())
 
                 OutlinedTextField(
                     value = startDate,
                     onValueChange = { startDate = it },
                     label = { Text("Start Date (DD/MM/YYYY)") },
                     placeholder = { Text("19/01/1975") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    modifier = Modifier.fillMaxWidth())
 
                 OutlinedTextField(
                     value = endDate,
                     onValueChange = { endDate = it },
                     label = { Text("End Date (DD/MM/YYYY)") },
                     placeholder = { Text("19/01/1975") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    modifier = Modifier.fillMaxWidth())
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    RadioButton(
-                        selected = tripType == TripType.BUSINESS,
-                        onClick = { tripType = TripType.BUSINESS }
-                    )
-                    Text("Business")
-                    RadioButton(
-                        selected = tripType == TripType.TOURISM,
-                        onClick = { tripType = TripType.TOURISM }
-                    )
-                    Text("Tourism")
-                }
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                      RadioButton(
+                          selected = tripType == TripType.BUSINESS,
+                          onClick = { tripType = TripType.BUSINESS })
+                      Text("Business")
+                      RadioButton(
+                          selected = tripType == TripType.TOURISM,
+                          onClick = { tripType = TripType.TOURISM })
+                      Text("Tourism")
+                    }
 
                 Spacer(modifier = Modifier.height(16.dp))
-            }
+              }
 
-            Button(
-                onClick = {
-                    val calendar = GregorianCalendar()
-                    val startParts = startDate.split("/")
-                    val endParts = endDate.split("/")
-                    if (startParts.size == 3 && endParts.size == 3) {
-                        try {
-                            calendar.set(
-                                startParts[2].toInt(), startParts[1].toInt() - 1, startParts[0].toInt()
-                            )
-                            val startTimestamp = Timestamp(calendar.time)
-                            calendar.set(
-                                endParts[2].toInt(), endParts[1].toInt() - 1, endParts[0].toInt()
-                            )
-                            val endTimestamp = Timestamp(calendar.time)
+          Button(
+              onClick = {
+                if (imageUri.isNotBlank()) {
+                  // Convert the string back to a Uri for Firebase Storage upload
+                  val imageUriParsed = Uri.parse(imageUri)
 
-                            val trip = Trip(
-                                id = tripsViewModel.getNewTripId(),
-                                creator = creator,
-                                participants = participants.split(",").map { it.trim() },
-                                description = description,
-                                name = name,
-                                locations = locations.split(";").map { locationString ->
-                                    val parts = locationString.split(",").map { it.trim() }
-                                    if (parts.size >= 2) {
-                                        Location(
-                                            country = parts[0],
-                                            city = parts[1],
-                                            county = parts.getOrNull(2),
-                                            zip = parts.getOrNull(3)
-                                        )
-                                    } else {
-                                        Location(
-                                            country = "Unknown",
-                                            city = "Unknown",
-                                            county = null,
-                                            zip = null
-                                        )
-                                    }
-                                },
-                                startDate = startTimestamp,
-                                endDate = endTimestamp,
-                                activities = listOf(),
-                                type = tripType,
-                                imageUri = imageUri?.toString() // Save the imageUri as a string
-                            )
-                            tripsViewModel.createTrip(trip)
-                            navigationActions.goBack()
-                        } catch (e: NumberFormatException) {
-                            Toast.makeText(context, "Invalid date format", Toast.LENGTH_SHORT).show()
-                        }
-                    } else {
+                  tripsViewModel.uploadImageToFirebase(
+                      uri = imageUriParsed,
+                      onSuccess = { downloadUrl ->
+                        // Proceed with creating the trip using the Firebase download URL
+                        createTripWithImage(downloadUrl)
+                      },
+                      onFailure = { exception ->
                         Toast.makeText(
-                            context,
-                            "Please enter valid start/end dates",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                },
-                enabled = name.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank(),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
+                                context,
+                                "Failed to upload image: ${exception.message}",
+                                Toast.LENGTH_SHORT)
+                            .show()
+                      })
+                } else {
+                  // If no image is selected, proceed with creating the trip with a default image
+                  // URL
+                  createTripWithImage(
+                      "android.resource://${context.packageName}/${R.drawable.default_trip_image}")
+                }
+              },
+              enabled = name.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank(),
+              modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                 Text("Save Trip")
-            }
+              }
         }
-    }
+      }
 }

@@ -184,6 +184,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.test.core.ktx)
     implementation(libs.androidx.navigation.testing)
+    implementation(libs.firebase.storage.ktx)
 
     // Testing Unit
     testImplementation(libs.junit) {

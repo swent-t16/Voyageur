@@ -1,6 +1,5 @@
 package com.android.voyageur.model.trip
 
-import android.net.Uri
 import com.android.voyageur.model.location.Location
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
@@ -16,7 +15,7 @@ data class Trip(
     val endDate: Timestamp = Timestamp.now(),
     val activities: List<Any> = emptyList(), // TODO : replace this with activity model
     val type: TripType = TripType.TOURISM,
-    val imageUri: String? = Uri.EMPTY.toString() // default image for trip
+    val imageUri: String = "" // default image for trip
 ) {
   // Exclude from Firestore serialization
   @get:Exclude

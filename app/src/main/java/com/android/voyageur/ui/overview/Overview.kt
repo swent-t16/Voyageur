@@ -1,6 +1,5 @@
 package com.android.voyageur.ui.overview
 
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -93,33 +92,25 @@ fun TripItem(trip: Trip) {
   Card(
       modifier = Modifier.fillMaxSize().testTag("cardItem"),
       content = {
-          Row() {
-              if (trip.imageUri != Uri.EMPTY.toString()) {
-                  Image(
-                      painter = rememberAsyncImagePainter(model = trip.imageUri),
-                      contentDescription = "Selected image",
-                      contentScale = ContentScale.Crop,
-                      modifier = Modifier
-                          .width(120.dp)
-                          .height(217.dp)
-                  )
-              } else {
-                  Image(
-                      painter = painterResource(id = R.drawable.default_trip_image),
-                      contentDescription = "Trip image overview",
-                      contentScale = ContentScale.Crop,
-                      modifier = Modifier
-                          .width(120.dp)
-                          .height(217.dp)
-                  )
-              }
-              Text(
-                  text = trip.name,
-                  modifier = Modifier.padding(16.dp),
-                  fontSize = 20.sp,
-                  textAlign = TextAlign.Center
-              )
+        Row {
+          if (trip.imageUri.isNotEmpty()) {
+            Image(
+                painter = rememberAsyncImagePainter(model = trip.imageUri),
+                contentDescription = "Selected image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.width(120.dp).height(217.dp))
+          } else {
+            Image(
+                painter = painterResource(id = R.drawable.default_trip_image),
+                contentDescription = "Trip image overview",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.width(120.dp).height(217.dp))
           }
-      }
-  )
+          Text(
+              text = trip.name,
+              modifier = Modifier.padding(16.dp),
+              fontSize = 20.sp,
+              textAlign = TextAlign.Center)
+        }
+      })
 }
