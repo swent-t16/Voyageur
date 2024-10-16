@@ -226,10 +226,7 @@ fun AddTripScreen(
                             .show()
                       })
                 } else {
-                  // If no image is selected, proceed with creating the trip with a default image
-                  // URL
-                  createTripWithImage(
-                      "android.resource://${context.packageName}/${R.drawable.default_trip_image}")
+                  createTripWithImage("")
                 }
               },
               enabled = name.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank(),
