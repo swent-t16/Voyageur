@@ -28,17 +28,18 @@ import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTripScreen(
     tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory),
-    navigationActions: NavigationActions
+    navigationActions: NavigationActions,
 ) {
   var name by remember { mutableStateOf("") }
   var description by remember { mutableStateOf("") }
-  var creator by remember { mutableStateOf("") }
   var participants by remember { mutableStateOf("") }
   var locations by remember { mutableStateOf("") }
   var startDate by remember { mutableStateOf("") }
@@ -109,7 +110,8 @@ fun AddTripScreen(
               IconButton(onClick = { navigationActions.goBack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = "Back")
+                    contentDescription = "Back",
+                )
               }
             })
       }) { paddingValues ->
@@ -235,4 +237,5 @@ fun AddTripScreen(
               }
         }
       }
+
 }

@@ -8,12 +8,14 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.util.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
@@ -31,6 +33,7 @@ class TripRepositoryFirebaseTest {
   @Mock private lateinit var mockCollectionReference: CollectionReference
 
   @Mock private lateinit var mockQuerySnapshot: QuerySnapshot
+  @Mock private lateinit var mockQuery: Query
 
   private lateinit var tripRepository: TripRepositoryFirebase
 
@@ -62,8 +65,10 @@ class TripRepositoryFirebaseTest {
 
     `when`(mockFirestore.collection(any())).thenReturn(mockCollectionReference)
     `when`(mockCollectionReference.document(any())).thenReturn(mockDocumentReference)
-    `when`(mockCollectionReference.document()).thenReturn(mockDocumentReference)
+    `when`(mockCollectionReference.whereEqualTo(eq("creator"), any())).thenReturn(mockQuery)
 
+    `when`(mockCollectionReference.document()).thenReturn(mockDocumentReference)
+    `when`(mockQuery.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
     tripRepository = TripRepositoryFirebase(mockFirestore)
 
     `when`(mockFirestore.collection(any())).thenReturn(mockCollectionReference)
@@ -81,14 +86,20 @@ class TripRepositoryFirebaseTest {
   @Test
   fun getTrips_callsDocuments() {
     `when`(mockCollectionReference.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
+    `when`(mockQuery.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
+
     `when`(mockQuerySnapshot.documents).thenReturn(listOf())
 
     tripRepository.getTrips(
+        creator = "creator",
         onSuccess = {},
         onFailure = { fail("Failure callback should not be called") },
     )
 
-    verify(mockCollectionReference, timeout(100)).get() // Verify that get() was called
+    verify(mockCollectionReference, timeout(100)).whereEqualTo("creator", "creator")
+
+    // Verify that get() was called on the query
+    verify(mockQuery, timeout(100)).get()
   }
 
   @Test
@@ -97,6 +108,7 @@ class TripRepositoryFirebaseTest {
         .thenReturn(Tasks.forException(Exception("Test exception")))
 
     tripRepository.getTrips(
+        creator = "creator",
         onSuccess = { fail("Success callback should not be called") },
         onFailure = { assert(it.message == "Test exception") },
     )
