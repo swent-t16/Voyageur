@@ -222,6 +222,9 @@ dependencies {
     implementation("com.google.maps.android:maps-compose-utils:$mapsComposeVersion")
     // Google Maps Compose widgets library
     implementation("com.google.maps.android:maps-compose-widgets:$mapsComposeVersion")
+
+    //  Coil in order to display images
+    implementation("io.coil-kt:coil-compose:2.4.0")
 }
 
 tasks.withType<Test> {

@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.overview
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +29,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
+import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
@@ -91,14 +94,25 @@ fun TripItem(trip: Trip) {
       modifier = Modifier.fillMaxSize().testTag("cardItem"),
       content = {
           Row() {
-              Image(
-                  painter = painterResource(id = trip.imageId),
-                  contentDescription = "Trip image overview",
-                  contentScale = ContentScale.Crop,
-                  modifier = Modifier
-                      .width(120.dp)
-                      .height(217.dp)
-              )
+              if (trip.imageUri != Uri.EMPTY.toString()) {
+                  Image(
+                      painter = rememberAsyncImagePainter(model = trip.imageUri),
+                      contentDescription = "Selected image",
+                      contentScale = ContentScale.Crop,
+                      modifier = Modifier
+                          .width(120.dp)
+                          .height(217.dp)
+                  )
+              } else {
+                  Image(
+                      painter = painterResource(id = R.drawable.default_trip_image),
+                      contentDescription = "Trip image overview",
+                      contentScale = ContentScale.Crop,
+                      modifier = Modifier
+                          .width(120.dp)
+                          .height(217.dp)
+                  )
+              }
               Text(
                   text = trip.name,
                   modifier = Modifier.padding(16.dp),

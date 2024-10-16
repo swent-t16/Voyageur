@@ -1,5 +1,6 @@
 package com.android.voyageur.model.trip
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.google.firebase.Firebase
@@ -27,7 +28,11 @@ class TripsViewModel(private val tripsRepository: TripRepository) : ViewModel() 
               Timestamp.now(),
               Timestamp.now(),
               emptyList(),
-              TripType.TOURISM))
+              TripType.TOURISM,
+              Uri.EMPTY.toString()
+          )
+      )
+
   var selectedTrip: StateFlow<Trip> = _selectedTrip
 
   init {
