@@ -2,6 +2,7 @@ package com.android.voyageur.ui.overview
 
 import android.icu.util.GregorianCalendar
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
@@ -27,9 +30,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.voyageur.R
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
@@ -51,6 +59,7 @@ fun AddTripScreen(
   var startDate by remember { mutableStateOf("") }
   var endDate by remember { mutableStateOf("") }
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
+    var imageId by remember { mutableStateOf(R.drawable.default_trip_image) }
 
   val context = LocalContext.current
 
@@ -71,6 +80,18 @@ fun AddTripScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp).padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+            Image(
+                painter = painterResource(id = imageId),
+                contentDescription = "Trip image",
+                contentScale = ContentScale.Crop, //  Center crop the image into the available space
+                modifier =
+                Modifier.fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(5.dp, 5.dp, 5.dp, 5.dp))
+                    .testTag("googleLogo")
+
+            )
               OutlinedTextField(
                   value = name,
                   onValueChange = { name = it },
