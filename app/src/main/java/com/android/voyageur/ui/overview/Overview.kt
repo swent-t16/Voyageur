@@ -84,7 +84,6 @@ fun OverviewScreen(
 
 @Composable
 fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: NavigationActions) {
-  // TODO: add a clickable once we implement the Schedule screens
   Card(
       onClick = {
         navigationActions.navigateTo(Screen.BY_DAY)
