@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.overview
 
+import android.annotation.SuppressLint
 import android.icu.util.GregorianCalendar
 import android.net.Uri
 import android.widget.Toast
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -32,11 +34,12 @@ import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTripScreen(
     tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory),
-    navigationActions: NavigationActions,
+    navigationActions: NavigationActions
 ) {
   var name by remember { mutableStateOf("") }
   var description by remember { mutableStateOf("") }
@@ -74,7 +77,7 @@ fun AddTripScreen(
             Trip(
                 id = tripsViewModel.getNewTripId(),
                 creator = Firebase.auth.uid.orEmpty(),
-                participants = participants.split(",").map { it.trim() },
+                participants = participantList,
                 description = description,
                 name = name,
                 locations =
@@ -107,10 +110,10 @@ fun AddTripScreen(
   }
 
   Scaffold(
-      // modifier = Modifier.testTag("addTrip"),
+      modifier = Modifier.testTag("addTrip"),
       topBar = {
         TopAppBar(
-            title = { Text("Create a New Trip") },
+            title = { Text("Create a New Trip", Modifier.testTag("addTripTitle")) },
             navigationIcon = {
               IconButton(onClick = { navigationActions.goBack() }) {
                 Icon(
