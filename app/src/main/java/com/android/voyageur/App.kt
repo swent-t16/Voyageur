@@ -16,6 +16,9 @@ import com.android.voyageur.ui.overview.AddTripScreen
 import com.android.voyageur.ui.overview.OverviewScreen
 import com.android.voyageur.ui.profile.ProfileScreen
 import com.android.voyageur.ui.search.SearchScreen
+import com.android.voyageur.ui.trip.activities.ActivitiesScreen
+import com.android.voyageur.ui.trip.schedule.ByDayScreen
+import com.android.voyageur.ui.trip.settings.SettingsScreen
 
 @Composable
 fun VoyageurApp() {
@@ -42,13 +45,22 @@ fun VoyageurApp() {
         startDestination = Screen.SEARCH,
         route = Route.SEARCH,
     ) {
-      composable(Screen.SEARCH) { SearchScreen(navigationActions) }
+      composable(Screen.SEARCH) { SearchScreen(userViewModel, navigationActions) }
     }
     navigation(
         startDestination = Screen.PROFILE,
         route = Route.PROFILE,
     ) {
       composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigationActions) }
+    }
+    navigation(startDestination = Screen.BY_DAY, route = Route.SCHEDULE) {
+      composable(Screen.BY_DAY) { ByDayScreen(tripsViewModel, navigationActions) }
+    }
+    navigation(startDestination = Screen.ACTIVITIES, route = Route.ACTIVITIES) {
+      composable(Screen.ACTIVITIES) { ActivitiesScreen(tripsViewModel, navigationActions) }
+    }
+    navigation(startDestination = Screen.SETTINGS, route = Route.SETTINGS) {
+      composable(Screen.SETTINGS) { SettingsScreen(tripsViewModel, navigationActions) }
     }
   }
 }
