@@ -80,7 +80,7 @@ fun OverviewScreen(
       },
       content = { pd ->
         Column(
-            modifier = Modifier.padding(pd),
+            modifier = Modifier.padding(pd).testTag("overviewColumn"),
         ) {
           if (trips.isEmpty()) {
             Text(
@@ -124,7 +124,7 @@ fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: Navi
       shape = RoundedCornerShape(16.dp),
       content = {
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().testTag("cardRow"),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(3.dp)) {
               // modifier.weight(1f) is used here to set the image for 1/3 of the card
@@ -133,13 +133,13 @@ fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: Navi
                     painter = rememberAsyncImagePainter(model = trip.imageUri),
                     contentDescription = "Selected image",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.width(120.dp).height(217.dp))
+                    modifier = Modifier.width(120.dp).height(217.dp).testTag("tripImage"))
               } else {
                 Image(
                     painter = painterResource(id = R.drawable.default_trip_image),
                     contentDescription = "Trip image overview",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.width(120.dp).height(217.dp))
+                    modifier = Modifier.width(120.dp).height(217.dp).testTag("defaultTripImage"))
               } // modifier.weight(2f) is used here to set the column to 2/3 of the card
               Column(
                   modifier = Modifier.fillMaxSize().padding(16.dp).weight(2f),

@@ -12,6 +12,7 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
+import com.google.firebase.Timestamp
 import junit.framework.TestCase.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -75,6 +76,7 @@ class OverviewScreenTest {
 
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("cardRow", useUnmergedTree = true).assertIsDisplayed()
     // Checks that "and .. more" text is displayed
     composeTestRule
         .onNodeWithTag("additionalParticipantsText", useUnmergedTree = true)
@@ -164,5 +166,45 @@ class OverviewScreenTest {
     assertEquals("No participants.", result0)
     assertEquals("1 Participant:", result1)
     assertEquals("2 Participants:", result2)
+  }
+
+  @Test
+  fun tripWithImageDisplaysImage() {
+    val mockTrip =
+        Trip(
+            id = "1",
+            creator = "Andreea",
+            participants = listOf("Alex"),
+            name = "Paris Trip",
+            imageUri = "https://example.com/image.jpg",
+            startDate = Timestamp.now(),
+            endDate = Timestamp.now())
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(listOf(mockTrip))
+    }
+    tripViewModel.getTrips()
+
+    composeTestRule.onNodeWithTag("tripImage", useUnmergedTree = true).assertExists()
+    composeTestRule.onNodeWithTag("defaultTripImage").assertDoesNotExist()
+  }
+
+  @Test
+  fun tripWithoutImageDisplaysDefaultImage() {
+    val mockTrip =
+        Trip(
+            id = "1",
+            creator = "Andreea",
+            participants = listOf("Alex"),
+            name = "Paris Trip",
+            imageUri = "",
+            startDate = Timestamp.now(),
+            endDate = Timestamp.now())
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(listOf(mockTrip))
+    }
+    tripViewModel.getTrips()
+
+    composeTestRule.onNodeWithTag("defaultTripImage", useUnmergedTree = true).assertExists()
+    composeTestRule.onNodeWithTag("tripImage").assertDoesNotExist()
   }
 }
