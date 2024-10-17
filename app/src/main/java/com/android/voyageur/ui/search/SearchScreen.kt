@@ -72,7 +72,7 @@ fun SearchScreen(
                           .padding(8.dp)
                           .testTag("searchBar"),
                   verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Search, contentDescription = null)
+                    Icon(Icons.Default.Search, contentDescription = "Search Icon")
                     Spacer(modifier = Modifier.width(8.dp))
                     BasicTextField(
                         value = searchQuery,
@@ -85,7 +85,7 @@ fun SearchScreen(
                     )
                     Icon(
                         Icons.Default.List,
-                        contentDescription = null,
+                        contentDescription = "Icon to show filters once clicked",
                         modifier =
                             Modifier.clickable { showFilters = !showFilters }.testTag("filterIcon"))
                   }
@@ -168,7 +168,7 @@ fun UserSearchResultItem(user: User, modifier: Modifier = Modifier) {
   Row(modifier = modifier.fillMaxWidth().padding(vertical = 8.dp)) {
     Image(
         painter = rememberAsyncImagePainter(model = user.profilePicture),
-        contentDescription = null,
+        contentDescription = "${user.name}'s profile picture",
         modifier =
             Modifier.size(60.dp)
                 .background(Color.LightGray, shape = MaterialTheme.shapes.small)
