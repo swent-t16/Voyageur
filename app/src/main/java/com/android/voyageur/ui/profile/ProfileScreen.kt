@@ -48,12 +48,16 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
           currentUser.displayName?.let { name ->
             userViewModel.updateUser(
                 userViewModel.user.value?.apply { this.name = name }
-                    ?: User(id = currentUser.uid, name = name))
+                    ?: User(id = currentUser.uid, name = name, email = currentUser.email ?: ""))
           }
           currentUser.photoUrl?.let { photoUrl ->
             userViewModel.updateUser(
                 userViewModel.user.value?.apply { this.profilePicture = photoUrl.toString() }
-                    ?: User(id = currentUser.uid, profilePicture = photoUrl.toString()))
+                    ?: User(
+                        id = currentUser.uid,
+                        name = currentUser.displayName ?: "",
+                        profilePicture = photoUrl.toString(),
+                        email = currentUser.email ?: ""))
           }
         }
       }
