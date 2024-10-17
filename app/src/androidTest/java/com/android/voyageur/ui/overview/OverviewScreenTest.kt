@@ -74,12 +74,12 @@ class OverviewScreenTest {
 
   @Test
   fun clickingTripCardNavigatesToTripDetails() {
-    val mockTrip = Trip(
-      id = "1",
-      creator = "Andreea",
-      participants = listOf("Alex", "Mihai"),
-      name = "Paris Trip"
-    )
+    val mockTrip =
+        Trip(
+            id = "1",
+            creator = "Andreea",
+            participants = listOf("Alex", "Mihai"),
+            name = "Paris Trip")
     val mockTrips = listOf(mockTrip)
 
     // Simulate getting the mock trip from the repository
