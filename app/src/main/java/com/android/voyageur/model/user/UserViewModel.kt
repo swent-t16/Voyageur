@@ -2,20 +2,30 @@ package com.android.voyageur.model.user
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
   private val _user = MutableStateFlow<User?>(null)
   val user: StateFlow<User?> = _user
+
+  private val _query = MutableStateFlow("")
+  val query: StateFlow<String> = _query
 
   private val _searchedUsers = MutableStateFlow<List<User>>(emptyList())
   val searchedUsers: StateFlow<List<User>> = _searchedUsers
 
   private val _isLoading = MutableStateFlow(false)
   val isLoading: StateFlow<Boolean> = _isLoading
+
+  // Job to manage debounce coroutine
+  private var debounceJob: Job? = null
 
   init {
     // Load the currently authenticated user if available
@@ -73,6 +83,20 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
   fun signOutUser() {
     FirebaseAuth.getInstance().signOut()
     _user.value = null
+  }
+
+  fun setQuery(query: String) {
+    // Cancel any existing debounce job
+    debounceJob?.cancel()
+    _query.value = query
+    // Launch a new debounce job
+    debounceJob =
+        viewModelScope.launch {
+          delay(200) // debounce for 2s
+          if (query.isNotEmpty()) {
+            searchUsers(query)
+          }
+        }
   }
 
   fun searchUsers(query: String) {
