@@ -34,8 +34,6 @@ class TripsViewModel(
               emptyList(),
               TripType.TOURISM,
               ""))
-          ),
-      )
 
   var selectedTrip: StateFlow<Trip> = _selectedTrip
 

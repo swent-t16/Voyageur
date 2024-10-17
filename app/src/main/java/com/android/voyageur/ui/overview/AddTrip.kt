@@ -69,7 +69,7 @@ fun AddTripScreen(
         val trip =
             Trip(
                 id = tripsViewModel.getNewTripId(),
-                creator = creator,
+                creator = Firebase.auth.uid.orEmpty(),
                 participants = participants.split(",").map { it.trim() },
                 description = description,
                 name = name,
@@ -158,13 +158,6 @@ fun AddTripScreen(
                     modifier = Modifier.fillMaxWidth())
 
                 OutlinedTextField(
-                    value = creator,
-                    onValueChange = { creator = it },
-                    label = { Text("Creator") },
-                    placeholder = { Text("Assign a creator") },
-                    modifier = Modifier.fillMaxWidth())
-
-                OutlinedTextField(
                     value = participants,
                     onValueChange = { participants = it },
                     label = { Text("Participants") },
@@ -237,5 +230,4 @@ fun AddTripScreen(
               }
         }
       }
-
 }
