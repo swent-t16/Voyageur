@@ -29,7 +29,7 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
   val isLoading by userViewModel.isLoading.collectAsState()
 
   // Firebase current user
-  val currentUser = FirebaseAuth.getInstance().currentUser
+  var currentUser = FirebaseAuth.getInstance().currentUser
 
   var isSigningOut by remember { mutableStateOf(false) }
 
@@ -37,6 +37,7 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
   if (isSigningOut) {
     LaunchedEffect(isSigningOut) {
       userViewModel.signOutUser()
+      currentUser = null
       delay(300)
       navigationActions.navigateTo(Route.AUTH)
     }
@@ -44,16 +45,20 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
     if (currentUser != null) {
       if (user == null && !isLoading) {
         // Load user data if not already loaded
-        userViewModel.loadUser(currentUser.uid, currentUser).also {
-          currentUser.displayName?.let { name ->
+        userViewModel.loadUser(currentUser!!.uid, currentUser).also {
+          currentUser!!.displayName?.let { name ->
             userViewModel.updateUser(
                 userViewModel.user.value?.apply { this.name = name }
-                    ?: User(id = currentUser.uid, name = name))
+                    ?: User(id = currentUser!!.uid, name = name, email = currentUser!!.email ?: ""))
           }
-          currentUser.photoUrl?.let { photoUrl ->
+          currentUser!!.photoUrl?.let { photoUrl ->
             userViewModel.updateUser(
                 userViewModel.user.value?.apply { this.profilePicture = photoUrl.toString() }
-                    ?: User(id = currentUser.uid, profilePicture = photoUrl.toString()))
+                    ?: User(
+                        id = currentUser!!.uid,
+                        name = currentUser!!.displayName ?: "",
+                        profilePicture = photoUrl.toString(),
+                        email = currentUser!!.email ?: ""))
           }
         }
       }
