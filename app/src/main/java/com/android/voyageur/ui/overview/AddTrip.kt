@@ -21,7 +21,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
@@ -51,13 +50,13 @@ fun AddTripScreen(
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
   var imageUri by remember { mutableStateOf("") }
 
+  val context = LocalContext.current
+  val imageId = R.drawable.default_trip_image
+
   val galleryLauncher =
       rememberLauncherForActivityResult(
           contract = ActivityResultContracts.GetContent(),
           onResult = { uri -> uri?.let { imageUri = it.toString() } })
-
-  val context = LocalContext.current
-  val imageId = R.drawable.default_trip_image
 
   fun createTripWithImage(imageUrl: String) {
     val calendar = GregorianCalendar()
@@ -69,11 +68,12 @@ fun AddTripScreen(
         val startTimestamp = Timestamp(calendar.time)
         calendar.set(endParts[2].toInt(), endParts[1].toInt() - 1, endParts[0].toInt())
         val endTimestamp = Timestamp(calendar.time)
-        // Add this to avoid having an empty string as a participant
+
         var participantList = emptyList<String>()
         if (participants.isNotEmpty()) {
           participantList = participants.split(",").map { it.trim() }.toList()
         }
+
         val trip =
             Trip(
                 id = tripsViewModel.getNewTripId(),
@@ -98,8 +98,7 @@ fun AddTripScreen(
                 endDate = endTimestamp,
                 activities = listOf(),
                 type = tripType,
-                imageUri = imageUrl // Save the Firebase Storage URL
-                )
+                imageUri = imageUrl)
         tripsViewModel.createTrip(trip)
         navigationActions.goBack()
       } catch (e: NumberFormatException) {
@@ -116,12 +115,13 @@ fun AddTripScreen(
         TopAppBar(
             title = { Text("Create a New Trip", Modifier.testTag("addTripTitle")) },
             navigationIcon = {
-              IconButton(onClick = { navigationActions.goBack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = "Back",
-                )
-              }
+              IconButton(
+                  onClick = { navigationActions.goBack() }, Modifier.testTag("goBackButton")) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                        contentDescription = "Back",
+                    )
+                  }
             })
       }) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
@@ -157,53 +157,55 @@ fun AddTripScreen(
                     onValueChange = { name = it },
                     label = { Text("Trip") },
                     placeholder = { Text("Name the trip") },
-                    modifier = Modifier.fillMaxWidth())
+                    modifier = Modifier.fillMaxWidth().testTag("inputTripTitle"))
 
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text("Description") },
                     placeholder = { Text("Describe the trip") },
-                    modifier = Modifier.fillMaxWidth())
+                    modifier = Modifier.fillMaxWidth().testTag("inputTripDescription"))
 
                 OutlinedTextField(
                     value = participants,
                     onValueChange = { participants = it },
                     label = { Text("Participants") },
                     placeholder = { Text("Name the participants, comma-separated") },
-                    modifier = Modifier.fillMaxWidth())
+                    modifier = Modifier.fillMaxWidth().testTag("inputTripParticipants"))
 
                 OutlinedTextField(
                     value = locations,
                     onValueChange = { locations = it },
                     label = { Text("Locations") },
                     placeholder = { Text("Name the locations, comma-separated") },
-                    modifier = Modifier.fillMaxWidth())
+                    modifier = Modifier.fillMaxWidth().testTag("inputTripLocations"))
 
                 OutlinedTextField(
                     value = startDate,
                     onValueChange = { startDate = it },
                     label = { Text("Start Date (DD/MM/YYYY)") },
                     placeholder = { Text("19/01/1975") },
-                    modifier = Modifier.fillMaxWidth())
+                    modifier = Modifier.fillMaxWidth().testTag("inputStartDate"))
 
                 OutlinedTextField(
                     value = endDate,
                     onValueChange = { endDate = it },
                     label = { Text("End Date (DD/MM/YYYY)") },
                     placeholder = { Text("19/01/1975") },
-                    modifier = Modifier.fillMaxWidth())
+                    modifier = Modifier.fillMaxWidth().testTag("inputEndDate"))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                       RadioButton(
+                          onClick = { tripType = TripType.BUSINESS },
                           selected = tripType == TripType.BUSINESS,
-                          onClick = { tripType = TripType.BUSINESS })
+                          modifier = Modifier.testTag("tripTypeBusiness"))
                       Text("Business")
                       RadioButton(
+                          onClick = { tripType = TripType.TOURISM },
                           selected = tripType == TripType.TOURISM,
-                          onClick = { tripType = TripType.TOURISM })
+                          modifier = Modifier.testTag("tripTypeTourism"))
                       Text("Tourism")
                     }
 
@@ -213,15 +215,10 @@ fun AddTripScreen(
           Button(
               onClick = {
                 if (imageUri.isNotBlank()) {
-                  // Convert the string back to a Uri for Firebase Storage upload
                   val imageUriParsed = Uri.parse(imageUri)
-
                   tripsViewModel.uploadImageToFirebase(
                       uri = imageUriParsed,
-                      onSuccess = { downloadUrl ->
-                        // Proceed with creating the trip using the Firebase download URL
-                        createTripWithImage(downloadUrl)
-                      },
+                      onSuccess = { downloadUrl -> createTripWithImage(downloadUrl) },
                       onFailure = { exception ->
                         Toast.makeText(
                                 context,
@@ -234,7 +231,7 @@ fun AddTripScreen(
                 }
               },
               enabled = name.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank(),
-              modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+              modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("tripSave")) {
                 Text("Save Trip")
               }
         }
