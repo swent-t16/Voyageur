@@ -35,6 +35,13 @@ open class TripsViewModel(
         }
   }
 
+  private val _tripType = MutableStateFlow(TripType.BUSINESS)
+  val tripType: StateFlow<TripType> = _tripType.asStateFlow()
+
+  fun setTripType(type: TripType) {
+    _tripType.value = type
+  }
+
   fun selectTrip(trip: Trip) {
     _selectedTrip.value = trip
   }
