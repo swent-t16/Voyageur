@@ -148,12 +148,16 @@ fun AddTripScreen(
                         calendar.set(
                             endParts[2].toInt(), endParts[1].toInt() - 1, endParts[0].toInt())
                         val endTimestamp = Timestamp(calendar.time)
-
+                        var participantList = emptyList<String>()
+                        // This ensures a participant is not added as an empty string
+                        if (participants.isNotEmpty()) {
+                          participantList = participants.split(",").map { it.trim() }.toList()
+                        }
                         val trip =
                             Trip(
                                 id = tripsViewModel.getNewTripId(),
                                 creator = Firebase.auth.uid.orEmpty(),
-                                participants = participants.split(",").map { it.trim() }.toList(),
+                                participants = participantList,
                                 description = description,
                                 name = name,
                                 locations =
