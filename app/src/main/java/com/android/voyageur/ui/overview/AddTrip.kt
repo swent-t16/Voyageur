@@ -134,7 +134,7 @@ fun AddTripScreen(
                   }
 
               Spacer(modifier = Modifier.height(16.dp))
-
+              
               Button(
                   onClick = {
                     val calendar = GregorianCalendar()
