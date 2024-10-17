@@ -72,7 +72,7 @@ class OverviewScreenTest {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
     tripViewModel.getTrips()
-    Thread.sleep(10000)
+
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem").assertIsDisplayed()
     // Checks that "and .. more" text is displayed
