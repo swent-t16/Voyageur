@@ -122,26 +122,38 @@ fun SearchScreen(
                           .padding(16.dp)
                           .background(Color.LightGray, shape = MaterialTheme.shapes.large)
                           .testTag("searchResults")) {
-                    when (selectedFilter) {
-                      FilterType.USERS -> {
-                        items(searchedUsers) { user ->
-                          UserSearchResultItem(user, Modifier.testTag("userItem_${user.id}"))
-                        }
+                    // Display no results found message if searchedUsers is empty
+                    // Will consider locations once Places API is integrated
+                    if (searchedUsers.isEmpty()) {
+                      item {
+                        Text(
+                            text = "No results found",
+                            color = Color.Black,
+                            fontSize = 18.sp,
+                            modifier = Modifier.padding(16.dp).testTag("noResults"))
                       }
-                      FilterType.PLACES -> {
-                        item {
-                          Text(
-                              text = "Places API integration pending",
-                              color = Color.Black,
-                              fontSize = 18.sp,
-                              modifier = Modifier.padding(16.dp).testTag("placesPending"))
+                    } else {
+                      when (selectedFilter) {
+                        FilterType.USERS -> {
+                          items(searchedUsers) { user ->
+                            UserSearchResultItem(user, Modifier.testTag("userItem_${user.id}"))
+                          }
                         }
-                      }
-                      FilterType.ALL -> {
-                        items(searchedUsers) { user ->
-                          UserSearchResultItem(user, Modifier.testTag("userItem_${user.id}"))
+                        FilterType.PLACES -> {
+                          item {
+                            Text(
+                                text = "Places API integration pending",
+                                color = Color.Black,
+                                fontSize = 18.sp,
+                                modifier = Modifier.padding(16.dp).testTag("placesPending"))
+                          }
                         }
-                        // Display places once Places API is integrated
+                        FilterType.ALL -> {
+                          items(searchedUsers) { user ->
+                            UserSearchResultItem(user, Modifier.testTag("userItem_${user.id}"))
+                          }
+                          // Display places once Places API is integrated
+                        }
                       }
                     }
                   }

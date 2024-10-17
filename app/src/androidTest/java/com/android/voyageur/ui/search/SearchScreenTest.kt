@@ -96,4 +96,15 @@ class SearchScreenTest {
     // when filtering for all, the message for locations is not displayed
     composeTestRule.onNodeWithTag("placesPending").assertDoesNotExist()
   }
+
+  @Test
+  fun testNoResultsFound() {
+    val searchQuery = "test"
+    `when`(userRepository.searchUsers(eq(searchQuery), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (List<User>) -> Unit
+      onSuccess(emptyList())
+    }
+    composeTestRule.onNodeWithTag("searchTextField").performTextInput(searchQuery)
+    composeTestRule.onNodeWithTag("noResults").assertIsDisplayed()
+  }
 }
