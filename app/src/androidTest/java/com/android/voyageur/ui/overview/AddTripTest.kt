@@ -4,6 +4,8 @@ import android.icu.util.GregorianCalendar
 import android.icu.util.TimeZone
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
@@ -17,7 +19,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 class AddTripScreenTest {
@@ -37,7 +44,7 @@ class AddTripScreenTest {
     whenever(tripsViewModel.getNewTripId()).thenReturn("mockTripId")
   }
 
-  private fun <T> anyNonNull(): T = Mockito.any<T>()
+  private fun <T> anyNonNull(): T = Mockito.any()
 
   @Test
   fun addTripScreen_initialState() {
@@ -149,5 +156,37 @@ class AddTripScreenTest {
     val result = convertToTimestamp(dateString)
 
     assertNull(result)
+  }
+
+
+  @Test
+  fun addTripScreen_saveTrip() {
+    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    
+    composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("London Trip")
+    composeTestRule.onNodeWithTag("inputTripDescription").performTextInput("4 days in London")
+    composeTestRule.onNodeWithTag("inputTripCreator").performTextInput("John Doe")
+    composeTestRule.onNodeWithTag("inputTripParticipants").performTextInput("Alice, Bob")
+    composeTestRule.onNodeWithTag("inputTripLocations").performTextInput("UK, London")
+    composeTestRule.onNodeWithTag("inputStartDate").performTextInput("01/01/2024")
+    composeTestRule.onNodeWithTag("inputEndDate").performTextInput("05/01/2024")
+
+    composeTestRule.onNodeWithTag("tripSave").performClick()
+
+    val expectedTrip = Trip(
+      id = "mockTripId",
+      creator = "John Doe",
+      participants = listOf("Alice", "Bob"),
+      description = "4 days in London",
+      name = "London Trip",
+      locations = listOf(Location(country = "UK", city = "London")),
+      startDate = Timestamp(GregorianCalendar(2024, 0, 1).time),
+      endDate = Timestamp(GregorianCalendar(2024, 0, 5).time),
+      activities = listOf(),
+      type = TripType.BUSINESS
+    )
+
+    verify(tripRepository).createTrip(eq(expectedTrip), any(), any())
+    verify(navigationActions).goBack()
   }
 }
