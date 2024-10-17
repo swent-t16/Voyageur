@@ -215,8 +215,5 @@ class UserRepositoryFirebaseTest {
         }
 
         shadowOf(Looper.getMainLooper()).idle()
-
-        // You can verify that the method handles the exception, but since logging is a side effect,
-        // and Log.e is a static method, you can either ignore it or use a logging framework that can be tested.
     }
 }
