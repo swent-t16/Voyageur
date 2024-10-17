@@ -21,199 +21,163 @@ import org.robolectric.Shadows.shadowOf
 @RunWith(RobolectricTestRunner::class)
 class UserRepositoryFirebaseTest {
 
-    @Mock
-    private lateinit var mockFirestore: FirebaseFirestore
+  @Mock private lateinit var mockFirestore: FirebaseFirestore
 
-    @Mock
-    private lateinit var mockCollectionReference: CollectionReference
+  @Mock private lateinit var mockCollectionReference: CollectionReference
 
-    @Mock
-    private lateinit var mockDocumentReference: DocumentReference
+  @Mock private lateinit var mockDocumentReference: DocumentReference
 
-    @Mock
-    private lateinit var mockDocumentSnapshot: DocumentSnapshot
+  @Mock private lateinit var mockDocumentSnapshot: DocumentSnapshot
 
-    private lateinit var userRepository: UserRepositoryFirebase
+  private lateinit var userRepository: UserRepositoryFirebase
 
-    private val testUser = User(
-        id = "1",
-        name = "Test User",
-        email = "test@example.com",
-        profilePicture = "http://example.com/profile.jpg",
-        bio = "Test Bio"
-    )
+  private val testUser =
+      User(
+          id = "1",
+          name = "Test User",
+          email = "test@example.com",
+          profilePicture = "http://example.com/profile.jpg",
+          bio = "Test Bio")
 
-    @Before
-    fun setUp() {
-        MockitoAnnotations.openMocks(this)
+  @Before
+  fun setUp() {
+    MockitoAnnotations.openMocks(this)
 
-        // Initialize Firebase if necessary
-        if (FirebaseApp.getApps(ApplicationProvider.getApplicationContext()).isEmpty()) {
-            FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
-        }
-
-        userRepository = UserRepositoryFirebase(mockFirestore)
-
-        `when`(mockFirestore.collection(anyString())).thenReturn(mockCollectionReference)
-        `when`(mockCollectionReference.document(anyString())).thenReturn(mockDocumentReference)
-        `when`(mockCollectionReference.document()).thenReturn(mockDocumentReference)
+    // Initialize Firebase if necessary
+    if (FirebaseApp.getApps(ApplicationProvider.getApplicationContext()).isEmpty()) {
+      FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
     }
 
-    @Test
-    fun getNewUserId_returnsNewId() {
-        `when`(mockDocumentReference.id).thenReturn("1")
-        val uid = userRepository.getNewUserId()
-        assertEquals("1", uid)
-    }
+    userRepository = UserRepositoryFirebase(mockFirestore)
 
-    @Test
-    fun getUserById_callsDocumentGet() {
-        `when`(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
-        `when`(mockDocumentSnapshot.toObject(User::class.java)).thenReturn(testUser)
+    `when`(mockFirestore.collection(anyString())).thenReturn(mockCollectionReference)
+    `when`(mockCollectionReference.document(anyString())).thenReturn(mockDocumentReference)
+    `when`(mockCollectionReference.document()).thenReturn(mockDocumentReference)
+  }
 
-        userRepository.getUserById("1",
-            onSuccess = { user ->
-                assertEquals(testUser, user)
-            },
-            onFailure = {
-                fail("Failure callback should not be called")
-            }
-        )
+  @Test
+  fun getNewUserId_returnsNewId() {
+    `when`(mockDocumentReference.id).thenReturn("1")
+    val uid = userRepository.getNewUserId()
+    assertEquals("1", uid)
+  }
 
-        verify(mockDocumentReference).get()
-    }
+  @Test
+  fun getUserById_callsDocumentGet() {
+    `when`(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
+    `when`(mockDocumentSnapshot.toObject(User::class.java)).thenReturn(testUser)
 
-    @Test
-    fun IF_getUserById_fails_THEN_callOnFailure() {
-        val exception = Exception("Test exception")
-        `when`(mockDocumentReference.get()).thenReturn(Tasks.forException(exception))
+    userRepository.getUserById(
+        "1",
+        onSuccess = { user -> assertEquals(testUser, user) },
+        onFailure = { fail("Failure callback should not be called") })
 
-        userRepository.getUserById("1",
-            onSuccess = {
-                fail("Success callback should not be called")
-            },
-            onFailure = {
-                assertEquals("Test exception", it.message)
-            }
-        )
-    }
+    verify(mockDocumentReference).get()
+  }
 
-    @Test
-    fun createUser_shouldCallSet() {
-        `when`(mockDocumentReference.set(any(User::class.java), any<SetOptions>())).thenReturn(Tasks.forResult(null))
+  @Test
+  fun IF_getUserById_fails_THEN_callOnFailure() {
+    val exception = Exception("Test exception")
+    `when`(mockDocumentReference.get()).thenReturn(Tasks.forException(exception))
 
-        userRepository.createUser(testUser,
-            onSuccess = {},
-            onFailure = {
-                fail("Failure callback should not be called")
-            }
-        )
+    userRepository.getUserById(
+        "1",
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { assertEquals("Test exception", it.message) })
+  }
 
-        shadowOf(Looper.getMainLooper()).idle()
+  @Test
+  fun createUser_shouldCallSet() {
+    `when`(mockDocumentReference.set(any(User::class.java), any<SetOptions>()))
+        .thenReturn(Tasks.forResult(null))
 
-        verify(mockDocumentReference).set(any(User::class.java), any<SetOptions>())
-    }
+    userRepository.createUser(
+        testUser, onSuccess = {}, onFailure = { fail("Failure callback should not be called") })
 
-    @Test
-    fun IF_createUser_fails_THEN_callOnFailure() {
-        val exception = Exception("Test exception")
-        `when`(mockDocumentReference.set(any(User::class.java), any<SetOptions>())).thenReturn(Tasks.forException(exception))
+    shadowOf(Looper.getMainLooper()).idle()
 
-        userRepository.createUser(testUser,
-            onSuccess = {
-                fail("Success callback should not be called")
-            },
-            onFailure = {
-                assertEquals("Test exception", it.message)
-            }
-        )
-    }
+    verify(mockDocumentReference).set(any(User::class.java), any<SetOptions>())
+  }
 
-    @Test
-    fun updateUser_shouldCallSet() {
-        `when`(mockDocumentReference.set(any(User::class.java), any<SetOptions>())).thenReturn(Tasks.forResult(null))
+  @Test
+  fun IF_createUser_fails_THEN_callOnFailure() {
+    val exception = Exception("Test exception")
+    `when`(mockDocumentReference.set(any(User::class.java), any<SetOptions>()))
+        .thenReturn(Tasks.forException(exception))
 
-        userRepository.updateUser(testUser,
-            onSuccess = {},
-            onFailure = {
-                fail("Failure callback should not be called")
-            }
-        )
+    userRepository.createUser(
+        testUser,
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { assertEquals("Test exception", it.message) })
+  }
 
-        shadowOf(Looper.getMainLooper()).idle()
+  @Test
+  fun updateUser_shouldCallSet() {
+    `when`(mockDocumentReference.set(any(User::class.java), any<SetOptions>()))
+        .thenReturn(Tasks.forResult(null))
 
-        verify(mockDocumentReference).set(any(User::class.java), any<SetOptions>())
-    }
+    userRepository.updateUser(
+        testUser, onSuccess = {}, onFailure = { fail("Failure callback should not be called") })
 
-    @Test
-    fun IF_updateUser_fails_THEN_callOnFailure() {
-        val exception = Exception("Test exception")
-        `when`(mockDocumentReference.set(any(User::class.java), any<SetOptions>())).thenReturn(Tasks.forException(exception))
+    shadowOf(Looper.getMainLooper()).idle()
 
-        userRepository.updateUser(testUser,
-            onSuccess = {
-                fail("Success callback should not be called")
-            },
-            onFailure = {
-                assertEquals("Test exception", it.message)
-            }
-        )
-    }
+    verify(mockDocumentReference).set(any(User::class.java), any<SetOptions>())
+  }
 
-    @Test
-    fun deleteUserById_shouldCallDelete() {
-        `when`(mockDocumentReference.delete()).thenReturn(Tasks.forResult(null))
+  @Test
+  fun IF_updateUser_fails_THEN_callOnFailure() {
+    val exception = Exception("Test exception")
+    `when`(mockDocumentReference.set(any(User::class.java), any<SetOptions>()))
+        .thenReturn(Tasks.forException(exception))
 
-        userRepository.deleteUserById("1",
-            onSuccess = {},
-            onFailure = {
-                fail("Failure callback should not be called")
-            }
-        )
+    userRepository.updateUser(
+        testUser,
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { assertEquals("Test exception", it.message) })
+  }
 
-        shadowOf(Looper.getMainLooper()).idle()
+  @Test
+  fun deleteUserById_shouldCallDelete() {
+    `when`(mockDocumentReference.delete()).thenReturn(Tasks.forResult(null))
 
-        verify(mockDocumentReference).delete()
-    }
+    userRepository.deleteUserById(
+        "1", onSuccess = {}, onFailure = { fail("Failure callback should not be called") })
 
-    @Test
-    fun IF_deleteUserById_fails_THEN_callOnFailure() {
-        val exception = Exception("Test exception")
-        `when`(mockDocumentReference.delete()).thenReturn(Tasks.forException(exception))
+    shadowOf(Looper.getMainLooper()).idle()
 
-        userRepository.deleteUserById("1",
-            onSuccess = {
-                fail("Success callback should not be called")
-            },
-            onFailure = {
-                assertEquals("Test exception", it.message)
-            }
-        )
-    }
+    verify(mockDocumentReference).delete()
+  }
 
-    @Test
-    fun init_callsOnSuccess() {
-        `when`(mockCollectionReference.get()).thenReturn(Tasks.forResult(null))
+  @Test
+  fun IF_deleteUserById_fails_THEN_callOnFailure() {
+    val exception = Exception("Test exception")
+    `when`(mockDocumentReference.delete()).thenReturn(Tasks.forException(exception))
 
-        var onSuccessCalled = false
-        userRepository.init {
-            onSuccessCalled = true
-        }
+    userRepository.deleteUserById(
+        "1",
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { assertEquals("Test exception", it.message) })
+  }
 
-        shadowOf(Looper.getMainLooper()).idle()
+  @Test
+  fun init_callsOnSuccess() {
+    `when`(mockCollectionReference.get()).thenReturn(Tasks.forResult(null))
 
-        assertTrue(onSuccessCalled)
-    }
+    var onSuccessCalled = false
+    userRepository.init { onSuccessCalled = true }
 
-    @Test
-    fun IF_init_fails_THEN_logsError() {
-        val exception = Exception("Test exception")
-        `when`(mockCollectionReference.get()).thenReturn(Tasks.forException(exception))
+    shadowOf(Looper.getMainLooper()).idle()
 
-        userRepository.init {
-            fail("Success callback should not be called")
-        }
+    assertTrue(onSuccessCalled)
+  }
 
-        shadowOf(Looper.getMainLooper()).idle()
-    }
+  @Test
+  fun IF_init_fails_THEN_logsError() {
+    val exception = Exception("Test exception")
+    `when`(mockCollectionReference.get()).thenReturn(Tasks.forException(exception))
+
+    userRepository.init { fail("Success callback should not be called") }
+
+    shadowOf(Looper.getMainLooper()).idle()
+  }
 }
