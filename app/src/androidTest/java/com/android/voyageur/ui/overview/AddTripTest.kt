@@ -187,4 +187,36 @@ class AddTripScreenTest {
     verify(tripRepository).createTrip(eq(expectedTrip), any(), any())
     verify(navigationActions).goBack()
   }
+
+  @Test
+  fun addTripScreen_unknownLocation() {
+    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+
+    composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Trip with Unknown Location")
+    composeTestRule
+        .onNodeWithTag("inputTripDescription")
+        .performTextInput("Description for trip with unknown location")
+    composeTestRule.onNodeWithTag("inputTripParticipants").performTextInput("Alice, Bob")
+    composeTestRule.onNodeWithTag("inputTripLocations").performTextInput("InvalidLocation")
+    composeTestRule.onNodeWithTag("inputStartDate").performTextInput("01/01/2024")
+    composeTestRule.onNodeWithTag("inputEndDate").performTextInput("05/01/2024")
+
+    composeTestRule.onNodeWithTag("tripSave").performClick()
+
+    val expectedTrip =
+        Trip(
+            id = "mockTripId",
+            creator = "John Doe",
+            participants = listOf("Alice", "Bob"),
+            description = "Description for trip with unknown location",
+            name = "Trip with Unknown Location",
+            locations = listOf(Location(country = "Unknown", city = "Unknown")),
+            startDate = Timestamp(GregorianCalendar(2024, 0, 1).time),
+            endDate = Timestamp(GregorianCalendar(2024, 0, 5).time),
+            activities = listOf(),
+            type = TripType.BUSINESS)
+
+    verify(tripRepository).createTrip(eq(expectedTrip), any(), any())
+    verify(navigationActions).goBack()
+  }
 }
