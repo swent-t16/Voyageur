@@ -78,7 +78,7 @@ fun SearchScreen(
                         value = searchQuery,
                         onValueChange = {
                           searchQuery = it
-                          userViewModel.searchUsers(searchQuery.text)
+                          userViewModel.setQuery(searchQuery.text)
                         },
                         modifier = Modifier.weight(1f).padding(8.dp).testTag("searchTextField"),
                         textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
