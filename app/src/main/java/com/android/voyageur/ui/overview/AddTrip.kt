@@ -160,12 +160,11 @@ fun AddTripScreen(
                         endParts[0].toInt(),
                     )
                     val endTimestamp = Timestamp(calendar.time)
-                      // Add this to avoid having an empty string as a participant
+                    // Add this to avoid having an empty string as a participant
                     var participantList = emptyList<String>()
-                      if (participants.isNotEmpty())
-                      {
-                          participantList = participants.split(",").map { it.trim() }.toList()
-                      }
+                    if (participants.isNotEmpty()) {
+                      participantList = participants.split(",").map { it.trim() }.toList()
+                    }
                     val trip =
                         Trip(
                             id = tripsViewModel.getNewTripId(),

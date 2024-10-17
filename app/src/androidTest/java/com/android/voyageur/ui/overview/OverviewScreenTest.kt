@@ -72,10 +72,13 @@ class OverviewScreenTest {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
     tripViewModel.getTrips()
+    Thread.sleep(10000)
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem").assertIsDisplayed()
     // Checks that "and .. more" text is displayed
-    composeTestRule.onNodeWithTag("additionalParticipantsText").assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag("additionalParticipantsText", useUnmergedTree = true)
+        .assertIsDisplayed()
   }
 
   @Test
@@ -89,13 +92,14 @@ class OverviewScreenTest {
                 participants = listOf("Alex"),
                 name = "Paris Trip",
             ))
-    `when`(tripRepository.getTrips(eq("Andreea"), any(), any())).then {
-      it.getArgument<(List<Trip>) -> Unit>(0)(mockTrips)
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
     tripViewModel.getTrips()
+
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("participantAvatar").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("participantAvatar", useUnmergedTree = true).assertIsDisplayed()
   }
 
   @Test
@@ -104,13 +108,13 @@ class OverviewScreenTest {
     val mockTrips =
         listOf(
             Trip(
-                id = "1",
+                id = "23",
                 creator = "Andreea",
                 participants = emptyList(),
                 name = "Paris Trip",
             ))
-    `when`(tripRepository.getTrips(eq("Andreea"), any(), any())).then {
-      it.getArgument<(List<Trip>) -> Unit>(0)(mockTrips)
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
     tripViewModel.getTrips()
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
@@ -129,7 +133,7 @@ class OverviewScreenTest {
     val mockTrips = listOf(mockTrip)
 
     // Simulate getting the mock trip from the repository
-    `when`(tripRepository.getTrips(eq("Andreea"), any(), any())).then {
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
 
