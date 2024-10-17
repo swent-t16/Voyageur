@@ -26,9 +26,11 @@ fun ByDayScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
 ) {
-    val trip = tripsViewModel.selectedTrip.collectAsState().value ?: return Text(text = "No ToDo selected. Should not happen", color = Color.Red)
+  val trip =
+      tripsViewModel.selectedTrip.collectAsState().value
+          ?: return Text(text = "No ToDo selected. Should not happen", color = Color.Red)
   Scaffold(
-      //TODO: Final implementation of ByDayScreen
+      // TODO: Final implementation of ByDayScreen
       modifier = Modifier.testTag("byDayScreen"),
       topBar = {
         TopAppBar(

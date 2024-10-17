@@ -26,10 +26,12 @@ fun ActivitiesScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
 ) {
-  val trip = tripsViewModel.selectedTrip.collectAsState().value ?: return Text(text = "No ToDo selected. Should not happen", color = Color.Red)
+  val trip =
+      tripsViewModel.selectedTrip.collectAsState().value
+          ?: return Text(text = "No ToDo selected. Should not happen", color = Color.Red)
 
-    Scaffold(
-        //TODO: Final implementation of ActivitiesScreen
+  Scaffold(
+      // TODO: Final implementation of ActivitiesScreen
       modifier = Modifier.testTag("activitiesScreen"),
       topBar = {
         TopAppBar(

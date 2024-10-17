@@ -27,10 +27,12 @@ fun SettingsScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
 ) {
-    val trip = tripsViewModel.selectedTrip.collectAsState().value ?: return Text(text = "No ToDo selected. Should not happen", color = Color.Red)
+  val trip =
+      tripsViewModel.selectedTrip.collectAsState().value
+          ?: return Text(text = "No ToDo selected. Should not happen", color = Color.Red)
 
   Scaffold(
-      //TODO: Final implementation of SettingsScreen
+      // TODO: Final implementation of SettingsScreen
       modifier = Modifier.testTag("settingsScreen"),
       topBar = {
         TopAppBar(

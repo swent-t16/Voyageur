@@ -15,7 +15,8 @@ import com.android.voyageur.ui.navigation.LIST_TRIP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
-import com.android.voyageur.ui.trip.activities.ActivitiesScreen
+import com.android.voyageur.ui.navigation.TopLevelDestinations.ACTIVITIES
+import com.android.voyageur.ui.navigation.TopLevelDestinations.SETTINGS
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -102,5 +103,19 @@ class ByDayScreenTest {
     LIST_TRIP_LEVEL_DESTINATION.forEach { destination ->
       composeTestRule.onNodeWithText(destination.textId).assertExists()
     }
+  }
+
+  @Test
+  fun bottomNavigationMenu_navigatesToSelectedTab() {
+    tripsViewModel.selectTrip(Trip(name = "Sample Trip"))
+    composeTestRule.setContent { ByDayScreen(tripsViewModel, navigationActions) }
+
+    // Select the "Activities" tab
+    composeTestRule.onNodeWithTag("Activities").performClick()
+    verify(navigationActions).navigateTo(ACTIVITIES)
+
+    // Select the "Settings" tab
+    composeTestRule.onNodeWithTag("Settings").performClick()
+    verify(navigationActions).navigateTo(SETTINGS)
   }
 }
