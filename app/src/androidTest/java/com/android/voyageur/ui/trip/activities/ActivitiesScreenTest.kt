@@ -36,13 +36,19 @@ class ActivitiesScreenTest {
     tripsViewModel = TripsViewModel(tripRepository)
 
     `when`(navigationActions.currentRoute()).thenReturn(Route.ACTIVITIES)
-    val sampleTrip = Trip(name = "Sample Trip")
-    tripsViewModel.selectTrip(sampleTrip)
-    composeTestRule.setContent { ActivitiesScreen(tripsViewModel, navigationActions) }
+  }
+
+  @Test
+  fun displayTextWhenNoTripSelected() {
+        composeTestRule.setContent { ActivitiesScreen(tripsViewModel, navigationActions) }
+
+    composeTestRule.onNodeWithText("No ToDo selected. Should not happen").assertIsDisplayed()
   }
 
   @Test
   fun hasRequiredComponents() {
+    tripsViewModel.selectTrip(Trip(name = "Sample Trip"))
+    composeTestRule.setContent { ActivitiesScreen(tripsViewModel, navigationActions) }
     composeTestRule.onNodeWithTag("activitiesScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
     composeTestRule.onNodeWithTag("topBar").assertIsDisplayed()
@@ -50,6 +56,8 @@ class ActivitiesScreenTest {
 
   @Test
   fun displaysTopBarCorrectly() {
+    tripsViewModel.selectTrip(Trip(name = "Sample Trip"))
+    composeTestRule.setContent { ActivitiesScreen(tripsViewModel, navigationActions) }
 
     // Check that the top bar with the title is displayed
     composeTestRule.onNodeWithText("Activities:").assertIsDisplayed()
@@ -61,6 +69,8 @@ class ActivitiesScreenTest {
 
   @Test
   fun navigatesToOverviewOnHomeIconClick() {
+    tripsViewModel.selectTrip(Trip(name = "Sample Trip"))
+    composeTestRule.setContent { ActivitiesScreen(tripsViewModel, navigationActions) }
 
     // Simulate a click on the Home icon button
     composeTestRule.onNodeWithContentDescription("Home").performClick()
@@ -71,6 +81,8 @@ class ActivitiesScreenTest {
 
   @Test
   fun displaysCorrectTripName() {
+    tripsViewModel.selectTrip(Trip(name = "Sample Trip"))
+    composeTestRule.setContent { ActivitiesScreen(tripsViewModel, navigationActions) }
     composeTestRule
         .onNodeWithTag("emptyActivitiesPrompt")
         .assertTextContains(
@@ -79,6 +91,8 @@ class ActivitiesScreenTest {
 
   @Test
   fun displaysBottomNavigationCorrectly() {
+    tripsViewModel.selectTrip(Trip(name = "Sample Trip"))
+    composeTestRule.setContent { ActivitiesScreen(tripsViewModel, navigationActions) }
 
     // Check that the bottom navigation menu is displayed
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()

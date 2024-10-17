@@ -12,6 +12,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
@@ -25,8 +26,9 @@ fun ByDayScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
 ) {
-  val trip = tripsViewModel.selectedTrip.collectAsState().value
+    val trip = tripsViewModel.selectedTrip.collectAsState().value ?: return Text(text = "No ToDo selected. Should not happen", color = Color.Red)
   Scaffold(
+      //TODO: Final implementation of ByDayScreen
       modifier = Modifier.testTag("byDayScreen"),
       topBar = {
         TopAppBar(
@@ -50,6 +52,6 @@ fun ByDayScreen(
         Text(
             modifier = Modifier.padding(pd).testTag("emptyByDayPrompt"),
             text =
-                "You're viewing the ByDay screen for ${trip?.name}, but it's not implemented yet.")
+                "You're viewing the ByDay screen for ${trip.name}, but it's not implemented yet.")
       })
 }

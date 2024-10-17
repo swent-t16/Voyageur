@@ -15,6 +15,7 @@ import com.android.voyageur.ui.navigation.LIST_TRIP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.ui.trip.activities.ActivitiesScreen
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -36,13 +37,19 @@ class SettingsScreenTest {
     tripsViewModel = TripsViewModel(tripRepository)
 
     `when`(navigationActions.currentRoute()).thenReturn(Route.SETTINGS)
-    val sampleTrip = Trip(name = "Sample Trip")
-    tripsViewModel.selectTrip(sampleTrip)
+  }
+
+  @Test
+  fun displayTextWhenNoTripSelected() {
     composeTestRule.setContent { SettingsScreen(tripsViewModel, navigationActions) }
+
+    composeTestRule.onNodeWithText("No ToDo selected. Should not happen").assertIsDisplayed()
   }
 
   @Test
   fun hasRequiredComponents() {
+    tripsViewModel.selectTrip(Trip(name = "Sample Trip"))
+    composeTestRule.setContent { SettingsScreen(tripsViewModel, navigationActions) }
     composeTestRule.onNodeWithTag("settingsScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
     composeTestRule.onNodeWithTag("topBar").assertIsDisplayed()
@@ -50,6 +57,8 @@ class SettingsScreenTest {
 
   @Test
   fun displaysTopBarCorrectly() {
+    tripsViewModel.selectTrip(Trip(name = "Sample Trip"))
+    composeTestRule.setContent { SettingsScreen(tripsViewModel, navigationActions) }
 
     // Check that the top bar with the title is displayed
     composeTestRule.onNodeWithText("Settings:").assertIsDisplayed()
@@ -61,6 +70,8 @@ class SettingsScreenTest {
 
   @Test
   fun navigatesToOverviewOnHomeIconClick() {
+    tripsViewModel.selectTrip(Trip(name = "Sample Trip"))
+    composeTestRule.setContent { SettingsScreen(tripsViewModel, navigationActions) }
 
     // Simulate a click on the Home icon button
     composeTestRule.onNodeWithContentDescription("Home").performClick()
@@ -71,6 +82,8 @@ class SettingsScreenTest {
 
   @Test
   fun displaysCorrectTripName() {
+    tripsViewModel.selectTrip(Trip(name = "Sample Trip"))
+    composeTestRule.setContent { SettingsScreen(tripsViewModel, navigationActions) }
     composeTestRule
         .onNodeWithTag("emptySettingsPrompt")
         .assertTextContains(
@@ -79,6 +92,8 @@ class SettingsScreenTest {
 
   @Test
   fun displaysBottomNavigationCorrectly() {
+    tripsViewModel.selectTrip(Trip(name = "Sample Trip"))
+    composeTestRule.setContent { SettingsScreen(tripsViewModel, navigationActions) }
 
     // Check that the bottom navigation menu is displayed
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
