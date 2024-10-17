@@ -158,14 +158,12 @@ class AddTripScreenTest {
     assertNull(result)
   }
 
-
   @Test
   fun addTripScreen_saveTrip() {
     composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
-    
+
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("London Trip")
     composeTestRule.onNodeWithTag("inputTripDescription").performTextInput("4 days in London")
-    composeTestRule.onNodeWithTag("inputTripCreator").performTextInput("John Doe")
     composeTestRule.onNodeWithTag("inputTripParticipants").performTextInput("Alice, Bob")
     composeTestRule.onNodeWithTag("inputTripLocations").performTextInput("UK, London")
     composeTestRule.onNodeWithTag("inputStartDate").performTextInput("01/01/2024")
@@ -173,18 +171,18 @@ class AddTripScreenTest {
 
     composeTestRule.onNodeWithTag("tripSave").performClick()
 
-    val expectedTrip = Trip(
-      id = "mockTripId",
-      creator = "John Doe",
-      participants = listOf("Alice", "Bob"),
-      description = "4 days in London",
-      name = "London Trip",
-      locations = listOf(Location(country = "UK", city = "London")),
-      startDate = Timestamp(GregorianCalendar(2024, 0, 1).time),
-      endDate = Timestamp(GregorianCalendar(2024, 0, 5).time),
-      activities = listOf(),
-      type = TripType.BUSINESS
-    )
+    val expectedTrip =
+        Trip(
+            id = "mockTripId",
+            creator = "John Doe",
+            participants = listOf("Alice", "Bob"),
+            description = "4 days in London",
+            name = "London Trip",
+            locations = listOf(Location(country = "UK", city = "London")),
+            startDate = Timestamp(GregorianCalendar(2024, 0, 1).time),
+            endDate = Timestamp(GregorianCalendar(2024, 0, 5).time),
+            activities = listOf(),
+            type = TripType.BUSINESS)
 
     verify(tripRepository).createTrip(eq(expectedTrip), any(), any())
     verify(navigationActions).goBack()
