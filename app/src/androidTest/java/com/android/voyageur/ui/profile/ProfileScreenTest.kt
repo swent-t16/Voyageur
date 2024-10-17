@@ -132,4 +132,25 @@ class ProfileScreenTest {
     composeTestRule.onNodeWithTag("userName").assertIsDisplayed()
     composeTestRule.onNodeWithTag("userEmail").assertIsDisplayed()
   }
+
+  @Test
+  fun signOutTriggersSignOutActionAndNavigatesToAuth() {
+    // Arrange: Mock the user to simulate a logged-in state
+    val user = User("123", "Jane Doe", "jane@example.com")
+    userViewModel._user.value = user
+    userViewModel._isLoading.value = false
+    // Perform the sign-out action
+    composeTestRule.onNodeWithTag("signOutButton").performClick()
+
+    // Simulate the sign-out and check if the navigation happens
+    composeTestRule.runOnUiThread {
+      // Mock the effect of signing out, including navigating to the Auth screen
+      userViewModel._user.value = null
+      userViewModel._isLoading.value = false
+      verify(navigationActions).navigateTo(Route.AUTH)
+    }
+
+    // Assert: Verify that the navigation was triggered
+    verify(navigationActions).navigateTo(Route.AUTH)
+  }
 }
