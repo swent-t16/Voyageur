@@ -2,6 +2,9 @@ package com.android.voyageur.model.trip
 
 import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
@@ -11,13 +14,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.util.Assert.fail
+import junit.framework.TestCase
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
-import org.mockito.Mockito.timeout
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
@@ -95,22 +100,41 @@ class TripRepositoryFirebaseTest {
         onFailure = { fail("Failure callback should not be called") },
     )
 
-    verify(mockCollectionReference, timeout(100)).whereEqualTo("creator", "creator")
+    verify(mockCollectionReference).whereEqualTo("creator", "creator")
 
     // Verify that get() was called on the query
-    verify(mockQuery, timeout(100)).get()
+    verify(mockQuery).get()
   }
 
   @Test
-  fun IF_getTrips_fails_THEN_callOnFailure() {
-    `when`(mockCollectionReference.get())
-        .thenReturn(Tasks.forException(Exception("Test exception")))
+  fun getTrips_Failure() {
+    val exception = Exception("Firestore error")
+    val mockTask = mock(Task::class.java) as Task<QuerySnapshot>
 
-    tripRepository.getTrips(
-        creator = "creator",
-        onSuccess = { fail("Success callback should not be called") },
-        onFailure = { assert(it.message == "Test exception") },
-    )
+    `when`(mockQuery.get()).thenReturn(mockTask)
+    `when`(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
+      val listener = invocation.arguments[0] as OnSuccessListener<QuerySnapshot>
+      // Do not call onSuccess to simulate failure
+      mockTask
+    }
+    `when`(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
+      val listener = invocation.arguments[0] as OnFailureListener
+      listener.onFailure(exception) // Simulate failure callback
+      mockTask
+    }
+
+    val onSuccess: (List<Trip>) -> Unit = {
+      assert(false) { "Success should not be called in the failure test" }
+    }
+
+    val onFailure: (Exception) -> Unit = { e ->
+      TestCase.assertEquals("Firestore error", e.message)
+    }
+
+    tripRepository.getTrips("creator", onSuccess, onFailure)
+
+    verify(mockQuery).get()
+    verify(mockTask).addOnFailureListener(any())
   }
 
   @Test
@@ -125,15 +149,19 @@ class TripRepositoryFirebaseTest {
   }
 
   @Test
-  fun IF_createTrip_fails_THEN_callOnFailure() {
+  fun createTrip_failure() {
+    val exception = Exception("Test exception")
     `when`(mockDocumentReference.set(any()))
-        .thenReturn(Tasks.forException(Exception("Test exception")))
+        .thenReturn(Tasks.forException(exception)) // Simulate failure
 
-    tripRepository.createTrip(
-        trip,
-        onSuccess = { fail("Success callback should not be called") },
-        onFailure = { assert(it.message == "Test exception") },
-    )
+    val onSuccess: () -> Unit = { fail("Success callback should not be called") }
+    val onFailure: (Exception) -> Unit = { e -> assertEquals("Test exception", e.message) }
+
+    tripRepository.createTrip(trip, onSuccess, onFailure)
+
+    shadowOf(Looper.getMainLooper()).idle() // Ensure all asynchronous operations complete
+
+    verify(mockDocumentReference).set(any())
   }
 
   @Test
@@ -148,15 +176,19 @@ class TripRepositoryFirebaseTest {
   }
 
   @Test
-  fun IF_deleteTripById_fails_THEN_callOnFailure() {
+  fun deleteTripById_failure() {
+    val exception = Exception("Test exception")
     `when`(mockDocumentReference.delete())
-        .thenReturn(Tasks.forException(Exception("Test exception")))
+        .thenReturn(Tasks.forException(exception)) // Simulate failure
 
-    tripRepository.deleteTripById(
-        "1",
-        onSuccess = { fail("Success callback should not be called") },
-        onFailure = { assert(it.message == "Test exception") },
-    )
+    val onSuccess: () -> Unit = { fail("Success callback should not be called") }
+    val onFailure: (Exception) -> Unit = { e -> assertEquals("Test exception", e.message) }
+
+    tripRepository.deleteTripById("1", onSuccess, onFailure)
+
+    shadowOf(Looper.getMainLooper()).idle() // Ensure all asynchronous operations complete
+
+    verify(mockDocumentReference).delete()
   }
 
   @Test
@@ -171,14 +203,18 @@ class TripRepositoryFirebaseTest {
   }
 
   @Test
-  fun IF_updateTrip_fails_THEN_callOnFailure() {
+  fun updateTrip_failure() {
+    val exception = Exception("Test exception")
     `when`(mockDocumentReference.set(any()))
-        .thenReturn(Tasks.forException(Exception("Test exception")))
+        .thenReturn(Tasks.forException(exception)) // Simulate failure
 
-    tripRepository.updateTrip(
-        trip,
-        onSuccess = { fail("Success callback should not be called") },
-        onFailure = { assert(it.message == "Test exception") },
-    )
+    val onSuccess: () -> Unit = { fail("Success callback should not be called") }
+    val onFailure: (Exception) -> Unit = { e -> assertEquals("Test exception", e.message) }
+
+    tripRepository.updateTrip(trip, onSuccess, onFailure)
+
+    shadowOf(Looper.getMainLooper()).idle() // Ensure all asynchronous operations complete
+
+    verify(mockDocumentReference).set(any())
   }
 }
