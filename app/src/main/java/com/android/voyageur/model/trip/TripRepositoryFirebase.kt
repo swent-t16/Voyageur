@@ -24,8 +24,13 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
     }
   }
 
-  override fun getTrips(onSuccess: (List<Trip>) -> Unit, onFailure: (Exception) -> Unit) {
+  override fun getTrips(
+      creator: String,
+      onSuccess: (List<Trip>) -> Unit,
+      onFailure: (Exception) -> Unit
+  ) {
     db.collection(collectionPath)
+        .whereEqualTo("creator", creator)
         .get()
         .addOnSuccessListener { result ->
           val trips = result.map { document -> document.toObject(Trip::class.java) }
