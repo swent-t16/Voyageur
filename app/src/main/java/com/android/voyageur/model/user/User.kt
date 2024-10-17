@@ -5,7 +5,7 @@ import com.android.voyageur.model.trip.Trip
 data class User(
     val id: String = "",
     var name: String = "",
-    val email: String = "",
+    var email: String = "",
     var profilePicture: String = "",
     var bio: String = "",
     private val _trips: MutableList<Trip> = mutableListOf(),

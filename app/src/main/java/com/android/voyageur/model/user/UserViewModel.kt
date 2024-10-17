@@ -11,17 +11,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
-  private val _user = MutableStateFlow<User?>(null)
+open class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
+  internal val _user = MutableStateFlow<User?>(null)
   val user: StateFlow<User?> = _user
 
-  private val _query = MutableStateFlow("")
+  internal val _query = MutableStateFlow("")
   val query: StateFlow<String> = _query
 
-  private val _searchedUsers = MutableStateFlow<List<User>>(emptyList())
+  internal val _searchedUsers = MutableStateFlow<List<User>>(emptyList())
   val searchedUsers: StateFlow<List<User>> = _searchedUsers
 
-  private val _isLoading = MutableStateFlow(false)
+  internal val _isLoading = MutableStateFlow(false)
   val isLoading: StateFlow<Boolean> = _isLoading
 
   // Job to manage debounce coroutine
