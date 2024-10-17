@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.google.firebase.Firebase
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
@@ -12,30 +11,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class TripsViewModel(
+open class TripsViewModel(
     private val tripsRepository: TripRepository,
 ) : ViewModel() {
   private val _trips = MutableStateFlow<List<Trip>>(emptyList())
   val trips: StateFlow<List<Trip>> = _trips.asStateFlow()
 
   // useful for updating trip
-  private val _selectedTrip =
-      // initializing with empty trip
-      MutableStateFlow(
-          Trip(
-              "",
-              "",
-              emptyList(),
-              "",
-              "",
-              emptyList(),
-              Timestamp.now(),
-              Timestamp.now(),
-              emptyList(),
-              TripType.TOURISM,
-              ""))
-
-  var selectedTrip: StateFlow<Trip> = _selectedTrip
+  private val _selectedTrip = MutableStateFlow<Trip?>(null)
+  open val selectedTrip: StateFlow<Trip?> = _selectedTrip.asStateFlow()
 
   init {
     tripsRepository.init {
