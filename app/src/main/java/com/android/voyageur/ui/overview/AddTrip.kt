@@ -37,7 +37,9 @@ import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.auth
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,7 +50,6 @@ fun AddTripScreen(
 ) {
   var name by remember { mutableStateOf("") }
   var description by remember { mutableStateOf("") }
-  var creator by remember { mutableStateOf("") }
   var participants by remember { mutableStateOf("") }
   var locations by remember { mutableStateOf("") }
   var startDate by remember { mutableStateOf("") }
@@ -88,13 +89,6 @@ fun AddTripScreen(
                   label = { Text("Description") },
                   placeholder = { Text("Describe the trip") },
                   modifier = Modifier.fillMaxWidth().testTag("inputTripDescription"))
-
-              OutlinedTextField(
-                  value = creator,
-                  onValueChange = { creator = it },
-                  label = { Text("Creator") },
-                  placeholder = { Text("Assign a creator") },
-                  modifier = Modifier.fillMaxWidth().testTag("inputTripCreator"))
 
               OutlinedTextField(
                   value = participants,
@@ -158,7 +152,7 @@ fun AddTripScreen(
                         val trip =
                             Trip(
                                 id = tripsViewModel.getNewTripId(),
-                                creator = creator,
+                                creator = Firebase.auth.uid.orEmpty(),
                                 participants = participants.split(",").map { it.trim() }.toList(),
                                 description = description,
                                 name = name,

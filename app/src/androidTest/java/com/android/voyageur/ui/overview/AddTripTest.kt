@@ -45,7 +45,6 @@ class AddTripScreenTest {
 
     composeTestRule.onNodeWithTag("inputTripTitle").assertExists()
     composeTestRule.onNodeWithTag("inputTripDescription").assertExists()
-    composeTestRule.onNodeWithTag("inputTripCreator").assertExists()
     composeTestRule.onNodeWithTag("inputTripParticipants").assertExists()
     composeTestRule.onNodeWithTag("inputTripLocations").assertExists()
     composeTestRule.onNodeWithTag("inputStartDate").assertExists()
@@ -62,12 +61,10 @@ class AddTripScreenTest {
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("London")
     composeTestRule.onNodeWithTag("inputTripDescription").performTextInput("4 days in London")
-    composeTestRule.onNodeWithTag("inputTripCreator").performTextInput("John Doe")
     composeTestRule.onNodeWithTag("inputTripParticipants").performTextInput("Alice, Bob")
 
     composeTestRule.onNodeWithTag("inputTripTitle").assertExists()
     composeTestRule.onNodeWithTag("inputTripDescription").assertExists()
-    composeTestRule.onNodeWithTag("inputTripCreator").assertExists()
     composeTestRule.onNodeWithTag("inputTripParticipants").assertExists()
   }
 
