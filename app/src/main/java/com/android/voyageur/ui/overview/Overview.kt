@@ -1,9 +1,8 @@
 package com.android.voyageur.ui.overview
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,10 +30,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -131,19 +128,19 @@ fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: Navi
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(3.dp)) {
               // modifier.weight(1f) is used here to set the image for 1/3 of the card
-            if (trip.imageUri.isNotEmpty()) {
+              if (trip.imageUri.isNotEmpty()) {
                 Image(
                     painter = rememberAsyncImagePainter(model = trip.imageUri),
                     contentDescription = "Selected image",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.width(120.dp).height(217.dp))
-            } else {
+              } else {
                 Image(
                     painter = painterResource(id = R.drawable.default_trip_image),
                     contentDescription = "Trip image overview",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.width(120.dp).height(217.dp))
-            }// modifier.weight(2f) is used here to set the column to 2/3 of the card
+              } // modifier.weight(2f) is used here to set the column to 2/3 of the card
               Column(
                   modifier = Modifier.fillMaxSize().padding(16.dp).weight(2f),
                   verticalArrangement = Arrangement.Top) {
