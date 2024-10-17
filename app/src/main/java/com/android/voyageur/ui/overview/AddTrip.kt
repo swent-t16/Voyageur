@@ -150,7 +150,6 @@ fun AddTripScreen(
                     onClick = { galleryLauncher.launch("image/*") },
                     modifier = Modifier.fillMaxWidth()) {
                       Text("Select Image from Gallery")
-
                     }
 
                 OutlinedTextField(
