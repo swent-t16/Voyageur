@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import com.android.voyageur.resources.C
-import com.android.voyageur.ui.theme.SampleAppTheme
+import com.android.voyageur.ui.theme.VoyageurTheme
 import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
       e.printStackTrace()
     }
     setContent {
-      SampleAppTheme {
+      VoyageurTheme {
         Surface(
             modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
             color = MaterialTheme.colorScheme.background) {
