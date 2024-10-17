@@ -19,6 +19,7 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 
 class OverviewScreenTest {
@@ -39,8 +40,8 @@ class OverviewScreenTest {
 
   @Test
   fun displayTextWhenEmpty() {
-    `when`(tripRepository.getTrips(any(), any())).then {
-      it.getArgument<(List<Trip>) -> Unit>(0)(listOf())
+    `when`(tripRepository.getTrips(eq(""), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(listOf())
     }
     tripViewModel.getTrips()
 
@@ -65,9 +66,10 @@ class OverviewScreenTest {
                 creator = "Andreea",
                 participants = listOf("Alex", "Mihai", "Ioana", "Andrei", "Maria", "Matei"),
                 name = "Paris Trip",
-            ))
-    `when`(tripRepository.getTrips(any(), any())).then {
-      it.getArgument<(List<Trip>) -> Unit>(0)(mockTrips)
+            ),
+        )
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
     tripViewModel.getTrips()
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
@@ -87,7 +89,7 @@ class OverviewScreenTest {
                 participants = listOf("Alex"),
                 name = "Paris Trip",
             ))
-    `when`(tripRepository.getTrips(any(), any())).then {
+    `when`(tripRepository.getTrips(eq("Andreea"), any(), any())).then {
       it.getArgument<(List<Trip>) -> Unit>(0)(mockTrips)
     }
     tripViewModel.getTrips()
@@ -107,13 +109,38 @@ class OverviewScreenTest {
                 participants = emptyList(),
                 name = "Paris Trip",
             ))
-    `when`(tripRepository.getTrips(any(), any())).then {
+    `when`(tripRepository.getTrips(eq("Andreea"), any(), any())).then {
       it.getArgument<(List<Trip>) -> Unit>(0)(mockTrips)
     }
     tripViewModel.getTrips()
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem").assertIsDisplayed()
     composeTestRule.onNodeWithTag("participantAvatar").assertDoesNotExist()
+  }
+
+  @Test
+  fun clickingTripCardNavigatesToTripDetails() {
+    val mockTrip =
+        Trip(
+            id = "1",
+            creator = "Andreea",
+            participants = listOf("Alex", "Mihai"),
+            name = "Paris Trip")
+    val mockTrips = listOf(mockTrip)
+
+    // Simulate getting the mock trip from the repository
+    `when`(tripRepository.getTrips(eq("Andreea"), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
+    }
+
+    tripViewModel.getTrips()
+
+    // Simulate clicking the trip card
+    composeTestRule.onNodeWithTag("cardItem").performClick()
+
+    // Verify the trip is selected and navigation to the BY_DAY screen is called
+    assert(tripViewModel.selectedTrip.value == mockTrip)
+    verify(navigationActions).navigateTo(screen = Screen.BY_DAY)
   }
 
   @Test

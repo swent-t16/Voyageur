@@ -3,7 +3,7 @@ package com.android.voyageur.model.user
 import com.android.voyageur.model.trip.Trip
 
 data class User(
-    val id: String,
+    val id: String = "",
     var name: String = "",
     val email: String = "",
     var profilePicture: String = "",

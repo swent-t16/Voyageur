@@ -61,7 +61,10 @@ fun OverviewScreen(
         FloatingActionButton(
             onClick = { navigationActions.navigateTo(Screen.ADD_TRIP) },
             modifier = Modifier.testTag("createTripButton")) {
-              Icon(Icons.Outlined.Add, "Floating action button",modifier =  Modifier.testTag("addIcon"))
+              Icon(
+                  Icons.Outlined.Add,
+                  "Floating action button",
+                  modifier = Modifier.testTag("addIcon"))
             }
       },
       modifier = Modifier.testTag("overviewScreen"),
@@ -90,7 +93,10 @@ fun OverviewScreen(
                 modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
                   sortedTrips.forEach { trip ->
                     item {
-                      TripItem(trip = trip)
+                      TripItem(
+                          tripsViewModel = tripsViewModel,
+                          trip = trip,
+                          navigationActions = navigationActions)
                       Spacer(modifier = Modifier.height(10.dp))
                     }
                   }
@@ -101,10 +107,14 @@ fun OverviewScreen(
 }
 
 @Composable
-fun TripItem(trip: Trip) {
+fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: NavigationActions) {
   // TODO: add a clickable once we implement the Schedule screens
   val dateRange = trip.startDate.toDateString() + "-" + trip.endDate.toDateString()
   Card(
+      onClick = {
+        navigationActions.navigateTo(Screen.BY_DAY)
+        tripsViewModel.selectTrip(trip)
+      },
       modifier =
           Modifier.width(353.dp)
               .height(228.dp)
