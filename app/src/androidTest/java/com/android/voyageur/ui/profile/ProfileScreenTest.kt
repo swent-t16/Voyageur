@@ -1,6 +1,5 @@
 package com.android.voyageur.ui.profile
 
-import UserViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -10,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.google.firebase.auth.FirebaseAuth

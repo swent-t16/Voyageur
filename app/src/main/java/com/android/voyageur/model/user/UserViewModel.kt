@@ -8,13 +8,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
-  private val _user = MutableStateFlow<User?>(null)
+  internal val _user = MutableStateFlow<User?>(null)
   val user: StateFlow<User?> = _user
 
-  private val _searchedUsers = MutableStateFlow<List<User>>(emptyList())
+  internal val _searchedUsers = MutableStateFlow<List<User>>(emptyList())
   val searchedUsers: StateFlow<List<User>> = _searchedUsers
 
-  private val _isLoading = MutableStateFlow(false)
+  internal val _isLoading = MutableStateFlow(false)
   val isLoading: StateFlow<Boolean> = _isLoading
 
   init {
