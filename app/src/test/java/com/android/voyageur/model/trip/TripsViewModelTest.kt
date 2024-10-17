@@ -27,7 +27,8 @@ class TripsViewModelTest {
           Timestamp.now(),
           Timestamp.now(),
           emptyList(),
-          TripType.TOURISM)
+          TripType.TOURISM,
+          "")
 
   @Before
   fun setUp() {

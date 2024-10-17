@@ -184,6 +184,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.test.core.ktx)
     implementation(libs.androidx.navigation.testing)
+    implementation(libs.firebase.storage.ktx)
 
     // Testing Unit
     testImplementation(libs.junit) {
@@ -222,6 +223,9 @@ dependencies {
     implementation("com.google.maps.android:maps-compose-utils:$mapsComposeVersion")
     // Google Maps Compose widgets library
     implementation("com.google.maps.android:maps-compose-widgets:$mapsComposeVersion")
+
+    //  Coil in order to display images
+    implementation("io.coil-kt:coil-compose:2.4.0")
 }
 
 tasks.withType<Test> {

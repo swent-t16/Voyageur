@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
@@ -79,7 +80,7 @@ fun OverviewScreen(
       },
       content = { pd ->
         Column(
-            modifier = Modifier.padding(pd),
+            modifier = Modifier.padding(pd).testTag("overviewColumn"),
         ) {
           if (trips.isEmpty()) {
             Text(
@@ -123,16 +124,23 @@ fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: Navi
       shape = RoundedCornerShape(16.dp),
       content = {
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().testTag("cardRow"),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(3.dp)) {
               // modifier.weight(1f) is used here to set the image for 1/3 of the card
-              Image(
-                  modifier = Modifier.fillMaxHeight().weight(1f),
-                  painter = painterResource(id = R.drawable.app_logo),
-                  contentDescription = "Placeholder Image",
-                  contentScale = ContentScale.Crop)
-              // modifier.weight(2f) is used here to set the column to 2/3 of the card
+              if (trip.imageUri.isNotEmpty()) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = trip.imageUri),
+                    contentDescription = "Selected image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.width(120.dp).height(217.dp).testTag("tripImage"))
+              } else {
+                Image(
+                    painter = painterResource(id = R.drawable.default_trip_image),
+                    contentDescription = "Trip image overview",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.width(120.dp).height(217.dp).testTag("defaultTripImage"))
+              } // modifier.weight(2f) is used here to set the column to 2/3 of the card
               Column(
                   modifier = Modifier.fillMaxSize().padding(16.dp).weight(2f),
                   verticalArrangement = Arrangement.Top) {

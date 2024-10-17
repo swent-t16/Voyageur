@@ -16,6 +16,7 @@ data class Trip(
     val endDate: Timestamp = Timestamp.now(),
     val activities: List<Activity> = emptyList(),
     val type: TripType = TripType.TOURISM,
+    val imageUri: String = "" // default image for trip
 ) {
   // Exclude from Firestore serialization
   @get:Exclude

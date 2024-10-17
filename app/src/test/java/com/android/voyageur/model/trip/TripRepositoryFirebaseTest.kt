@@ -49,7 +49,7 @@ class TripRepositoryFirebaseTest {
           Timestamp.now(),
           emptyList(),
           TripType.TOURISM,
-      )
+          "")
 
   @Before
   fun setUp() {
