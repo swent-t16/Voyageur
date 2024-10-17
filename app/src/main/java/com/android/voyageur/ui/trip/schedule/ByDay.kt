@@ -11,7 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.android.voyageur.model.trip.TripsViewModel
@@ -26,16 +25,19 @@ fun ByDayScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
 ) {
-  val trip by tripsViewModel.selectedTrip.collectAsState()
+  val trip = tripsViewModel.selectedTrip.collectAsState().value
   Scaffold(
       modifier = Modifier.testTag("byDayScreen"),
       topBar = {
         TopAppBar(
-            title = { Text("Schedule ByDay") },
+            modifier = Modifier.testTag("topBar"),
+            title = { Text("Schedule ByDay:") },
             navigationIcon = {
-              IconButton(onClick = { navigationActions.navigateTo(Screen.OVERVIEW) }) {
-                Icon(imageVector = Icons.Outlined.Home, contentDescription = "Home")
-              }
+              IconButton(
+                  modifier = Modifier.testTag("backToOverviewButton"),
+                  onClick = { navigationActions.navigateTo(Screen.OVERVIEW) }) {
+                    Icon(imageVector = Icons.Outlined.Home, contentDescription = "Home")
+                  }
             })
       },
       bottomBar = {
@@ -48,6 +50,6 @@ fun ByDayScreen(
         Text(
             modifier = Modifier.padding(pd).testTag("emptyByDayPrompt"),
             text =
-                "You're viewing the the ByDay screen for ${trip.name}, but it's not implemented yet.")
+                "You're viewing the ByDay screen for ${trip?.name}, but it's not implemented yet.")
       })
 }

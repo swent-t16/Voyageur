@@ -32,11 +32,14 @@ fun SettingsScreen(
       modifier = Modifier.testTag("settingsScreen"),
       topBar = {
         TopAppBar(
-            title = { Text("Settings") },
+            modifier = Modifier.testTag("topBar"),
+            title = { Text("Settings:") },
             navigationIcon = {
-              IconButton(onClick = { navigationActions.navigateTo(Screen.OVERVIEW) }) {
-                Icon(imageVector = Icons.Outlined.Home, contentDescription = "Home")
-              }
+              IconButton(
+                  modifier = Modifier.testTag("backToOverviewButton"),
+                  onClick = { navigationActions.navigateTo(Screen.OVERVIEW) }) {
+                    Icon(imageVector = Icons.Outlined.Home, contentDescription = "Home")
+                  }
             })
       },
       bottomBar = {
@@ -49,6 +52,6 @@ fun SettingsScreen(
         Text(
             modifier = Modifier.padding(pd).testTag("emptySettingsPrompt"),
             text =
-                "You're viewing the the Settings screen for ${trip.name}, but it's not implemented yet.")
+                "You're viewing the Settings screen for ${trip?.name}, but it's not implemented yet.")
       })
 }

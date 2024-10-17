@@ -11,7 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.android.voyageur.model.trip.TripsViewModel
@@ -26,17 +25,20 @@ fun ActivitiesScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
 ) {
-  val trip by tripsViewModel.selectedTrip.collectAsState()
+  val trip = tripsViewModel.selectedTrip.collectAsState().value
 
   Scaffold(
       modifier = Modifier.testTag("activitiesScreen"),
       topBar = {
         TopAppBar(
-            title = { Text("Activities") },
+            modifier = Modifier.testTag("topBar"),
+            title = { Text("Activities:") },
             navigationIcon = {
-              IconButton(onClick = { navigationActions.navigateTo(Screen.OVERVIEW) }) {
-                Icon(imageVector = Icons.Outlined.Home, contentDescription = "Home")
-              }
+              IconButton(
+                  modifier = Modifier.testTag("backToOverviewButton"),
+                  onClick = { navigationActions.navigateTo(Screen.OVERVIEW) }) {
+                    Icon(imageVector = Icons.Outlined.Home, contentDescription = "Home")
+                  }
             })
       },
       bottomBar = {
@@ -49,6 +51,6 @@ fun ActivitiesScreen(
         Text(
             modifier = Modifier.padding(pd).testTag("emptyActivitiesPrompt"),
             text =
-                "You're viewing the the Activities screen for ${trip.name}, but it's not implemented yet.")
+                "You're viewing the Activities screen for ${trip?.name}, but it's not implemented yet.")
       })
 }
