@@ -80,7 +80,7 @@ class E2ETest {
   fun e2ETest() {
     composeTestRule.setContent {
       val navController = rememberNavController()
-      val navigation = remember(navController) { NavigationActions(navController) }
+      val navigation = remember { NavigationActions(navController) }
       NavHost(
           navController = navController,
           startDestination = Route.OVERVIEW,
