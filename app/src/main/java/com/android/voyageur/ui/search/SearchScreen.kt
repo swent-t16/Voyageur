@@ -207,7 +207,13 @@ fun UserSearchResultItem(user: User, modifier: Modifier = Modifier, userViewMode
           }
         }
         Spacer(modifier = Modifier.width(16.dp))
-        Button(onClick = { userViewModel.addContact(user.id) }) { Text("Add to contacts") }
+
+        Button(
+            onClick = { userViewModel.addContact(user.id) },
+            enabled =
+                userViewModel.user.collectAsState().value?.contacts?.contains(user.id) == false) {
+              Text("Add to contacts")
+            }
       }
 }
 

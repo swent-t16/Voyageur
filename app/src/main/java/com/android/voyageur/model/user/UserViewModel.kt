@@ -72,9 +72,10 @@ open class UserViewModel(private val userRepository: UserRepository) : ViewModel
 
   fun addContact(userId: String) {
     val contacts = user.value?.contacts?.toMutableSet()
+    val newUser = user.value!!.copy()
     contacts?.add(userId)
-    user.value?.contacts = contacts?.toList().orEmpty()
-    if (user.value != null) updateUser(user.value!!)
+    newUser.contacts = contacts?.toList().orEmpty()
+    if (user.value != null) updateUser(newUser)
   }
 
   fun updateUser(updatedUser: User) {
