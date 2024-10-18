@@ -76,6 +76,7 @@ class E2ETest {
     `when`(navigationActions.currentRoute()).thenReturn(Route.OVERVIEW)
   }
 
+  @Suppress("RememberReturnType")
   @Test
   fun e2ETest() {
     composeTestRule.setContent {
