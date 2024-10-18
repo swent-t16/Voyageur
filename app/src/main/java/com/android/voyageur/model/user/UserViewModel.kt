@@ -69,6 +69,13 @@ open class UserViewModel(private val userRepository: UserRepository) : ViewModel
         })
   }
 
+  fun addContact(userId: String) {
+    val contacts = user.value?.contacts?.toMutableSet()
+    contacts?.add(userId)
+    user.value?.contacts = contacts?.toList().orEmpty()
+    if (user.value != null) updateUser(user.value!!)
+  }
+
   fun updateUser(updatedUser: User) {
     _isLoading.value = true
     userRepository.updateUser(
