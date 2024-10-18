@@ -50,7 +50,8 @@ open class UserViewModel(private val userRepository: UserRepository) : ViewModel
                     name = it.displayName ?: "Unknown",
                     email = it.email ?: "No Email",
                     profilePicture = it.photoUrl?.toString() ?: "",
-                    bio = "")
+                    bio = "",
+                    username = it.email?.split("@")?.get(0) ?: "")
             userRepository.createUser(
                 newUser,
                 onSuccess = {
