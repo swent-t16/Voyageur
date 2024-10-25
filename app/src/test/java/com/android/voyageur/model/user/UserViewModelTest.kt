@@ -30,7 +30,7 @@ class UserViewModelTest {
   private lateinit var userViewModel: UserViewModel
   private val testDispatcher = UnconfinedTestDispatcher()
 
-  private val user = User("1", "name", "email", "password", "phone")
+  private val user = User("1", "name", "email", "", "bio", listOf(), "username")
 
   @Before
   fun setUp() {
@@ -175,8 +175,10 @@ class UserViewModelTest {
             name = "Firebase User",
             email = "firebase@example.com",
             profilePicture = "",
-            bio = "")
-
+            bio = "",
+            contacts = listOf(),
+            username = "firebase" // Update this to match the actual invocation
+            )
     // Mock failure of user retrieval from repository
     doAnswer { invocation ->
           val onFailure = invocation.arguments[2] as (Exception) -> Unit
