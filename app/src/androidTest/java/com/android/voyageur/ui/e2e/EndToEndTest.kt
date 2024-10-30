@@ -89,11 +89,7 @@ class E2ETest {
         composable(Route.OVERVIEW) { OverviewScreen(tripsViewModel, navigation) }
         composable(Route.PROFILE) { ProfileScreen(userViewModel, navigation) }
         composable(Route.SEARCH) { SearchScreen(userViewModel, navigation) }
-        composable(Route.SCHEDULE) { ByDayScreen(tripsViewModel, navigation) }
-        composable(Route.ACTIVITIES) { ActivitiesScreen(tripsViewModel, navigation) }
-        composable(Route.SETTINGS) { SettingsScreen(tripsViewModel, navigation) }
         composable(Screen.ADD_TRIP) { AddTripScreen(tripsViewModel, navigation) }
-        composable(Screen.BY_DAY) { ByDayScreen(tripsViewModel, navigation) }
         composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigation) }
         composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigation) }
         composable(Screen.SEARCH) { SearchScreen(userViewModel, navigation) }

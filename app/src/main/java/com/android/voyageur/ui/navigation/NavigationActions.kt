@@ -15,9 +15,7 @@ object Route {
   const val SEARCH = "Search"
   const val PROFILE = "Profile"
   const val AUTH = "Auth"
-  const val SCHEDULE = "Schedule"
-  const val ACTIVITIES = "Activities"
-  const val SETTINGS = "Settings"
+    const val TOP_TABS = "TopTabs"
 }
 
 object Screen {
@@ -26,11 +24,7 @@ object Screen {
   const val PROFILE = "Profile Screen"
   const val AUTH = "SignIn Screen"
   const val ADD_TRIP = "Add Trip Screen"
-  const val BY_DAY = "By Day Screen"
-  const val BY_WEEK = "By Week Screen" // TODO: Add ByWeek screen
-  const val ACTIVITIES = "Activities Screen"
-  const val ADD_ACTIVITY = "Add Activity Screen" // TODO: Add AddActivity screen
-  const val SETTINGS = "Settings Screen"
+    const val TOP_TABS = "Top Tabs Screen"
 }
 
 data class TopLevelDestination(
@@ -46,22 +40,10 @@ object TopLevelDestinations {
       TopLevelDestination(route = Route.SEARCH, icon = Icons.Outlined.Search, textId = "Search")
   val PROFILE =
       TopLevelDestination(route = Route.PROFILE, icon = Icons.Outlined.Person, textId = "Profile")
-  val SCHEDULE =
-      TopLevelDestination(Route.SCHEDULE, icon = Icons.Outlined.DateRange, textId = "Schedule")
-  val ACTIVITIES =
-      TopLevelDestination(Route.ACTIVITIES, icon = Icons.Outlined.Search, textId = "Activities")
-  val SETTINGS =
-      TopLevelDestination(Route.SETTINGS, icon = Icons.Outlined.Settings, textId = "Settings")
 }
 
 val LIST_TOP_LEVEL_DESTINATION =
     listOf(TopLevelDestinations.OVERVIEW, TopLevelDestinations.SEARCH, TopLevelDestinations.PROFILE)
-
-val LIST_TRIP_LEVEL_DESTINATION =
-    listOf(
-        TopLevelDestinations.SCHEDULE,
-        TopLevelDestinations.ACTIVITIES,
-        TopLevelDestinations.SETTINGS)
 
 open class NavigationActions(
     private val navController: NavHostController,

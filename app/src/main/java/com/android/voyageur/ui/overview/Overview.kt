@@ -113,7 +113,7 @@ fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: Navi
   val dateRange = trip.startDate.toDateString() + "-" + trip.endDate.toDateString()
   Card(
       onClick = {
-        navigationActions.navigateTo(Screen.BY_DAY)
+        navigationActions.navigateTo(Screen.TOP_TABS)
         tripsViewModel.selectTrip(trip)
       },
       modifier =

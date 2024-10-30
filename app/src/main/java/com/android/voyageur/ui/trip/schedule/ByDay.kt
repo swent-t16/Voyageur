@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
-import com.android.voyageur.ui.navigation.LIST_TRIP_LEVEL_DESTINATION
+import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
 
@@ -32,22 +32,10 @@ fun ByDayScreen(
   Scaffold(
       // TODO: Final implementation of ByDayScreen
       modifier = Modifier.testTag("byDayScreen"),
-      topBar = {
-        TopAppBar(
-            modifier = Modifier.testTag("topBar"),
-            title = { Text("Schedule ByDay:") },
-            navigationIcon = {
-              IconButton(
-                  modifier = Modifier.testTag("backToOverviewButton"),
-                  onClick = { navigationActions.navigateTo(Screen.OVERVIEW) }) {
-                    Icon(imageVector = Icons.Outlined.Home, contentDescription = "Home")
-                  }
-            })
-      },
       bottomBar = {
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
-            tabList = LIST_TRIP_LEVEL_DESTINATION,
+            tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute())
       },
       content = { pd ->
