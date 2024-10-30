@@ -1,11 +1,9 @@
 package com.android.voyageur.ui.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -15,7 +13,7 @@ object Route {
   const val SEARCH = "Search"
   const val PROFILE = "Profile"
   const val AUTH = "Auth"
-    const val TOP_TABS = "TopTabs"
+  const val TOP_TABS = "TopTabs"
 }
 
 object Screen {
@@ -24,7 +22,7 @@ object Screen {
   const val PROFILE = "Profile Screen"
   const val AUTH = "SignIn Screen"
   const val ADD_TRIP = "Add Trip Screen"
-    const val TOP_TABS = "Top Tabs Screen"
+  const val TOP_TABS = "Top Tabs Screen"
 }
 
 data class TopLevelDestination(

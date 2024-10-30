@@ -19,9 +19,6 @@ import com.android.voyageur.ui.overview.AddTripScreen
 import com.android.voyageur.ui.overview.OverviewScreen
 import com.android.voyageur.ui.profile.ProfileScreen
 import com.android.voyageur.ui.search.SearchScreen
-import com.android.voyageur.ui.trip.activities.ActivitiesScreen
-import com.android.voyageur.ui.trip.schedule.ByDayScreen
-import com.android.voyageur.ui.trip.settings.SettingsScreen
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
