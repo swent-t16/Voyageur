@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -84,7 +85,7 @@ fun TopBarWithImage(selectedTrip: Trip, navigationActions: NavigationActions) {
                 .width(279.dp)
                 .height(72.dp)
                 .background(Color.White.copy(alpha = 0.7f))
-                .padding(horizontal = 77.dp, vertical = 11.dp)
+                //.padding(horizontal = 77.dp, vertical = 11.dp)
                 .wrapContentSize()
                 .widthIn(max = 250.dp) // Maximum width available
         ) {
