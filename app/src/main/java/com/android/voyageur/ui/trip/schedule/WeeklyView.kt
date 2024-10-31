@@ -16,6 +16,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -64,32 +65,7 @@ fun WeeklyViewScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally) {
               item { Spacer(modifier = Modifier.height(16.dp)) }
-              item {
-                Row(
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .padding(bottom = 8.dp, end = 16.dp)
-                            .testTag("viewToggleRow"),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically) {
-                      Text(
-                          text = "Daily",
-                          style = MaterialTheme.typography.bodyLarge,
-                          color = Color.Gray,
-                          modifier = Modifier.testTag("dailyToggle"))
-                      Text(
-                          text = " / ",
-                          style = MaterialTheme.typography.bodyLarge,
-                          color = Color.Gray)
-                      Text(
-                          text = "Weekly",
-                          style = MaterialTheme.typography.bodyLarge,
-                          color = Color.Black,
-                          fontWeight = FontWeight.Bold,
-                          modifier = Modifier.testTag("weeklyToggle"))
-                    }
-              }
-
+              item { DayWeekButton(navigationActions) }
               items(weeks.size) { weekIndex ->
                 WeekCard(
                     weekStart = weeks[weekIndex].first,

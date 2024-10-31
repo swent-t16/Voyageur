@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,7 +33,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
@@ -42,58 +40,46 @@ import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
-import com.android.voyageur.ui.overview.toDateString
 import com.google.firebase.Timestamp
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarWithImage(selectedTrip: Trip, navigationActions: NavigationActions) {
+  Box(modifier = Modifier.fillMaxWidth().height(145.dp)) {
+    // Background Image
+    if (selectedTrip.imageUri.isNotEmpty()) {
+      Image(
+          painter = rememberAsyncImagePainter(model = selectedTrip.imageUri),
+          contentDescription = "Selected image",
+          contentScale = ContentScale.Crop,
+          modifier =
+              Modifier.fillMaxSize() // Fill the entire Box area
+                  .testTag("tripImage"))
+    } else {
+      Image(
+          painter = painterResource(id = R.drawable.default_trip_image),
+          contentDescription = "Default trip image",
+          contentScale = ContentScale.Crop,
+          modifier = Modifier.fillMaxSize().testTag("defaultTripImage"))
+    }
+
+    // Centered Text Overlay with Rounded Rectangle Background
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(145.dp)
-    ) {
-        // Background Image
-        if (selectedTrip.imageUri.isNotEmpty()) {
-            Image(
-                painter = rememberAsyncImagePainter(model = selectedTrip.imageUri),
-                contentDescription = "Selected image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize() // Fill the entire Box area
-                    .testTag("tripImage")
-            )
-        } else {
-            Image(
-                painter = painterResource(id = R.drawable.default_trip_image),
-                contentDescription = "Default trip image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .testTag("defaultTripImage")
-            )
-        }
-
-        // Centered Text Overlay with Rounded Rectangle Background
-        Box(
-            modifier = Modifier
-                .align(Alignment.Center) // Center overlay in the Box
-
+        modifier =
+            Modifier.align(Alignment.Center) // Center overlay in the Box
                 .clip(RoundedCornerShape(20.dp))
                 .width(279.dp)
                 .height(72.dp)
                 .background(Color.White.copy(alpha = 0.7f))
-                //.padding(horizontal = 77.dp, vertical = 11.dp)
+                // .padding(horizontal = 77.dp, vertical = 11.dp)
                 .wrapContentSize()
                 .widthIn(max = 250.dp) // Maximum width available
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
+          Column(
+              modifier = Modifier.fillMaxSize(),
+              horizontalAlignment = Alignment.CenterHorizontally,
+              verticalArrangement = Arrangement.Center) {
                 Text(
                     text = selectedTrip.name,
                     fontSize = 24.sp,
@@ -101,53 +87,49 @@ fun TopBarWithImage(selectedTrip: Trip, navigationActions: NavigationActions) {
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     color = Color.Black,
-
                 )
                 Text(
-                    //TODO: Replace with correct date format
-                    text = selectedTrip.startDate.toDateWithoutYearString() + " - " + selectedTrip.endDate.toDateWithYearString(),
+                    // TODO: Replace with correct date format
+                    text =
+                        selectedTrip.startDate.toDateWithoutYearString() +
+                            " - " +
+                            selectedTrip.endDate.toDateWithYearString(),
                     textAlign = TextAlign.Center,
                     fontSize = 14.sp,
-                    color = Color.Black
-                )
-            }
+                    color = Color.Black)
+              }
         }
 
-        // TopAppBar with Transparent Background
-        TopAppBar(
-            title = {},
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Transparent),
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent
-            ),
-            navigationIcon = {
-                // Back Button with Circular White Background
-                IconButton(
-                    onClick = { navigationActions.navigateTo(Screen.OVERVIEW) },
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.7f))
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ArrowBack,
-                        contentDescription = "Home",
-                        tint = Color.Black
-                    )
-                }
-            }
-        )
-    }
+    // TopAppBar with Transparent Background
+    TopAppBar(
+        title = {},
+        modifier = Modifier.fillMaxWidth().background(Color.Transparent),
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+        navigationIcon = {
+          // Back Button with Circular White Background
+          IconButton(
+              onClick = { navigationActions.navigateTo(Screen.OVERVIEW) },
+              modifier =
+                  Modifier.padding(8.dp)
+                      .size(40.dp)
+                      .clip(CircleShape)
+                      .background(Color.White.copy(alpha = 0.7f))) {
+                Icon(
+                    imageVector = Icons.Outlined.ArrowBack,
+                    contentDescription = "Home",
+                    tint = Color.Black)
+              }
+        })
+  }
 }
+
 fun Timestamp.toDateWithoutYearString(): String {
-    //TODO: Test this with 2 digit dates (I am not sure it works)
-    val sdf = java.text.SimpleDateFormat("d MMM", java.util.Locale.getDefault())
-    return sdf.format(this.toDate())
+  // TODO: Test this with 2 digit dates (I am not sure it works)
+  val sdf = java.text.SimpleDateFormat("d MMM", java.util.Locale.getDefault())
+  return sdf.format(this.toDate())
 }
+
 fun Timestamp.toDateWithYearString(): String {
-    val sdf = java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault())
-    return sdf.format(this.toDate())
+  val sdf = java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault())
+  return sdf.format(this.toDate())
 }
