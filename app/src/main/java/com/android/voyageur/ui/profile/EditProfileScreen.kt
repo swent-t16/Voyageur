@@ -70,7 +70,6 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
         LaunchedEffect(isSaving) {
             userViewModel.updateUser(
                 User(id = user!!.id, name = name, email = email, profilePicture = profilePicture))
-            delay(300)
             isSaving = false
             navigationActions.navigateTo(Route.PROFILE)
         }
@@ -128,6 +127,7 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                                 onValueChange = {},
                                 label = { Text("Email") },
                                 readOnly = true, // Makes the field uneditable
+                                enabled = false, // Disables the text field
                                 modifier = Modifier.testTag("emailField")
                             )
                             Spacer(modifier = Modifier.height(16.dp))
