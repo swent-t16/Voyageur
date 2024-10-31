@@ -6,6 +6,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import com.android.voyageur.model.place.PlacesRepository
+import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
@@ -23,6 +25,8 @@ class SearchScreenTest {
   private lateinit var navigationActions: NavigationActions
   private lateinit var userViewModel: UserViewModel
   private lateinit var userRepository: UserRepository
+  private lateinit var placesViewModel: PlacesViewModel
+  private lateinit var placesRepository: PlacesRepository
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -30,9 +34,11 @@ class SearchScreenTest {
   fun setUp() {
     navigationActions = mock(NavigationActions::class.java)
     userRepository = mock(UserRepository::class.java)
+    placesRepository = mock(PlacesRepository::class.java)
     userViewModel = UserViewModel(userRepository)
+    placesViewModel = PlacesViewModel(placesRepository)
     `when`(navigationActions.currentRoute()).thenReturn(Route.SEARCH)
-    composeTestRule.setContent { SearchScreen(userViewModel, navigationActions) }
+    composeTestRule.setContent { SearchScreen(userViewModel, placesViewModel, navigationActions) }
   }
 
   @Test
@@ -87,26 +93,6 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag("filterButton_Users").performClick()
     composeTestRule.onNodeWithTag("userItem_1").assertIsDisplayed()
     composeTestRule.onNodeWithTag("placesPending").assertDoesNotExist()
-
-    composeTestRule.onNodeWithTag("filterButton_Locations").performClick()
-    composeTestRule.onNodeWithTag("userItem_1").assertDoesNotExist()
-    composeTestRule.onNodeWithTag("placesPending").assertIsDisplayed()
-
-    composeTestRule.onNodeWithTag("filterButton_All").performClick()
-    composeTestRule.onNodeWithTag("userItem_1").assertIsDisplayed()
-    // when filtering for all, the message for locations is not displayed
-    composeTestRule.onNodeWithTag("placesPending").assertDoesNotExist()
-  }
-
-  @Test
-  fun testNoResultsFound() {
-    val searchQuery = "test"
-    `when`(userRepository.searchUsers(eq(searchQuery), any(), any())).thenAnswer {
-      val onSuccess = it.arguments[1] as (List<User>) -> Unit
-      onSuccess(emptyList())
-    }
-    composeTestRule.onNodeWithTag("searchTextField").performTextInput(searchQuery)
-    composeTestRule.onNodeWithTag("noResults").assertIsDisplayed()
   }
 
   @Test
