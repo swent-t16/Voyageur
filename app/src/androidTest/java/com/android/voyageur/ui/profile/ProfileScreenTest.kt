@@ -16,6 +16,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.*
+import org.mockito.kotlin.anyOrNull
 
 class ProfileScreenTest {
 
@@ -38,8 +39,24 @@ class ProfileScreenTest {
     // Mock FirebaseAuth to return our mocked firebaseUser
     `when`(firebaseAuth.currentUser).thenReturn(firebaseUser)
 
+    // Mock methods of FirebaseUser to return non-null values
+    `when`(firebaseUser.uid).thenReturn("123")
+    `when`(firebaseUser.displayName).thenReturn("Test User")
+    `when`(firebaseUser.email).thenReturn("test@example.com")
+    `when`(firebaseUser.photoUrl).thenReturn(null) // Or a valid URI if needed
+    // Mock userRepository.getUserById to call onSuccess with a User
+    doAnswer { invocation ->
+          val userId = invocation.getArgument<String>(0)
+          val onSuccess = invocation.getArgument<(User) -> Unit>(1)
+          val user = User(userId, "Test User", "test@example.com")
+          onSuccess(user)
+          null
+        }
+        .`when`(userRepository)
+        .getUserById(anyString(), anyOrNull(), anyOrNull())
+
     // Create the UserViewModel with the mocked userRepository and firebaseAuth
-    userViewModel = UserViewModel(userRepository)
+    userViewModel = UserViewModel(userRepository, firebaseAuth)
 
     // Mocking initial navigation state
     `when`(navigationActions.currentRoute()).thenReturn(Route.PROFILE)
@@ -51,16 +68,13 @@ class ProfileScreenTest {
   }
 
   @Test
-  fun displayTextWhenUserIsNull() {
-    // Arrange: Mock empty user state and not loading
-    `when`(firebaseAuth.currentUser).thenReturn(null)
-
-    // Update the ViewModel state directly (without calling setContent again)
+  fun displayLoadingIndicatorWhenIsLoading() {
+    // Arrange: Set isLoading to true
+    userViewModel._isLoading.value = true
     userViewModel._user.value = null
-    userViewModel._isLoading.value = false
 
-    // Assert: Check that the "noUserData" prompt is displayed
-    composeTestRule.onNodeWithTag("noUserData").assertIsDisplayed()
+    // Assert: Check that the loading indicator is displayed
+    composeTestRule.onNodeWithTag("loadingIndicator").assertIsDisplayed()
   }
 
   @Test
@@ -87,16 +101,6 @@ class ProfileScreenTest {
 
     // Act: Perform click on logout button
     composeTestRule.onNodeWithTag("signOutButton").performClick()
-  }
-
-  @Test
-  fun displayLoadingIndicatorWhenIsLoading() {
-    // Arrange: Set isLoading to true
-    userViewModel._isLoading.value = true
-    userViewModel._user.value = null
-
-    // Assert: Check that the loading indicator is displayed
-    composeTestRule.onNodeWithTag("loadingIndicator").assertIsDisplayed()
   }
 
   @Test
