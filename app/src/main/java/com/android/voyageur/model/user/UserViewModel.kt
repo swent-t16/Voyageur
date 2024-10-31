@@ -1,5 +1,6 @@
 package com.android.voyageur.model.user
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -138,6 +139,23 @@ open class UserViewModel(
         },
         onFailure = { _isLoading.value = false })
   }
+
+    fun updateUserProfilePicture(uri: Uri, onComplete: (String) -> Unit) {
+        _isLoading.value = true
+        val userId = _user.value?.id ?: return
+
+        userRepository.uploadProfilePicture(
+            uri = uri,
+            userId = userId,
+            onSuccess = { downloadUrl ->
+                _isLoading.value = false
+                onComplete(downloadUrl)
+            },
+            onFailure = { exception ->
+                _isLoading.value = false
+            }
+        )
+    }
 
   companion object {
     val Factory: ViewModelProvider.Factory =
