@@ -16,9 +16,9 @@ interface UserRepository {
   fun deleteUserById(id: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit)
 
   fun uploadProfilePicture(
-    uri: Uri,
-    userId: String,
-    onSuccess: (String) -> Unit,
-    onFailure: (Exception) -> Unit
+      uri: Uri,
+      userId: String,
+      onSuccess: (String) -> Unit,
+      onFailure: (Exception) -> Unit
   )
 }
