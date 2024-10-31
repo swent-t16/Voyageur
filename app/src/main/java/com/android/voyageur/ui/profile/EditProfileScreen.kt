@@ -125,9 +125,11 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                             Spacer(modifier = Modifier.height(16.dp))
                             OutlinedTextField(
                                 value = email,
-                                onValueChange = { email = it },
+                                onValueChange = {},
                                 label = { Text("Email") },
-                                modifier = Modifier.testTag("emailField"))
+                                readOnly = true, // Makes the field uneditable
+                                modifier = Modifier.testTag("emailField")
+                            )
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(
                                 onClick = { isSaving = true },
