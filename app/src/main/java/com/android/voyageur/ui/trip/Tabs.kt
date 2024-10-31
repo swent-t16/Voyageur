@@ -36,7 +36,7 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
           ?: return Text(text = "No trip selected. Should not happen", color = Color.Red)
 
   // Column for top tabs and content
-  Column {
+  Column(modifier = Modifier.testTag("topTabs")) {
     TopAppBar(
         modifier = Modifier.testTag("topBar"),
         title = { Text(trip.name) },
