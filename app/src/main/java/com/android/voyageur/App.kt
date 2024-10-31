@@ -21,6 +21,7 @@ import com.android.voyageur.ui.trip.activities.ActivitiesScreen
 import com.android.voyageur.ui.trip.schedule.ByDayScreen
 import com.android.voyageur.ui.trip.settings.SettingsScreen
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.android.voyageur.ui.trip.TopTabs
 
 @Composable
 fun VoyageurApp(placesClient: PlacesClient) {
@@ -57,14 +58,9 @@ fun VoyageurApp(placesClient: PlacesClient) {
     ) {
       composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigationActions) }
     }
-    navigation(startDestination = Screen.BY_DAY, route = Route.SCHEDULE) {
-      composable(Screen.BY_DAY) { ByDayScreen(tripsViewModel, navigationActions) }
-    }
-    navigation(startDestination = Screen.ACTIVITIES, route = Route.ACTIVITIES) {
-      composable(Screen.ACTIVITIES) { ActivitiesScreen(tripsViewModel, navigationActions) }
-    }
-    navigation(startDestination = Screen.SETTINGS, route = Route.SETTINGS) {
-      composable(Screen.SETTINGS) { SettingsScreen(tripsViewModel, navigationActions) }
+
+    navigation(startDestination = Screen.TOP_TABS, route = Route.TOP_TABS) {
+      composable(Screen.TOP_TABS) { TopTabs(tripsViewModel, navigationActions) }
     }
   }
 }
