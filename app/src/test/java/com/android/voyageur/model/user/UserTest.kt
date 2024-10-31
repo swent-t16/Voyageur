@@ -18,56 +18,80 @@ class UserTest {
   }
 
   @Test
-  fun testAddTrip() {
-    user.addTrip(trip)
-    assertTrue(user.trips.contains(trip))
-    assertEquals(1, user.trips.size)
+  fun testEquals_sameProperties_shouldReturnTrue() {
+    val user1 =
+        User(
+            id = "1",
+            name = "Test User",
+            email = "test@example.com",
+            profilePicture = "picture.jpg",
+            bio = "Bio",
+            contacts = listOf("2", "3"),
+            username = "testuser")
+
+    val user2 =
+        User(
+            id = "1",
+            name = "Test User",
+            email = "test@example.com",
+            profilePicture = "picture.jpg",
+            bio = "Bio",
+            contacts = listOf("2", "3"),
+            username = "testuser")
+
+    assertEquals(user1, user2)
+    assertEquals(user1.hashCode(), user2.hashCode())
   }
 
   @Test
-  fun testRemoveTrip() {
-    user.addTrip(trip)
-    user.removeTrip(trip)
-    assertFalse(user.trips.contains(trip))
-    assertEquals(0, user.trips.size)
+  fun testEquals_differentProperties_shouldReturnFalse() {
+    val user1 =
+        User(
+            id = "1",
+            name = "Test User",
+            email = "test@example.com",
+            profilePicture = "picture.jpg",
+            bio = "Bio",
+            contacts = listOf("2", "3"),
+            username = "testuser")
+
+    val user2 =
+        User(
+            id = "2",
+            name = "Another User",
+            email = "another@example.com",
+            profilePicture = "another.jpg",
+            bio = "Another Bio",
+            contacts = listOf("3", "4"),
+            username = "anotheruser")
+
+    assertNotEquals(user1, user2)
+    assertNotEquals(user1.hashCode(), user2.hashCode())
   }
 
   @Test
-  fun testAddFriend() {
-    user.addFriend(friend)
-    assertTrue(user.friends.contains(friend))
-    assertEquals(1, user.friends.size)
-  }
+  fun testEquals_differentContactsOrder_shouldReturnTrue() {
+    val user1 =
+        User(
+            id = "1",
+            name = "Test User",
+            email = "test@example.com",
+            profilePicture = "picture.jpg",
+            bio = "Bio",
+            contacts = listOf("2", "3"),
+            username = "testuser")
 
-  @Test
-  fun testRemoveFriend() {
-    user.addFriend(friend)
-    user.removeFriend(friend)
-    assertFalse(user.friends.contains(friend))
-    assertEquals(0, user.friends.size)
-  }
+    val user2 =
+        User(
+            id = "1",
+            name = "Test User",
+            email = "test@example.com",
+            profilePicture = "picture.jpg",
+            bio = "Bio",
+            contacts = listOf("3", "2"), // Different order of contacts
+            username = "testuser")
 
-  @Test
-  fun testTripsAreImmutable() {
-    user.addTrip(trip)
-    val trips = user.trips
-    try {
-      (trips as MutableList).add(trip)
-      fail("Trips list should be immutable")
-    } catch (e: UnsupportedOperationException) {
-      // Success - modification attempt should throw exception
-    }
-  }
-
-  @Test
-  fun testFriendsAreImmutable() {
-    user.addFriend(friend)
-    val friends = user.friends
-    try {
-      (friends as MutableList).add(friend)
-      fail("Friends list should be immutable")
-    } catch (e: UnsupportedOperationException) {
-      // Success - modification attempt should throw exception
-    }
+    assertEquals(user1, user2)
+    assertNotEquals(user1.hashCode(), user2.hashCode())
   }
 }

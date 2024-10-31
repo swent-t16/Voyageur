@@ -50,7 +50,8 @@ open class UserViewModel(private val userRepository: UserRepository) : ViewModel
                     name = it.displayName ?: "Unknown",
                     email = it.email ?: "No Email",
                     profilePicture = it.photoUrl?.toString() ?: "",
-                    bio = "")
+                    bio = "",
+                    username = it.email?.split("@")?.get(0) ?: "")
             userRepository.createUser(
                 newUser,
                 onSuccess = {
@@ -67,6 +68,14 @@ open class UserViewModel(private val userRepository: UserRepository) : ViewModel
                 _isLoading.value = false
               }
         })
+  }
+
+  fun addContact(userId: String) {
+    val contacts = user.value?.contacts?.toMutableSet()
+    val newUser = user.value!!.copy()
+    contacts?.add(userId)
+    newUser.contacts = contacts?.toList().orEmpty()
+    if (user.value != null) updateUser(newUser)
   }
 
   fun updateUser(updatedUser: User) {
