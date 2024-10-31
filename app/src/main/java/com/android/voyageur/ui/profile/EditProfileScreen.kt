@@ -1,5 +1,8 @@
 package com.android.voyageur.ui.profile
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -43,90 +47,99 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
-  // Observing user and loading state from the UserViewModel
-  val user by userViewModel.user.collectAsState()
-  val isLoading by userViewModel.isLoading.collectAsState()
 
-  var name by remember { mutableStateOf(user?.name ?: "") }
-  var email by remember { mutableStateOf(user?.email ?: "") }
-  var profilePicture by remember { mutableStateOf(user?.profilePicture ?: "") }
+    // Observe user and loading state from the UserViewModel
+    val user by userViewModel.user.collectAsState()
+    val isLoading by userViewModel.isLoading.collectAsState()
 
-  var isSaving by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf(user?.name ?: "") }
+    var email by remember { mutableStateOf(user?.email ?: "") }
+    var profilePicture by remember { mutableStateOf(user?.profilePicture ?: "") }
+    var isSaving by remember { mutableStateOf(false) }
 
-  if (isSaving) {
-    LaunchedEffect(isSaving) {
-      userViewModel.updateUser(
-          User(id = user!!.id, name = name, email = email, profilePicture = profilePicture))
-      delay(300)
-      isSaving = false
-      navigationActions.navigateTo(Route.PROFILE)
+    // Set up the launcher for picking an image
+    val pickPhotoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            profilePicture = it.toString()
+        }
     }
-  }
 
-  Scaffold(
-      modifier = Modifier.testTag("editProfileScreen"),
-      bottomBar = {
-        BottomNavigationMenu(
-            onTabSelect = { route -> navigationActions.navigateTo(route) },
-            tabList = LIST_TOP_LEVEL_DESTINATION,
-            selectedItem = navigationActions.currentRoute(),
-        )
-      },
-      content = { paddingValues ->
-        Box(
-            modifier =
+    if (isSaving) {
+        LaunchedEffect(isSaving) {
+            userViewModel.updateUser(
+                User(id = user!!.id, name = name, email = email, profilePicture = profilePicture))
+            delay(300)
+            isSaving = false
+            navigationActions.navigateTo(Route.PROFILE)
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.testTag("editProfileScreen"),
+        bottomBar = {
+            BottomNavigationMenu(
+                onTabSelect = { route -> navigationActions.navigateTo(route) },
+                tabList = LIST_TOP_LEVEL_DESTINATION,
+                selectedItem = navigationActions.currentRoute(),
+            )
+        },
+        content = { paddingValues ->
+            Box(
+                modifier =
                 Modifier.fillMaxSize().padding(paddingValues).testTag("editProfileScreenContent"),
-            contentAlignment = Alignment.Center) {
-              if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
-              } else {
-                user?.let { userData ->
-                  Column(
-                      modifier =
-                          Modifier.fillMaxSize().padding(16.dp).testTag("editProfileContent"),
-                      verticalArrangement = Arrangement.Center,
-                      horizontalAlignment = Alignment.CenterHorizontally) {
-                        if (userData.profilePicture.isNotEmpty()) {
-                          Image(
-                              painter = rememberAsyncImagePainter(model = userData.profilePicture),
-                              contentDescription = "Profile Picture",
-                              modifier =
-                                  Modifier.size(128.dp).clip(CircleShape).testTag("profilePicture"))
-                        } else {
-                          Icon(
-                              imageVector = Icons.Default.AccountCircle,
-                              contentDescription = "Default Profile Picture",
-                              modifier = Modifier.size(128.dp).testTag("defaultProfilePicture"))
+                contentAlignment = Alignment.Center) {
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
+                } else {
+                    user?.let { userData ->
+                        Column(
+                            modifier =
+                            Modifier.fillMaxSize().padding(16.dp).testTag("editProfileContent"),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally) {
+                            if (profilePicture.isNotEmpty()) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(model = profilePicture),
+                                    contentDescription = "Profile Picture",
+                                    modifier =
+                                    Modifier.size(128.dp).clip(CircleShape).testTag("profilePicture"))
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.AccountCircle,
+                                    contentDescription = "Default Profile Picture",
+                                    modifier = Modifier.size(128.dp).testTag("defaultProfilePicture"))
+                            }
+                            Button(
+                                onClick = { pickPhotoLauncher.launch("image/*") },
+                                modifier = Modifier.testTag("editImageButton")) {
+                                Text("Edit Profile Picture")
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            OutlinedTextField(
+                                value = name,
+                                onValueChange = { name = it },
+                                label = { Text("Name") },
+                                modifier = Modifier.testTag("nameField"))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            OutlinedTextField(
+                                value = email,
+                                onValueChange = { email = it },
+                                label = { Text("Email") },
+                                modifier = Modifier.testTag("emailField"))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = { isSaving = true },
+                                modifier = Modifier.testTag("saveButton")) {
+                                Text("Save")
+                            }
                         }
-                        Button(
-                            onClick = { /* TODO: Implement image picker */},
-                            modifier = Modifier.testTag("editImageButton")) {
-                              Text("Edit Profile Picture")
-                            }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        TextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            label = { Text("Name") },
-                            modifier = Modifier.testTag("nameField"))
-                        Spacer(modifier = Modifier.height(16.dp))
-                        TextField(
-                            value = email,
-                            onValueChange = { email = it },
-                            label = { Text("Email") },
-                            modifier = Modifier.testTag("emailField"))
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = { isSaving = true },
-                            modifier = Modifier.testTag("saveButton")) {
-                              Text("Save")
-                            }
-                      }
-                }
-                    ?: run {
-                      Text("No user data available", modifier = Modifier.testTag("noUserData"))
                     }
-              }
+                        ?: run {
+                            Text("No user data available", modifier = Modifier.testTag("noUserData"))
+                        }
+                }
             }
-      })
+        })
 }
