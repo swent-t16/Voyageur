@@ -17,11 +17,8 @@ import com.android.voyageur.ui.overview.AddTripScreen
 import com.android.voyageur.ui.overview.OverviewScreen
 import com.android.voyageur.ui.profile.ProfileScreen
 import com.android.voyageur.ui.search.SearchScreen
-import com.android.voyageur.ui.trip.activities.ActivitiesScreen
-import com.android.voyageur.ui.trip.schedule.ByDayScreen
-import com.android.voyageur.ui.trip.settings.SettingsScreen
-import com.google.android.libraries.places.api.net.PlacesClient
 import com.android.voyageur.ui.trip.TopTabs
+import com.google.android.libraries.places.api.net.PlacesClient
 
 @Composable
 fun VoyageurApp(placesClient: PlacesClient) {
