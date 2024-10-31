@@ -3,6 +3,7 @@ package com.android.voyageur.ui.search
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.user.User
@@ -106,5 +107,32 @@ class SearchScreenTest {
     }
     composeTestRule.onNodeWithTag("searchTextField").performTextInput(searchQuery)
     composeTestRule.onNodeWithTag("noResults").assertIsDisplayed()
+  }
+
+  @Test
+  fun testAddToContactsButton() {
+    val userId = "1"
+    val mockUser = User(id = userId, name = "Test User", email = "test@example.com")
+
+    // Set up the repository to return the mock user in the search results
+    `when`(userRepository.searchUsers(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (List<User>) -> Unit
+      onSuccess(listOf(mockUser))
+    }
+
+    // Set the current user without contacts, so the button is enabled
+    `when`(userRepository.getUserById(eq(userId), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (User) -> Unit
+      onSuccess(User(id = "currentUser", contacts = emptyList()))
+    }
+
+    // Perform a search to display the user
+    composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test User")
+    composeTestRule.onNodeWithTag("userItem_1").assertIsDisplayed()
+
+    // Check the "Add to contacts" button and click it
+    composeTestRule.onNodeWithText("Add to contacts").assertIsDisplayed().performClick()
+
+    // Verify that the addContact method was called with the correct userId
   }
 }

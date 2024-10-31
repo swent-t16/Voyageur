@@ -1,35 +1,39 @@
 package com.android.voyageur.model.user
 
-import com.android.voyageur.model.trip.Trip
-
 data class User(
     val id: String = "",
     var name: String = "",
     var email: String = "",
     var profilePicture: String = "",
     var bio: String = "",
-    private val _trips: MutableList<Trip> = mutableListOf(),
-    private val _friends: MutableList<User> = mutableListOf()
+    var contacts: List<String> = mutableListOf(),
+    var username: String = ""
 ) {
-  val trips: List<Trip>
-    get() = _trips.toList()
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
 
-  val friends: List<User>
-    get() = _friends.toList()
+    other as User
 
-  fun addTrip(trip: Trip) {
-    _trips.add(trip)
+    if (id != other.id) return false
+    if (name != other.name) return false
+    if (email != other.email) return false
+    if (profilePicture != other.profilePicture) return false
+    if (bio != other.bio) return false
+    if (!contacts.containsAll(other.contacts) || !other.contacts.containsAll(contacts)) return false
+    if (username != other.username) return false
+
+    return true
   }
 
-  fun removeTrip(trip: Trip) {
-    _trips.remove(trip)
-  }
-
-  fun addFriend(friend: User) {
-    _friends.add(friend)
-  }
-
-  fun removeFriend(friend: User) {
-    _friends.remove(friend)
+  override fun hashCode(): Int {
+    var result = id.hashCode()
+    result = 31 * result + name.hashCode()
+    result = 31 * result + email.hashCode()
+    result = 31 * result + profilePicture.hashCode()
+    result = 31 * result + bio.hashCode()
+    result = 31 * result + contacts.hashCode()
+    result = 31 * result + username.hashCode()
+    return result
   }
 }
