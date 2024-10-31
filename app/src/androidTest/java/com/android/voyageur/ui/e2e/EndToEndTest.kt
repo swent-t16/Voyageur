@@ -19,9 +19,7 @@ import com.android.voyageur.ui.overview.AddTripScreen
 import com.android.voyageur.ui.overview.OverviewScreen
 import com.android.voyageur.ui.profile.ProfileScreen
 import com.android.voyageur.ui.search.SearchScreen
-import com.android.voyageur.ui.trip.activities.ActivitiesScreen
-import com.android.voyageur.ui.trip.schedule.ByDayScreen
-import com.android.voyageur.ui.trip.settings.SettingsScreen
+import com.android.voyageur.ui.trip.TopTabs
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
@@ -89,14 +87,12 @@ class E2ETest {
         composable(Route.OVERVIEW) { OverviewScreen(tripsViewModel, navigation) }
         composable(Route.PROFILE) { ProfileScreen(userViewModel, navigation) }
         composable(Route.SEARCH) { SearchScreen(userViewModel, navigation) }
-        composable(Route.SCHEDULE) { ByDayScreen(tripsViewModel, navigation) }
-        composable(Route.ACTIVITIES) { ActivitiesScreen(tripsViewModel, navigation) }
-        composable(Route.SETTINGS) { SettingsScreen(tripsViewModel, navigation) }
+        composable(Route.TOP_TABS) { TopTabs(tripsViewModel, navigation) }
         composable(Screen.ADD_TRIP) { AddTripScreen(tripsViewModel, navigation) }
-        composable(Screen.BY_DAY) { ByDayScreen(tripsViewModel, navigation) }
         composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigation) }
         composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigation) }
         composable(Screen.SEARCH) { SearchScreen(userViewModel, navigation) }
+        composable(Screen.TOP_TABS) { TopTabs(tripsViewModel, navigation) }
       }
     }
     composeTestRule.onNodeWithTag("overviewScreen").assertIsDisplayed()
@@ -124,18 +120,11 @@ class E2ETest {
     composeTestRule.onNodeWithTag("cardItem").performClick()
 
     assert(tripsViewModel.selectedTrip.value == mockTrip)
+    composeTestRule.onNodeWithTag("topTabs").assertIsDisplayed()
 
     composeTestRule.onNodeWithTag("byDayScreen").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("backToOverviewButton").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("backToOverviewButton").performClick()
-    composeTestRule
-        .onNodeWithTag("overviewScreen")
-        .assertIsDisplayed() // check if we are back on overview
 
     composeTestRule.onNodeWithText("Search").performClick() // go on search bar
     composeTestRule.onNodeWithTag("searchScreen").assertIsDisplayed()
-
-    composeTestRule.onNodeWithText("Overview").performClick() // go on overview in the bottom bar
-    composeTestRule.onNodeWithTag("overviewScreen").assertIsDisplayed()
   }
 }
