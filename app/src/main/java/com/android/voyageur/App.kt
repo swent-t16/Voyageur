@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.authentication.SignInScreen
@@ -19,13 +20,16 @@ import com.android.voyageur.ui.search.SearchScreen
 import com.android.voyageur.ui.trip.activities.ActivitiesScreen
 import com.android.voyageur.ui.trip.schedule.ByDayScreen
 import com.android.voyageur.ui.trip.settings.SettingsScreen
+import com.google.android.libraries.places.api.net.PlacesClient
 
 @Composable
-fun VoyageurApp() {
+fun VoyageurApp(placesClient: PlacesClient) {
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory)
   val userViewModel: UserViewModel = viewModel(factory = UserViewModel.Factory)
+  val placesViewModel: PlacesViewModel =
+      viewModel(factory = PlacesViewModel.provideFactory(placesClient))
 
   NavHost(navController = navController, startDestination = Route.AUTH) {
     navigation(
@@ -45,7 +49,7 @@ fun VoyageurApp() {
         startDestination = Screen.SEARCH,
         route = Route.SEARCH,
     ) {
-      composable(Screen.SEARCH) { SearchScreen(userViewModel, navigationActions) }
+      composable(Screen.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigationActions) }
     }
     navigation(
         startDestination = Screen.PROFILE,
