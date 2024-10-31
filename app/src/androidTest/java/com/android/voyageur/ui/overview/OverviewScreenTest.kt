@@ -146,7 +146,7 @@ class OverviewScreenTest {
 
     // Verify the trip is selected and navigation to the BY_DAY screen is called
     assert(tripViewModel.selectedTrip.value == mockTrip)
-    verify(navigationActions).navigateTo(screen = Screen.BY_DAY)
+    verify(navigationActions).navigateTo(screen = Screen.TOP_TABS)
   }
 
   @Test

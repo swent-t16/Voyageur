@@ -136,7 +136,8 @@ fun SearchScreen(
                       when (selectedFilter) {
                         FilterType.USERS -> {
                           items(searchedUsers) { user ->
-                            UserSearchResultItem(user, Modifier.testTag("userItem_${user.id}"))
+                            UserSearchResultItem(
+                                user, Modifier.testTag("userItem_${user.id}"), userViewModel)
                           }
                         }
                         FilterType.PLACES -> {
@@ -150,7 +151,8 @@ fun SearchScreen(
                         }
                         FilterType.ALL -> {
                           items(searchedUsers) { user ->
-                            UserSearchResultItem(user, Modifier.testTag("userItem_${user.id}"))
+                            UserSearchResultItem(
+                                user, Modifier.testTag("userItem_${user.id}"), userViewModel)
                           }
                           // Display places once Places API is integrated
                         }
@@ -175,31 +177,44 @@ fun FilterButton(label: String, isSelected: Boolean, onClick: () -> Unit) {
       }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun UserSearchResultItem(user: User, modifier: Modifier = Modifier) {
-  Row(modifier = modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-    Image(
-        painter = rememberAsyncImagePainter(model = user.profilePicture),
-        contentDescription = "${user.name}'s profile picture",
-        modifier =
-            Modifier.size(60.dp)
-                .background(Color.LightGray, shape = MaterialTheme.shapes.small)
-                .clip(CircleShape)
-                .testTag("userProfilePicture_${user.id}"))
-    Spacer(modifier = Modifier.width(16.dp))
-    Column {
-      Text(
-          text = user.name,
-          fontSize = 16.sp,
-          color = Color.Black,
-          modifier = Modifier.testTag("userName_${user.id}"))
-      Spacer(modifier = Modifier.height(4.dp))
-      Text(
-          text = user.email,
-          color = Color.Black,
-          modifier = Modifier.testTag("userEmail_${user.id}"))
-    }
-  }
+fun UserSearchResultItem(user: User, modifier: Modifier = Modifier, userViewModel: UserViewModel) {
+  Row(
+      modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
+      horizontalArrangement = Arrangement.SpaceBetween) {
+        FlowRow() {
+          Image(
+              painter = rememberAsyncImagePainter(model = user.profilePicture),
+              contentDescription = "${user.name}'s profile picture",
+              modifier =
+                  Modifier.size(60.dp)
+                      .background(Color.LightGray, shape = MaterialTheme.shapes.small)
+                      .clip(CircleShape)
+                      .testTag("userProfilePicture_${user.id}"))
+          Spacer(modifier = Modifier.width(16.dp))
+          Column {
+            Text(
+                text = user.name,
+                fontSize = 15.sp,
+                color = Color.Black,
+                modifier = Modifier.testTag("userName_${user.id}"))
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "@${user.username}",
+                color = Color.Black,
+                modifier = Modifier.testTag("userName_${user.id}"))
+          }
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Button(
+            onClick = { userViewModel.addContact(user.id) },
+            enabled =
+                userViewModel.user.collectAsState().value?.contacts?.contains(user.id) == false) {
+              Text("Add to contacts")
+            }
+      }
 }
 
 enum class FilterType {
