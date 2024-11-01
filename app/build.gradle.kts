@@ -23,6 +23,7 @@ android {
     }
 
     val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY") ?: ""
+    val placesApiKey = localProperties.getProperty("PLACES_API_KEY") ?: ""
 
     defaultConfig {
         applicationId = "com.android.voyageur"
@@ -30,6 +31,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+        buildConfigField ("String", "PLACES_API_KEY", placesApiKey)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -164,6 +166,7 @@ dependencies {
     implementation(libs.maps.compose)
     implementation(libs.maps.compose.utils)
     implementation(libs.play.services.auth)
+    implementation(libs.places)
 
     // Firebase
     implementation(libs.firebase.database.ktx)

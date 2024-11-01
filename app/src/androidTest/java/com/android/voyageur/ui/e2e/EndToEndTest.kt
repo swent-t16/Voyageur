@@ -7,6 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.voyageur.model.place.PlacesRepository
+import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
@@ -40,6 +42,9 @@ class E2ETest {
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
 
+  private lateinit var placesRepository: PlacesRepository
+  private lateinit var placesViewModel: PlacesViewModel
+
   private lateinit var userRepository: UserRepository
   private lateinit var userViewModel: UserViewModel
 
@@ -55,6 +60,9 @@ class E2ETest {
     tripRepository = mock(TripRepository::class.java)
     navigationActions = mock(NavigationActions::class.java)
     tripsViewModel = TripsViewModel(tripRepository)
+
+    placesRepository = mock(PlacesRepository::class.java)
+    placesViewModel = PlacesViewModel(placesRepository)
 
     userRepository = mock(UserRepository::class.java)
     userViewModel = UserViewModel(userRepository)
@@ -86,12 +94,12 @@ class E2ETest {
       ) {
         composable(Route.OVERVIEW) { OverviewScreen(tripsViewModel, navigation) }
         composable(Route.PROFILE) { ProfileScreen(userViewModel, navigation) }
-        composable(Route.SEARCH) { SearchScreen(userViewModel, navigation) }
+        composable(Route.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigation) }
         composable(Route.TOP_TABS) { TopTabs(tripsViewModel, navigation) }
         composable(Screen.ADD_TRIP) { AddTripScreen(tripsViewModel, navigation) }
         composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigation) }
         composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigation) }
-        composable(Screen.SEARCH) { SearchScreen(userViewModel, navigation) }
+        composable(Screen.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigation) }
         composable(Screen.TOP_TABS) { TopTabs(tripsViewModel, navigation) }
       }
     }
