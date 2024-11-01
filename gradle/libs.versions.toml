@@ -2,6 +2,7 @@
 
 activityKtx = "1.9.3"
 coilCompose = "2.4.0"
+fragmentKtxVersion = "1.6.1"
 places = "4.0.0"
 sonar = "4.4.1.3373"
 
