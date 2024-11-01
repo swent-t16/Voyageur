@@ -12,6 +12,7 @@ object Route {
   const val OVERVIEW = "Overview"
   const val SEARCH = "Search"
   const val PROFILE = "Profile"
+  const val EDIT_PROFILE = "Edit Profile Screen"
   const val AUTH = "Auth"
   const val TOP_TABS = "TopTabs"
 }
@@ -22,6 +23,12 @@ object Screen {
   const val PROFILE = "Profile Screen"
   const val AUTH = "SignIn Screen"
   const val ADD_TRIP = "Add Trip Screen"
+  const val EDIT_PROFILE = "Edit Profile Screen"
+  const val BY_DAY = "By Day Screen"
+  const val BY_WEEK = "By Week Screen" // TODO: Add ByWeek screen
+  const val ACTIVITIES = "Activities Screen"
+  const val ADD_ACTIVITY = "Add Activity Screen" // TODO: Add AddActivity screen
+  const val SETTINGS = "Settings Screen"
   const val TOP_TABS = "Top Tabs Screen"
 }
 

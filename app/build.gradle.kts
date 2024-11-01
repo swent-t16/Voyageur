@@ -229,7 +229,11 @@ dependencies {
     implementation("com.google.maps.android:maps-compose-widgets:$mapsComposeVersion")
 
     //  Coil in order to display images
-    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation(libs.coil.compose)
+
+    // Required for Activity Result API
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.fragment.ktx.v161)
 }
 
 tasks.withType<Test> {

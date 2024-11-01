@@ -55,6 +55,7 @@ jobs:
 
       - name: Access PLACES_API_KEY
         env:
+          PLACES_API_KEY: ${{ secrets.PLACES_API_KEY }}
           MAPS_API_KEY: $ {{ secrets.PLACES_API_KEY }}
         run: echo PLACES_API_KEY=\"$PLACES_API_KEY\" > ../../local.properties
 
