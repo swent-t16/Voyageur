@@ -13,6 +13,7 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import java.util.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -20,8 +21,6 @@ import org.mockito.Mockito.*
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
-import java.util.*
-import java.text.SimpleDateFormat
 
 class AddTripScreenTest {
   private lateinit var tripRepository: TripRepository
@@ -60,6 +59,7 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_inputsUpdateState() {
+
     composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("London")
@@ -74,11 +74,9 @@ class AddTripScreenTest {
     composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("")
-    composeTestRule.onNodeWithTag("inputStartDate").performClick()
-    composeTestRule.onNodeWithText("14").performClick()
+    composeTestRule.onNodeWithText("Start Date *").performClick()
     composeTestRule.onNodeWithText("OK").performClick()
-    composeTestRule.onNodeWithTag("inputEndDate").performTextInput("")
-    composeTestRule.onNodeWithText("17").performClick()
+    composeTestRule.onNodeWithText("End Date *").performClick()
     composeTestRule.onNodeWithText("OK").performClick()
 
     composeTestRule.onNodeWithTag("tripSave").assertIsNotEnabled()
@@ -89,8 +87,10 @@ class AddTripScreenTest {
     composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Valid Trip")
-    composeTestRule.onNodeWithTag("inputStartDate").performTextInput("01/01/2024")
-    composeTestRule.onNodeWithTag("inputEndDate").performTextInput("05/01/2024")
+    composeTestRule.onNodeWithText("Start Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithText("End Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
 
     composeTestRule.onNodeWithTag("tripSave").assertIsEnabled()
   }
@@ -117,10 +117,19 @@ class AddTripScreenTest {
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("London Trip")
     composeTestRule.onNodeWithTag("inputTripDescription").performTextInput("4 days in London")
     composeTestRule.onNodeWithTag("inputTripLocations").performTextInput("UK, London")
-    composeTestRule.onNodeWithTag("inputStartDate").performTextInput("01/01/2024")
-    composeTestRule.onNodeWithTag("inputEndDate").performTextInput("05/01/2024")
+    composeTestRule.onNodeWithText("Start Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithText("End Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
 
     composeTestRule.onNodeWithTag("tripSave").performClick()
+
+    val today = GregorianCalendar()
+    today.set(GregorianCalendar.HOUR_OF_DAY, 0)
+    today.set(GregorianCalendar.MINUTE, 0)
+    today.set(GregorianCalendar.SECOND, 0)
+    today.set(GregorianCalendar.MILLISECOND, 0)
+    val todayTimestamp = Timestamp(today.time)
 
     val expectedTrip =
         Trip(
@@ -129,8 +138,8 @@ class AddTripScreenTest {
             description = "4 days in London",
             name = "London Trip",
             locations = listOf(Location(country = "UK", city = "London")),
-            startDate = Timestamp(GregorianCalendar(2024, 0, 1).time),
-            endDate = Timestamp(GregorianCalendar(2024, 0, 5).time),
+            startDate = todayTimestamp,
+            endDate = todayTimestamp,
             activities = listOf(),
             type = TripType.BUSINESS,
             imageUri = "")
@@ -148,10 +157,19 @@ class AddTripScreenTest {
         .onNodeWithTag("inputTripDescription")
         .performTextInput("Description for trip with unknown location")
     composeTestRule.onNodeWithTag("inputTripLocations").performTextInput("InvalidLocation")
-    composeTestRule.onNodeWithTag("inputStartDate").performTextInput("01/01/2024")
-    composeTestRule.onNodeWithTag("inputEndDate").performTextInput("05/01/2024")
+    composeTestRule.onNodeWithText("Start Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithText("End Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
 
     composeTestRule.onNodeWithTag("tripSave").performClick()
+
+    val today = GregorianCalendar()
+    today.set(GregorianCalendar.HOUR_OF_DAY, 0)
+    today.set(GregorianCalendar.MINUTE, 0)
+    today.set(GregorianCalendar.SECOND, 0)
+    today.set(GregorianCalendar.MILLISECOND, 0)
+    val todayTimestamp = Timestamp(today.time)
 
     val expectedTrip =
         Trip(
@@ -160,8 +178,8 @@ class AddTripScreenTest {
             description = "Description for trip with unknown location",
             name = "Trip with Unknown Location",
             locations = listOf(Location(country = "Unknown", city = "Unknown")),
-            startDate = Timestamp(GregorianCalendar(2024, 0, 1).time),
-            endDate = Timestamp(GregorianCalendar(2024, 0, 5).time),
+            startDate = todayTimestamp,
+            endDate = todayTimestamp,
             activities = listOf(),
             type = TripType.BUSINESS,
             imageUri = "")
@@ -208,41 +226,4 @@ class AddTripScreenTest {
 
     assert(result == null)
   }
-
-  @Test
-  fun pastDatesNotAllowed() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
-
-    val pastDate = "01/01/2020"
-    composeTestRule.onNodeWithTag("inputStartDate").performTextInput(pastDate)
-    composeTestRule.onNodeWithTag("inputEndDate").performTextInput(pastDate)
-    composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Test Trip")
-    composeTestRule
-        .onNodeWithTag("inputTripDescription")
-        .performTextInput("A trip to test past dates")
-
-    composeTestRule.onNodeWithTag("tripSave").performClick()
-
-    verify(tripRepository, times(0)).createTrip(any(), any(), any())
-  }
-
-  @Test
-  fun endDateMustBeAfterStartDate() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
-
-    val startDate = "08/01/2025"
-    val endDate = "02/01/2025"
-
-    composeTestRule.onNodeWithTag("inputStartDate").performTextInput(startDate)
-    composeTestRule.onNodeWithTag("inputEndDate").performTextInput(endDate)
-    composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Test Trip")
-    composeTestRule
-        .onNodeWithTag("inputTripDescription")
-        .performTextInput("A trip to test end and start dates")
-
-    composeTestRule.onNodeWithTag("tripSave").performClick()
-
-    verify(tripRepository, times(0)).createTrip(any(), any(), any())
-  }
-
 }

@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +36,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -66,7 +67,7 @@ fun AddTripScreen(
   val disabledBorderColor = Color.DarkGray
   val disabledTextColor = Color.Black
 
-    val galleryLauncher =
+  val galleryLauncher =
       rememberLauncherForActivityResult(
           contract = ActivityResultContracts.GetContent(),
           onResult = { uri -> uri?.let { imageUri = it.toString() } })
@@ -80,14 +81,28 @@ fun AddTripScreen(
     val startTimestamp = Timestamp(Date(startDate!!))
     val endTimestamp = Timestamp(Date(endDate!!))
 
-    val currentTimestamp = Timestamp(Date())
-    if (startTimestamp.seconds < currentTimestamp.seconds ||
-        endTimestamp.seconds < currentTimestamp.seconds) {
+    fun normalizeToMidnight(date: Date): Date {
+      val calendar =
+          Calendar.getInstance().apply {
+            time = date
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+          }
+      return calendar.time
+    }
+
+    val today = normalizeToMidnight(Date())
+    val startDateNormalized = normalizeToMidnight(Date(startDate!!))
+    val endDateNormalized = normalizeToMidnight(Date(endDate!!))
+
+    if (startDateNormalized.before(today) || endDateNormalized.before(today)) {
       Toast.makeText(context, "Start and end dates cannot be in the past", Toast.LENGTH_SHORT)
           .show()
       return
     }
-    if (startTimestamp.seconds > endTimestamp.seconds) {
+    if (startDateNormalized.after(endDateNormalized)) {
       Toast.makeText(context, "End date cannot be before start date", Toast.LENGTH_SHORT).show()
       return
     }
@@ -196,12 +211,12 @@ fun AddTripScreen(
                       readOnly = true,
                       enabled = false,
                       label = { Text("Start Date *") },
-                      colors = TextFieldDefaults.colors(
-                          disabledContainerColor = Color.Transparent,
-                          //focusedTextColor = Color.Black,
-                          //unfocusedTextColor = Color.Black,
-                          disabledTextColor = Color.Black
-                      ),
+                      colors =
+                          TextFieldDefaults.colors(
+                              disabledContainerColor = Color.Transparent,
+                              // focusedTextColor = Color.Black,
+                              // unfocusedTextColor = Color.Black,
+                              disabledTextColor = Color.Black),
                       modifier =
                           Modifier.fillMaxWidth(0.49f).testTag("inputStartDate").clickable {
                             selectedDateField = DateField.START
@@ -214,12 +229,12 @@ fun AddTripScreen(
                       readOnly = true,
                       enabled = false,
                       label = { Text("End Date *") },
-                      colors = TextFieldDefaults.colors(
-                          disabledContainerColor = Color.Transparent,
-                          //focusedTextColor = Color.Black,
-                          //unfocusedTextColor = Color.Black,
-                          disabledTextColor = Color.Black
-                      ),
+                      colors =
+                          TextFieldDefaults.colors(
+                              disabledContainerColor = Color.Transparent,
+                              // focusedTextColor = Color.Black,
+                              // unfocusedTextColor = Color.Black,
+                              disabledTextColor = Color.Black),
                       modifier =
                           Modifier.fillMaxWidth(0.49f).testTag("inputEndDate").clickable {
                             selectedDateField = DateField.END
@@ -236,7 +251,13 @@ fun AddTripScreen(
                         }
                         showModal = false
                       },
-                      onDismiss = { showModal = false })
+                      onDismiss = { showModal = false },
+                      selectedDate =
+                          when (selectedDateField) {
+                            DateField.START -> startDate ?: System.currentTimeMillis()
+                            DateField.END -> endDate ?: System.currentTimeMillis()
+                            else -> System.currentTimeMillis()
+                          })
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -276,7 +297,10 @@ fun AddTripScreen(
                   createTripWithImage("")
                 }
               },
-              enabled = name.isNotBlank() && formattedStartDate.isNotBlank() && formattedEndDate.isNotBlank(),
+              enabled =
+                  name.isNotBlank() &&
+                      formattedStartDate.isNotBlank() &&
+                      formattedEndDate.isNotBlank(),
               modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("tripSave")) {
                 Text("Save Trip")
               }
@@ -291,8 +315,13 @@ enum class DateField {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerModal(onDateSelected: (Long?) -> Unit, onDismiss: () -> Unit) {
-  val datePickerState = rememberDatePickerState()
+fun DatePickerModal(
+    onDateSelected: (Long?) -> Unit,
+    onDismiss: () -> Unit,
+    selectedDate: Long = System.currentTimeMillis()
+) {
+
+  val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate)
 
   DatePickerDialog(
       onDismissRequest = onDismiss,
