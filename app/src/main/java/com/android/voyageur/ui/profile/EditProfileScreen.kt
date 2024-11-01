@@ -4,14 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -22,16 +15,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag // Import testTag
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.user.UserViewModel
@@ -88,7 +76,7 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
             modifier = Modifier.fillMaxSize().padding(paddingValues),
             contentAlignment = Alignment.Center) {
               if (isLoading) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
               } else {
                 user?.let { userData ->
                   Column(
@@ -100,27 +88,34 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                           Image(
                               painter = rememberAsyncImagePainter(model = profilePictureUri),
                               contentDescription = "Profile Picture",
-                              modifier = Modifier.size(128.dp).clip(CircleShape))
+                              modifier =
+                                  Modifier.size(128.dp).clip(CircleShape).testTag("profilePicture"))
                         } else if (profilePictureUrl.isNotEmpty()) {
                           Image(
                               painter = rememberAsyncImagePainter(model = profilePictureUrl),
                               contentDescription = "Profile Picture",
-                              modifier = Modifier.size(128.dp).clip(CircleShape))
+                              modifier =
+                                  Modifier.size(128.dp).clip(CircleShape).testTag("profilePicture"))
                         } else {
                           Icon(
                               imageVector = Icons.Default.AccountCircle,
                               contentDescription = "Default Profile Picture",
-                              modifier = Modifier.size(128.dp))
+                              modifier = Modifier.size(128.dp).testTag("defaultProfilePicture"))
                         }
 
-                        Button(onClick = { pickPhotoLauncher.launch("image/*") }) {
-                          Text("Edit Profile Picture")
-                        }
+                        Button(
+                            onClick = { pickPhotoLauncher.launch("image/*") },
+                            modifier = Modifier.testTag("editImageButton")) {
+                              Text("Edit Profile Picture")
+                            }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
                         OutlinedTextField(
-                            value = name, onValueChange = { name = it }, label = { Text("Name") })
+                            value = name,
+                            onValueChange = { name = it },
+                            label = { Text("Name") },
+                            modifier = Modifier.testTag("nameField"))
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -129,13 +124,25 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                             onValueChange = {},
                             label = { Text("Email") },
                             readOnly = true,
-                            enabled = false)
+                            enabled = false,
+                            modifier = Modifier.testTag("emailField"))
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        Button(onClick = { isSaving = true }) { Text("Save") }
+                        Button(
+                            onClick = { isSaving = true },
+                            modifier = Modifier.testTag("saveButton")) {
+                              Text("Save")
+                            }
                       }
-                } ?: run { Text("No user data available") }
+                }
+                    ?: run {
+                      Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "No user data available",
+                            modifier = Modifier.testTag("noUserData").padding(16.dp))
+                      }
+                    }
               }
             }
       })
