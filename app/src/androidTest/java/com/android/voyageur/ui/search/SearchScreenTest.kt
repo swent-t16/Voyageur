@@ -13,6 +13,7 @@ import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
+import com.google.android.libraries.places.api.model.Place
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,19 +48,24 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag("searchScreenContent").assertIsDisplayed()
     composeTestRule.onNodeWithTag("searchBar").assertIsDisplayed()
     composeTestRule.onNodeWithTag("searchTextField").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("filterIcon").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("tabRow").assertIsDisplayed()
   }
 
   @Test
-  fun testFilterIconButtonDisplaysFilterButtons() {
-    composeTestRule.onNodeWithTag("filterIcon").performClick()
-    composeTestRule.onNodeWithTag("filterButton_Users").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("filterButton_Locations").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("filterButton_All").assertIsDisplayed()
+  fun testTabFilterFunctionality() {
+    composeTestRule.onNodeWithTag("tabRow").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("filterButton_USERS").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("filterButton_PLACES").assertIsDisplayed()
+
+    composeTestRule.onNodeWithTag("filterButton_USERS").performClick()
+    composeTestRule.onNodeWithTag("searchResultsUsers").assertIsDisplayed()
+
+    composeTestRule.onNodeWithTag("filterButton_PLACES").performClick()
+    composeTestRule.onNodeWithTag("searchResultsPlaces").assertIsDisplayed()
   }
 
   @Test
-  fun testSearchFunctionality() {
+  fun testSearchUsersFunctionality() {
     val searchQuery = "test"
     val mockUserList = listOf(User(id = "1", name = "Test User", email = "test@example.com"))
     `when`(userRepository.searchUsers(eq(searchQuery), any(), any())).thenAnswer {
@@ -71,54 +77,49 @@ class SearchScreenTest {
   }
 
   @Test
-  fun testFilterFunctionality() {
+  fun testNoResultsFound() {
     val searchQuery = "test"
-    val mockUserList = listOf(User(id = "1", name = "Test User", email = "test@example.com"))
     `when`(userRepository.searchUsers(eq(searchQuery), any(), any())).thenAnswer {
       val onSuccess = it.arguments[1] as (List<User>) -> Unit
-      onSuccess(mockUserList)
+      onSuccess(emptyList())
     }
     composeTestRule.onNodeWithTag("searchTextField").performTextInput(searchQuery)
-
-    composeTestRule.onNodeWithTag("filterIcon").performClick()
-    composeTestRule.onNodeWithTag("filterRow").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("filterButton_Users").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("filterButton_Locations").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("filterButton_All").assertIsDisplayed()
-
-    // For now we are only testing the filter functionality for users as the locations search is not
-    // implemented yet
-    // when filtering for locations, a message is displayed saying that the feature is not
-    // implemented yet
-    composeTestRule.onNodeWithTag("filterButton_Users").performClick()
-    composeTestRule.onNodeWithTag("userItem_1").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("placesPending").assertDoesNotExist()
+    composeTestRule.onNodeWithTag("noResults").assertIsDisplayed()
   }
 
   @Test
-  fun testAddToContactsButton() {
-    val userId = "1"
-    val mockUser = User(id = userId, name = "Test User", email = "test@example.com")
+  fun testSearchPlacesFunctionality() {
+    val searchQuery = "test"
+    val mockPlaceList =
+        listOf(Place.builder().setName("Test Place 1").setId("1").setRating(4.0).build())
+    `when`(placesRepository.searchPlaces(eq(searchQuery), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (List<Place>) -> Unit
+      onSuccess(mockPlaceList)
+    }
+    composeTestRule.onNodeWithTag("filterButton_PLACES").performClick()
+    composeTestRule.onNodeWithTag("searchTextField").performTextInput(searchQuery)
+    composeTestRule.onNodeWithTag("placeItem_1").assertIsDisplayed()
+  }
 
-    // Set up the repository to return the mock user in the search results
-    `when`(userRepository.searchUsers(any(), any(), any())).thenAnswer {
-      val onSuccess = it.arguments[1] as (List<User>) -> Unit
-      onSuccess(listOf(mockUser))
+  @Test
+    fun testNoResultsFoundPlaces() {
+        val searchQuery = "test"
+        `when`(placesRepository.searchPlaces(eq(searchQuery), any(), any())).thenAnswer {
+        val onSuccess = it.arguments[1] as (List<Place>) -> Unit
+        onSuccess(emptyList())
+        }
+        composeTestRule.onNodeWithTag("filterButton_PLACES").performClick()
+        composeTestRule.onNodeWithTag("searchTextField").performTextInput(searchQuery)
+        composeTestRule.onNodeWithTag("noResults").assertIsDisplayed()
     }
 
-    // Set the current user without contacts, so the button is enabled
-    `when`(userRepository.getUserById(eq(userId), any(), any())).thenAnswer {
-      val onSuccess = it.arguments[1] as (User) -> Unit
-      onSuccess(User(id = "currentUser", contacts = emptyList()))
-    }
+  @Test
+  fun testToggleToMapViewButton() {
+    composeTestRule.onNodeWithTag("filterButton_PLACES").performClick()
+    composeTestRule.onNodeWithTag("toggleMapViewButton").assertIsDisplayed().performClick()
+    composeTestRule.onNodeWithTag("googleMap").assertIsDisplayed()
 
-    // Perform a search to display the user
-    composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test User")
-    composeTestRule.onNodeWithTag("userItem_1").assertIsDisplayed()
-
-    // Check the "Add to contacts" button and click it
-    composeTestRule.onNodeWithText("Add to contacts").assertIsDisplayed().performClick()
-
-    // Verify that the addContact method was called with the correct userId
+    composeTestRule.onNodeWithTag("toggleMapViewButton").assertIsDisplayed().performClick()
+    composeTestRule.onNodeWithTag("searchResultsPlaces").assertIsDisplayed()
   }
 }

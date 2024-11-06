@@ -37,7 +37,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
+        manifestPlaceholders["PLACES_API_KEY"] = placesApiKey
     }
 
     buildTypes {
@@ -188,6 +188,7 @@ dependencies {
     implementation(libs.test.core.ktx)
     implementation(libs.androidx.navigation.testing)
     implementation(libs.firebase.storage.ktx)
+    implementation(libs.androidx.foundation.android)
 
     // Testing Unit
     testImplementation(libs.junit) {
