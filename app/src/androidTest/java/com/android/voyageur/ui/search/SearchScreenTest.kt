@@ -3,7 +3,6 @@ package com.android.voyageur.ui.search
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.place.PlacesRepository
@@ -102,16 +101,16 @@ class SearchScreenTest {
   }
 
   @Test
-    fun testNoResultsFoundPlaces() {
-        val searchQuery = "test"
-        `when`(placesRepository.searchPlaces(eq(searchQuery), any(), any())).thenAnswer {
-        val onSuccess = it.arguments[1] as (List<Place>) -> Unit
-        onSuccess(emptyList())
-        }
-        composeTestRule.onNodeWithTag("filterButton_PLACES").performClick()
-        composeTestRule.onNodeWithTag("searchTextField").performTextInput(searchQuery)
-        composeTestRule.onNodeWithTag("noResults").assertIsDisplayed()
+  fun testNoResultsFoundPlaces() {
+    val searchQuery = "test"
+    `when`(placesRepository.searchPlaces(eq(searchQuery), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (List<Place>) -> Unit
+      onSuccess(emptyList())
     }
+    composeTestRule.onNodeWithTag("filterButton_PLACES").performClick()
+    composeTestRule.onNodeWithTag("searchTextField").performTextInput(searchQuery)
+    composeTestRule.onNodeWithTag("noResults").assertIsDisplayed()
+  }
 
   @Test
   fun testToggleToMapViewButton() {
