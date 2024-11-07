@@ -44,7 +44,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
   var selectedTimeField by remember { mutableStateOf<TimeField?>(null) }
   var startTime by remember { mutableStateOf<Long?>(null) }
   var endTime by remember { mutableStateOf<Long?>(null) }
-  var estimatedPrice by remember { mutableStateOf<Number>(0) }
+  var estimatedPrice by remember { mutableStateOf<Double>(0.0) }
   var activityType by remember { mutableStateOf(ActivityType.WALK) }
   var expanded by remember { mutableStateOf(false) }
 
@@ -298,7 +298,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                     value = estimatedPrice.toString(),
                     onValueChange = { input ->
                       val newValue = input.replace("[^0-9.]".toRegex(), "")
-                      estimatedPrice = newValue.toDoubleOrNull() ?: 0.0
+                      estimatedPrice = newValue.toDouble()
                     },
                     label = { Text("Estimated Price (CHF)") },
                     placeholder = { Text("Enter estimated price") },
