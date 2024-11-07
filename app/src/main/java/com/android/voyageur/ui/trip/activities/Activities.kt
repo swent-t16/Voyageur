@@ -14,11 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +49,6 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivitiesScreen(
     trip: Trip,
@@ -80,10 +76,7 @@ fun ActivitiesScreen(
       content = { pd ->
         LazyColumn(
             modifier =
-                Modifier.padding(pd) // Use Scaffold’s padding
-                    .padding(top = 16.dp) // Additional padding at the top
-                    .fillMaxWidth() // Fill the available width
-                    .testTag("lazyColumn"),
+                Modifier.padding(pd).padding(top = 16.dp).fillMaxWidth().testTag("lazyColumn"),
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
         ) {
           item {
@@ -116,9 +109,7 @@ fun ActivitiesScreen(
       })
 }
 
-/**
- * Composable that displays an activity item in a card view.
- */
+/** Composable that displays an activity item in a card view. */
 @Composable
 fun ActivityItem(
     activity: Activity,
@@ -160,21 +151,21 @@ fun ActivityItem(
                   AnimatedVisibility(visible = isExpanded) {
                     IconButton(onClick = { /*TODO: delete activity*/}) {
                       Icon(
-                          imageVector =
-                              Icons.TwoTone.Delete,
+                          imageVector = Icons.TwoTone.Delete,
                           contentDescription = "Delete Activity",
                           tint = Color.Red)
                     }
                   }
 
                   // Expand/collapse icon
-                  IconButton(onClick = { isExpanded = !isExpanded },
+                  IconButton(
+                      onClick = { isExpanded = !isExpanded },
                       modifier = Modifier.testTag("expandIcon_${activity.title}")) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowDropDown,
-                        contentDescription = if (isExpanded) "Collapse" else "Expand",
-                        modifier = Modifier.rotate(if (isExpanded) 180f else 0f))
-                  }
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = if (isExpanded) "Collapse" else "Expand",
+                            modifier = Modifier.rotate(if (isExpanded) 180f else 0f))
+                      }
                 }
               }
 
@@ -214,7 +205,8 @@ fun ActivityItem(
         }
       })
 }
-val finalActivities =
+
+val SAMPLE_ACTIVITIES =
     listOf(
         Activity(
             title = "Breakfast",
