@@ -45,7 +45,8 @@ import java.util.Locale
 @Composable
 fun AddTripScreen(
     tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory),
-    navigationActions: NavigationActions
+    navigationActions: NavigationActions,
+    isEditMode: Boolean = false
 ) {
   var name by remember { mutableStateOf("") }
   var description by remember { mutableStateOf("") }
@@ -72,7 +73,21 @@ fun AddTripScreen(
           contract = ActivityResultContracts.GetContent(),
           onResult = { uri -> uri?.let { imageUri = it.toString() } })
 
+  LaunchedEffect(isEditMode) {
+    if (isEditMode && tripsViewModel.selectedTrip.value != null) {
+      tripsViewModel.selectedTrip.value?.let { trip ->
+        name = trip.name
+        description = trip.description
+        tripType = trip.type
+        imageUri = trip.imageUri
+        startDate = trip.startDate.toDate().time
+        endDate = trip.endDate.toDate().time
+      }
+    }
+  }
+
   fun createTripWithImage(imageUrl: String) {
+
     if (startDate == null || endDate == null) {
       Toast.makeText(context, "Please select both start and end dates", Toast.LENGTH_SHORT).show()
       return
@@ -109,7 +124,9 @@ fun AddTripScreen(
 
     val trip =
         Trip(
-            id = tripsViewModel.getNewTripId(),
+            id =
+                if (isEditMode) tripsViewModel.selectedTrip.value!!.id
+                else tripsViewModel.getNewTripId(),
             creator = Firebase.auth.uid.orEmpty(),
             description = description,
             name = name,
@@ -131,25 +148,27 @@ fun AddTripScreen(
             activities = listOf(),
             type = tripType,
             imageUri = imageUrl)
-
-    tripsViewModel.createTrip(trip)
-    navigationActions.goBack()
+    if (!isEditMode) tripsViewModel.createTrip(trip, onSuccess = { navigationActions.goBack() })
+    else {
+      tripsViewModel.updateTrip(trip, onSuccess = { navigationActions.goBack() })
+    }
   }
 
   Scaffold(
       modifier = Modifier.testTag("addTrip"),
       topBar = {
-        TopAppBar(
-            title = { Text("Create a New Trip", Modifier.testTag("addTripTitle")) },
-            navigationIcon = {
-              IconButton(
-                  onClick = { navigationActions.goBack() }, Modifier.testTag("goBackButton")) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                        contentDescription = "Back",
-                    )
-                  }
-            })
+        if (!isEditMode)
+            TopAppBar(
+                title = { Text("Create a New Trip", Modifier.testTag("addTripTitle")) },
+                navigationIcon = {
+                  IconButton(
+                      onClick = { navigationActions.goBack() }, Modifier.testTag("goBackButton")) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = "Back",
+                        )
+                      }
+                })
       }) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
           Column(
@@ -281,7 +300,8 @@ fun AddTripScreen(
 
           Button(
               onClick = {
-                if (imageUri.isNotBlank()) {
+                if (imageUri.isNotBlank() &&
+                    imageUri != tripsViewModel.selectedTrip.value?.imageUri) {
                   val imageUriParsed = Uri.parse(imageUri)
                   tripsViewModel.uploadImageToFirebase(
                       uri = imageUriParsed,
@@ -294,7 +314,7 @@ fun AddTripScreen(
                             .show()
                       })
                 } else {
-                  createTripWithImage("")
+                  createTripWithImage(imageUri)
                 }
               },
               enabled =

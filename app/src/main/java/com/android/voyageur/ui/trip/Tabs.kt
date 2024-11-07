@@ -56,7 +56,7 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
     when (selectedTabIndex) {
       0 -> ByDayScreen(trip, navigationActions)
       1 -> ActivitiesScreen(trip, navigationActions)
-      2 -> SettingsScreen(trip, navigationActions)
+      2 -> SettingsScreen(trip, navigationActions, tripsViewModel = tripsViewModel)
     }
   }
 }

@@ -1,6 +1,7 @@
 package com.android.voyageur.model.trip
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.google.firebase.Firebase
@@ -50,28 +51,35 @@ open class TripsViewModel(
 
   fun getNewTripId(): String = tripsRepository.getNewTripId()
 
-  fun getTrips() {
+  fun getTrips(onSuccess: () -> Unit = {}) {
     tripsRepository.getTrips(
         creator = Firebase.auth.uid.orEmpty(),
-        onSuccess = { trips -> _trips.value = trips },
+        onSuccess = { trips ->
+          _trips.value = ArrayList()
+          _trips.value = trips
+          onSuccess()
+        },
         onFailure = {})
   }
 
-  fun createTrip(trip: Trip) {
-    tripsRepository.createTrip(trip = trip, onSuccess = { getTrips() }, onFailure = {})
+  fun createTrip(trip: Trip, onSuccess: () -> Unit = {}) {
+    tripsRepository.createTrip(trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = {})
   }
 
-  fun deleteTripById(id: String) {
-    tripsRepository.deleteTripById(id = id, onSuccess = { getTrips() }, onFailure = {})
+  fun deleteTripById(id: String, onSuccess: () -> Unit = {}) {
+    tripsRepository.deleteTripById(id = id, onSuccess = { getTrips(onSuccess) }, onFailure = {})
   }
 
-  fun updateTrip(trip: Trip) {
-    tripsRepository.updateTrip(trip = trip, onSuccess = { getTrips() }, onFailure = {})
+  fun updateTrip(trip: Trip, onSuccess: () -> Unit = {}) {
+    tripsRepository.updateTrip(
+        trip = trip,
+        onSuccess = { getTrips(onSuccess) },
+        onFailure = { Log.e("Fail", it.message ?: "") })
   }
 
   fun uploadImageToFirebase(uri: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
     val storageRef = FirebaseStorage.getInstance().reference
-    val fileRef = storageRef.child("images/${uri.lastPathSegment}")
+    val fileRef = storageRef.child("images/${uri.lastPathSegment}" + Math.random().toString())
     fileRef
         .putFile(uri)
         .addOnSuccessListener {
