@@ -56,6 +56,11 @@ open class TripsViewModel(
     tripsRepository.getTrips(
         creator = Firebase.auth.uid.orEmpty(),
         onSuccess = { trips ->
+          /*
+              This is a trick to force a recompose, because the reference wouldn't
+              change and update the UI as the list references wouldn't change, nor the object ref.
+              so the UI won't get updated without this.
+          */
           _trips.value = ArrayList()
           _trips.value = trips
           onSuccess()

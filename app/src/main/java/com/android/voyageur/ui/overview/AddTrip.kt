@@ -156,7 +156,12 @@ fun AddTripScreen(
       tripsViewModel.updateTrip(
           trip,
           onSuccess = {
+            /*
+                This is a trick to force a recompose, because the reference wouldn't
+                change and update the UI.
+            */
             tripsViewModel.selectTrip(Trip())
+
             tripsViewModel.selectTrip(trip)
             onUpdate()
           })
