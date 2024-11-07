@@ -22,7 +22,6 @@ android {
         localProperties.load(FileInputStream(localPropertiesFile))
     }
 
-    val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY") ?: ""
     val placesApiKey = localProperties.getProperty("PLACES_API_KEY") ?: ""
 
     defaultConfig {
@@ -31,7 +30,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-        buildConfigField ("String", "PLACES_API_KEY", placesApiKey)
+        buildConfigField ("String", "PLACES_API_KEY", "\"${placesApiKey}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
