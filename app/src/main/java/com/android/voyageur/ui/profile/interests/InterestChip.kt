@@ -12,15 +12,15 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun InterestChip(interest: String, modifier: Modifier = Modifier) {
-    Text(
-        text = interest,
-        style = MaterialTheme.typography.bodySmall.copy(
-            color = MaterialTheme.colorScheme.onPrimaryContainer
-        ),
-        modifier = modifier
-            .clip(MaterialTheme.shapes.small)
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(horizontal = 12.dp, vertical = 6.dp)
-            .testTag("interest_$interest")
-    )
+  Text(
+      text = interest,
+      style =
+          MaterialTheme.typography.bodySmall.copy(
+              color = MaterialTheme.colorScheme.onPrimaryContainer),
+      modifier =
+          modifier
+              .clip(MaterialTheme.shapes.small)
+              .background(MaterialTheme.colorScheme.primaryContainer)
+              .padding(horizontal = 12.dp, vertical = 6.dp)
+              .testTag("interest_$interest"))
 }

@@ -51,14 +51,14 @@ class ProfileScreenTest {
 
     // Mock userRepository.getUserById to call onSuccess with a User
     doAnswer { invocation ->
-      val userId = invocation.getArgument<String>(0)
-      val onSuccess = invocation.getArgument<(User) -> Unit>(1)
-      val user = User(userId, "Test User", "test@example.com", interests = emptyList())
-      onSuccess(user)
-      null
-    }
-      .`when`(userRepository)
-      .getUserById(anyString(), anyOrNull(), anyOrNull())
+          val userId = invocation.getArgument<String>(0)
+          val onSuccess = invocation.getArgument<(User) -> Unit>(1)
+          val user = User(userId, "Test User", "test@example.com", interests = emptyList())
+          onSuccess(user)
+          null
+        }
+        .`when`(userRepository)
+        .getUserById(anyString(), anyOrNull(), anyOrNull())
 
     // Create the UserViewModel with the mocked userRepository and firebaseAuth
     userViewModel = UserViewModel(userRepository, firebaseAuth)
@@ -111,7 +111,8 @@ class ProfileScreenTest {
   @Test
   fun displayDefaultProfilePictureWhenNoProfilePicture() {
     // Arrange: Mock a user without a profile picture
-    val user = User("123", "Jane Doe", "jane@example.com", profilePicture = "", interests = emptyList())
+    val user =
+        User("123", "Jane Doe", "jane@example.com", profilePicture = "", interests = emptyList())
     userViewModel._user.value = user
     userViewModel._isLoading.value = false
 
@@ -122,7 +123,13 @@ class ProfileScreenTest {
   @Test
   fun displayProfilePictureWhenUserHasProfilePicture() {
     // Arrange: Mock a user with a profile picture
-    val user = User("123", "Jane Doe", "jane@example.com", profilePicture = "http://example.com/profile.jpg", interests = emptyList())
+    val user =
+        User(
+            "123",
+            "Jane Doe",
+            "jane@example.com",
+            profilePicture = "http://example.com/profile.jpg",
+            interests = emptyList())
     userViewModel._user.value = user
     userViewModel._isLoading.value = false
 
@@ -174,12 +181,11 @@ class ProfileScreenTest {
 
     // Assert: Check that the interests are displayed
     composeTestRule.onNodeWithTag("interestsFlowRow").assertIsDisplayed()
-    interests.forEach { interest ->
-      composeTestRule.onNodeWithText(interest).assertIsDisplayed()
-    }
+    interests.forEach { interest -> composeTestRule.onNodeWithText(interest).assertIsDisplayed() }
   }
 
-  // New test to verify the "No interests added yet" message is displayed when the user has no interests
+  // New test to verify the "No interests added yet" message is displayed when the user has no
+  // interests
   @Test
   fun displayNoInterestsMessageWhenUserHasNoInterests() {
     // Arrange: Mock a user with no interests

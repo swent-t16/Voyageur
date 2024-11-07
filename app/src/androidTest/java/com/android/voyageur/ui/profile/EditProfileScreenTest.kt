@@ -29,8 +29,7 @@ import org.mockito.kotlin.anyOrNull
 
 class EditProfileScreenTest {
 
-  @get:Rule
-  val composeTestRule = createAndroidComposeRule<MainActivity>()
+  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
 
   private lateinit var navigationActions: NavigationActions
   private lateinit var userRepository: UserRepository
@@ -57,17 +56,19 @@ class EditProfileScreenTest {
 
     // Mock userRepository.getUserById to call onSuccess with a User
     doAnswer { invocation ->
-      val userId = invocation.getArgument<String>(0)
-      val onSuccess = invocation.getArgument<(User) -> Unit>(1)
-      val user = User(
-        id = userId,
-        name = "Test User",
-        email = "test@example.com",
-        interests = listOf("Travel", "Photography")
-      )
-      onSuccess(user)
-      null
-    }.`when`(userRepository).getUserById(anyString(), anyOrNull(), anyOrNull())
+          val userId = invocation.getArgument<String>(0)
+          val onSuccess = invocation.getArgument<(User) -> Unit>(1)
+          val user =
+              User(
+                  id = userId,
+                  name = "Test User",
+                  email = "test@example.com",
+                  interests = listOf("Travel", "Photography"))
+          onSuccess(user)
+          null
+        }
+        .`when`(userRepository)
+        .getUserById(anyString(), anyOrNull(), anyOrNull())
 
     // Create the UserViewModel with the mocked userRepository and firebaseAuth
     userViewModel = UserViewModel(userRepository, firebaseAuth)
@@ -183,7 +184,8 @@ class EditProfileScreenTest {
   @Test
   fun addInterestSuccessfully() {
     // Arrange
-    userViewModel._user.value = User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
+    userViewModel._user.value =
+        User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
     userViewModel._isLoading.value = false
 
     // Wait for the UI to settle
@@ -203,12 +205,12 @@ class EditProfileScreenTest {
   fun removeInterestWithConfirmation() {
     // Arrange
     val interestToRemove = "Photography"
-    userViewModel._user.value = User(
-      "123",
-      "Jane Doe",
-      "jane@example.com",
-      interests = mutableListOf("Travel", interestToRemove)
-    )
+    userViewModel._user.value =
+        User(
+            "123",
+            "Jane Doe",
+            "jane@example.com",
+            interests = mutableListOf("Travel", interestToRemove))
     userViewModel._isLoading.value = false
 
     // Wait for the UI to settle
@@ -219,7 +221,10 @@ class EditProfileScreenTest {
 
     // Assert: Confirmation dialog is displayed
     composeTestRule.onNodeWithText("Remove Interest").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Are you sure you want to remove \"$interestToRemove\" from your interests?").assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText(
+            "Are you sure you want to remove \"$interestToRemove\" from your interests?")
+        .assertIsDisplayed()
 
     // Act: Confirm the deletion
     composeTestRule.onNodeWithText("Remove").performClick()
@@ -232,12 +237,12 @@ class EditProfileScreenTest {
   fun cancelRemoveInterest() {
     // Arrange
     val interestToRemove = "Travel"
-    userViewModel._user.value = User(
-      "123",
-      "Jane Doe",
-      "jane@example.com",
-      interests = mutableListOf(interestToRemove, "Photography")
-    )
+    userViewModel._user.value =
+        User(
+            "123",
+            "Jane Doe",
+            "jane@example.com",
+            interests = mutableListOf(interestToRemove, "Photography"))
     userViewModel._isLoading.value = false
 
     // Wait for the UI to settle

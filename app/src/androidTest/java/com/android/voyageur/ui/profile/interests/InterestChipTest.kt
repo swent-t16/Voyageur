@@ -11,52 +11,44 @@ import org.junit.Test
 
 class InterestChipTest {
 
-    @get:Rule
-    val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createComposeRule()
 
-    @Test
-    fun interestChip_displaysInterestText() {
-        // Arrange
-        val interest = "Photography"
+  @Test
+  fun interestChip_displaysInterestText() {
+    // Arrange
+    val interest = "Photography"
 
-        // Act
-        composeTestRule.setContent {
-            InterestChip(interest = interest)
-        }
+    // Act
+    composeTestRule.setContent { InterestChip(interest = interest) }
 
-        // Assert
-        composeTestRule.onNodeWithText(interest).assertIsDisplayed()
+    // Assert
+    composeTestRule.onNodeWithText(interest).assertIsDisplayed()
+  }
+
+  @Test
+  fun interestChip_hasCorrectTestTag() {
+    // Arrange
+    val interest = "Travel"
+
+    // Act
+    composeTestRule.setContent { InterestChip(interest = interest) }
+
+    // Assert
+    composeTestRule.onNodeWithTag("interest_$interest").assertIsDisplayed()
+  }
+
+  @Test
+  fun interestChip_appliesModifiers() {
+    // Arrange
+    val interest = "Cooking"
+    val customTag = "customTestTag"
+
+    // Act
+    composeTestRule.setContent {
+      InterestChip(interest = interest, modifier = Modifier.testTag(customTag))
     }
 
-    @Test
-    fun interestChip_hasCorrectTestTag() {
-        // Arrange
-        val interest = "Travel"
-
-        // Act
-        composeTestRule.setContent {
-            InterestChip(interest = interest)
-        }
-
-        // Assert
-        composeTestRule.onNodeWithTag("interest_$interest").assertIsDisplayed()
-    }
-
-    @Test
-    fun interestChip_appliesModifiers() {
-        // Arrange
-        val interest = "Cooking"
-        val customTag = "customTestTag"
-
-        // Act
-        composeTestRule.setContent {
-            InterestChip(
-                interest = interest,
-                modifier = Modifier.testTag(customTag)
-            )
-        }
-
-        // Assert
-        composeTestRule.onNodeWithTag(customTag).assertIsDisplayed()
-    }
+    // Assert
+    composeTestRule.onNodeWithTag(customTag).assertIsDisplayed()
+  }
 }
