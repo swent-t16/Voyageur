@@ -59,23 +59,17 @@ fun ActivitiesScreen(
     navigationActions: NavigationActions,
 ) {
 
-  //    val finalActivities = trip.activities.filter { activity ->
-  //        activity.startTime != Timestamp(0, 0) && activity.endDate != Timestamp(0, 0)
-  //    }
-
-//    trip.activities = finalActivities
-
   val drafts =
-      finalActivities.filter { activity ->
+      trip.activities.filter { activity ->
         activity.startTime == Timestamp(0, 0) || activity.endDate == Timestamp(0, 0)
       }
   val final =
-      finalActivities.filter { activity ->
+      trip.activities.filter { activity ->
         activity.startTime != Timestamp(0, 0) && activity.endDate != Timestamp(0, 0)
       }
 
   Scaffold(
-      // TODO: Final implementation of ActivitiesScreen
+      // TODO: Search Bar
       modifier = Modifier.testTag("activitiesScreen"),
       bottomBar = {
         BottomNavigationMenu(
@@ -122,29 +116,25 @@ fun ActivitiesScreen(
       })
 }
 
+/**
+ * Composable that displays an activity item in a card view.
+ */
 @Composable
 fun ActivityItem(
     activity: Activity,
 ) {
-  // State to track expanded or collapsed status
   var isExpanded by remember { mutableStateOf(false) }
 
-  //  // Format the start and end times
-  //  val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
-  //  val startTimeFormatted = timeFormat.format(activity.startTime.toDate())
-  //  val endTimeFormatted = timeFormat.format(activity.endDate.toDate())
-  // Date and Time Formatter
   val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
   val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
 
-  // Formatting the Date and Time
   val dateFormatted = dateFormat.format(activity.startTime.toDate())
   val startTimeFormatted = timeFormat.format(activity.startTime.toDate())
   val endTimeFormatted = timeFormat.format(activity.endDate.toDate())
 
   Card(
       shape = MaterialTheme.shapes.medium,
-      modifier = Modifier.padding(start = 10.dp, end = 10.dp).testTag("cardItem"),
+      modifier = Modifier.padding(start = 10.dp, end = 10.dp).testTag("cardItem_${activity.title}"),
       content = {
         Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
           Row(
@@ -171,14 +161,15 @@ fun ActivityItem(
                     IconButton(onClick = { /*TODO: delete activity*/}) {
                       Icon(
                           imageVector =
-                              Icons.TwoTone.Delete, // Use Icons.Default.Delete for trashcan
+                              Icons.TwoTone.Delete,
                           contentDescription = "Delete Activity",
                           tint = Color.Red)
                     }
                   }
 
-                  // Expand/collapse icon with rotation
-                  IconButton(onClick = { isExpanded = !isExpanded }) {
+                  // Expand/collapse icon
+                  IconButton(onClick = { isExpanded = !isExpanded },
+                      modifier = Modifier.testTag("expandIcon_${activity.title}")) {
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = if (isExpanded) "Collapse" else "Expand",
@@ -288,8 +279,6 @@ val finalActivities =
             title = "Visit city",
             description = "",
             activityType = ActivityType.OTHER,
-            //                startTime = oneDayAfterNow,
-            //                endDate = oneDayAfterNow,
             startTime = Timestamp.now(),
             endDate = Timestamp.now(),
             estimatedPrice = 00.00,
