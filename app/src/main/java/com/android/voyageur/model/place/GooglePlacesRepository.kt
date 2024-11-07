@@ -53,6 +53,7 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
             Place.Field.OPENING_HOURS,
             Place.Field.RATING,
             Place.Field.USER_RATINGS_TOTAL,
+            Place.Field.LAT_LNG,
             Place.Field.PRICE_LEVEL)
     placeIds.forEach { placeId ->
       val request = FetchPlaceRequest.builder(placeId, placeFields).build()
