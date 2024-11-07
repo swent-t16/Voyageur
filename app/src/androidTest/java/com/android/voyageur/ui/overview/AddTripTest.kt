@@ -240,6 +240,39 @@ class AddTripScreenTest {
   }
 
   @Test
+  fun addTripScreen_editMode_updatesTrip() {
+    // Set up a sample trip to simulate editing
+    val trip =
+        Trip(
+            id = "editTripId",
+            creator = "mockUserId",
+            description = "Existing trip",
+            name = "Existing Trip",
+            locations = listOf(Location(country = "France", city = "Paris")),
+            startDate = Timestamp(Date()),
+            endDate = Timestamp(Date()),
+            activities = listOf(),
+            type = TripType.TOURISM,
+            imageUri = "someUri")
+
+    // Set the selected trip in the ViewModel to the sample trip to simulate edit mode
+    tripsViewModel.selectTrip(trip)
+
+    // Set up the test content
+    composeTestRule.setContent {
+      AddTripScreen(
+          tripsViewModel = tripsViewModel, navigationActions = navigationActions, isEditMode = true)
+    }
+
+    // Modify some fields to simulate an edit
+    composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Updated Trip Title")
+    composeTestRule.onNodeWithTag("inputTripDescription").performTextInput("Updated Description")
+
+    // Click the save button to trigger updateTrip
+    composeTestRule.onNodeWithTag("tripSave").performClick()
+  }
+
+  @Test
   fun addTripScreen_displayDatePickerModal() {
     composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
     composeTestRule.onNodeWithTag("inputStartDate").performClick()
