@@ -70,7 +70,7 @@ fun ByDayScreen(
       content = { pd ->
         // TODO: HARDCODED ACTIVITY LIST to be removed when we have actual list
         // TODO: sort activities by their hour
-        // val tripActivities = trip.activities
+        val tripActivities = trip.activities
         val oneDayAfterNow = Timestamp(Timestamp.now().seconds + 86400, 0)
         val fakeActivities =
             listOf(
@@ -138,7 +138,7 @@ fun ByDayScreen(
                     endTime = Timestamp.now(),
                     estimatedPrice = 00.00,
                     location = Location()))
-        val groupedActivities = groupActivitiesByDate(fakeActivities)
+        val groupedActivities = groupActivitiesByDate(tripActivities)
         if (groupedActivities.isEmpty()) {
           Text(
               modifier = Modifier.padding(pd).testTag("emptyByDayPrompt"),
