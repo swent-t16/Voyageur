@@ -5,12 +5,12 @@ import com.google.firebase.Timestamp
 
 data class Activity(
     val title: String,
-    val description: String,
-    val location: Location,
-    val startTime: Timestamp,
-    val endDate: Timestamp,
-    val estimatedPrice: Number,
-    val activityType: ActivityType,
+    val description: String = "",
+    val location: Location = Location(),
+    val startTime: Timestamp = Timestamp(0, 0),
+    val endDate: Timestamp = Timestamp(0, 0),
+    val estimatedPrice: Number = 0.0,
+    val activityType: ActivityType = ActivityType.OTHER,
 )
 
 enum class ActivityType {
@@ -22,3 +22,9 @@ enum class ActivityType {
   TRANSPORT,
   OTHER,
 }
+
+fun Activity.hasDescription() = description != ""
+
+fun Activity.hasStartTime() = startTime != Timestamp(0, 0)
+
+fun Activity.hasEndDate() = endDate != Timestamp(0, 0)

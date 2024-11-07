@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.testTag
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.trip.activities.ActivitiesScreen
+import com.android.voyageur.ui.trip.activities.finalActivities
 import com.android.voyageur.ui.trip.schedule.ByDayScreen
 import com.android.voyageur.ui.trip.schedule.TopBarWithImage
 import com.android.voyageur.ui.trip.settings.SettingsScreen
@@ -54,7 +55,8 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
     // Display content based on selected tab
     when (selectedTabIndex) {
       0 -> ByDayScreen(trip, navigationActions)
-      1 -> ActivitiesScreen(trip, navigationActions)
+      1 -> { trip.activities = finalActivities
+          ActivitiesScreen(trip, navigationActions) }
       2 ->
           SettingsScreen(
               trip,

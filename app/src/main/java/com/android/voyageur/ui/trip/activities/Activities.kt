@@ -23,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,11 +35,13 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
+import com.android.voyageur.model.activity.hasDescription
+import com.android.voyageur.model.activity.hasEndDate
+import com.android.voyageur.model.activity.hasStartTime
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
@@ -62,74 +63,16 @@ fun ActivitiesScreen(
   //        activity.startTime != Timestamp(0, 0) && activity.endDate != Timestamp(0, 0)
   //    }
 
-  val finalActivities =
-      listOf(
-          Activity(
-              title = "Breakfast",
-              description = "",
-              activityType = ActivityType.RESTAURANT,
-              startTime = Timestamp.now(),
-              endDate = Timestamp.now(),
-              estimatedPrice = 20.25,
-              location = Location()),
-          Activity(
-              title = "Dinner",
-              description = "",
-              activityType = ActivityType.RESTAURANT,
-              startTime = Timestamp.now(),
-              endDate = Timestamp.now(),
-              estimatedPrice = 23.25,
-              location = Location()),
-          Activity(
-              title = "Dinner2",
-              description = "",
-              activityType = ActivityType.RESTAURANT,
-              startTime = Timestamp.now(),
-              endDate = Timestamp.now(),
-              estimatedPrice = 23.25,
-              location = Location()),
-          Activity(
-              title = "Dinner3",
-              description = "",
-              activityType = ActivityType.RESTAURANT,
-              startTime = Timestamp.now(),
-              endDate = Timestamp.now(),
-              estimatedPrice = 23.25,
-              location = Location()),
-          Activity(
-              title = "Dinner4",
-              description = "",
-              activityType = ActivityType.RESTAURANT,
-              startTime = Timestamp.now(),
-              endDate = Timestamp.now(),
-              estimatedPrice = 23.25,
-              location = Location()),
-          Activity(
-              title = "Dinner5",
-              description = "",
-              activityType = ActivityType.RESTAURANT,
-              startTime = Timestamp.now(),
-              endDate = Timestamp.now(),
-              estimatedPrice = 23.25,
-              location = Location()),
-          Activity(
-              title = "Too long name to be displayed on the Activity Box",
-              description = "",
-              activityType = ActivityType.OTHER,
-              startTime = Timestamp.now(),
-              endDate = Timestamp.now(),
-              estimatedPrice = 00.00,
-              location = Location()),
-          Activity(
-              title = "Visit city",
-              description = "",
-              activityType = ActivityType.OTHER,
-              //                startTime = oneDayAfterNow,
-              //                endDate = oneDayAfterNow,
-              startTime = Timestamp.now(),
-              endDate = Timestamp.now(),
-              estimatedPrice = 00.00,
-              location = Location()))
+//    trip.activities = finalActivities
+
+  val drafts =
+      finalActivities.filter { activity ->
+        activity.startTime == Timestamp(0, 0) || activity.endDate == Timestamp(0, 0)
+      }
+  val final =
+      finalActivities.filter { activity ->
+        activity.startTime != Timestamp(0, 0) && activity.endDate != Timestamp(0, 0)
+      }
 
   Scaffold(
       // TODO: Final implementation of ActivitiesScreen
@@ -149,11 +92,29 @@ fun ActivitiesScreen(
                     .testTag("lazyColumn"),
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
         ) {
-          item { Text(text = "Drafts",               fontSize = 24.sp,
-              fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp)) }
-          finalActivities.forEach { activity ->
+          item {
+            Text(
+                text = "Drafts",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 10.dp))
+          }
+          drafts.forEach { activity ->
             item {
-              ActivityItem(activity, onDelete = { /* Handle delete action */})
+              ActivityItem(activity)
+              Spacer(modifier = Modifier.height(10.dp))
+            }
+          }
+          item {
+            Text(
+                text = "Final",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 10.dp))
+          }
+          final.forEach { activity ->
+            item {
+              ActivityItem(activity)
               Spacer(modifier = Modifier.height(10.dp))
             }
           }
@@ -164,39 +125,50 @@ fun ActivitiesScreen(
 @Composable
 fun ActivityItem(
     activity: Activity,
-    onDelete: (Activity) -> Unit // Callback function for delete action
 ) {
   // State to track expanded or collapsed status
   var isExpanded by remember { mutableStateOf(false) }
 
-  // Format the start and end times
-  val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
+  //  // Format the start and end times
+  //  val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
+  //  val startTimeFormatted = timeFormat.format(activity.startTime.toDate())
+  //  val endTimeFormatted = timeFormat.format(activity.endDate.toDate())
+  // Date and Time Formatter
+  val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+  val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+
+  // Formatting the Date and Time
+  val dateFormatted = dateFormat.format(activity.startTime.toDate())
   val startTimeFormatted = timeFormat.format(activity.startTime.toDate())
   val endTimeFormatted = timeFormat.format(activity.endDate.toDate())
-    Card(
-       shape = MaterialTheme.shapes.medium,
-      modifier = Modifier.padding(start = 10.dp, end = 10.dp)
-          .testTag("cardItem"),
-        content = {
+
+  Card(
+      shape = MaterialTheme.shapes.medium,
+      modifier = Modifier.padding(start = 10.dp, end = 10.dp).testTag("cardItem"),
+      content = {
         Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
           Row(
               horizontalArrangement = Arrangement.SpaceBetween,
               verticalAlignment = Alignment.CenterVertically,
               modifier = Modifier.fillMaxWidth()) {
-                Column (modifier = Modifier.weight(1f)) {
-                  Text(text = activity.title, fontWeight = FontWeight.Medium,
+                Column(modifier = Modifier.weight(1f)) {
+                  Text(
+                      text = activity.title,
+                      fontWeight = FontWeight.Medium,
                       modifier = Modifier.padding(end = 8.dp),
                       fontSize = 16.sp)
-                  Text(
-                      text = "$startTimeFormatted - $endTimeFormatted",
-                      fontSize = 12.sp,
-                      color = Color.Gray)
+                  if (activity.hasStartTime() && activity.hasEndDate()) {
+                    Text(
+                        text = "$dateFormatted $startTimeFormatted - $endTimeFormatted",
+                        fontSize = 12.sp,
+                        color = Color.Gray)
+                  }
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                   // Delete icon, visible only when expanded
                   AnimatedVisibility(visible = isExpanded) {
-                    IconButton(onClick = { onDelete(activity) }) {
+                    IconButton(onClick = { /*TODO: delete activity*/}) {
                       Icon(
                           imageVector =
                               Icons.TwoTone.Delete, // Use Icons.Default.Delete for trashcan
@@ -218,16 +190,18 @@ fun ActivityItem(
           // Expandable content with animation
           AnimatedVisibility(visible = isExpanded, enter = fadeIn(), exit = fadeOut()) {
             Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-              Text(
-                  text = "Description",
-                  fontWeight = FontWeight.SemiBold,
-                  fontSize = 14.sp,
-                  modifier = Modifier.padding(vertical = 2.dp))
-              Text(
-                  text = activity.description,
-                  fontSize = 14.sp,
-                  modifier = Modifier.padding(bottom = 8.dp))
-
+              if (activity.hasDescription()) {
+                Text(
+                    text = "Description",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(vertical = 2.dp))
+                Text(
+                    text = activity.description,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(bottom = 8.dp))
+              }
+              // TODO: Add location once we have the final location model
               Text(
                   text = "Price",
                   fontWeight = FontWeight.SemiBold,
@@ -249,3 +223,74 @@ fun ActivityItem(
         }
       })
 }
+val finalActivities =
+    listOf(
+        Activity(
+            title = "Breakfast",
+            description = "",
+            activityType = ActivityType.RESTAURANT,
+            startTime = Timestamp.now(),
+            endDate = Timestamp.now(),
+            estimatedPrice = 20.25,
+            location = Location()),
+        Activity(
+            title = "Lunch",
+        ),
+        Activity(
+            title = "Dinner",
+            description = "Dinner description",
+            activityType = ActivityType.RESTAURANT,
+            startTime = Timestamp.now(),
+            endDate = Timestamp.now(),
+            estimatedPrice = 23.25,
+            location = Location()),
+        Activity(
+            title = "Dinner2",
+            description = "",
+            activityType = ActivityType.RESTAURANT,
+            startTime = Timestamp.now(),
+            endDate = Timestamp.now(),
+            estimatedPrice = 23.25,
+            location = Location()),
+        Activity(
+            title = "Dinner3",
+            description = "",
+            activityType = ActivityType.RESTAURANT,
+            startTime = Timestamp.now(),
+            endDate = Timestamp.now(),
+            estimatedPrice = 23.25,
+            location = Location()),
+        Activity(
+            title = "Dinner4",
+            description = "Too long description to be displayed on the Activity Box",
+            activityType = ActivityType.RESTAURANT,
+            startTime = Timestamp.now(),
+            endDate = Timestamp.now(),
+            estimatedPrice = 23.25,
+            location = Location()),
+        Activity(
+            title = "Dinner5",
+            description = "",
+            activityType = ActivityType.RESTAURANT,
+            startTime = Timestamp.now(),
+            endDate = Timestamp.now(),
+            estimatedPrice = 23.25,
+            location = Location()),
+        Activity(
+            title = "Too long name to be displayed on the Activity Box",
+            description = "",
+            activityType = ActivityType.OTHER,
+            startTime = Timestamp.now(),
+            endDate = Timestamp.now(),
+            estimatedPrice = 00.00,
+            location = Location()),
+        Activity(
+            title = "Visit city",
+            description = "",
+            activityType = ActivityType.OTHER,
+            //                startTime = oneDayAfterNow,
+            //                endDate = oneDayAfterNow,
+            startTime = Timestamp.now(),
+            endDate = Timestamp.now(),
+            estimatedPrice = 00.00,
+            location = Location()))
