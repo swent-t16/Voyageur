@@ -1,9 +1,11 @@
 package com.android.voyageur.ui.trip.schedule
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,9 +18,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,11 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.trip.Trip
-import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
-import com.android.voyageur.ui.navigation.LIST_TRIP_LEVEL_DESTINATION
+import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
-import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -39,45 +39,40 @@ import java.time.ZoneId
 
 @Composable
 fun WeeklyViewScreen(
-    tripsViewModel: TripsViewModel,
+    trip: Trip,
     navigationActions: NavigationActions,
+    onDaySelected: () -> Unit // Add this parameter
 ) {
-  val trip =
-      tripsViewModel.selectedTrip.collectAsState().value
-          ?: return Text(
-              text = "No ToDo selected. Should not happen",
-              color = Color.Red,
-              modifier = Modifier.testTag("errorText"))
   val weeks = generateWeeks(trip.startDate, trip.endDate)
 
   Scaffold(
-      modifier = Modifier.testTag("weeklyViewScreen"),
-      topBar = { TopBarWithImage(selectedTrip = trip, navigationActions = navigationActions) },
+      modifier = Modifier.fillMaxSize().testTag("weeklyViewScreen"),
       bottomBar = {
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
-            tabList = LIST_TRIP_LEVEL_DESTINATION,
+            tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute())
-      },
-      content = { pd ->
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth().padding(pd).testTag("weeksColumn"),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally) {
-              item { Spacer(modifier = Modifier.height(16.dp)) }
-              item { DayWeekButton(navigationActions) }
-              items(weeks.size) { weekIndex ->
-                WeekCard(
-                    weekStart = weeks[weekIndex].first,
-                    weekEnd = weeks[weekIndex].last,
-                    activities = trip.activities,
-                    navigationActions = navigationActions,
-                    tripsViewModel = tripsViewModel,
-                    trip = trip,
-                    weekIndex = weekIndex)
+      }) { pd ->
+        Box(modifier = Modifier.fillMaxSize().padding(pd)) {
+          LazyColumn(
+              modifier = Modifier.fillMaxWidth().testTag("weeksColumn"),
+              verticalArrangement = Arrangement.spacedBy(16.dp),
+              horizontalAlignment = Alignment.CenterHorizontally) {
+                item { Spacer(modifier = Modifier.height(16.dp)) }
+                items(weeks.size) { weekIndex ->
+                  WeekCard(
+                      weekStart = weeks[weekIndex].first,
+                      weekEnd = weeks[weekIndex].last,
+                      activities = trip.activities,
+                      navigationActions = navigationActions,
+                      trip = trip,
+                      weekIndex = weekIndex,
+                      onDaySelected = onDaySelected // Pass the callback
+                      )
+                }
               }
-            }
-      })
+        }
+      }
 }
 
 @Composable
@@ -86,9 +81,9 @@ private fun WeekCard(
     weekEnd: LocalDate,
     activities: List<Activity>,
     navigationActions: NavigationActions,
-    tripsViewModel: TripsViewModel,
     trip: Trip,
-    weekIndex: Int
+    weekIndex: Int,
+    onDaySelected: () -> Unit // Add this parameter
 ) {
   Card(
       modifier = Modifier.width(360.dp).testTag("weekCard_$weekIndex"),
@@ -119,10 +114,11 @@ private fun WeekCard(
                     date = currentDate,
                     activityCount = activitiesForDay.size,
                     navigationActions = navigationActions,
-                    tripsViewModel = tripsViewModel,
                     trip = trip,
                     dayIndex = dayOffset,
-                    weekIndex = weekIndex)
+                    weekIndex = weekIndex,
+                    onDaySelected = onDaySelected // Pass the callback
+                    )
               }
             }
       }
@@ -133,16 +129,13 @@ private fun DayActivityCount(
     date: LocalDate,
     activityCount: Int,
     navigationActions: NavigationActions,
-    tripsViewModel: TripsViewModel,
     trip: Trip,
     dayIndex: Int,
-    weekIndex: Int
+    weekIndex: Int,
+    onDaySelected: () -> Unit // Add this parameter
 ) {
   Button(
-      onClick = {
-        navigationActions.navigateTo(Screen.BY_DAY)
-        tripsViewModel.selectTrip(trip)
-      },
+      onClick = onDaySelected, // Use the callback
       modifier = Modifier.fillMaxWidth().testTag("dayButton_${weekIndex}_$dayIndex"),
       shape = RoundedCornerShape(24.dp)) {
         Row(
