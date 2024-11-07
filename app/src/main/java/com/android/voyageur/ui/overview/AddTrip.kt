@@ -149,8 +149,10 @@ fun AddTripScreen(
             activities = listOf(),
             type = tripType,
             imageUri = imageUrl)
-    if (!isEditMode) tripsViewModel.createTrip(trip, onSuccess = { navigationActions.goBack() })
-    else {
+    if (!isEditMode) {
+      tripsViewModel.createTrip(trip)
+      navigationActions.goBack()
+    } else {
       tripsViewModel.updateTrip(
           trip,
           onSuccess = {
