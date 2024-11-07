@@ -1,9 +1,13 @@
 package com.android.voyageur.ui.overview
 
+import android.content.Context
+import android.content.pm.PackageManager
 import android.icu.util.GregorianCalendar
 import android.icu.util.TimeZone
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.core.content.ContextCompat
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
@@ -13,13 +17,16 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
-import java.util.*
+import io.mockk.mockk
+import junit.framework.TestCase.assertFalse
+import junit.framework.TestCase.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.*
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 class AddTripScreenTest {
@@ -226,4 +233,45 @@ class AddTripScreenTest {
 
     assert(result == null)
   }
+
+  @Test
+  fun checkPermissionReturnsTrueAndroid12() {
+    // Mock context
+    val context = mock(Context::class.java)
+
+    // Mock the permission check to return PERMISSION_GRANTED
+    `when`(
+      ContextCompat.checkSelfPermission(context, "android.permission.READ_EXTERNAL_STORAGE")
+    ).thenReturn(PackageManager.PERMISSION_GRANTED)
+
+    val result = checkPermission(context)
+    assertTrue(result) // Expecting true because permission is granted
+  }
+  @Test
+  fun checkPermissionReturnsFalse() {
+    // Mock context
+    val context = mock(Context::class.java)
+
+    // Mock the permission check to return PERMISSION_DENIED
+    `when`(
+      ContextCompat.checkSelfPermission(context, "android.permission.READ_MEDIA_IMAGES")
+    ).thenReturn(PackageManager.PERMISSION_DENIED)
+    `when`(
+      ContextCompat.checkSelfPermission(context, "android.permission.READ_EXTERNAL_STORAGE")
+    ).thenReturn(PackageManager.PERMISSION_DENIED)
+
+    val result = checkPermission(context)
+    assertFalse(result) // Expecting false because permission is not granted
+
+  }
+  /*@Test
+  fun requestPermissionRequestsImages() {
+    val permissionLauncher = mock<ManagedActivityResultLauncher<String, Boolean>>()
+
+    requestPermission(permissionLauncher)
+
+    verify(permissionLauncher).launch("android.permission.READ_MEDIA_IMAGES")
+  }
+  */
+
 }
