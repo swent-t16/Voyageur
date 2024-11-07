@@ -8,7 +8,7 @@ data class Activity(
     val description: String,
     val location: Location,
     val startTime: Timestamp,
-    val endDate: Timestamp,
+    val endTime: Timestamp,
     val estimatedPrice: Number,
     val activityType: ActivityType,
 )
