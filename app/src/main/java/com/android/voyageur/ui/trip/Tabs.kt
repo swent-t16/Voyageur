@@ -7,7 +7,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +31,7 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
   var selectedTabIndex by remember { mutableIntStateOf(0) }
 
   val trip =
-      tripsViewModel.selectedTrip.collectAsState().value
+      tripsViewModel.selectedTrip.value
           ?: return Text(text = "No trip selected. Should not happen", color = Color.Red)
 
   // Column for top tabs and content
@@ -56,7 +55,15 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
     when (selectedTabIndex) {
       0 -> ByDayScreen(trip, navigationActions)
       1 -> ActivitiesScreen(trip, navigationActions)
-      2 -> SettingsScreen(trip, navigationActions)
+      2 ->
+          SettingsScreen(
+              trip,
+              navigationActions,
+              tripsViewModel = tripsViewModel,
+              onUpdate = {
+                selectedTabIndex = 0
+                selectedTabIndex = 2
+              })
     }
   }
 }
