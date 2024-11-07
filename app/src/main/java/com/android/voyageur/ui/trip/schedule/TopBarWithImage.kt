@@ -41,7 +41,6 @@ import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,7 +102,7 @@ fun TopBarWithImage(selectedTrip: Trip, navigationActions: NavigationActions) {
     // TopAppBar with Transparent Background
     TopAppBar(
         title = {},
-        modifier = Modifier.fillMaxWidth().background(Color.Transparent),
+        modifier = Modifier.fillMaxWidth().background(Color.Transparent).testTag("topBar"),
         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
         navigationIcon = {
           // Back Button with Circular White Background

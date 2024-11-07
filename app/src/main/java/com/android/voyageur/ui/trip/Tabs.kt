@@ -6,7 +6,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -20,6 +19,7 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.trip.activities.ActivitiesScreen
 import com.android.voyageur.ui.trip.schedule.ByDayScreen
+import com.android.voyageur.ui.trip.schedule.TopBarWithImage
 import com.android.voyageur.ui.trip.settings.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,10 +37,7 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
 
   // Column for top tabs and content
   Column(modifier = Modifier.testTag("topTabs")) {
-    TopAppBar(
-        modifier = Modifier.testTag("topBar"),
-        title = { Text(trip.name) },
-    )
+    TopBarWithImage(trip, navigationActions)
     // TabRow composable for creating top tabs
     TabRow(
         selectedTabIndex = selectedTabIndex,

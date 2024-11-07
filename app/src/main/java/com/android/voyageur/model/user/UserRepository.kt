@@ -1,5 +1,7 @@
 package com.android.voyageur.model.user
 
+import android.net.Uri
+
 interface UserRepository {
   fun init(onSuccess: () -> Unit)
 
@@ -12,4 +14,11 @@ interface UserRepository {
   fun updateUser(user: User, onSuccess: () -> Unit, onFailure: (Exception) -> Unit)
 
   fun deleteUserById(id: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit)
+
+  fun uploadProfilePicture(
+      uri: Uri,
+      userId: String,
+      onSuccess: (String) -> Unit,
+      onFailure: (Exception) -> Unit
+  )
 }

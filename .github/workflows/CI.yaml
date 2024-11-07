@@ -74,6 +74,13 @@ jobs:
           echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
           echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
 
+      # Set the API key for the Google Maps SDK
+      - name: Access PLACES_API_KEY
+        env:
+          MAPS_API_KEY: $ {{ secrets.PLACES_API_KEY }}
+          PLACES_API_KEY: ${{ secrets.PLACES_API_KEY }}
+        run: echo PLACES_API_KEY=\"$PLACES_API_KEY\" > ./local.properties
+
       - name: Grant execute permission for gradlew
         run: |
           chmod +x ./gradlew

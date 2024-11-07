@@ -1,10 +1,13 @@
 package com.android.voyageur.model.user
 
+import android.net.Uri
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.storage.FirebaseStorage
 
 class UserRepositoryFirebase(private val db: FirebaseFirestore) : UserRepository {
   private val collectionPath = "users"
+  private val storage = FirebaseStorage.getInstance()
 
   override fun getUserById(id: String, onSuccess: (User) -> Unit, onFailure: (Exception) -> Unit) {
     db.collection(collectionPath)
@@ -70,6 +73,24 @@ class UserRepositoryFirebase(private val db: FirebaseFirestore) : UserRepository
         .addOnSuccessListener { documents ->
           val users = documents.toObjects(User::class.java)
           onSuccess(users)
+        }
+        .addOnFailureListener { exception -> onFailure(exception) }
+  }
+
+  override fun uploadProfilePicture(
+      uri: Uri,
+      userId: String,
+      onSuccess: (String) -> Unit,
+      onFailure: (Exception) -> Unit
+  ) {
+    val storageRef = storage.reference.child("profile_pictures/$userId.jpg")
+    val uploadTask = storageRef.putFile(uri)
+
+    uploadTask
+        .addOnSuccessListener {
+          storageRef.downloadUrl
+              .addOnSuccessListener { downloadUri -> onSuccess(downloadUri.toString()) }
+              .addOnFailureListener { exception -> onFailure(exception) }
         }
         .addOnFailureListener { exception -> onFailure(exception) }
   }

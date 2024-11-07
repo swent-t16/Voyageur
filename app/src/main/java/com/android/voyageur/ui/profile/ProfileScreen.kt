@@ -1,12 +1,32 @@
 package com.android.voyageur.ui.profile
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,56 +39,25 @@ import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
-import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.delay
 
 @Composable
 fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
-  // Observing user and loading state from the UserViewModel
+  // Observe user and loading state from UserViewModel
   val user by userViewModel.user.collectAsState()
   val isLoading by userViewModel.isLoading.collectAsState()
 
-  // Firebase current user
-  var currentUser = FirebaseAuth.getInstance().currentUser
-
   var isSigningOut by remember { mutableStateOf(false) }
 
-  // Handle sign-out with navigation in a LaunchedEffect
+  // Navigate to AUTH if user is null and not loading
+  if (user == null && !isLoading) {
+    LaunchedEffect(Unit) { navigationActions.navigateTo(Route.AUTH) }
+    return // Exit composable to prevent further execution
+  }
+
+  // Handle sign-out
   if (isSigningOut) {
-    LaunchedEffect(isSigningOut) {
+    LaunchedEffect(Unit) {
       userViewModel.signOutUser()
-      currentUser = null
-      delay(300)
-      navigationActions.navigateTo(Route.AUTH)
-    }
-  } else {
-    if (currentUser != null) {
-      if (user == null && !isLoading) {
-        // Load user data if not already loaded
-        userViewModel.loadUser(currentUser!!.uid, currentUser).also {
-          currentUser!!.displayName?.let { name ->
-            userViewModel.updateUser(
-                userViewModel.user.value?.apply { this.name = name }
-                    ?: User(
-                        id = currentUser!!.uid,
-                        name = name,
-                        email = currentUser!!.email ?: "",
-                        username = currentUser!!.email!!.split('@')[0]))
-          }
-          currentUser!!.photoUrl?.let { photoUrl ->
-            userViewModel.updateUser(
-                userViewModel.user.value?.apply { this.profilePicture = photoUrl.toString() }
-                    ?: User(
-                        id = currentUser!!.uid,
-                        name = currentUser!!.displayName ?: "",
-                        profilePicture = photoUrl.toString(),
-                        email = currentUser!!.email ?: "",
-                        username = currentUser!!.email!!.split('@')[0]))
-          }
-        }
-      }
-    } else {
-      // Navigate to AUTH if no current user is logged in
       navigationActions.navigateTo(Route.AUTH)
     }
   }
@@ -88,24 +77,29 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
             modifier =
                 Modifier.fillMaxSize().padding(paddingValues).testTag("profileScreenContent"),
             contentAlignment = Alignment.Center) {
-              if (isSigningOut) {
-                CircularProgressIndicator(modifier = Modifier.testTag("signingOutIndicator"))
-              } else if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
-              } else {
-                user?.let { userData ->
-                  ProfileContent(userData = userData, onSignOut = { isSigningOut = true })
+              when {
+                isSigningOut -> {
+                  CircularProgressIndicator(modifier = Modifier.testTag("signingOutIndicator"))
                 }
-                    ?: run {
-                      Text("No user data available", modifier = Modifier.testTag("noUserData"))
-                    }
+                isLoading -> {
+                  CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
+                }
+                user != null -> {
+                  ProfileContent(
+                      userData = user!!,
+                      onSignOut = { isSigningOut = true },
+                      onEdit = { navigationActions.navigateTo(Route.EDIT_PROFILE) })
+                }
+                else -> {
+                  Text("No user data available", modifier = Modifier.testTag("noUserData"))
+                }
               }
             }
       })
 }
 
 @Composable
-fun ProfileContent(userData: User, onSignOut: () -> Unit) {
+fun ProfileContent(userData: User, onSignOut: () -> Unit, onEdit: () -> Unit) {
   Column(
       modifier = Modifier.fillMaxSize().padding(16.dp).testTag("profileContent"),
       verticalArrangement = Arrangement.Center,
@@ -137,9 +131,15 @@ fun ProfileContent(userData: User, onSignOut: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Sign out button
-        Button(onClick = onSignOut, modifier = Modifier.testTag("signOutButton")) {
-          Text(text = "Sign Out")
+        // Edit and Sign out buttons
+        Row {
+          Button(onClick = onEdit, modifier = Modifier.testTag("editButton")) {
+            Text(text = "Edit")
+          }
+          Spacer(modifier = Modifier.width(16.dp))
+          Button(onClick = onSignOut, modifier = Modifier.testTag("signOutButton")) {
+            Text(text = "Sign Out")
+          }
         }
       }
 }

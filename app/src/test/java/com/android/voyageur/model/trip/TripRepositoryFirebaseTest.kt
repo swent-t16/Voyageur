@@ -186,7 +186,7 @@ class TripRepositoryFirebaseTest {
 
     tripRepository.deleteTripById("1", onSuccess, onFailure)
 
-    shadowOf(Looper.getMainLooper()).idle() // Ensure all asynchronous operations complete
+    // shadowOf(Looper.getMainLooper()).idle() // Ensure all asynchronous operations complete
 
     verify(mockDocumentReference).delete()
   }

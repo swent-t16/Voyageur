@@ -13,6 +13,7 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import java.util.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,7 +48,6 @@ class AddTripScreenTest {
 
     composeTestRule.onNodeWithTag("inputTripTitle").assertExists()
     composeTestRule.onNodeWithTag("inputTripDescription").assertExists()
-    composeTestRule.onNodeWithTag("inputTripParticipants").assertExists()
     composeTestRule.onNodeWithTag("inputTripLocations").assertExists()
     composeTestRule.onNodeWithTag("inputStartDate").assertExists()
     composeTestRule.onNodeWithTag("inputEndDate").assertExists()
@@ -59,15 +59,14 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_inputsUpdateState() {
+
     composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("London")
     composeTestRule.onNodeWithTag("inputTripDescription").performTextInput("4 days in London")
-    composeTestRule.onNodeWithTag("inputTripParticipants").performTextInput("Alice, Bob")
 
     composeTestRule.onNodeWithTag("inputTripTitle").assertTextContains("London")
     composeTestRule.onNodeWithTag("inputTripDescription").assertTextContains("4 days in London")
-    composeTestRule.onNodeWithTag("inputTripParticipants").assertTextContains("Alice, Bob")
   }
 
   @Test
@@ -75,8 +74,10 @@ class AddTripScreenTest {
     composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("")
-    composeTestRule.onNodeWithTag("inputStartDate").performTextInput("")
-    composeTestRule.onNodeWithTag("inputEndDate").performTextInput("")
+    composeTestRule.onNodeWithText("Start Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithText("End Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
 
     composeTestRule.onNodeWithTag("tripSave").assertIsNotEnabled()
   }
@@ -86,8 +87,10 @@ class AddTripScreenTest {
     composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Valid Trip")
-    composeTestRule.onNodeWithTag("inputStartDate").performTextInput("01/01/2024")
-    composeTestRule.onNodeWithTag("inputEndDate").performTextInput("05/01/2024")
+    composeTestRule.onNodeWithText("Start Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithText("End Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
 
     composeTestRule.onNodeWithTag("tripSave").assertIsEnabled()
   }
@@ -113,23 +116,30 @@ class AddTripScreenTest {
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("London Trip")
     composeTestRule.onNodeWithTag("inputTripDescription").performTextInput("4 days in London")
-    composeTestRule.onNodeWithTag("inputTripParticipants").performTextInput("Alice, Bob")
     composeTestRule.onNodeWithTag("inputTripLocations").performTextInput("UK, London")
-    composeTestRule.onNodeWithTag("inputStartDate").performTextInput("01/01/2024")
-    composeTestRule.onNodeWithTag("inputEndDate").performTextInput("05/01/2024")
+    composeTestRule.onNodeWithText("Start Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithText("End Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
 
     composeTestRule.onNodeWithTag("tripSave").performClick()
+
+    val today = GregorianCalendar()
+    today.set(GregorianCalendar.HOUR_OF_DAY, 0)
+    today.set(GregorianCalendar.MINUTE, 0)
+    today.set(GregorianCalendar.SECOND, 0)
+    today.set(GregorianCalendar.MILLISECOND, 0)
+    val todayTimestamp = Timestamp(today.time)
 
     val expectedTrip =
         Trip(
             id = "mockTripId",
             creator = "mockUserId",
-            participants = listOf("Alice", "Bob"),
             description = "4 days in London",
             name = "London Trip",
             locations = listOf(Location(country = "UK", city = "London")),
-            startDate = Timestamp(GregorianCalendar(2024, 0, 1).time),
-            endDate = Timestamp(GregorianCalendar(2024, 0, 5).time),
+            startDate = todayTimestamp,
+            endDate = todayTimestamp,
             activities = listOf(),
             type = TripType.BUSINESS,
             imageUri = "")
@@ -146,23 +156,30 @@ class AddTripScreenTest {
     composeTestRule
         .onNodeWithTag("inputTripDescription")
         .performTextInput("Description for trip with unknown location")
-    composeTestRule.onNodeWithTag("inputTripParticipants").performTextInput("Alice, Bob")
     composeTestRule.onNodeWithTag("inputTripLocations").performTextInput("InvalidLocation")
-    composeTestRule.onNodeWithTag("inputStartDate").performTextInput("01/01/2024")
-    composeTestRule.onNodeWithTag("inputEndDate").performTextInput("05/01/2024")
+    composeTestRule.onNodeWithText("Start Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithText("End Date *").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
 
     composeTestRule.onNodeWithTag("tripSave").performClick()
+
+    val today = GregorianCalendar()
+    today.set(GregorianCalendar.HOUR_OF_DAY, 0)
+    today.set(GregorianCalendar.MINUTE, 0)
+    today.set(GregorianCalendar.SECOND, 0)
+    today.set(GregorianCalendar.MILLISECOND, 0)
+    val todayTimestamp = Timestamp(today.time)
 
     val expectedTrip =
         Trip(
             id = "mockTripId",
             creator = "mockUserId",
-            participants = listOf("Alice", "Bob"),
             description = "Description for trip with unknown location",
             name = "Trip with Unknown Location",
             locations = listOf(Location(country = "Unknown", city = "Unknown")),
-            startDate = Timestamp(GregorianCalendar(2024, 0, 1).time),
-            endDate = Timestamp(GregorianCalendar(2024, 0, 5).time),
+            startDate = todayTimestamp,
+            endDate = todayTimestamp,
             activities = listOf(),
             type = TripType.BUSINESS,
             imageUri = "")
