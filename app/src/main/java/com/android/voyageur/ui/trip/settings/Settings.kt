@@ -20,7 +20,8 @@ import com.android.voyageur.ui.overview.AddTripScreen
 fun SettingsScreen(
     trip: Trip,
     navigationActions: NavigationActions,
-    tripsViewModel: TripsViewModel
+    tripsViewModel: TripsViewModel,
+    onUpdate: () -> Unit = {}
 ) {
 
   Scaffold(
@@ -34,7 +35,7 @@ fun SettingsScreen(
       },
       content = { pd ->
         Box(modifier = Modifier.padding(pd)) {
-          AddTripScreen(tripsViewModel, navigationActions, isEditMode = true)
+          AddTripScreen(tripsViewModel, navigationActions, isEditMode = true, onUpdate = onUpdate)
         }
       })
 }

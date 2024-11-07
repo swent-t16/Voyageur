@@ -46,7 +46,8 @@ import java.util.Locale
 fun AddTripScreen(
     tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory),
     navigationActions: NavigationActions,
-    isEditMode: Boolean = false
+    isEditMode: Boolean = false,
+    onUpdate: () -> Unit = {}
 ) {
   var name by remember { mutableStateOf("") }
   var description by remember { mutableStateOf("") }
@@ -150,7 +151,13 @@ fun AddTripScreen(
             imageUri = imageUrl)
     if (!isEditMode) tripsViewModel.createTrip(trip, onSuccess = { navigationActions.goBack() })
     else {
-      tripsViewModel.updateTrip(trip, onSuccess = { navigationActions.goBack() })
+      tripsViewModel.updateTrip(
+          trip,
+          onSuccess = {
+            tripsViewModel.selectTrip(Trip())
+            tripsViewModel.selectTrip(trip)
+            onUpdate()
+          })
     }
   }
 
