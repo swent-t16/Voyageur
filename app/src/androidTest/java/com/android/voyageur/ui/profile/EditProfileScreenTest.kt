@@ -8,6 +8,8 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.MainActivity
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
@@ -27,7 +29,8 @@ import org.mockito.kotlin.anyOrNull
 
 class EditProfileScreenTest {
 
-  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
+  @get:Rule
+  val composeTestRule = createAndroidComposeRule<MainActivity>()
 
   private lateinit var navigationActions: NavigationActions
   private lateinit var userRepository: UserRepository
@@ -54,14 +57,17 @@ class EditProfileScreenTest {
 
     // Mock userRepository.getUserById to call onSuccess with a User
     doAnswer { invocation ->
-          val userId = invocation.getArgument<String>(0)
-          val onSuccess = invocation.getArgument<(User) -> Unit>(1)
-          val user = User(userId, "Test User", "test@example.com")
-          onSuccess(user)
-          null
-        }
-        .`when`(userRepository)
-        .getUserById(anyString(), anyOrNull(), anyOrNull())
+      val userId = invocation.getArgument<String>(0)
+      val onSuccess = invocation.getArgument<(User) -> Unit>(1)
+      val user = User(
+        id = userId,
+        name = "Test User",
+        email = "test@example.com",
+        interests = listOf("Travel", "Photography")
+      )
+      onSuccess(user)
+      null
+    }.`when`(userRepository).getUserById(anyString(), anyOrNull(), anyOrNull())
 
     // Create the UserViewModel with the mocked userRepository and firebaseAuth
     userViewModel = UserViewModel(userRepository, firebaseAuth)
@@ -172,5 +178,81 @@ class EditProfileScreenTest {
     // Assert: Check that the "No user data available" text is displayed
     composeTestRule.onNodeWithTag("noUserData").assertIsDisplayed()
     composeTestRule.onNodeWithText("No user data available").assertIsDisplayed()
+  }
+  // New test: Add Interest
+  @Test
+  fun addInterestSuccessfully() {
+    // Arrange
+    userViewModel._user.value = User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
+    userViewModel._isLoading.value = false
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Act: Enter a new interest and click the Add button
+    val newInterest = "Hiking"
+    composeTestRule.onNodeWithTag("newInterestField").performTextInput(newInterest)
+    composeTestRule.onNodeWithTag("addInterestButton").performClick()
+
+    // Assert: Check that the new interest chip is displayed
+    composeTestRule.onNodeWithText(newInterest).assertIsDisplayed()
+  }
+
+  // New test: Remove Interest with Confirmation Dialog
+  @Test
+  fun removeInterestWithConfirmation() {
+    // Arrange
+    val interestToRemove = "Photography"
+    userViewModel._user.value = User(
+      "123",
+      "Jane Doe",
+      "jane@example.com",
+      interests = mutableListOf("Travel", interestToRemove)
+    )
+    userViewModel._isLoading.value = false
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Act: Click on the remove icon of the interest chip
+    composeTestRule.onNodeWithTag("removeInterestButton_$interestToRemove").performClick()
+
+    // Assert: Confirmation dialog is displayed
+    composeTestRule.onNodeWithText("Remove Interest").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Are you sure you want to remove \"$interestToRemove\" from your interests?").assertIsDisplayed()
+
+    // Act: Confirm the deletion
+    composeTestRule.onNodeWithText("Remove").performClick()
+
+    // Assert: The interest chip is no longer displayed
+    composeTestRule.onNodeWithText(interestToRemove).assertDoesNotExist()
+  }
+  // New test: Cancel Removing Interest
+  @Test
+  fun cancelRemoveInterest() {
+    // Arrange
+    val interestToRemove = "Travel"
+    userViewModel._user.value = User(
+      "123",
+      "Jane Doe",
+      "jane@example.com",
+      interests = mutableListOf(interestToRemove, "Photography")
+    )
+    userViewModel._isLoading.value = false
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Act: Click on the remove icon of the interest chip
+    composeTestRule.onNodeWithTag("removeInterestButton_$interestToRemove").performClick()
+
+    // Assert: Confirmation dialog is displayed
+    composeTestRule.onNodeWithText("Remove Interest").assertIsDisplayed()
+
+    // Act: Cancel the deletion
+    composeTestRule.onNodeWithText("Cancel").performClick()
+
+    // Assert: The interest chip is still displayed
+    composeTestRule.onNodeWithText(interestToRemove).assertIsDisplayed()
   }
 }

@@ -31,7 +31,7 @@ class UserViewModelTest {
   private lateinit var userViewModel: UserViewModel
   private val testDispatcher = UnconfinedTestDispatcher()
 
-  private val user = User("1", "name", "email", "", "bio", listOf(), "username")
+    private val user = User("1", "name", "email", "", "bio", listOf(), emptyList(), "username")
 
   @Before
   fun setUp() {
