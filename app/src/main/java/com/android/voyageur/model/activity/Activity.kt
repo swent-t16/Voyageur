@@ -22,3 +22,9 @@ enum class ActivityType {
   TRANSPORT,
   OTHER,
 }
+
+fun Activity.hasDescription() = description != ""
+
+fun Activity.hasStartTime() = startTime != Timestamp(0, 0)
+
+fun Activity.hasEndDate() = endDate != Timestamp(0, 0)
