@@ -45,7 +45,8 @@ import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.firebase.Timestamp
-import java.text.SimpleDateFormat
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -116,12 +117,19 @@ fun ActivityItem(
 ) {
   var isExpanded by remember { mutableStateOf(false) }
 
-  val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-  val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+  val dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault())
+  val timeFormat = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
 
-  val dateFormatted = dateFormat.format(activity.startTime.toDate())
-  val startTimeFormatted = timeFormat.format(activity.startTime.toDate())
-  val endTimeFormatted = timeFormat.format(activity.endDate.toDate())
+  // Convert Timestamp to LocalDateTime for formatting
+  val startLocalDateTime =
+      activity.startTime.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+  val endLocalDateTime =
+      activity.endDate.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+
+  // Format the date and time
+  val dateFormatted = dateFormat.format(startLocalDateTime)
+  val startTimeFormatted = timeFormat.format(startLocalDateTime)
+  val endTimeFormatted = timeFormat.format(endLocalDateTime)
 
   Card(
       shape = MaterialTheme.shapes.medium,
@@ -206,14 +214,20 @@ fun ActivityItem(
       })
 }
 
+fun createTimestamp(year: Int, month: Int, day: Int, hour: Int, minute: Int): Timestamp {
+  val calendar = java.util.Calendar.getInstance()
+  calendar.set(year, month - 1, day, hour, minute) // Month is 0-based
+  return Timestamp(calendar.time)
+}
+
 val SAMPLE_ACTIVITIES =
     listOf(
         Activity(
             title = "Breakfast",
             description = "",
             activityType = ActivityType.RESTAURANT,
-            startTime = Timestamp.now(),
-            endDate = Timestamp.now(),
+            startTime = createTimestamp(2024, 11, 3, 10, 0),
+            endDate = createTimestamp(2024, 11, 3, 12, 30),
             estimatedPrice = 20.25,
             location = Location()),
         Activity(
@@ -239,8 +253,8 @@ val SAMPLE_ACTIVITIES =
             title = "Dinner3",
             description = "",
             activityType = ActivityType.RESTAURANT,
-            startTime = Timestamp.now(),
-            endDate = Timestamp.now(),
+            startTime = createTimestamp(2024, 11, 3, 19, 30),
+            endDate = createTimestamp(2024, 11, 3, 21, 0),
             estimatedPrice = 23.25,
             location = Location()),
         Activity(
