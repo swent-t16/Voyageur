@@ -8,6 +8,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
+import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -79,7 +80,7 @@ open class TripsViewModel(
 
   fun uploadImageToFirebase(uri: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
     val storageRef = FirebaseStorage.getInstance().reference
-    val fileRef = storageRef.child("images/${uri.lastPathSegment}" + Math.random().toString())
+    val fileRef = storageRef.child("images/${uri.lastPathSegment}" + UUID.randomUUID())
     fileRef
         .putFile(uri)
         .addOnSuccessListener {
