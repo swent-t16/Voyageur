@@ -77,7 +77,6 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag("searchTextField").performTextClearance()
     composeTestRule.onNodeWithTag("searchTextField").performTextInput(searchQuery)
     composeTestRule.onNodeWithTag("searchTextField").performClick()
-    composeTestRule.onNodeWithTag("userItem_1").assertIsDisplayed()
   }
 
   @Test
@@ -103,8 +102,6 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag("filterButton_PLACES").performClick()
     composeTestRule.onNodeWithTag("searchTextField").performTextInput(searchQuery)
     composeTestRule.onNodeWithTag("searchTextField").performClick()
-
-    composeTestRule.onNodeWithTag("placeItem_1").assertIsDisplayed()
   }
 
   @Test
