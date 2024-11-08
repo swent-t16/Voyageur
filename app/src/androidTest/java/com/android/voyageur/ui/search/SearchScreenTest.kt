@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
@@ -38,7 +39,9 @@ class SearchScreenTest {
     userViewModel = UserViewModel(userRepository)
     placesViewModel = PlacesViewModel(placesRepository)
     `when`(navigationActions.currentRoute()).thenReturn(Route.SEARCH)
-    composeTestRule.setContent { SearchScreen(userViewModel, placesViewModel, navigationActions) }
+    composeTestRule.setContent {
+      SearchScreen(userViewModel, placesViewModel, navigationActions, false)
+    }
   }
 
   @Test
@@ -71,7 +74,9 @@ class SearchScreenTest {
       val onSuccess = it.arguments[1] as (List<User>) -> Unit
       onSuccess(mockUserList)
     }
+    composeTestRule.onNodeWithTag("searchTextField").performTextClearance()
     composeTestRule.onNodeWithTag("searchTextField").performTextInput(searchQuery)
+    composeTestRule.onNodeWithTag("searchTextField").performClick()
     composeTestRule.onNodeWithTag("userItem_1").assertIsDisplayed()
   }
 
@@ -97,6 +102,8 @@ class SearchScreenTest {
     }
     composeTestRule.onNodeWithTag("filterButton_PLACES").performClick()
     composeTestRule.onNodeWithTag("searchTextField").performTextInput(searchQuery)
+    composeTestRule.onNodeWithTag("searchTextField").performClick()
+
     composeTestRule.onNodeWithTag("placeItem_1").assertIsDisplayed()
   }
 

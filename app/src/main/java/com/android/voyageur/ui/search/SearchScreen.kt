@@ -62,6 +62,7 @@ fun SearchScreen(
     userViewModel: UserViewModel,
     placesViewModel: PlacesViewModel,
     navigationActions: NavigationActions,
+    requirePermission: Boolean = true
 ) {
   var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
   var selectedTab by remember { mutableStateOf(FilterType.USERS) }
@@ -115,7 +116,7 @@ fun SearchScreen(
       if (areLocationPermissionsGranted()) userLocation = fetchLastKnownLocation()
     }
   }
-  if (!areLocationPermissionsGranted() && selectedTab == FilterType.PLACES)
+  if (requirePermission && !areLocationPermissionsGranted() && selectedTab == FilterType.PLACES)
       RequestLocationPermissions {}
 
   Scaffold(
@@ -228,7 +229,9 @@ fun SearchScreen(
                     if (searchedPlaces.isEmpty()) {
                       item { NoResultsFound() }
                     } else {
-                      items(searchedPlaces) { place -> PlaceSearchResultItem(place) }
+                      items(searchedPlaces) { place ->
+                        PlaceSearchResultItem(place, Modifier.testTag("placeItem_${place.id}"))
+                      }
                     }
                   }
             }
@@ -244,7 +247,11 @@ fun SearchScreen(
                   } else {
                     items(searchedUsers) { user ->
                       UserSearchResultItem(
-                          user, userViewModel = userViewModel, fieldColor = Color.LightGray)
+                          user,
+                          userViewModel = userViewModel,
+                          fieldColor = Color.LightGray,
+                          modifier = Modifier.testTag("userItem_${user.id}"),
+                      )
                     }
                   }
                 }
