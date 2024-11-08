@@ -58,11 +58,11 @@ fun ActivitiesScreen(
 
   val drafts =
       trip.activities.filter { activity ->
-        activity.startTime == Timestamp(0, 0) || activity.endDate == Timestamp(0, 0)
+        activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
       }
   val final =
       trip.activities.filter { activity ->
-        activity.startTime != Timestamp(0, 0) && activity.endDate != Timestamp(0, 0)
+        activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
       }
 
   Scaffold(
@@ -124,7 +124,7 @@ fun ActivityItem(
   val startLocalDateTime =
       activity.startTime.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
   val endLocalDateTime =
-      activity.endDate.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+      activity.endTime.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
 
   // Format the date and time
   val dateFormatted = dateFormat.format(startLocalDateTime)
@@ -227,7 +227,7 @@ val SAMPLE_ACTIVITIES =
             description = "",
             activityType = ActivityType.RESTAURANT,
             startTime = createTimestamp(2024, 11, 3, 10, 0),
-            endDate = createTimestamp(2024, 11, 3, 12, 30),
+            endTime = createTimestamp(2024, 11, 3, 12, 30),
             estimatedPrice = 20.25,
             location = Location()),
         Activity(
@@ -238,7 +238,7 @@ val SAMPLE_ACTIVITIES =
             description = "Dinner description",
             activityType = ActivityType.RESTAURANT,
             startTime = Timestamp.now(),
-            endDate = Timestamp.now(),
+            endTime = Timestamp.now(),
             estimatedPrice = 23.25,
             location = Location()),
         Activity(
@@ -246,7 +246,7 @@ val SAMPLE_ACTIVITIES =
             description = "",
             activityType = ActivityType.RESTAURANT,
             startTime = Timestamp.now(),
-            endDate = Timestamp.now(),
+            endTime = Timestamp.now(),
             estimatedPrice = 23.25,
             location = Location()),
         Activity(
@@ -254,7 +254,7 @@ val SAMPLE_ACTIVITIES =
             description = "",
             activityType = ActivityType.RESTAURANT,
             startTime = createTimestamp(2024, 11, 3, 19, 30),
-            endDate = createTimestamp(2024, 11, 3, 21, 0),
+            endTime = createTimestamp(2024, 11, 3, 21, 0),
             estimatedPrice = 23.25,
             location = Location()),
         Activity(
@@ -262,7 +262,7 @@ val SAMPLE_ACTIVITIES =
             description = "Too long description to be displayed on the Activity Box",
             activityType = ActivityType.RESTAURANT,
             startTime = Timestamp.now(),
-            endDate = Timestamp.now(),
+            endTime = Timestamp.now(),
             estimatedPrice = 23.25,
             location = Location()),
         Activity(
@@ -270,7 +270,7 @@ val SAMPLE_ACTIVITIES =
             description = "",
             activityType = ActivityType.RESTAURANT,
             startTime = Timestamp.now(),
-            endDate = Timestamp.now(),
+            endTime = Timestamp.now(),
             estimatedPrice = 23.25,
             location = Location()),
         Activity(
@@ -278,7 +278,7 @@ val SAMPLE_ACTIVITIES =
             description = "",
             activityType = ActivityType.OTHER,
             startTime = Timestamp.now(),
-            endDate = Timestamp.now(),
+            endTime = Timestamp.now(),
             estimatedPrice = 00.00,
             location = Location()),
         Activity(
@@ -286,6 +286,6 @@ val SAMPLE_ACTIVITIES =
             description = "",
             activityType = ActivityType.OTHER,
             startTime = Timestamp.now(),
-            endDate = Timestamp.now(),
+            endTime = Timestamp.now(),
             estimatedPrice = 00.00,
             location = Location()))
