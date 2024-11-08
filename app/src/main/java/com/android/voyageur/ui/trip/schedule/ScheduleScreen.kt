@@ -16,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.voyageur.model.trip.Trip
@@ -26,7 +25,7 @@ import com.android.voyageur.ui.navigation.NavigationActions
 fun ScheduleScreen(trip: Trip, navigationActions: NavigationActions) {
   var isDailySelected by remember { mutableStateOf(true) }
 
-  Column(modifier = Modifier.fillMaxSize()) {
+  Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
     // Row for the "Daily" and "Weekly" buttons
     Row(
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp, end = 16.dp),
@@ -35,16 +34,23 @@ fun ScheduleScreen(trip: Trip, navigationActions: NavigationActions) {
           TextButton(onClick = { isDailySelected = true }) {
             Text(
                 text = "Daily",
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (isDailySelected) Color.Black else Color.Gray,
+                style = MaterialTheme.typography.bodyMedium,
+                color =
+                    if (isDailySelected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 fontWeight = if (isDailySelected) FontWeight.Bold else FontWeight.Normal)
           }
-          Text(text = " / ", style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
+          Text(
+              text = " / ",
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
           TextButton(onClick = { isDailySelected = false }) {
             Text(
                 text = "Weekly",
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (!isDailySelected) Color.Black else Color.Gray,
+                style = MaterialTheme.typography.bodyMedium,
+                color =
+                    if (!isDailySelected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 fontWeight = if (!isDailySelected) FontWeight.Bold else FontWeight.Normal)
           }
         }
@@ -56,8 +62,7 @@ fun ScheduleScreen(trip: Trip, navigationActions: NavigationActions) {
       WeeklyViewScreen(
           trip = trip,
           navigationActions = navigationActions,
-          onDaySelected = { isDailySelected = true } // Add the callback here
-          )
+          onDaySelected = { isDailySelected = true })
     }
   }
 }

@@ -23,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,6 +35,8 @@ import com.google.firebase.Timestamp
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun WeeklyViewScreen(
@@ -61,11 +62,10 @@ fun WeeklyViewScreen(
                 item { Spacer(modifier = Modifier.height(16.dp)) }
                 items(weeks.size) { weekIndex ->
                   WeekCard(
+                      trip = trip,
                       weekStart = weeks[weekIndex].first,
                       weekEnd = weeks[weekIndex].last,
                       activities = trip.activities,
-                      navigationActions = navigationActions,
-                      trip = trip,
                       weekIndex = weekIndex,
                       onDaySelected = onDaySelected // Pass the callback
                       )
@@ -77,25 +77,26 @@ fun WeeklyViewScreen(
 
 @Composable
 private fun WeekCard(
+    trip: Trip,
     weekStart: LocalDate,
     weekEnd: LocalDate,
     activities: List<Activity>,
-    navigationActions: NavigationActions,
-    trip: Trip,
     weekIndex: Int,
-    onDaySelected: () -> Unit // Add this parameter
+    onDaySelected: () -> Unit
 ) {
   Card(
-      modifier = Modifier.width(360.dp).testTag("weekCard_$weekIndex"),
-      colors = CardDefaults.cardColors(containerColor = Color.LightGray.copy(alpha = 0.3f)),
-      shape = RoundedCornerShape(16.dp)) {
+      modifier = Modifier.width(340.dp).testTag("weekCard_$weekIndex"),
+      colors = CardDefaults.cardColors(),
+      shape = RoundedCornerShape(12.dp)) {
         Column(
-            modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp) // Reduced spacing between days
+            ) {
               Text(
                   text = "${formatDate(weekStart)} - ${formatDate(weekEnd)}",
-                  style = MaterialTheme.typography.titleLarge,
+                  style = MaterialTheme.typography.titleMedium,
                   fontWeight = FontWeight.Bold,
-                  modifier = Modifier.padding(bottom = 8.dp).testTag("weekRange_$weekIndex"))
+                  modifier = Modifier.padding(bottom = 6.dp).testTag("weekRange_$weekIndex"))
 
               for (dayOffset in 0..6) {
                 val currentDate = weekStart.plusDays(dayOffset.toLong())
@@ -113,12 +114,10 @@ private fun WeekCard(
                 DayActivityCount(
                     date = currentDate,
                     activityCount = activitiesForDay.size,
-                    navigationActions = navigationActions,
                     trip = trip,
                     dayIndex = dayOffset,
                     weekIndex = weekIndex,
-                    onDaySelected = onDaySelected // Pass the callback
-                    )
+                    onDaySelected = onDaySelected)
               }
             }
       }
@@ -128,31 +127,58 @@ private fun WeekCard(
 private fun DayActivityCount(
     date: LocalDate,
     activityCount: Int,
-    navigationActions: NavigationActions,
     trip: Trip,
     dayIndex: Int,
     weekIndex: Int,
-    onDaySelected: () -> Unit // Add this parameter
+    onDaySelected: () -> Unit
 ) {
-  Button(
-      onClick = onDaySelected, // Use the callback
-      modifier = Modifier.fillMaxWidth().testTag("dayButton_${weekIndex}_$dayIndex"),
-      shape = RoundedCornerShape(24.dp)) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-              Text(
-                  text = "${date.dayOfWeek.toString().take(1)} ${date.dayOfMonth}",
-                  style = MaterialTheme.typography.bodyLarge,
-                  fontWeight = FontWeight.Medium,
-                  modifier = Modifier.testTag("dayText_${weekIndex}_$dayIndex"))
+  val tripStartDate =
+      trip.startDate.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+  val tripEndDate = trip.endDate.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+  val isDateInTrip = !date.isBefore(tripStartDate) && !date.isAfter(tripEndDate)
 
-              Text(
-                  text = "  -  $activityCount activities",
-                  style = MaterialTheme.typography.bodyLarge,
-                  modifier = Modifier.testTag("activityCount_${weekIndex}_$dayIndex"))
-            }
-      }
+  if (isDateInTrip) {
+    Button(
+        onClick = onDaySelected,
+        modifier =
+            Modifier.fillMaxWidth()
+                .height(36.dp) // Reduced height
+                .testTag("dayButton_${weekIndex}_$dayIndex"),
+        shape = RoundedCornerShape(20.dp)) {
+          Row(
+              modifier = Modifier.padding(horizontal = 8.dp), // Reduced padding
+              horizontalArrangement = Arrangement.spacedBy(4.dp),
+              verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "${date.dayOfWeek.toString().take(1)} ${date.dayOfMonth}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.testTag("dayText_${weekIndex}_$dayIndex"))
+
+                Text(
+                    text = "  -  $activityCount activities",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.testTag("activityCount_${weekIndex}_$dayIndex"))
+              }
+        }
+  } else {
+    // Non-clickable row for dates outside the trip
+    Row(
+        modifier =
+            Modifier.fillMaxWidth()
+                .height(36.dp) // Same height as button for consistency
+                .padding(horizontal = 16.dp), // Matching button padding
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+          Text(
+              text = "${date.dayOfWeek.toString().take(1)} ${date.dayOfMonth}",
+              style = MaterialTheme.typography.bodyMedium,
+              color =
+                  MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f), // Disabled state color
+              fontWeight = FontWeight.Normal,
+              modifier = Modifier.testTag("dayText_${weekIndex}_$dayIndex"))
+        }
+  }
 }
 
 fun generateWeeks(startTimestamp: Timestamp, endTimestamp: Timestamp): List<DateRange> {
@@ -173,7 +199,9 @@ fun generateWeeks(startTimestamp: Timestamp, endTimestamp: Timestamp): List<Date
 }
 
 fun formatDate(date: LocalDate): String {
-  return "${date.month.toString().take(3)} ${date.dayOfMonth}"
+  val formatter = DateTimeFormatter.ofPattern("MMM d").withLocale(Locale.getDefault())
+
+  return date.format(formatter).uppercase()
 }
 
 data class DateRange(val first: LocalDate, val last: LocalDate)
