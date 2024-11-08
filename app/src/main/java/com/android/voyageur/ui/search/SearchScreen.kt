@@ -1,5 +1,9 @@
 package com.android.voyageur.ui.search
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -19,12 +23,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.user.User
@@ -32,12 +38,16 @@ import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.tasks.await
 
 /**
  * Composable function for the search screen.
@@ -46,6 +56,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
  * @param placesViewModel ViewModel for place-related data.
  * @param navigationActions Navigation actions for bottom navigation.
  */
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SearchScreen(
     userViewModel: UserViewModel,
@@ -55,12 +66,56 @@ fun SearchScreen(
   var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
   var selectedTab by remember { mutableStateOf(FilterType.USERS) }
   var isMapView by remember { mutableStateOf(false) }
+  var userLocation by remember { mutableStateOf<LatLng?>(null) }
   val searchedUsers by userViewModel.searchedUsers.collectAsState()
   val searchedPlaces by placesViewModel.searchedPlaces.collectAsState()
+  val context = LocalContext.current
+  val fusedLocationProviderClient = remember {
+    LocationServices.getFusedLocationProviderClient(context)
+  }
 
-  // Make the search query call when the screen is first launched
-  userViewModel.searchUsers(searchQuery.text)
-  placesViewModel.searchPlaces(searchQuery.text)
+  // Location handling
+  fun areLocationPermissionsGranted(): Boolean {
+    return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+        PackageManager.PERMISSION_GRANTED &&
+        ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+  }
+
+  @SuppressLint("MissingPermission")
+  suspend fun fetchLastKnownLocation(): LatLng? {
+    return try {
+      val location = fusedLocationProviderClient.lastLocation.await()
+      location?.let { LatLng(it.latitude, it.longitude) }
+    } catch (e: Exception) {
+      Log.e("LOCATION_ERROR", "Failed to fetch location: ${e.message}")
+      null
+    }
+  }
+
+  @Composable
+  fun RequestLocationPermissions(onPermissionGranted: () -> Unit) {
+    val permissionState =
+        rememberMultiplePermissionsState(
+            listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION))
+
+    LaunchedEffect(permissionState) {
+      if (!permissionState.allPermissionsGranted) {
+        permissionState.launchMultiplePermissionRequest()
+      } else {
+        onPermissionGranted()
+      }
+    }
+  }
+
+  LaunchedEffect(selectedTab) {
+    if (selectedTab == FilterType.PLACES) {
+      if (areLocationPermissionsGranted()) userLocation = fetchLastKnownLocation()
+    }
+  }
+  if (!areLocationPermissionsGranted()) RequestLocationPermissions {}
 
   Scaffold(
       modifier = Modifier.testTag("searchScreen"),
@@ -83,13 +138,6 @@ fun SearchScreen(
       },
       floatingActionButtonPosition = FabPosition.Start,
       content = { pd ->
-        val textFieldsColours =
-            if (isSystemInDarkTheme()) {
-              Color.DarkGray
-            } else {
-              Color.LightGray
-            }
-
         Column(modifier = Modifier.padding(pd).fillMaxSize().testTag("searchScreenContent")) {
           Spacer(modifier = Modifier.height(24.dp))
           Text(
@@ -98,11 +146,14 @@ fun SearchScreen(
               fontSize = 24.sp,
               modifier = Modifier.padding(start = 16.dp, bottom = 8.dp))
 
+          // Search bar
           Row(
               modifier =
                   Modifier.padding(horizontal = 16.dp)
                       .fillMaxWidth()
-                      .background(textFieldsColours, shape = MaterialTheme.shapes.medium)
+                      .background(
+                          color = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray,
+                          shape = MaterialTheme.shapes.medium)
                       .padding(8.dp)
                       .testTag("searchBar"),
               verticalAlignment = Alignment.CenterVertically) {
@@ -116,10 +167,10 @@ fun SearchScreen(
                       placesViewModel.setQuery(searchQuery.text)
                     },
                     modifier = Modifier.weight(1f).padding(8.dp).testTag("searchTextField"),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
-                )
+                    textStyle = LocalTextStyle.current.copy(fontSize = 18.sp))
               }
 
+          // Tabs
           TabRow(modifier = Modifier.testTag("tabRow"), selectedTabIndex = selectedTab.ordinal) {
             FilterType.values().forEachIndexed { index, filterType ->
               Tab(
@@ -137,47 +188,46 @@ fun SearchScreen(
               fontSize = 18.sp,
               modifier = Modifier.padding(horizontal = 16.dp))
 
+          // Search results based on the selected tab
           if (selectedTab == FilterType.PLACES) {
             if (isMapView) {
-              // Display map view
               val cameraPositionState = rememberCameraPositionState {
                 position =
                     com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
-                        // San Francisco
-                        LatLng(37.7749, -122.4194),
+                        userLocation ?: LatLng(37.7749, -122.4194), // Default to SF
                         12f)
               }
+
               GoogleMap(
                   modifier =
                       Modifier.padding(16.dp).clip(RoundedCornerShape(16.dp)).testTag("googleMap"),
                   cameraPositionState = cameraPositionState) {
+                    userLocation?.let {
+                      Marker(
+                          state = MarkerState(position = it),
+                          title = "You are here",
+                          snippet = "This is your current location")
+                    }
                     searchedPlaces.forEach { place ->
-                      // Add markers to the map
-                      if (place.latLng != null) {
+                      place.latLng?.let {
                         Marker(
-                            state =
-                                MarkerState(
-                                    position = place.latLng,
-                                ),
+                            state = MarkerState(position = it),
                             title = place.displayName ?: "Unknown Place",
                             snippet = place.address ?: "No address")
                       }
                     }
                   }
             } else {
-              // Display list view
               LazyColumn(
                   modifier =
                       Modifier.fillMaxSize()
                           .padding(16.dp)
-                          .background(textFieldsColours, shape = MaterialTheme.shapes.large)
+                          .background(Color.LightGray, shape = MaterialTheme.shapes.large)
                           .testTag("searchResultsPlaces")) {
                     if (searchedPlaces.isEmpty()) {
                       item { NoResultsFound() }
                     } else {
-                      items(searchedPlaces) { place ->
-                        PlaceSearchResultItem(place, Modifier.testTag("placeItem_${place.id}"))
-                      }
+                      items(searchedPlaces) { place -> PlaceSearchResultItem(place) }
                     }
                   }
             }
@@ -186,17 +236,14 @@ fun SearchScreen(
                 modifier =
                     Modifier.fillMaxSize()
                         .padding(16.dp)
-                        .background(textFieldsColours, shape = MaterialTheme.shapes.large)
+                        .background(Color.LightGray, shape = MaterialTheme.shapes.large)
                         .testTag("searchResultsUsers")) {
                   if (searchedUsers.isEmpty()) {
                     item { NoResultsFound() }
                   } else {
                     items(searchedUsers) { user ->
                       UserSearchResultItem(
-                          user,
-                          Modifier.testTag("userItem_${user.id}"),
-                          userViewModel,
-                          textFieldsColours)
+                          user, userViewModel = userViewModel, fieldColor = Color.LightGray)
                     }
                   }
                 }
