@@ -5,18 +5,24 @@ import android.widget.Toast
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.core.app.ApplicationProvider
+import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
+import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.google.firebase.Timestamp
 import io.mockk.*
 import java.util.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.*
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 class AddActivityScreenTest {
 
@@ -35,6 +41,8 @@ class AddActivityScreenTest {
     context = ApplicationProvider.getApplicationContext()
 
     `when`(navigationActions.currentRoute()).thenReturn(Screen.ADD_ACTIVITY)
+    whenever(tripsViewModel.getNewTripId()).thenReturn("mockTripId")
+    doNothing().`when`(tripRepository).updateTrip(any(), any(), any())
 
     mockkStatic(Toast::class)
     every { Toast.makeText(any(), any<String>(), any()) } returns mockk()
@@ -98,18 +106,30 @@ class AddActivityScreenTest {
     composeTestRule.onNodeWithTag("activitySave").assertIsEnabled()
   }
 
-  //    @Test
-  //    fun addActivityScreen_validActivityCreatedAndNavigateBack() {
-  //        composeTestRule.setContent {
-  //            AddActivityScreen(tripsViewModel, navigationActions)
-  //        }
-  //
-  //        composeTestRule.onNodeWithTag("inputActivityTitle").performTextInput("Hiking")
-  //        composeTestRule.onNodeWithTag("inputDate").performClick()
-  //        composeTestRule.onNodeWithText("OK").performClick()
-  //        composeTestRule.onNodeWithTag("activitySave").performClick()
-  //
-  //        Mockito.verify(tripRepository).updateTrip(any(), any(), any())
-  //        Mockito.verify(navigationActions).goBack()
-  //    }
+  @Test
+  fun addActivityScreen_validActivityCreated() {
+    composeTestRule.setContent { AddActivityScreen(tripsViewModel, navigationActions) }
+
+    val trip =
+        Trip(
+            id = "editTripId",
+            creator = "mockUserId",
+            description = "Existing trip",
+            name = "Existing Trip",
+            locations = listOf(Location(country = "France", city = "Paris")),
+            startDate = Timestamp(Date()),
+            endDate = Timestamp(Date()),
+            activities = listOf(),
+            type = TripType.TOURISM,
+            imageUri = "someUri")
+
+    tripsViewModel.selectTrip(trip)
+
+    composeTestRule.onNodeWithTag("inputActivityTitle").performTextInput("Hiking")
+    composeTestRule.onNodeWithTag("inputDate").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithTag("activitySave").performClick()
+
+    verify(tripRepository).updateTrip(any(), any(), any())
+  }
 }

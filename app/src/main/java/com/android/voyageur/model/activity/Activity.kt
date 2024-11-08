@@ -7,8 +7,8 @@ data class Activity(
     val title: String = "",
     val description: String = "",
     val location: Location = Location(""),
-    val startTime: Timestamp = Timestamp.now(),
-    val endTime: Timestamp = Timestamp.now(),
+    val startTime: Timestamp = Timestamp(0, 0),
+    val endTime: Timestamp = Timestamp(0, 0),
     val estimatedPrice: Double = 0.0,
     val activityType: ActivityType = ActivityType.WALK,
 )

@@ -77,9 +77,9 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
     }
 
     val today = normalizeToMidnight(Date())
-    val dateNormalized = normalizeToMidnight(Date(activityDate!!))
+    val dateNormalized = activityDate?.let { normalizeToMidnight(Date(it)) } ?: Date(0)
 
-    if (dateNormalized.before(today)) {
+    if (activityDate != null && dateNormalized.before(today)) {
       Toast.makeText(context, "The activity date cannot be in the past", Toast.LENGTH_SHORT).show()
       return
     }
@@ -101,7 +101,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                   .time
             }
-            ?.let { Timestamp(it) } ?: Timestamp(Date())
+            ?.let { Timestamp(it) } ?: Timestamp(0, 0)
 
     val endTimestamp =
         endTime
@@ -120,9 +120,11 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                   .time
             }
-            ?.let { Timestamp(it) } ?: Timestamp(Date())
+            ?.let { Timestamp(it) } ?: Timestamp(0, 0)
 
-    if (endTimestamp.toDate().before(startTimestamp.toDate())) {
+    if (startTime != null &&
+        endTime != null &&
+        endTimestamp.toDate().before(startTimestamp.toDate())) {
       Toast.makeText(context, "End time must be after start time", Toast.LENGTH_SHORT).show()
       return
     }
