@@ -115,7 +115,8 @@ fun SearchScreen(
       if (areLocationPermissionsGranted()) userLocation = fetchLastKnownLocation()
     }
   }
-  if (!areLocationPermissionsGranted()) RequestLocationPermissions {}
+  if (!areLocationPermissionsGranted() && selectedTab == FilterType.PLACES)
+      RequestLocationPermissions {}
 
   Scaffold(
       modifier = Modifier.testTag("searchScreen"),
