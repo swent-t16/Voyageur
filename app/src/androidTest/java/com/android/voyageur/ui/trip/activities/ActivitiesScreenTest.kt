@@ -32,7 +32,7 @@ class ActivitiesScreenTest {
                       title = "Final Activity",
                       description = "This is a final activity",
                       startTime = Timestamp.now(),
-                      endDate = Timestamp.now(),
+                      endTime = Timestamp.now(),
                       estimatedPrice = 20.0,
                       activityType = ActivityType.RESTAURANT)))
 

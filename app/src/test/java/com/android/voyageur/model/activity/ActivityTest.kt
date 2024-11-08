@@ -37,7 +37,7 @@ class ActivityTest {
     assertEquals(location, activity.location)
     assertEquals(startTime, activity.startTime)
     assertEquals(endTime, activity.endTime)
-    assertEquals(15.50, activity.estimatedPrice)
+    assertEquals(15.50, activity.estimatedPrice, 0.10)
     assertEquals(ActivityType.MUSEUM, activity.activityType)
   }
 
@@ -50,7 +50,7 @@ class ActivityTest {
             location = location,
             startTime = startTime,
             endTime = endTime,
-            estimatedPrice = 250,
+            estimatedPrice = 250.0,
             activityType = ActivityType.RESTAURANT)
 
     assertEquals("Dinner at Le Jules Verne", activity.title)
@@ -58,7 +58,7 @@ class ActivityTest {
     assertEquals(location, activity.location)
     assertEquals(startTime, activity.startTime)
     assertEquals(endTime, activity.endTime)
-    assertEquals(250, activity.estimatedPrice)
+    assertEquals(250.0, activity.estimatedPrice, 0.10)
     assertEquals(ActivityType.RESTAURANT, activity.activityType)
   }
 }
