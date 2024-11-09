@@ -3,7 +3,10 @@ package com.android.voyageur.ui.search
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.util.Log
+import android.os.Looper
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -30,7 +33,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.user.User
@@ -39,7 +42,10 @@ import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
@@ -47,7 +53,6 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import kotlinx.coroutines.tasks.await
 
 /**
  * Composable function for the search screen.
@@ -70,54 +75,61 @@ fun SearchScreen(
   var userLocation by remember { mutableStateOf<LatLng?>(null) }
   val searchedUsers by userViewModel.searchedUsers.collectAsState()
   val searchedPlaces by placesViewModel.searchedPlaces.collectAsState()
+  var locationCallback: LocationCallback? = null
+  var fusedLocationClient: FusedLocationProviderClient? = null
+  userViewModel.searchUsers(searchQuery.text)
+  placesViewModel.searchPlaces(searchQuery.text)
   val context = LocalContext.current
-  val fusedLocationProviderClient = remember {
-    LocationServices.getFusedLocationProviderClient(context)
-  }
-
-  // Location handling
-  fun areLocationPermissionsGranted(): Boolean {
-    return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-        PackageManager.PERMISSION_GRANTED &&
-        ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
-            PackageManager.PERMISSION_GRANTED
-  }
-
+  fusedLocationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
+  locationCallback =
+      object : LocationCallback() {
+        override fun onLocationResult(p0: LocationResult) {
+          for (lo in p0.locations) {
+            // Trick to force refresh of map composable that doesn't detect changes
+            userLocation = LatLng(lo.latitude, lo.longitude)
+          }
+        }
+      }
   @SuppressLint("MissingPermission")
-  suspend fun fetchLastKnownLocation(): LatLng? {
-    return try {
-      val location = fusedLocationProviderClient.lastLocation.await()
-      location?.let { LatLng(it.latitude, it.longitude) }
-    } catch (e: Exception) {
-      Log.e("LOCATION_ERROR", "Failed to fetch location: ${e.message}")
-      null
+  fun startLocationUpdates() {
+
+    locationCallback?.let {
+      val locationRequest =
+          LocationRequest.create().apply {
+            interval = 1000
+            fastestInterval = 500
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+          }
+      fusedLocationClient?.requestLocationUpdates(locationRequest, it, Looper.getMainLooper())
     }
   }
+  val launcherMultiplePermissions =
+      rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+          permissionsMap ->
+        val areGranted = permissionsMap.values.reduce { acc, next -> acc && next }
+        if (areGranted) {
+          startLocationUpdates()
+          Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
+        } else {
+          Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+        }
+      }
 
-  @Composable
-  fun RequestLocationPermissions(onPermissionGranted: () -> Unit) {
-    val permissionState =
-        rememberMultiplePermissionsState(
-            listOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION))
+  val permissions =
+      arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
 
-    LaunchedEffect(permissionState) {
-      if (!permissionState.allPermissionsGranted) {
-        permissionState.launchMultiplePermissionRequest()
+  LaunchedEffect(selectedTab) {
+    if (selectedTab == FilterType.PLACES && requirePermission) {
+      if (permissions.all {
+        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+      }) {
+        // Get the location
+        startLocationUpdates()
       } else {
-        onPermissionGranted()
+        launcherMultiplePermissions.launch(permissions)
       }
     }
   }
-
-  LaunchedEffect(selectedTab) {
-    if (selectedTab == FilterType.PLACES) {
-      if (areLocationPermissionsGranted()) userLocation = fetchLastKnownLocation()
-    }
-  }
-  if (requirePermission && !areLocationPermissionsGranted() && selectedTab == FilterType.PLACES)
-      RequestLocationPermissions {}
 
   Scaffold(
       modifier = Modifier.testTag("searchScreen"),
@@ -140,6 +152,12 @@ fun SearchScreen(
       },
       floatingActionButtonPosition = FabPosition.Start,
       content = { pd ->
+        val textFieldsColours =
+            if (isSystemInDarkTheme()) {
+              Color.DarkGray
+            } else {
+              Color.LightGray
+            }
         Column(modifier = Modifier.padding(pd).fillMaxSize().testTag("searchScreenContent")) {
           Spacer(modifier = Modifier.height(24.dp))
           Text(
@@ -153,9 +171,7 @@ fun SearchScreen(
               modifier =
                   Modifier.padding(horizontal = 16.dp)
                       .fillMaxWidth()
-                      .background(
-                          color = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray,
-                          shape = MaterialTheme.shapes.medium)
+                      .background(color = textFieldsColours, shape = MaterialTheme.shapes.medium)
                       .padding(8.dp)
                       .testTag("searchBar"),
               verticalAlignment = Alignment.CenterVertically) {
@@ -193,38 +209,54 @@ fun SearchScreen(
           // Search results based on the selected tab
           if (selectedTab == FilterType.PLACES) {
             if (isMapView) {
-              val cameraPositionState = rememberCameraPositionState {
+              var cameraPositionState = rememberCameraPositionState {
                 position =
                     com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
                         userLocation ?: LatLng(37.7749, -122.4194), // Default to SF
                         12f)
               }
-
-              GoogleMap(
-                  modifier =
-                      Modifier.padding(16.dp).clip(RoundedCornerShape(16.dp)).testTag("googleMap"),
-                  cameraPositionState = cameraPositionState) {
-                    userLocation?.let {
-                      Marker(
-                          state = MarkerState(position = it),
-                          title = "You are here",
-                          snippet = "This is your current location")
-                    }
-                    searchedPlaces.forEach { place ->
-                      place.latLng?.let {
-                        Marker(
-                            state = MarkerState(position = it),
-                            title = place.displayName ?: "Unknown Place",
-                            snippet = place.address ?: "No address")
+              LaunchedEffect(userLocation) {
+                cameraPositionState.position =
+                    com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
+                        userLocation ?: LatLng(37.7749, -122.4194), // Default to SF
+                        12f)
+              }
+              if (userLocation != null || !requirePermission)
+                  GoogleMap(
+                      modifier =
+                          Modifier.padding(16.dp)
+                              .clip(RoundedCornerShape(16.dp))
+                              .testTag("googleMap"),
+                      cameraPositionState = cameraPositionState) {
+                        userLocation?.let {
+                          Marker(
+                              state = MarkerState(position = it),
+                              title = "You are here",
+                              snippet = "This is your current location")
+                        }
+                        searchedPlaces.forEach { place ->
+                          place.latLng?.let {
+                            Marker(
+                                state = MarkerState(position = it),
+                                title = place.displayName ?: "Unknown Place",
+                                snippet = place.address ?: "No address")
+                          }
+                        }
                       }
-                    }
-                  }
+              else
+                  Column(
+                      modifier = Modifier.fillMaxSize(),
+                      verticalArrangement = Arrangement.SpaceEvenly,
+                      horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(
+                            strokeWidth = 3.dp, modifier = Modifier.size(40.dp))
+                      }
             } else {
               LazyColumn(
                   modifier =
                       Modifier.fillMaxSize()
                           .padding(16.dp)
-                          .background(Color.LightGray, shape = MaterialTheme.shapes.large)
+                          .background(textFieldsColours, shape = MaterialTheme.shapes.large)
                           .testTag("searchResultsPlaces")) {
                     if (searchedPlaces.isEmpty()) {
                       item { NoResultsFound() }
@@ -240,7 +272,7 @@ fun SearchScreen(
                 modifier =
                     Modifier.fillMaxSize()
                         .padding(16.dp)
-                        .background(Color.LightGray, shape = MaterialTheme.shapes.large)
+                        .background(textFieldsColours, shape = MaterialTheme.shapes.large)
                         .testTag("searchResultsUsers")) {
                   if (searchedUsers.isEmpty()) {
                     item { NoResultsFound() }
