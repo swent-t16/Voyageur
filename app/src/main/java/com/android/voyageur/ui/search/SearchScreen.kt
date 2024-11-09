@@ -62,6 +62,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
  * @param navigationActions Navigation actions for bottom navigation.
  */
 @OptIn(ExperimentalPermissionsApi::class)
+@SuppressLint("MissingPermission")
 @Composable
 fun SearchScreen(
     userViewModel: UserViewModel,
@@ -90,7 +91,6 @@ fun SearchScreen(
           }
         }
       }
-  @SuppressLint("MissingPermission")
   fun startLocationUpdates() {
 
     locationCallback?.let {
