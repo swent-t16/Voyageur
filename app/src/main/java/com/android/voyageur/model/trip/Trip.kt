@@ -23,9 +23,32 @@ data class Trip(
   val tripType: TripType
     get() = TripType.valueOf(type.toString())
 
-  override fun equals(other: Any?): Boolean = other is Trip && id == other.id
-
   override fun hashCode(): Int = id.hashCode()
+
+  override fun equals(other: Any?): Boolean {
+    if (javaClass != other?.javaClass) return false
+
+    other as Trip
+
+    if (id != other.id) return false
+    if (creator != other.creator) return false
+    if (!participants.containsAll(other.participants) ||
+        !other.participants.containsAll(participants))
+        return false
+    if (description != other.description) return false
+    if (name != other.name) return false
+    if (!locations.containsAll(other.locations) || !other.locations.containsAll(locations))
+        return false
+    if (startDate != other.startDate) return false
+    if (endDate != other.endDate) return false
+    if (!activities.containsAll(other.activities) || !other.activities.containsAll(activities))
+        return false
+    if (type != other.type) return false
+    if (imageUri != other.imageUri) return false
+    if (tripType != other.tripType) return false
+
+    return true
+  }
 }
 
 enum class TripType {
