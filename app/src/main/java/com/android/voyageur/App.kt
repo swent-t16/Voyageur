@@ -18,6 +18,7 @@ import com.android.voyageur.ui.overview.OverviewScreen
 import com.android.voyageur.ui.profile.EditProfileScreen
 import com.android.voyageur.ui.profile.ProfileScreen
 import com.android.voyageur.ui.search.SearchScreen
+import com.android.voyageur.ui.trip.AddActivityScreen
 import com.android.voyageur.ui.trip.TopTabs
 import com.google.android.libraries.places.api.net.PlacesClient
 
@@ -60,6 +61,7 @@ fun VoyageurApp(placesClient: PlacesClient) {
 
     navigation(startDestination = Screen.TOP_TABS, route = Route.TOP_TABS) {
       composable(Screen.TOP_TABS) { TopTabs(tripsViewModel, navigationActions) }
+      composable(Screen.ADD_ACTIVITY) { AddActivityScreen(tripsViewModel, navigationActions) }
     }
   }
 }

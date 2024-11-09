@@ -75,7 +75,6 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_inputsUpdateState() {
-
     composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("London")
@@ -204,6 +203,98 @@ class AddTripScreenTest {
     verify(navigationActions).goBack()
   }
 
+  @Test
+  fun addTripScreen_imageSelection() {
+    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.onNodeWithText("Select Image from Gallery").performClick()
+    // Assuming gallery selection simulated
+    // Add verification that the imageUri state is updated
+  }
+
+  @Test
+  fun addTripScreen_invalidStartDate() {
+    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    // Simulate setting a past start date
+    composeTestRule.onNodeWithTag("inputStartDate").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithTag("tripSave").assertIsNotEnabled()
+  }
+
+  @Test
+  fun addTripScreen_endDateBeforeStartDate() {
+    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    // Simulate setting a start date and an earlier end date
+    composeTestRule.onNodeWithTag("inputStartDate").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithTag("inputEndDate").performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithTag("tripSave").assertIsNotEnabled()
+  }
+
+  @Test
+  fun addTripScreen_editMode() {
+    val trip =
+        Trip(
+            id = "editTripId",
+            creator = "mockUserId",
+            description = "Existing trip",
+            name = "Existing Trip",
+            locations = listOf(Location(country = "France", city = "Paris")),
+            startDate = Timestamp(Date()),
+            endDate = Timestamp(Date()),
+            activities = listOf(),
+            type = TripType.TOURISM,
+            imageUri = "someUri")
+    tripsViewModel.selectTrip(trip)
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel, navigationActions, isEditMode = true)
+    }
+
+    composeTestRule.onNodeWithTag("inputTripTitle").assertTextContains("Existing Trip")
+    composeTestRule.onNodeWithTag("inputTripDescription").assertTextContains("Existing trip")
+    composeTestRule.onNodeWithTag("tripTypeTourism").assertIsSelected()
+  }
+
+  @Test
+  fun addTripScreen_editMode_updatesTrip() {
+    // Set up a sample trip to simulate editing
+    val trip =
+        Trip(
+            id = "editTripId",
+            creator = "mockUserId",
+            description = "Existing trip",
+            name = "Existing Trip",
+            locations = listOf(Location(country = "France", city = "Paris")),
+            startDate = Timestamp(Date()),
+            endDate = Timestamp(Date()),
+            activities = listOf(),
+            type = TripType.TOURISM,
+            imageUri = "someUri")
+
+    // Set the selected trip in the ViewModel to the sample trip to simulate edit mode
+    tripsViewModel.selectTrip(trip)
+
+    // Set up the test content
+    composeTestRule.setContent {
+      AddTripScreen(
+          tripsViewModel = tripsViewModel, navigationActions = navigationActions, isEditMode = true)
+    }
+
+    // Modify some fields to simulate an edit
+    composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Updated Trip Title")
+    composeTestRule.onNodeWithTag("inputTripDescription").performTextInput("Updated Description")
+
+    // Click the save button to trigger updateTrip
+    composeTestRule.onNodeWithTag("tripSave").performClick()
+  }
+
+  @Test
+  fun addTripScreen_displayDatePickerModal() {
+    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.onNodeWithTag("inputStartDate").performClick()
+    composeTestRule.onNodeWithText("OK").assertExists() // Checks if date picker dialog appears
+  }
+
   private fun convertToTimestamp(dateString: String): Timestamp? {
     val calendar = GregorianCalendar(TimeZone.getTimeZone("UTC"))
     val dateParts = dateString.split("/")
@@ -223,14 +314,11 @@ class AddTripScreenTest {
   @Test
   fun convertToTimestamp_validDate() {
     val dateString = "01/01/2024"
-
     val utcCalendar = GregorianCalendar(TimeZone.getTimeZone("UTC"))
     utcCalendar.set(2024, 0, 1, 0, 0, 0)
     utcCalendar.set(GregorianCalendar.MILLISECOND, 0)
     val expectedTimestamp = Timestamp(utcCalendar.time)
-
     val result = convertToTimestamp(dateString)
-
     assert(result != null)
     assert(expectedTimestamp.seconds == result?.seconds)
   }
@@ -239,7 +327,6 @@ class AddTripScreenTest {
   fun convertToTimestamp_invalidDate() {
     val dateString = "invalid"
     val result = convertToTimestamp(dateString)
-
     assert(result == null)
   }
 

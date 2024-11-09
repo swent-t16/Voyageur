@@ -1,27 +1,44 @@
 package com.android.voyageur.ui.profile
 
+import android.Manifest
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,16 +49,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
+import com.android.voyageur.ui.profile.interests.InterestChipEditable
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
   val user by userViewModel.user.collectAsState()
@@ -53,22 +75,43 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
   var profilePictureUrl by remember { mutableStateOf(user?.profilePicture ?: "") }
   var isSaving by remember { mutableStateOf(false) }
 
+  // State variables for interests
+  var interests by remember { mutableStateOf(user?.interests?.toMutableList() ?: mutableListOf()) }
+  var newInterest by remember { mutableStateOf("") }
+
+  // Context and permission state variables
+  val context = LocalContext.current
+  var showPermissionRationale by remember { mutableStateOf(false) }
+  var permissionToRequest by remember { mutableStateOf("") }
+  // Photo picker launcher
   val pickPhotoLauncher =
       rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let { profilePictureUri = it }
+      }
+
+  // Permission launcher
+  val permissionLauncher =
+      rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+          pickPhotoLauncher.launch("image/*")
+        } else {
+          Toast.makeText(context, "Permission denied. Unable to select photo.", Toast.LENGTH_SHORT)
+              .show()
+        }
       }
 
   if (isSaving) {
     LaunchedEffect(isSaving) {
       if (profilePictureUri != null) {
         userViewModel.updateUserProfilePicture(profilePictureUri!!) { downloadUrl ->
-          val updatedUser = user!!.copy(name = name, profilePicture = downloadUrl)
+          val updatedUser =
+              user!!.copy(name = name, profilePicture = downloadUrl, interests = interests)
           userViewModel.updateUser(updatedUser)
           isSaving = false
           navigationActions.navigateTo(Route.PROFILE)
         }
       } else {
-        val updatedUser = user!!.copy(name = name)
+        val updatedUser = user!!.copy(name = name, interests = interests)
         userViewModel.updateUser(updatedUser)
         isSaving = false
         navigationActions.navigateTo(Route.PROFILE)
@@ -117,7 +160,33 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                         }
 
                         Button(
-                            onClick = { pickPhotoLauncher.launch("image/*") },
+                            onClick = {
+                              val permission =
+                                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    Manifest.permission.READ_MEDIA_IMAGES
+                                  } else {
+                                    Manifest.permission.READ_EXTERNAL_STORAGE
+                                  }
+
+                              permissionToRequest = permission
+
+                              when {
+                                ContextCompat.checkSelfPermission(context, permission) ==
+                                    PackageManager.PERMISSION_GRANTED -> {
+                                  // Permission is granted
+                                  pickPhotoLauncher.launch("image/*")
+                                }
+                                ActivityCompat.shouldShowRequestPermissionRationale(
+                                    context.findActivity(), permission) -> {
+                                  // Show rationale
+                                  showPermissionRationale = true
+                                }
+                                else -> {
+                                  // Request permission
+                                  permissionLauncher.launch(permission)
+                                }
+                              }
+                            },
                             modifier = Modifier.testTag("editImageButton")) {
                               Text("Edit Profile Picture")
                             }
@@ -128,7 +197,8 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                             value = name,
                             onValueChange = { name = it },
                             label = { Text("Name") },
-                            modifier = Modifier.testTag("nameField"))
+                            modifier = Modifier.testTag("nameField"),
+                        )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -142,11 +212,98 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        // Display interests
+                        Text(
+                            text = "Interests:",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(vertical = 8.dp))
+
+                        if (interests.isNotEmpty()) {
+                          // Display interests using FlowRow for better layout
+                          FlowRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                            interests.forEach { interest ->
+                              InterestChipEditable(
+                                  interest = interest,
+                                  onRemove = {
+                                    interests = interests.filter { it != interest }.toMutableList()
+                                  })
+                            }
+                          }
+                        } else {
+                          // Display message when no interests are added
+                          Text(
+                              text = "No interests added yet",
+                              style = MaterialTheme.typography.bodyMedium,
+                              modifier = Modifier.testTag("noInterests"))
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Input field to add new interest
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                          OutlinedTextField(
+                              value = newInterest,
+                              onValueChange = { newInterest = it },
+                              label = { Text("Add Interest") },
+                              modifier = Modifier.weight(1f).testTag("newInterestField"),
+                              keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                              keyboardActions =
+                                  KeyboardActions(
+                                      onDone = {
+                                        if (newInterest.isNotBlank()) {
+                                          if (!interests.contains(newInterest.trim())) {
+                                            interests.add(newInterest.trim())
+                                          }
+                                          newInterest = ""
+                                        }
+                                      }))
+                          Spacer(modifier = Modifier.width(8.dp))
+
+                          Button(
+                              onClick = {
+                                if (newInterest.isNotBlank()) {
+                                  if (!interests.contains(newInterest.trim())) {
+                                    interests.add(newInterest.trim())
+                                  }
+                                  newInterest = ""
+                                }
+                              },
+                              modifier = Modifier.testTag("addInterestButton")) {
+                                Text("Add")
+                              }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
                         Button(
                             onClick = { isSaving = true },
                             modifier = Modifier.testTag("saveButton")) {
                               Text("Save")
                             }
+                        // Show rationale dialog if needed
+                        if (showPermissionRationale) {
+                          AlertDialog(
+                              onDismissRequest = { showPermissionRationale = false },
+                              title = { Text("Permission Required") },
+                              text = {
+                                Text(
+                                    "This app needs access to your photos to allow you to select a profile picture.")
+                              },
+                              confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                      showPermissionRationale = false
+                                      permissionLauncher.launch(permissionToRequest)
+                                    }) {
+                                      Text("Allow")
+                                    }
+                              },
+                              dismissButton = {
+                                TextButton(onClick = { showPermissionRationale = false }) {
+                                  Text("Cancel")
+                                }
+                              })
+                        }
                       }
                 }
                     ?: run {
@@ -159,4 +316,15 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
               }
             }
       })
+}
+
+fun Context.findActivity(): ComponentActivity {
+  var context = this
+  while (context is ContextWrapper) {
+    if (context is ComponentActivity) {
+      return context
+    }
+    context = context.baseContext
+  }
+  throw IllegalStateException("No Activity found")
 }

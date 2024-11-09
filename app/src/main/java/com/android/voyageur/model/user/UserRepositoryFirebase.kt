@@ -66,12 +66,12 @@ class UserRepositoryFirebase(private val db: FirebaseFirestore) : UserRepository
   ) {
     db.collection(collectionPath)
         .orderBy("name")
-        .startAt(query)
-        .endAt(query + "\uf8ff")
-        .limit(10)
         .get()
         .addOnSuccessListener { documents ->
-          val users = documents.toObjects(User::class.java)
+          val users =
+              documents.toObjects(User::class.java).filter {
+                it.name.contains(query, ignoreCase = true)
+              }
           onSuccess(users)
         }
         .addOnFailureListener { exception -> onFailure(exception) }

@@ -1,9 +1,9 @@
 [versions]
 
+accompanistPermissions = "0.35.0-alpha"
 activityKtx = "1.9.3"
 coilCompose = "2.4.0"
 fragmentKtxVersion = "1.6.1"
-mockitoInlineVersion = "3.11.2"
 places = "4.0.0"
 sonar = "4.4.1.3373"
 
@@ -77,9 +77,10 @@ uiToolingPreviewAndroid = "1.7.3"
 navigationTesting = "2.8.2"
 firebaseStorageKtx = "21.0.1"
 testng = "6.9.6"
-core = "1.46.0"
+foundationAndroid = "1.7.5"
 
 [libraries]
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
@@ -123,7 +124,6 @@ material = { module = "com.google.android.material:material", version.ref = "mat
 mockito-android = { module = "org.mockito:mockito-android", version.ref = "mockitoAndroid" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
 mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockitoInline" }
-mockito-inline-v3112 = { module = "org.mockito:mockito-inline", version.ref = "mockitoInlineVersion" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin" , version.ref="mockitoKotlin"}
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-agent = { module = "io.mockk:mockk-agent", version.ref = "mockkAgent" }
@@ -140,7 +140,7 @@ androidx-ui-tooling-preview-android = { group = "androidx.compose.ui", name = "u
 androidx-navigation-testing = { group = "androidx.navigation", name = "navigation-testing", version.ref = "navigationTesting" }
 firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
 testng = { group = "org.testng", name = "testng", version.ref = "testng" }
-core = { group = "com.google.ar", name = "core", version.ref = "core" }
+androidx-foundation-android = { group = "androidx.compose.foundation", name = "foundation-android", version.ref = "foundationAndroid" }
 
 
 [plugins]

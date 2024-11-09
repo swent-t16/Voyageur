@@ -4,9 +4,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,6 +42,7 @@ import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
+import com.android.voyageur.ui.profile.interests.InterestChip
 
 @Composable
 fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
@@ -98,6 +102,7 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
       })
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ProfileContent(userData: User, onSignOut: () -> Unit, onEdit: () -> Unit) {
   Column(
@@ -121,13 +126,39 @@ fun ProfileContent(userData: User, onSignOut: () -> Unit, onEdit: () -> Unit) {
 
         // Display user name and email
         Text(
-            text = "Name: ${userData.name.takeIf { it.isNotEmpty() } ?: "No name available"}",
+            text = userData.name.takeIf { it.isNotEmpty() } ?: "No name available",
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.testTag("userName"))
         Text(
-            text = "Email: ${userData.email.takeIf { it.isNotEmpty() } ?: "No email available"}",
+            text = userData.email.takeIf { it.isNotEmpty() } ?: "No email available",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.testTag("userEmail"))
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Display interests
+        Text(
+            text = "Interests:",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(vertical = 8.dp))
+
+        if (userData.interests.isNotEmpty()) {
+          // Display interests using FlowRow for better layout
+          FlowRow(
+              modifier =
+                  Modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag("interestsFlowRow"),
+              horizontalArrangement = Arrangement.Center) {
+                userData.interests.forEach { interest ->
+                  InterestChip(interest = interest, modifier = Modifier.padding(4.dp))
+                }
+              }
+        } else {
+          // Display message when no interests are added
+          Text(
+              text = "No interests added yet",
+              style = MaterialTheme.typography.bodyMedium,
+              modifier = Modifier.testTag("noInterests"))
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 

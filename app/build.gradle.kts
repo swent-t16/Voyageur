@@ -22,7 +22,6 @@ android {
         localProperties.load(FileInputStream(localPropertiesFile))
     }
 
-    val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY") ?: ""
     val placesApiKey = localProperties.getProperty("PLACES_API_KEY") ?: ""
 
     defaultConfig {
@@ -31,13 +30,13 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-        buildConfigField ("String", "PLACES_API_KEY", placesApiKey)
+        buildConfigField ("String", "PLACES_API_KEY", "\"${placesApiKey}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
-        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
+        manifestPlaceholders["PLACES_API_KEY"] = placesApiKey
     }
 
     buildTypes {
@@ -160,6 +159,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+    implementation("com.google.android.gms:play-services-location:21.1.0")
+    implementation(libs.accompanist.permissions)
 
     // Google Service and Maps
     implementation(libs.play.services.maps)
@@ -188,7 +189,7 @@ dependencies {
     implementation(libs.test.core.ktx)
     implementation(libs.androidx.navigation.testing)
     implementation(libs.firebase.storage.ktx)
-    implementation(libs.core)
+    implementation(libs.androidx.foundation.android)
 
     // Testing Unit
     testImplementation(libs.junit) {

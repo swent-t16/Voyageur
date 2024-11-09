@@ -10,14 +10,14 @@ class ActivityTest {
 
   private lateinit var location: Location
   private lateinit var startTime: Timestamp
-  private lateinit var endDate: Timestamp
+  private lateinit var endTime: Timestamp
 
   @Before
   fun setUp() {
     // Assuming Location has a constructor that takes latitude and longitude for simplicity
     location = Location()
     startTime = Timestamp.now()
-    endDate = Timestamp.now()
+    endTime = Timestamp.now()
   }
 
   @Test
@@ -28,7 +28,7 @@ class ActivityTest {
             description = "Exploring the famous art museum.",
             location = location,
             startTime = startTime,
-            endDate = endDate,
+            endTime = endTime,
             estimatedPrice = 15.50,
             activityType = ActivityType.MUSEUM)
 
@@ -36,8 +36,8 @@ class ActivityTest {
     assertEquals("Exploring the famous art museum.", activity.description)
     assertEquals(location, activity.location)
     assertEquals(startTime, activity.startTime)
-    assertEquals(endDate, activity.endDate)
-    assertEquals(15.50, activity.estimatedPrice)
+    assertEquals(endTime, activity.endTime)
+    assertEquals(15.50, activity.estimatedPrice, 0.10)
     assertEquals(ActivityType.MUSEUM, activity.activityType)
   }
 
@@ -49,16 +49,16 @@ class ActivityTest {
             description = "Fine dining at the Eiffel Tower.",
             location = location,
             startTime = startTime,
-            endDate = endDate,
-            estimatedPrice = 250,
+            endTime = endTime,
+            estimatedPrice = 250.0,
             activityType = ActivityType.RESTAURANT)
 
     assertEquals("Dinner at Le Jules Verne", activity.title)
     assertEquals("Fine dining at the Eiffel Tower.", activity.description)
     assertEquals(location, activity.location)
     assertEquals(startTime, activity.startTime)
-    assertEquals(endDate, activity.endDate)
-    assertEquals(250, activity.estimatedPrice)
+    assertEquals(endTime, activity.endTime)
+    assertEquals(250.0, activity.estimatedPrice, 0.10)
     assertEquals(ActivityType.RESTAURANT, activity.activityType)
   }
 }
