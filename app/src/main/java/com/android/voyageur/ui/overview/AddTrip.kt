@@ -83,30 +83,23 @@ fun AddTripScreen(
 
     val galleryLauncher =
         rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.PickVisualMedia(),
+            contract = ActivityResultContracts.GetContent(),
             onResult = { uri -> uri?.let { imageUri = it.toString() } })
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        // Handle permission results
-
-        if (isGranted) {
-            // If all permissions are granted, proceed to launch the gallery
-            galleryLauncher.launch(
-                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-            )
-        } else {
-            // If any permission is denied, show a message to the user
-            Toast.makeText(context, "Please allow access to the full gallery from settings to select images", Toast.LENGTH_SHORT).show()
+    val permissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                galleryLauncher.launch("image/*")
+            } else {
+                Toast.makeText(context, "Permission denied. Unable to select photo.", Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
-    }
 
     // Function to request permission to gallery
     fun requestPermission() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 permissionLauncher.launch(
-                        READ_MEDIA_IMAGES,
-                )
+                        READ_MEDIA_IMAGES)
             } else
                 permissionLauncher.launch(READ_EXTERNAL_STORAGE)
     }
@@ -254,9 +247,7 @@ fun AddTripScreen(
                      onClick = {
                          if (checkPermission(context)) {
                              // If permission is granted, launch the gallery
-                             galleryLauncher.launch(
-                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                             )
+                             galleryLauncher.launch("image/*")
                          } else {
                              // Request permission if not granted
                              requestPermission()
@@ -458,8 +449,7 @@ fun checkPermission(context: Context): Boolean {
         ContextCompat.checkSelfPermission(context, READ_MEDIA_IMAGES) == PERMISSION_GRANTED
     } else {
         ContextCompat.checkSelfPermission(context, READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED
-    }
-}
+    }}
 
 
 
