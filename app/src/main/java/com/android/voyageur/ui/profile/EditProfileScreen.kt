@@ -324,7 +324,7 @@ fun Context.findActivity(): ComponentActivity {
     if (context is ComponentActivity) {
       return context
     }
-    context = (context as ContextWrapper).baseContext
+    context = context.baseContext
   }
   throw IllegalStateException("No Activity found")
 }
