@@ -81,6 +81,7 @@ fun SearchScreen(
   userViewModel.searchUsers(searchQuery.text)
   placesViewModel.searchPlaces(searchQuery.text)
   val context = LocalContext.current
+  var denied by remember { mutableStateOf(false) }
   fusedLocationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
   locationCallback =
       object : LocationCallback() {
@@ -111,6 +112,7 @@ fun SearchScreen(
           startLocationUpdates()
           Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
         } else {
+          denied = true
           Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
         }
       }
@@ -221,7 +223,7 @@ fun SearchScreen(
                         userLocation ?: LatLng(37.7749, -122.4194), // Default to SF
                         12f)
               }
-              if (userLocation != null || !requirePermission)
+              if (userLocation != null || !requirePermission || denied)
                   GoogleMap(
                       modifier =
                           Modifier.padding(16.dp)
