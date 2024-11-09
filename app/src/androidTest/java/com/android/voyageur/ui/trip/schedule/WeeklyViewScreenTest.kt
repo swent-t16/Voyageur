@@ -90,6 +90,17 @@ class WeeklyViewScreenTest {
   }
 
   @Test
+  fun floatingActionButton_isDisplayed() {
+    composeTestRule.onNodeWithTag("createActivityButton").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("addIcon", useUnmergedTree = true).assertIsDisplayed()
+  }
+
+  @Test
+  fun floatingActionButton_hasCorrectContentDescription() {
+    composeTestRule.onNodeWithContentDescription("Floating action button").assertIsDisplayed()
+  }
+
+  @Test
   fun weeklyViewScreen_displaysCorrectWeekRanges() {
     composeTestRule.waitForIdle()
     val expectedRange = "SEP 30 - OCT 6"
