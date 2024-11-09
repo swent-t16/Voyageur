@@ -12,6 +12,7 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -80,13 +81,13 @@ fun AddTripScreen(
 
     val galleryLauncher =
         rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.GetContent(),
+            contract = ActivityResultContracts.PickVisualMedia(),
             onResult = { uri -> uri?.let { imageUri = it.toString() } })
     val permissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
                 // Launch the gallery only if permission is granted
-                galleryLauncher.launch("image/*")
+                galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             } else {
                 Toast.makeText(context, "Please allow access to full gallery", Toast.LENGTH_SHORT)
                     .show()
@@ -234,7 +235,7 @@ fun AddTripScreen(
                 Button(
                     onClick = {
                         if (checkPermission(context)) {
-                            galleryLauncher.launch("image/*")
+                            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                         } else {
                             requestPermission(permissionLauncher)
                         }
