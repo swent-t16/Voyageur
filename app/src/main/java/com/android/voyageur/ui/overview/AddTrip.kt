@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -43,6 +44,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +57,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
@@ -64,6 +67,7 @@ import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.profile.findActivity
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
@@ -90,6 +94,7 @@ fun AddTripScreen(
   var endDate by remember { mutableStateOf<Long?>(null) }
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
   var imageUri by remember { mutableStateOf("") }
+  var showRationaleDialog by remember { mutableStateOf(false) }
 
   val context = LocalContext.current
   val imageId = R.drawable.default_trip_image
@@ -98,9 +103,12 @@ fun AddTripScreen(
   val formattedStartDate = startDate?.let { dateFormat.format(Date(it)) } ?: ""
   val formattedEndDate = endDate?.let { dateFormat.format(Date(it)) } ?: ""
 
-  val disabledBorderColor = Color.DarkGray
-  val disabledTextColor = Color.Black
-
+  val permissionVersion =
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        READ_MEDIA_IMAGES
+      } else {
+        READ_EXTERNAL_STORAGE
+      }
   val galleryLauncher =
       rememberLauncherForActivityResult(
           contract = ActivityResultContracts.GetContent(),
@@ -117,18 +125,11 @@ fun AddTripScreen(
         } else {
           Toast.makeText(
                   context,
-                  "Please allow access to select images from your gallery in settings.",
+                  "Please allow access to select images from your gallery.",
                   Toast.LENGTH_SHORT)
               .show()
         }
       }
-
-  // Function to request permission to gallery
-  fun requestPermission() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      permissionLauncher.launch(READ_MEDIA_IMAGES)
-    } else permissionLauncher.launch(READ_EXTERNAL_STORAGE)
-  }
 
   LaunchedEffect(isEditMode) {
     if (isEditMode && tripsViewModel.selectedTrip.value != null) {
@@ -264,13 +265,19 @@ fun AddTripScreen(
 
                 Button(
                     onClick = {
-                      if (checkPermission(context)) {
-                        // If permission is granted, launch the gallery
-                        galleryLauncher.launch("image/*")
-                      } else {
-                        // Request permission if not granted
-
-                        requestPermission()
+                      when {
+                        checkPermission(context) -> {
+                          // If permission is granted, launch the gallery
+                          galleryLauncher.launch("image/*")
+                        }
+                        ActivityCompat.shouldShowRequestPermissionRationale(
+                            context.findActivity(), permissionVersion) -> {
+                          // Show rationale
+                          showRationaleDialog = true
+                        }
+                        else -> {
+                          permissionLauncher.launch(permissionVersion)
+                        }
                       }
                     },
                     modifier = Modifier.fillMaxWidth()) {
@@ -403,6 +410,28 @@ fun AddTripScreen(
               modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("tripSave")) {
                 Text("Save Trip")
               }
+        }
+        // Show rationale dialog if needed
+        if (showRationaleDialog) {
+          AlertDialog(
+              onDismissRequest = { showRationaleDialog = false },
+              title = { Text("Permission Required") },
+              text = {
+                Text(
+                    "This app needs access to your photos to allow you to select an image for your trip.")
+              },
+              confirmButton = {
+                TextButton(
+                    onClick = {
+                      showRationaleDialog = false
+                      permissionLauncher.launch(permissionVersion)
+                    }) {
+                      Text("Allow")
+                    }
+              },
+              dismissButton = {
+                TextButton(onClick = { showRationaleDialog = false }) { Text("Cancel") }
+              })
         }
       }
 }

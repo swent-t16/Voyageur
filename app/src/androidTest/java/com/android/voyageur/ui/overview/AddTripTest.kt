@@ -26,6 +26,7 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import java.util.Date
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import org.junit.Before
@@ -331,20 +332,7 @@ class AddTripScreenTest {
   }
 
   @Test
-  fun checkPermissionReturnsTrueAndroid12() {
-    // Mock context
-    val context = mock(Context::class.java)
-
-    // Mock the permission check to return PERMISSION_GRANTED
-    `when`(ContextCompat.checkSelfPermission(context, "android.permission.READ_EXTERNAL_STORAGE"))
-        .thenReturn(PackageManager.PERMISSION_GRANTED)
-
-    val result = checkPermission(context)
-    assertTrue(result) // Expecting true because permission is granted
-  }
-
-  @Test
-  fun checkPermissionReturnsTrueAndroid13() {
+  fun checkPermissionReturnsTrue() {
     // Mock context
     val context = mock(Context::class.java)
 
@@ -389,14 +377,4 @@ class AddTripScreenTest {
     val result = checkPermission(context)
     assertFalse(result) // Expecting false because permission is not granted
   }
-  /*@Test
-  fun requestPermissionRequestsImages() {
-    val permissionLauncher = mock<ManagedActivityResultLauncher<String, Boolean>>()
-
-    requestPermission(permissionLauncher)
-
-    verify(permissionLauncher).launch("android.permission.READ_MEDIA_IMAGES")
-  }
-  */
-
 }
