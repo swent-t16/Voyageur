@@ -23,7 +23,6 @@ import androidx.compose.ui.window.Dialog
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
-import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.firebase.Timestamp
@@ -144,11 +143,6 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
     tripsViewModel.updateTrip(
         updatedTrip,
         onSuccess = {
-          /*
-              This is a trick to force a recompose, because the reference wouldn't
-              change and update the UI.
-          */
-          tripsViewModel.selectTrip(Trip())
           tripsViewModel.selectTrip(updatedTrip)
           navigationActions.goBack()
         })
