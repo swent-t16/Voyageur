@@ -367,5 +367,4 @@ class EditProfileScreenTest {
     // Assert: Check that "No interests added yet" text is still displayed
     composeTestRule.onNodeWithTag("noInterests").assertIsDisplayed()
   }
-
 }
