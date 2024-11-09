@@ -7,6 +7,7 @@ data class User(
     var profilePicture: String = "",
     var bio: String = "",
     var contacts: List<String> = mutableListOf(),
+    var interests: List<String> = mutableListOf(),
     var username: String = ""
 ) {
   override fun equals(other: Any?): Boolean {
@@ -21,6 +22,8 @@ data class User(
     if (profilePicture != other.profilePicture) return false
     if (bio != other.bio) return false
     if (!contacts.containsAll(other.contacts) || !other.contacts.containsAll(contacts)) return false
+    if (!interests.containsAll(other.interests) || !other.interests.containsAll(interests))
+        return false
     if (username != other.username) return false
 
     return true
@@ -32,7 +35,8 @@ data class User(
     result = 31 * result + email.hashCode()
     result = 31 * result + profilePicture.hashCode()
     result = 31 * result + bio.hashCode()
-    result = 31 * result + contacts.hashCode()
+    result = 31 * result + contacts.toSet().hashCode()
+    result = 31 * result + interests.toSet().hashCode()
     result = 31 * result + username.hashCode()
     return result
   }

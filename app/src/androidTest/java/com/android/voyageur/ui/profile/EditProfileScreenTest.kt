@@ -2,12 +2,16 @@ package com.android.voyageur.ui.profile
 
 import androidx.activity.compose.setContent
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.MainActivity
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
@@ -56,7 +60,12 @@ class EditProfileScreenTest {
     doAnswer { invocation ->
           val userId = invocation.getArgument<String>(0)
           val onSuccess = invocation.getArgument<(User) -> Unit>(1)
-          val user = User(userId, "Test User", "test@example.com")
+          val user =
+              User(
+                  id = userId,
+                  name = "Test User",
+                  email = "test@example.com",
+                  interests = listOf("Travel", "Photography"))
           onSuccess(user)
           null
         }
@@ -172,5 +181,190 @@ class EditProfileScreenTest {
     // Assert: Check that the "No user data available" text is displayed
     composeTestRule.onNodeWithTag("noUserData").assertIsDisplayed()
     composeTestRule.onNodeWithText("No user data available").assertIsDisplayed()
+  }
+  // New test: Add Interest
+  @Test
+  fun addInterestSuccessfully() {
+    // Arrange
+    userViewModel._user.value =
+        User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
+    userViewModel._isLoading.value = false
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Act: Enter a new interest and click the Add button
+    val newInterest = "Hiking"
+    composeTestRule.onNodeWithTag("newInterestField").performTextInput(newInterest)
+    composeTestRule.onNodeWithTag("addInterestButton").performClick()
+
+    // Assert: Check that the new interest chip is displayed
+    composeTestRule.onNodeWithText(newInterest).assertIsDisplayed()
+  }
+
+  // New test: Remove Interest with Confirmation Dialog
+  @Test
+  fun removeInterestWithConfirmation() {
+    // Arrange
+    val interestToRemove = "Photography"
+    userViewModel._user.value =
+        User(
+            "123",
+            "Jane Doe",
+            "jane@example.com",
+            interests = mutableListOf("Travel", interestToRemove))
+    userViewModel._isLoading.value = false
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Act: Click on the remove icon of the interest chip
+    composeTestRule.onNodeWithTag("removeInterestButton_$interestToRemove").performClick()
+
+    // Assert: Confirmation dialog is displayed
+    composeTestRule.onNodeWithText("Remove Interest").assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText(
+            "Are you sure you want to remove \"$interestToRemove\" from your interests?")
+        .assertIsDisplayed()
+
+    // Act: Confirm the deletion
+    composeTestRule.onNodeWithText("Remove").performClick()
+
+    // Assert: The interest chip is no longer displayed
+    composeTestRule.onNodeWithText(interestToRemove).assertDoesNotExist()
+  }
+  // New test: Cancel Removing Interest
+  @Test
+  fun cancelRemoveInterest() {
+    // Arrange
+    val interestToRemove = "Travel"
+    userViewModel._user.value =
+        User(
+            "123",
+            "Jane Doe",
+            "jane@example.com",
+            interests = mutableListOf(interestToRemove, "Photography"))
+    userViewModel._isLoading.value = false
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Act: Click on the remove icon of the interest chip
+    composeTestRule.onNodeWithTag("removeInterestButton_$interestToRemove").performClick()
+
+    // Assert: Confirmation dialog is displayed
+    composeTestRule.onNodeWithText("Remove Interest").assertIsDisplayed()
+
+    // Act: Cancel the deletion
+    composeTestRule.onNodeWithText("Cancel").performClick()
+
+    // Assert: The interest chip is still displayed
+    composeTestRule.onNodeWithText(interestToRemove).assertIsDisplayed()
+  }
+  // New test: Do not add whitespace-only interest
+  @Test
+  fun doNotAddWhitespaceOnlyInterest() {
+    // Arrange
+    userViewModel._user.value =
+        User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
+    userViewModel._isLoading.value = false
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Act: Enter an interest that is only whitespaces and click the Add button
+    val whitespaceInterest = "   "
+    composeTestRule.onNodeWithTag("newInterestField").performTextInput(whitespaceInterest)
+    composeTestRule.onNodeWithTag("addInterestButton").performClick()
+
+    // Assert: Check that "No interests added yet" text is still displayed
+    composeTestRule.onNodeWithTag("noInterests").assertIsDisplayed()
+    // Also check that the interest is not added
+    composeTestRule.onAllNodes(hasText(whitespaceInterest.trim())).assertCountEquals(0)
+  }
+  // Test: Interests are displayed
+  @Test
+  fun interestsAreDisplayed() {
+    // Arrange
+    val interests = listOf("Travel", "Photography")
+    userViewModel._user.value =
+        User("123", "Jane Doe", "jane@example.com", interests = interests.toMutableList())
+    userViewModel._isLoading.value = false
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Assert: Check that the interest chips are displayed
+    for (interest in interests) {
+      composeTestRule.onNodeWithText(interest).assertIsDisplayed()
+    }
+  }
+  // Test: No interests text not displayed when interests exist
+  @Test
+  fun noInterestsTextNotDisplayedWhenInterestsExist() {
+    // Arrange
+    userViewModel._user.value =
+        User("123", "Jane Doe", "jane@example.com", interests = mutableListOf("Travel"))
+    userViewModel._isLoading.value = false
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Assert: Check that "No interests added yet" text is not displayed
+    composeTestRule.onNodeWithTag("noInterests").assertDoesNotExist()
+  }
+  // Test: Do not add empty interest
+  @Test
+  fun doNotAddEmptyInterest() {
+    // Arrange
+    userViewModel._user.value =
+        User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
+    userViewModel._isLoading.value = false
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Act: Click the Add button without entering any text
+    composeTestRule.onNodeWithTag("addInterestButton").performClick()
+
+    // Assert: Check that "No interests added yet" text is still displayed
+    composeTestRule.onNodeWithTag("noInterests").assertIsDisplayed()
+  }
+  // Test: Add interest using IME action
+  @Test
+  fun addInterestWithImeAction() {
+    // Arrange
+    userViewModel._user.value =
+        User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
+    userViewModel._isLoading.value = false
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Act: Enter a new interest and press the "Done" IME action
+    val newInterest = "Cooking"
+    composeTestRule.onNodeWithTag("newInterestField").performTextInput(newInterest)
+    composeTestRule.onNodeWithTag("newInterestField").performImeAction()
+
+    // Assert: Check that the new interest chip is displayed
+    composeTestRule.onNodeWithText(newInterest).assertIsDisplayed()
+  }
+  // Test: Do not add empty interest with IME action
+  @Test
+  fun doNotAddEmptyInterestWithImeAction() {
+    // Arrange
+    userViewModel._user.value =
+        User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
+    userViewModel._isLoading.value = false
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Act: Press the "Done" IME action without entering any text
+    composeTestRule.onNodeWithTag("newInterestField").performImeAction()
+
+    // Assert: Check that "No interests added yet" text is still displayed
+    composeTestRule.onNodeWithTag("noInterests").assertIsDisplayed()
   }
 }
