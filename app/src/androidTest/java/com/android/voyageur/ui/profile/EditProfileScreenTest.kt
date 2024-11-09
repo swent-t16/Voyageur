@@ -5,7 +5,6 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -268,7 +267,7 @@ class EditProfileScreenTest {
   fun doNotAddWhitespaceOnlyInterest() {
     // Arrange
     userViewModel._user.value =
-      User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
+        User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
     userViewModel._isLoading.value = false
 
     // Wait for the UI to settle
@@ -290,7 +289,7 @@ class EditProfileScreenTest {
     // Arrange
     val interests = listOf("Travel", "Photography")
     userViewModel._user.value =
-      User("123", "Jane Doe", "jane@example.com", interests = interests.toMutableList())
+        User("123", "Jane Doe", "jane@example.com", interests = interests.toMutableList())
     userViewModel._isLoading.value = false
 
     // Wait for the UI to settle
@@ -306,7 +305,7 @@ class EditProfileScreenTest {
   fun noInterestsTextNotDisplayedWhenInterestsExist() {
     // Arrange
     userViewModel._user.value =
-      User("123", "Jane Doe", "jane@example.com", interests = mutableListOf("Travel"))
+        User("123", "Jane Doe", "jane@example.com", interests = mutableListOf("Travel"))
     userViewModel._isLoading.value = false
 
     // Wait for the UI to settle
@@ -320,7 +319,7 @@ class EditProfileScreenTest {
   fun doNotAddEmptyInterest() {
     // Arrange
     userViewModel._user.value =
-      User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
+        User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
     userViewModel._isLoading.value = false
 
     // Wait for the UI to settle
@@ -337,7 +336,7 @@ class EditProfileScreenTest {
   fun addInterestWithImeAction() {
     // Arrange
     userViewModel._user.value =
-      User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
+        User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
     userViewModel._isLoading.value = false
 
     // Wait for the UI to settle
@@ -356,7 +355,7 @@ class EditProfileScreenTest {
   fun doNotAddEmptyInterestWithImeAction() {
     // Arrange
     userViewModel._user.value =
-      User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
+        User("123", "Jane Doe", "jane@example.com", interests = mutableListOf())
     userViewModel._isLoading.value = false
 
     // Wait for the UI to settle
