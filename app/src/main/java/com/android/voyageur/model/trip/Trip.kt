@@ -14,7 +14,7 @@ data class Trip(
     val locations: List<Location> = emptyList(),
     val startDate: Timestamp = Timestamp.now(),
     val endDate: Timestamp = Timestamp.now(),
-    val activities: List<Activity> = emptyList(),
+    var activities: List<Activity> = emptyList(),
     val type: TripType = TripType.TOURISM,
     val imageUri: String = "" // default image for trip
 ) {

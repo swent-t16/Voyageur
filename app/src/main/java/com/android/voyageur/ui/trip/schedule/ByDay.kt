@@ -12,7 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Card
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +36,7 @@ import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.time.ZoneId
@@ -45,6 +50,16 @@ fun ByDayScreen(
 ) {
   Scaffold(
       // TODO: Final implementation of ByDayScreen
+      floatingActionButton = {
+        FloatingActionButton(
+            onClick = { navigationActions.navigateTo(Screen.ADD_ACTIVITY) },
+            modifier = Modifier.testTag("createActivityButton")) {
+              Icon(
+                  Icons.Outlined.Add,
+                  "Floating action button",
+                  modifier = Modifier.testTag("addIcon"))
+            }
+      },
       modifier = Modifier.testTag("byDayScreen"),
       bottomBar = {
         BottomNavigationMenu(
@@ -55,7 +70,7 @@ fun ByDayScreen(
       content = { pd ->
         // TODO: HARDCODED ACTIVITY LIST to be removed when we have actual list
         // TODO: sort activities by their hour
-        // val tripActivities = trip.activities
+        val tripActivities = trip.activities
         val oneDayAfterNow = Timestamp(Timestamp.now().seconds + 86400, 0)
         val fakeActivities =
             listOf(
@@ -64,7 +79,7 @@ fun ByDayScreen(
                     description = "",
                     activityType = ActivityType.RESTAURANT,
                     startTime = Timestamp.now(),
-                    endDate = Timestamp.now(),
+                    endTime = Timestamp.now(),
                     estimatedPrice = 20.25,
                     location = Location()),
                 Activity(
@@ -72,7 +87,7 @@ fun ByDayScreen(
                     description = "",
                     activityType = ActivityType.RESTAURANT,
                     startTime = Timestamp.now(),
-                    endDate = Timestamp.now(),
+                    endTime = Timestamp.now(),
                     estimatedPrice = 23.25,
                     location = Location()),
                 Activity(
@@ -80,7 +95,7 @@ fun ByDayScreen(
                     description = "",
                     activityType = ActivityType.RESTAURANT,
                     startTime = Timestamp.now(),
-                    endDate = Timestamp.now(),
+                    endTime = Timestamp.now(),
                     estimatedPrice = 23.25,
                     location = Location()),
                 Activity(
@@ -88,7 +103,7 @@ fun ByDayScreen(
                     description = "",
                     activityType = ActivityType.RESTAURANT,
                     startTime = Timestamp.now(),
-                    endDate = Timestamp.now(),
+                    endTime = Timestamp.now(),
                     estimatedPrice = 23.25,
                     location = Location()),
                 Activity(
@@ -96,7 +111,7 @@ fun ByDayScreen(
                     description = "",
                     activityType = ActivityType.RESTAURANT,
                     startTime = Timestamp.now(),
-                    endDate = Timestamp.now(),
+                    endTime = Timestamp.now(),
                     estimatedPrice = 23.25,
                     location = Location()),
                 Activity(
@@ -104,7 +119,7 @@ fun ByDayScreen(
                     description = "",
                     activityType = ActivityType.RESTAURANT,
                     startTime = Timestamp.now(),
-                    endDate = Timestamp.now(),
+                    endTime = Timestamp.now(),
                     estimatedPrice = 23.25,
                     location = Location()),
                 Activity(
@@ -112,7 +127,7 @@ fun ByDayScreen(
                     description = "",
                     activityType = ActivityType.OTHER,
                     startTime = Timestamp.now(),
-                    endDate = Timestamp.now(),
+                    endTime = Timestamp.now(),
                     estimatedPrice = 00.00,
                     location = Location()),
                 Activity(
@@ -120,10 +135,10 @@ fun ByDayScreen(
                     description = "",
                     activityType = ActivityType.OTHER,
                     startTime = oneDayAfterNow,
-                    endDate = oneDayAfterNow,
+                    endTime = Timestamp.now(),
                     estimatedPrice = 00.00,
                     location = Location()))
-        val groupedActivities = groupActivitiesByDate(fakeActivities)
+        val groupedActivities = groupActivitiesByDate(tripActivities)
         if (groupedActivities.isEmpty()) {
           Text(
               modifier = Modifier.padding(pd).testTag("emptyByDayPrompt"),
