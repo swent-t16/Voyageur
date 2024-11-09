@@ -1,5 +1,12 @@
 package com.android.voyageur.ui.search
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import android.os.Looper
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -19,12 +26,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.user.User
@@ -32,6 +41,12 @@ import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import com.google.maps.android.compose.GoogleMap
@@ -46,21 +61,77 @@ import com.google.maps.android.compose.rememberCameraPositionState
  * @param placesViewModel ViewModel for place-related data.
  * @param navigationActions Navigation actions for bottom navigation.
  */
+@OptIn(ExperimentalPermissionsApi::class)
+@SuppressLint("MissingPermission")
 @Composable
 fun SearchScreen(
     userViewModel: UserViewModel,
     placesViewModel: PlacesViewModel,
     navigationActions: NavigationActions,
+    requirePermission: Boolean = true
 ) {
   var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
   var selectedTab by remember { mutableStateOf(FilterType.USERS) }
   var isMapView by remember { mutableStateOf(false) }
+  var userLocation by remember { mutableStateOf<LatLng?>(null) }
   val searchedUsers by userViewModel.searchedUsers.collectAsState()
   val searchedPlaces by placesViewModel.searchedPlaces.collectAsState()
-
-  // Make the search query call when the screen is first launched
+  var locationCallback: LocationCallback? = null
+  var fusedLocationClient: FusedLocationProviderClient? = null
   userViewModel.searchUsers(searchQuery.text)
   placesViewModel.searchPlaces(searchQuery.text)
+  val context = LocalContext.current
+  var denied by remember { mutableStateOf(false) }
+  fusedLocationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
+  locationCallback =
+      object : LocationCallback() {
+        override fun onLocationResult(p0: LocationResult) {
+          for (lo in p0.locations) {
+            // Trick to force refresh of map composable that doesn't detect changes
+            userLocation = LatLng(lo.latitude, lo.longitude)
+          }
+        }
+      }
+  fun startLocationUpdates() {
+
+    locationCallback?.let {
+      val locationRequest =
+          LocationRequest.create().apply {
+            interval = 1000
+            fastestInterval = 500
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+          }
+      fusedLocationClient?.requestLocationUpdates(locationRequest, it, Looper.getMainLooper())
+    }
+  }
+  val launcherMultiplePermissions =
+      rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+          permissionsMap ->
+        val areGranted = permissionsMap.values.reduce { acc, next -> acc && next }
+        if (areGranted) {
+          startLocationUpdates()
+          Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
+        } else {
+          denied = true
+          Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+        }
+      }
+
+  val permissions =
+      arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
+
+  LaunchedEffect(selectedTab) {
+    if (selectedTab == FilterType.PLACES && requirePermission) {
+      if (permissions.all {
+        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+      }) {
+        // Get the location
+        startLocationUpdates()
+      } else {
+        launcherMultiplePermissions.launch(permissions)
+      }
+    }
+  }
 
   Scaffold(
       modifier = Modifier.testTag("searchScreen"),
@@ -89,7 +160,6 @@ fun SearchScreen(
             } else {
               Color.LightGray
             }
-
         Column(modifier = Modifier.padding(pd).fillMaxSize().testTag("searchScreenContent")) {
           Spacer(modifier = Modifier.height(24.dp))
           Text(
@@ -98,11 +168,12 @@ fun SearchScreen(
               fontSize = 24.sp,
               modifier = Modifier.padding(start = 16.dp, bottom = 8.dp))
 
+          // Search bar
           Row(
               modifier =
                   Modifier.padding(horizontal = 16.dp)
                       .fillMaxWidth()
-                      .background(textFieldsColours, shape = MaterialTheme.shapes.medium)
+                      .background(color = textFieldsColours, shape = MaterialTheme.shapes.medium)
                       .padding(8.dp)
                       .testTag("searchBar"),
               verticalAlignment = Alignment.CenterVertically) {
@@ -116,10 +187,10 @@ fun SearchScreen(
                       placesViewModel.setQuery(searchQuery.text)
                     },
                     modifier = Modifier.weight(1f).padding(8.dp).testTag("searchTextField"),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
-                )
+                    textStyle = LocalTextStyle.current.copy(fontSize = 18.sp))
               }
 
+          // Tabs
           TabRow(modifier = Modifier.testTag("tabRow"), selectedTabIndex = selectedTab.ordinal) {
             FilterType.values().forEachIndexed { index, filterType ->
               Tab(
@@ -137,35 +208,52 @@ fun SearchScreen(
               fontSize = 18.sp,
               modifier = Modifier.padding(horizontal = 16.dp))
 
+          // Search results based on the selected tab
           if (selectedTab == FilterType.PLACES) {
             if (isMapView) {
-              // Display map view
-              val cameraPositionState = rememberCameraPositionState {
+              var cameraPositionState = rememberCameraPositionState {
                 position =
                     com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
-                        // San Francisco
-                        LatLng(37.7749, -122.4194),
+                        userLocation ?: LatLng(37.7749, -122.4194), // Default to SF
                         12f)
               }
-              GoogleMap(
-                  modifier =
-                      Modifier.padding(16.dp).clip(RoundedCornerShape(16.dp)).testTag("googleMap"),
-                  cameraPositionState = cameraPositionState) {
-                    searchedPlaces.forEach { place ->
-                      // Add markers to the map
-                      if (place.latLng != null) {
-                        Marker(
-                            state =
-                                MarkerState(
-                                    position = place.latLng,
-                                ),
-                            title = place.displayName ?: "Unknown Place",
-                            snippet = place.address ?: "No address")
+              LaunchedEffect(userLocation) {
+                cameraPositionState.position =
+                    com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
+                        userLocation ?: LatLng(37.7749, -122.4194), // Default to SF
+                        12f)
+              }
+              if (userLocation != null || !requirePermission || denied)
+                  GoogleMap(
+                      modifier =
+                          Modifier.padding(16.dp)
+                              .clip(RoundedCornerShape(16.dp))
+                              .testTag("googleMap"),
+                      cameraPositionState = cameraPositionState) {
+                        userLocation?.let {
+                          Marker(
+                              state = MarkerState(position = it),
+                              title = "You are here",
+                              snippet = "This is your current location")
+                        }
+                        searchedPlaces.forEach { place ->
+                          place.latLng?.let {
+                            Marker(
+                                state = MarkerState(position = it),
+                                title = place.displayName ?: "Unknown Place",
+                                snippet = place.address ?: "No address")
+                          }
+                        }
                       }
-                    }
-                  }
+              else
+                  Column(
+                      modifier = Modifier.fillMaxSize(),
+                      verticalArrangement = Arrangement.SpaceEvenly,
+                      horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(
+                            strokeWidth = 3.dp, modifier = Modifier.size(40.dp))
+                      }
             } else {
-              // Display list view
               LazyColumn(
                   modifier =
                       Modifier.fillMaxSize()
@@ -194,9 +282,10 @@ fun SearchScreen(
                     items(searchedUsers) { user ->
                       UserSearchResultItem(
                           user,
-                          Modifier.testTag("userItem_${user.id}"),
-                          userViewModel,
-                          textFieldsColours)
+                          userViewModel = userViewModel,
+                          fieldColor = Color.LightGray,
+                          modifier = Modifier.testTag("userItem_${user.id}"),
+                      )
                     }
                   }
                 }
