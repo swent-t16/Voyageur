@@ -27,7 +27,7 @@ object Screen {
   const val BY_DAY = "By Day Screen"
   const val BY_WEEK = "By Week Screen" // TODO: Add ByWeek screen
   const val ACTIVITIES = "Activities Screen"
-  const val ADD_ACTIVITY = "Add Activity Screen" // TODO: Add AddActivity screen
+  const val ADD_ACTIVITY = "Add Activity Screen"
   const val SETTINGS = "Settings Screen"
   const val TOP_TABS = "Top Tabs Screen"
 }
