@@ -14,6 +14,7 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -52,6 +53,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.jar.Manifest
 
+
 @SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -83,16 +85,32 @@ fun AddTripScreen(
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.PickVisualMedia(),
             onResult = { uri -> uri?.let { imageUri = it.toString() } })
-    val permissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                // Launch the gallery only if permission is granted
-                galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            } else {
-                Toast.makeText(context, "Please allow access to full gallery", Toast.LENGTH_SHORT)
-                    .show()
-            }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        // Handle permission results
+
+        if (isGranted) {
+            // If all permissions are granted, proceed to launch the gallery
+            galleryLauncher.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
+        } else {
+            // If any permission is denied, show a message to the user
+            Toast.makeText(context, "Please allow access to the full gallery from settings to select images", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    // Function to request permission to gallery
+    fun requestPermission() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissionLauncher.launch(
+                        READ_MEDIA_IMAGES,
+                )
+            } else
+                permissionLauncher.launch(READ_EXTERNAL_STORAGE)
+    }
+
 
     fun createTripWithImage(imageUrl: String) {
         if (startDate == null || endDate == null) {
@@ -233,13 +251,17 @@ fun AddTripScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = {
-                        if (checkPermission(context)) {
-                            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                        } else {
-                            requestPermission(permissionLauncher)
-                        }
-                    },
+                     onClick = {
+                         if (checkPermission(context)) {
+                             // If permission is granted, launch the gallery
+                             galleryLauncher.launch(
+                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                             )
+                         } else {
+                             // Request permission if not granted
+                             requestPermission()
+                         }
+                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Select Image from Gallery")
@@ -430,37 +452,14 @@ fun DatePickerModal(
         DatePicker(state = datePickerState)
     }
 }
-// Function to check if user already granted permission
+// Function to check if the user already granted permission
 fun checkPermission(context: Context): Boolean {
-    if (
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-        (
-                ContextCompat.checkSelfPermission(
-                    context,
-                    READ_MEDIA_IMAGES
-                ) == PERMISSION_GRANTED
-                )
-    ) {
-        // Full access on Android 13 (API level 33) or higher
-        return true
-    } else if (ContextCompat.checkSelfPermission(
-            context,
-            READ_EXTERNAL_STORAGE
-        ) == PERMISSION_GRANTED
-    ) {
-        // Full access up to Android 12 (API level 32)
-        return true
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ContextCompat.checkSelfPermission(context, READ_MEDIA_IMAGES) == PERMISSION_GRANTED
     } else {
-        // Access denied
-        return false
+        ContextCompat.checkSelfPermission(context, READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED
     }
 }
 
-// Function to request permission to gallery
-fun requestPermission(permissionLauncher: ManagedActivityResultLauncher<String, Boolean>) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        permissionLauncher.launch(READ_MEDIA_IMAGES)
-    } else
-        permissionLauncher.launch(READ_EXTERNAL_STORAGE)
-}
+
 
