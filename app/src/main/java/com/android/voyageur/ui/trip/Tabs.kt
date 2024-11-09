@@ -2,7 +2,6 @@ package com.android.voyageur.ui.trip
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -18,11 +17,10 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.trip.activities.ActivitiesScreen
 import com.android.voyageur.ui.trip.activities.SAMPLE_ACTIVITIES
-import com.android.voyageur.ui.trip.schedule.ByDayScreen
+import com.android.voyageur.ui.trip.schedule.ScheduleScreen
 import com.android.voyageur.ui.trip.schedule.TopBarWithImage
 import com.android.voyageur.ui.trip.settings.SettingsScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions) {
   // Define tab items
@@ -54,7 +52,7 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
 
     // Display content based on selected tab
     when (selectedTabIndex) {
-      0 -> ByDayScreen(trip, navigationActions)
+      0 -> ScheduleScreen(trip, navigationActions)
       1 -> {
         trip.activities = SAMPLE_ACTIVITIES
         ActivitiesScreen(trip, navigationActions)

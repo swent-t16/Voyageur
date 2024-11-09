@@ -51,12 +51,12 @@ class ScheduleScreenTest {
                                 Date.from(
                                     LocalDateTime.of(2024, 10, 3, 14, 0)
                                         .toInstant(ZoneOffset.UTC))),
-                        endDate =
+                        endTime =
                             Timestamp(
                                 Date.from(
                                     LocalDateTime.of(2024, 10, 3, 14, 0)
                                         .toInstant(ZoneOffset.UTC))),
-                        0,
+                        0.0,
                         ActivityType.MUSEUM)))
 
     composeTestRule.setContent {
