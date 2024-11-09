@@ -101,6 +101,7 @@ fun SearchScreen(
             fastestInterval = 500
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
           }
+
       fusedLocationClient?.requestLocationUpdates(locationRequest, it, Looper.getMainLooper())
     }
   }
@@ -222,6 +223,8 @@ fun SearchScreen(
                     com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
                         userLocation ?: LatLng(37.7749, -122.4194), // Default to SF
                         12f)
+                if (userLocation != null)
+                    fusedLocationClient.removeLocationUpdates(locationCallback)
               }
               if (userLocation != null || !requirePermission || denied)
                   GoogleMap(
