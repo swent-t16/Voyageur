@@ -25,6 +25,14 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
           Place.Field.LAT_LNG,
           Place.Field.PRICE_LEVEL)
 
+  /**
+   * This function is used to convert a circular radius around a location (LatLng) to a rectangular
+   * bounds, as the maps sdk doesn't support circular bounds
+   *
+   * @param center the location used as the user location
+   * @param radius the radius area for the circle search
+   * @return the converted bounds around the center point
+   */
   private fun circularBounds(center: LatLng, radius: Double): RectangularBounds {
     val earthRadius = 6371000.0 // Earth's radius in meters
 
