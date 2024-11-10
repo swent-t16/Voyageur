@@ -2,8 +2,12 @@ package com.android.voyageur.ui.search
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Looper
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.user.User
@@ -50,6 +55,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -82,13 +88,20 @@ fun SearchScreen(
   placesViewModel.searchPlaces(searchQuery.text, userLocation)
   val context = LocalContext.current
   var denied by remember { mutableStateOf(false) }
+  var showLocationDialog by remember { mutableStateOf(false) }
+
   fusedLocationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
+  fun isLocationEnabled(context: Context): Boolean {
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+        locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+  }
   locationCallback =
       object : LocationCallback() {
         override fun onLocationResult(p0: LocationResult) {
           for (lo in p0.locations) {
             // Trick to force refresh of map composable that doesn't detect changes
-            userLocation = LatLng(lo.latitude, lo.longitude)
+            if (userLocation == null) userLocation = LatLng(lo.latitude, lo.longitude)
           }
         }
       }
@@ -120,7 +133,38 @@ fun SearchScreen(
 
   val permissions =
       arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
+  if (!isLocationEnabled(LocalContext.current) && !denied) {
+    showLocationDialog = true
+  }
 
+  if (showLocationDialog && !denied) {
+    AlertDialog(
+        onDismissRequest = { showLocationDialog = false },
+        title = { Text(text = "Enable Location Services") },
+        text = {
+          Text(
+              text =
+                  "Location services are required for this feature. Please enable them in your device settings.")
+        },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                showLocationDialog = false
+                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+              }) {
+                Text(text = "Open Settings")
+              }
+        },
+        dismissButton = {
+          TextButton(
+              onClick = {
+                showLocationDialog = false
+                denied = true
+              }) {
+                Text(text = "Cancel")
+              }
+        })
+  }
   LaunchedEffect(selectedTab) {
     if (selectedTab == FilterType.PLACES && requirePermission) {
       if (permissions.all {
@@ -161,6 +205,7 @@ fun SearchScreen(
             } else {
               Color.LightGray
             }
+
         Column(modifier = Modifier.padding(pd).fillMaxSize().testTag("searchScreenContent")) {
           Spacer(modifier = Modifier.height(24.dp))
           Text(
@@ -228,17 +273,12 @@ fun SearchScreen(
               }
               if (userLocation != null || !requirePermission || denied)
                   GoogleMap(
+                      properties = MapProperties(isMyLocationEnabled = userLocation != null),
                       modifier =
                           Modifier.padding(16.dp)
                               .clip(RoundedCornerShape(16.dp))
                               .testTag("googleMap"),
                       cameraPositionState = cameraPositionState) {
-                        userLocation?.let {
-                          Marker(
-                              state = MarkerState(position = it),
-                              title = "You are here",
-                              snippet = "This is your current location")
-                        }
                         searchedPlaces.forEach { place ->
                           place.latLng?.let {
                             Marker(
