@@ -31,6 +31,7 @@ import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.ui.DatePickerModal
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
@@ -65,9 +66,6 @@ fun AddTripScreen(
   val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
   val formattedStartDate = startDate?.let { dateFormat.format(Date(it)) } ?: ""
   val formattedEndDate = endDate?.let { dateFormat.format(Date(it)) } ?: ""
-
-  val disabledBorderColor = Color.DarkGray
-  val disabledTextColor = Color.Black
 
   val galleryLauncher =
       rememberLauncherForActivityResult(
@@ -345,30 +343,4 @@ fun AddTripScreen(
 enum class DateField {
   START,
   END
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DatePickerModal(
-    onDateSelected: (Long?) -> Unit,
-    onDismiss: () -> Unit,
-    selectedDate: Long = System.currentTimeMillis()
-) {
-
-  val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate)
-
-  DatePickerDialog(
-      onDismissRequest = onDismiss,
-      confirmButton = {
-        TextButton(
-            onClick = {
-              onDateSelected(datePickerState.selectedDateMillis)
-              onDismiss()
-            }) {
-              Text("OK")
-            }
-      },
-      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }) {
-        DatePicker(state = datePickerState)
-      }
 }
