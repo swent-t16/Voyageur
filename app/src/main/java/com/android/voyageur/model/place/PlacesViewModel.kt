@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.PlacesClient
 import kotlinx.coroutines.Job
@@ -22,21 +23,22 @@ open class PlacesViewModel(private val placesRepository: PlacesRepository) : Vie
   // Job to manage debounce coroutine
   private var debounceJob: Job? = null
 
-  fun setQuery(query: String) {
+  fun setQuery(query: String, location: LatLng?) {
     debounceJob?.cancel()
     _query.value = query
     debounceJob =
         viewModelScope.launch {
           delay(200) // debounce for 2s
           if (query.isNotEmpty()) {
-            searchPlaces(query)
+            searchPlaces(query, location)
           }
         }
   }
 
-  fun searchPlaces(query: String) {
+  fun searchPlaces(query: String, location: LatLng?) {
     placesRepository.searchPlaces(
         query,
+        location,
         onSuccess = { places -> _searchedPlaces.value = places },
         onFailure = { exception -> Log.e("PlacesViewModel", "Failed to search places", exception) })
   }

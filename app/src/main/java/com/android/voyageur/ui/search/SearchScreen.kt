@@ -79,7 +79,7 @@ fun SearchScreen(
   var locationCallback: LocationCallback? = null
   var fusedLocationClient: FusedLocationProviderClient? = null
   userViewModel.searchUsers(searchQuery.text)
-  placesViewModel.searchPlaces(searchQuery.text)
+  placesViewModel.searchPlaces(searchQuery.text, userLocation)
   val context = LocalContext.current
   var denied by remember { mutableStateOf(false) }
   fusedLocationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
@@ -185,7 +185,7 @@ fun SearchScreen(
                     onValueChange = {
                       searchQuery = it
                       userViewModel.setQuery(searchQuery.text)
-                      placesViewModel.setQuery(searchQuery.text)
+                      placesViewModel.setQuery(searchQuery.text, userLocation)
                     },
                     modifier = Modifier.weight(1f).padding(8.dp).testTag("searchTextField"),
                     textStyle = LocalTextStyle.current.copy(fontSize = 18.sp))
