@@ -24,8 +24,8 @@ import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
-import com.android.voyageur.ui.DatePickerModal
-import com.android.voyageur.ui.TimePickerInput
+import com.android.voyageur.ui.formFields.DatePickerModal
+import com.android.voyageur.ui.formFields.TimePickerInput
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat

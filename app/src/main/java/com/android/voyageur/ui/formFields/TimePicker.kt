@@ -1,19 +1,16 @@
-package com.android.voyageur.ui
+package com.android.voyageur.ui.formFields
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimeInput
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,31 +18,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import java.util.Calendar
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DatePickerModal(
-    onDateSelected: (Long?) -> Unit,
-    onDismiss: () -> Unit,
-    selectedDate: Long = System.currentTimeMillis()
-) {
-  val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate)
-
-  DatePickerDialog(
-      onDismissRequest = onDismiss,
-      confirmButton = {
-        TextButton(
-            onClick = {
-              onDateSelected(datePickerState.selectedDateMillis)
-              onDismiss()
-            }) {
-              Text("OK")
-            }
-      },
-      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }) {
-        DatePicker(state = datePickerState)
-      }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
