@@ -114,22 +114,21 @@ fun AddTripScreen(
       rememberLauncherForActivityResult(
           contract = ActivityResultContracts.GetContent(),
           onResult = { uri -> uri?.let { imageUri = it.toString() } })
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
+  val permissionLauncher =
+      rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         when {
-            isGranted -> galleryLauncher.launch("image/*")
-            checkLimitedPermission(context) -> galleryLauncher.launch("image/*")
-            else -> {
-                // Permission is denied, show a message to the user
-                Toast.makeText(
+          isGranted -> galleryLauncher.launch("image/*")
+          checkLimitedPermission(context) -> galleryLauncher.launch("image/*")
+          else -> {
+            // Permission is denied, show a message to the user
+            Toast.makeText(
                     context,
                     "Please allow access to select images from your gallery.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+                    Toast.LENGTH_SHORT)
+                .show()
+          }
         }
-    }
+      }
 
   LaunchedEffect(isEditMode) {
     if (isEditMode && tripsViewModel.selectedTrip.value != null) {
@@ -480,8 +479,8 @@ fun checkFullPermission(context: Context): Boolean {
   }
 }
 // Function to check if limited access permission is granted
- fun checkLimitedPermission(context:Context): Boolean{
-    return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
-            ContextCompat.checkSelfPermission(context, READ_MEDIA_VISUAL_USER_SELECTED) ==
-            PERMISSION_GRANTED)
+fun checkLimitedPermission(context: Context): Boolean {
+  return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+      ContextCompat.checkSelfPermission(context, READ_MEDIA_VISUAL_USER_SELECTED) ==
+          PERMISSION_GRANTED)
 }

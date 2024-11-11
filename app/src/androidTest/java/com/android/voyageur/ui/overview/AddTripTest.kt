@@ -377,4 +377,34 @@ class AddTripScreenTest {
     val result = checkFullPermission(context)
     assertFalse(result) // Expecting false because permission is not granted
   }
+
+  @Test
+  fun checkLimitedPermissionReturnsTrue() {
+    // Mock the context
+    val context = mock(Context::class.java)
+
+    // Mock the permission check to return PERMISSION_GRANTED for limited access
+    `when`(
+            ContextCompat.checkSelfPermission(
+                context, "android.permission.READ_MEDIA_VISUAL_USER_SELECTED"))
+        .thenReturn(PackageManager.PERMISSION_GRANTED)
+
+    val result = checkLimitedPermission(context)
+    assertTrue(result) // Expecting true because limited permission is granted
+  }
+
+  @Test
+  fun checkLimitedPermissionReturnsFalse() {
+    // Mock the context
+    val context = mock(Context::class.java)
+
+    // Mock the permission check to return PERMISSION_DENIED for limited access
+    `when`(
+            ContextCompat.checkSelfPermission(
+                context, "android.permission.READ_MEDIA_VISUAL_USER_SELECTED"))
+        .thenReturn(PackageManager.PERMISSION_DENIED)
+
+    val result = checkLimitedPermission(context)
+    assertFalse(result) // Expecting false because limited permission is not granted
+  }
 }
