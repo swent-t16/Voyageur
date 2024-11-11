@@ -23,15 +23,19 @@ import com.android.voyageur.ui.navigation.NavigationActions
 
 @Composable
 fun ScheduleScreen(trip: Trip, navigationActions: NavigationActions) {
-  var isDailySelected by remember { mutableStateOf(true) }
+  var isDailySelected by remember { mutableStateOf(navigationActions.getNavigationState("isDailyViewSelected", true)) }
 
+fun updateIsDailySelected(newIsDailySelected: Boolean) {
+    isDailySelected = newIsDailySelected
+    navigationActions.setNavigationState("isDailyViewSelected", newIsDailySelected)
+}
   Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
     // Row for the "Daily" and "Weekly" buttons
     Row(
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp, end = 16.dp),
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically) {
-          TextButton(onClick = { isDailySelected = true }) {
+          TextButton(onClick = { updateIsDailySelected(true) }) {
             Text(
                 text = "Daily",
                 style = MaterialTheme.typography.bodyMedium,
@@ -44,7 +48,7 @@ fun ScheduleScreen(trip: Trip, navigationActions: NavigationActions) {
               text = " / ",
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-          TextButton(onClick = { isDailySelected = false }) {
+          TextButton(onClick = { updateIsDailySelected(false)}) {
             Text(
                 text = "Weekly",
                 style = MaterialTheme.typography.bodyMedium,
@@ -62,7 +66,7 @@ fun ScheduleScreen(trip: Trip, navigationActions: NavigationActions) {
       WeeklyViewScreen(
           trip = trip,
           navigationActions = navigationActions,
-          onDaySelected = { isDailySelected = true })
+          onDaySelected = { updateIsDailySelected(false) })
     }
   }
 }
