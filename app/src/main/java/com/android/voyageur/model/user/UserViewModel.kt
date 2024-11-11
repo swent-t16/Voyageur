@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 open class UserViewModel(
@@ -153,8 +154,25 @@ open class UserViewModel(
         },
         onFailure = { exception -> _isLoading.value = false })
   }
+    /**
+     * Fetches a user by their userId and returns a StateFlow<User?>.
+     * Emits the user data or null if not found.
+     */
+    fun getUserById(userId: String): StateFlow<User?> {
+        val userState = MutableStateFlow<User?>(null)
+        viewModelScope.launch {
+            userRepository.getUserById(
+                userId,
+                onSuccess = { retrievedUser ->
+                    userState.value = retrievedUser
+                },
+                onFailure = { userState.value = null }
+            )
+        }
+        return userState.asStateFlow()
+    }
 
-  companion object {
+    companion object {
     val Factory: ViewModelProvider.Factory =
         object : ViewModelProvider.Factory {
           @Suppress("UNCHECKED_CAST")
