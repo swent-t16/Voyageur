@@ -151,6 +151,14 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
       return
     }
 
+    if (startTime == null && endTime == null)
+        Toast.makeText(context, "No times selected, defaults to 00:00 - 23:59", Toast.LENGTH_SHORT)
+            .show()
+
+    if (startTime != null && endTime == null)
+        Toast.makeText(context, "No end time selected, defaults to 23:59", Toast.LENGTH_SHORT)
+            .show()
+
     val activity =
         Activity(
             title = title,
