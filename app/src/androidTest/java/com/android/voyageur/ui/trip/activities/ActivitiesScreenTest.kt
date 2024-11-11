@@ -11,11 +11,13 @@ import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 fun createTimestamp(year: Int, month: Int, day: Int, hour: Int, minute: Int): Timestamp {
   val calendar = java.util.Calendar.getInstance()
@@ -153,5 +155,14 @@ class ActivitiesScreenTest {
 
     composeTestRule.onNodeWithTag("cardItem_${sampleActivity.title}").assertIsDisplayed()
     composeTestRule.onNodeWithText("01/01/2022 12:00 PM - 02:00 PM").assertIsDisplayed()
+  }
+
+  @Test
+  fun clickingCreateActivityButton_navigatesToAddActivityScreen() {
+    composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions) }
+
+    composeTestRule.onNodeWithTag("createActivityButton").performClick()
+
+    verify(navigationActions).navigateTo(Screen.ADD_ACTIVITY)
   }
 }
