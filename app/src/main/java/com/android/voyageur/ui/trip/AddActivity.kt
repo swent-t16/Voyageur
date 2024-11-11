@@ -102,7 +102,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                   .time
             }
-            ?.let { Timestamp(it) } ?: Timestamp(0, 0)
+            ?.let { Timestamp(it) } ?: Timestamp(dateNormalized)
 
     val endTimestamp =
         endTime
@@ -121,7 +121,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                   .time
             }
-            ?.let { Timestamp(it) } ?: Timestamp(0, 0)
+            ?.let { Timestamp(it) } ?: Timestamp(dateNormalized)
 
     if (startTime != null &&
         endTime != null &&
