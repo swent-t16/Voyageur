@@ -26,9 +26,13 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
   val tabs = listOf("Schedule", "Activities", "Settings")
 
   // Remember the currently selected tab index
-  var selectedTabIndex by remember { mutableIntStateOf(0) }
+  var selectedTabIndex by remember { mutableIntStateOf(navigationActions.getNavigationState("currentTabIndexForTrip", 0)) }
+    fun updateTabIndex(newIndex: Int) {
+        selectedTabIndex = newIndex
+        navigationActions.setNavigationState("currentTabIndexForTrip", newIndex)
+    }
 
-  val trip =
+    val trip =
       tripsViewModel.selectedTrip.value
           ?: return Text(text = "No trip selected. Should not happen", color = Color.Red)
 
@@ -44,7 +48,7 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
       tabs.forEachIndexed { index, title ->
         Tab(
             selected = selectedTabIndex == index,
-            onClick = { selectedTabIndex = index },
+            onClick = { updateTabIndex(index) },
             text = { Text(title) })
       }
     }
@@ -61,8 +65,8 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
               navigationActions,
               tripsViewModel = tripsViewModel,
               onUpdate = {
-                selectedTabIndex = 0
-                selectedTabIndex = 2
+                updateTabIndex(0)
+                updateTabIndex(2)
               })
     }
   }

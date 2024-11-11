@@ -4,6 +4,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -97,4 +99,20 @@ open class NavigationActions(
    * @return The current route
    */
   open fun currentRoute(): String = navController.currentDestination?.route ?: ""
+
+  // A Map to hold various state values
+  private val navigationStateMap = mutableMapOf<String, Any>(
+    "currentTabIndexForTrip" to 0, // Default: schedule tab
+    "isDailyViewSelected" to true  // Default: daily view
+  )
+
+  // Function to update or retrieve values from the navigation state map
+  open fun <T> getNavigationState(key: String, defaultValue: T): T {
+    @Suppress("UNCHECKED_CAST")
+    return navigationStateMap[key] as? T ?: defaultValue
+  }
+
+  open fun <T : Any> setNavigationState(key: String, value: T) {
+    navigationStateMap[key] = value
+  }
 }
