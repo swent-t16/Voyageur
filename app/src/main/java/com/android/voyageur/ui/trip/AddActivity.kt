@@ -65,6 +65,11 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
       return
     }
 
+    if (startTime == null && endTime != null){
+        Toast.makeText(context, "Please select a start time first", Toast.LENGTH_SHORT).show()
+        return
+    }
+
     fun normalizeToMidnight(date: Date): Date {
       val calendar =
           Calendar.getInstance().apply {
@@ -85,7 +90,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
       return
     }
 
-    val startTimestamp =
+    val startTimestamp = Timestamp(
         startTime
             ?.let {
               Calendar.getInstance()
@@ -102,9 +107,16 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                   .time
             }
-            ?.let { Timestamp(it) } ?: Timestamp(dateNormalized)
+            ?: dateNormalized.apply {
+                Calendar.getInstance().apply {
+                    time = dateNormalized
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                }.time
+            }
+      )
 
-    val endTimestamp =
+    val endTimestamp = Timestamp(
         endTime
             ?.let {
               Calendar.getInstance()
@@ -121,7 +133,14 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                   .time
             }
-            ?.let { Timestamp(it) } ?: Timestamp(dateNormalized)
+            ?: dateNormalized.apply {
+                Calendar.getInstance().apply {
+                    time = dateNormalized
+                    set(Calendar.HOUR_OF_DAY, 23)
+                    set(Calendar.MINUTE, 59)
+                }.time
+            }
+    )
 
     if (startTime != null &&
         endTime != null &&
