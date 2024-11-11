@@ -144,7 +144,9 @@ fun AddTripScreen(
                 },
             startDate = startTimestamp,
             endDate = endTimestamp,
-            activities = listOf(),
+            activities = if (isEditMode)
+                tripsViewModel.selectedTrip.value?.activities ?: listOf()
+                else listOf(),
             type = tripType,
             imageUri = imageUrl)
     if (!isEditMode) {
