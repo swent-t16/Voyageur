@@ -340,7 +340,7 @@ class AddTripScreenTest {
     `when`(ContextCompat.checkSelfPermission(context, "android.permission.READ_MEDIA_IMAGES"))
         .thenReturn(PackageManager.PERMISSION_GRANTED)
 
-    val result = checkPermission(context)
+    val result = checkFullPermission(context)
     assertTrue(result) // Expecting true because permission is granted
   }
 
@@ -355,7 +355,7 @@ class AddTripScreenTest {
                 context, "android.permission.READ_MEDIA_VISUAL_USER_SELECTED"))
         .thenReturn(PackageManager.PERMISSION_GRANTED)
 
-    val result = checkPermission(context)
+    val result = checkLimitedPermission(context)
     assertTrue(result) // Expecting true because permission is granted
   }
 
@@ -374,7 +374,7 @@ class AddTripScreenTest {
     `when`(ContextCompat.checkSelfPermission(context, "android.permission.READ_EXTERNAL_STORAGE"))
         .thenReturn(PackageManager.PERMISSION_DENIED)
 
-    val result = checkPermission(context)
+    val result = checkFullPermission(context)
     assertFalse(result) // Expecting false because permission is not granted
   }
 }

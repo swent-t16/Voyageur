@@ -113,23 +113,22 @@ fun AddTripScreen(
       rememberLauncherForActivityResult(
           contract = ActivityResultContracts.GetContent(),
           onResult = { uri -> uri?.let { imageUri = it.toString() } })
-  val permissionLauncher =
-      rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) {
-          galleryLauncher.launch("image/*")
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
-            ContextCompat.checkSelfPermission(context, READ_MEDIA_VISUAL_USER_SELECTED) ==
-                PERMISSION_GRANTED) { // This checks in case the user provided only limited access
-          // to their gallery
-          galleryLauncher.launch("image/*")
-        } else {
-          Toast.makeText(
-                  context,
-                  "Please allow access to select images from your gallery.",
-                  Toast.LENGTH_SHORT)
-              .show()
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        when {
+            isGranted -> galleryLauncher.launch("image/*")
+            checkLimitedPermission(context) -> galleryLauncher.launch("image/*")
+            else -> {
+                // Permission is denied, show a message to the user
+                Toast.makeText(
+                    context,
+                    "Please allow access to select images from your gallery.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
-      }
+    }
 
   LaunchedEffect(isEditMode) {
     if (isEditMode && tripsViewModel.selectedTrip.value != null) {
@@ -266,7 +265,7 @@ fun AddTripScreen(
                 Button(
                     onClick = {
                       when {
-                        checkPermission(context) -> {
+                        checkFullPermission(context) || checkLimitedPermission(context) -> {
                           // If permission is granted, launch the gallery
                           galleryLauncher.launch("image/*")
                         }
@@ -467,8 +466,8 @@ fun DatePickerModal(
       }
 }
 
-// Function to check if the user already granted permission
-fun checkPermission(context: Context): Boolean {
+// Function to check if full permission is granted
+fun checkFullPermission(context: Context): Boolean {
   return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
     ContextCompat.checkSelfPermission(context, READ_MEDIA_IMAGES) == PERMISSION_GRANTED ||
         ContextCompat.checkSelfPermission(context, READ_MEDIA_VISUAL_USER_SELECTED) ==
@@ -478,4 +477,10 @@ fun checkPermission(context: Context): Boolean {
   } else {
     ContextCompat.checkSelfPermission(context, READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED
   }
+}
+// Function to check if limited access permission is granted
+ fun checkLimitedPermission(context:Context): Boolean{
+    return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+            ContextCompat.checkSelfPermission(context, READ_MEDIA_VISUAL_USER_SELECTED) ==
+            PERMISSION_GRANTED)
 }
