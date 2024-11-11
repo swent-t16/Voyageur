@@ -236,6 +236,9 @@ dependencies {
     // Required for Activity Result API
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.fragment.ktx.v161)
+
+    // For image cropping
+    implementation("com.vanniktech:android-image-cropper:4.5.0")
 }
 
 tasks.withType<Test> {

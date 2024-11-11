@@ -46,7 +46,7 @@ fun OverviewScreen(
             ) {
                 Icon(
                     Icons.Outlined.Add,
-                    "Add trip",
+                    "Floating action button",
                     modifier = Modifier.testTag("addIcon")
                 )
             }

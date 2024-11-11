@@ -1,6 +1,7 @@
 package com.android.voyageur.ui.overview
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -20,7 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -33,6 +36,11 @@ import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.formFields.DatePickerModal
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.utils.rememberImageCropper
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
+import com.canhub.cropper.CropImageView
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
@@ -50,165 +58,192 @@ fun AddTripScreen(
     isEditMode: Boolean = false,
     onUpdate: () -> Unit = {}
 ) {
-  var name by remember { mutableStateOf("") }
-  var description by remember { mutableStateOf("") }
-  var locations by remember { mutableStateOf("") }
-  var showModal by remember { mutableStateOf(false) }
-  var selectedDateField by remember { mutableStateOf<DateField?>(null) }
-  var startDate by remember { mutableStateOf<Long?>(null) }
-  var endDate by remember { mutableStateOf<Long?>(null) }
-  var tripType by remember { mutableStateOf(TripType.BUSINESS) }
-  var imageUri by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var locations by remember { mutableStateOf("") }
+    var showModal by remember { mutableStateOf(false) }
+    var selectedDateField by remember { mutableStateOf<DateField?>(null) }
+    var startDate by remember { mutableStateOf<Long?>(null) }
+    var endDate by remember { mutableStateOf<Long?>(null) }
+    var tripType by remember { mutableStateOf(TripType.BUSINESS) }
+    var imageUri by remember { mutableStateOf("") }
 
-  val context = LocalContext.current
-  val imageId = R.drawable.default_trip_image
+    val context = LocalContext.current
+    val imageId = R.drawable.default_trip_image
 
-  val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-  val formattedStartDate = startDate?.let { dateFormat.format(Date(it)) } ?: ""
-  val formattedEndDate = endDate?.let { dateFormat.format(Date(it)) } ?: ""
-
-  val galleryLauncher =
-      rememberLauncherForActivityResult(
-          contract = ActivityResultContracts.GetContent(),
-          onResult = { uri -> uri?.let { imageUri = it.toString() } })
-
-  LaunchedEffect(isEditMode) {
-    if (isEditMode && tripsViewModel.selectedTrip.value != null) {
-      tripsViewModel.selectedTrip.value?.let { trip ->
-        name = trip.name
-        description = trip.description
-        tripType = trip.type
-        imageUri = trip.imageUri
-        startDate = trip.startDate.toDate().time
-        endDate = trip.endDate.toDate().time
-      }
-    }
-  }
-
-  fun createTripWithImage(imageUrl: String) {
-
-    if (startDate == null || endDate == null) {
-      Toast.makeText(context, "Please select both start and end dates", Toast.LENGTH_SHORT).show()
-      return
+    // Get screen dimensions and calculate responsive image height
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val imageHeight = remember(screenWidth) {
+        (screenWidth * 9f / 16f).coerceAtMost(300.dp)
     }
 
-    val startTimestamp = Timestamp(Date(startDate!!))
-    val endTimestamp = Timestamp(Date(endDate!!))
+    val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    val formattedStartDate = startDate?.let { dateFormat.format(Date(it)) } ?: ""
+    val formattedEndDate = endDate?.let { dateFormat.format(Date(it)) } ?: ""
 
-    fun normalizeToMidnight(date: Date): Date {
-      val calendar =
-          Calendar.getInstance().apply {
-            time = date
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-          }
-      return calendar.time
+    // Use the new image cropper utility
+    val imageCropper = rememberImageCropper { result ->
+        result.imageUri?.let {
+            imageUri = it
+        }
+        result.error?.let { error ->
+            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+        }
     }
 
-    val today = normalizeToMidnight(Date())
-    val startDateNormalized = normalizeToMidnight(Date(startDate!!))
-    val endDateNormalized = normalizeToMidnight(Date(endDate!!))
-
-    if (startDateNormalized.before(today) || endDateNormalized.before(today)) {
-      Toast.makeText(context, "Start and end dates cannot be in the past", Toast.LENGTH_SHORT)
-          .show()
-      return
+    LaunchedEffect(isEditMode) {
+        if (isEditMode && tripsViewModel.selectedTrip.value != null) {
+            tripsViewModel.selectedTrip.value?.let { trip ->
+                name = trip.name
+                description = trip.description
+                tripType = trip.type
+                imageUri = trip.imageUri
+                startDate = trip.startDate.toDate().time
+                endDate = trip.endDate.toDate().time
+            }
+        }
     }
-    if (startDateNormalized.after(endDateNormalized)) {
-      Toast.makeText(context, "End date cannot be before start date", Toast.LENGTH_SHORT).show()
-      return
-    }
 
-    val trip =
-        Trip(
-            id =
-                if (isEditMode) tripsViewModel.selectedTrip.value!!.id
-                else tripsViewModel.getNewTripId(),
+    fun createTripWithImage(imageUrl: String) {
+        if (startDate == null || endDate == null) {
+            Toast.makeText(context, "Please select both start and end dates", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val startTimestamp = Timestamp(Date(startDate!!))
+        val endTimestamp = Timestamp(Date(endDate!!))
+
+        fun normalizeToMidnight(date: Date): Date {
+            val calendar = Calendar.getInstance().apply {
+                time = date
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            return calendar.time
+        }
+
+        val today = normalizeToMidnight(Date())
+        val startDateNormalized = normalizeToMidnight(Date(startDate!!))
+        val endDateNormalized = normalizeToMidnight(Date(endDate!!))
+
+        if (startDateNormalized.before(today) || endDateNormalized.before(today)) {
+            Toast.makeText(context, "Start and end dates cannot be in the past", Toast.LENGTH_SHORT)
+                .show()
+            return
+        }
+        if (startDateNormalized.after(endDateNormalized)) {
+            Toast.makeText(context, "End date cannot be before start date", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val trip = Trip(
+            id = if (isEditMode) tripsViewModel.selectedTrip.value!!.id else tripsViewModel.getNewTripId(),
             creator = Firebase.auth.uid.orEmpty(),
             description = description,
             name = name,
-            locations =
-                locations.split(";").map { locationString ->
-                  val parts = locationString.split(",").map { it.trim() }
-                  if (parts.size >= 2) {
+            locations = locations.split(";").map { locationString ->
+                val parts = locationString.split(",").map { it.trim() }
+                if (parts.size >= 2) {
                     Location(
                         country = parts[0],
                         city = parts[1],
                         county = parts.getOrNull(2),
-                        zip = parts.getOrNull(3))
-                  } else {
+                        zip = parts.getOrNull(3)
+                    )
+                } else {
                     Location(country = "Unknown", city = "Unknown", county = null, zip = null)
-                  }
-                },
+                }
+            },
             startDate = startTimestamp,
             endDate = endTimestamp,
             activities = listOf(),
             type = tripType,
-            imageUri = imageUrl)
-    if (!isEditMode) {
-      tripsViewModel.createTrip(trip)
-      navigationActions.goBack()
-    } else {
-      tripsViewModel.updateTrip(
-          trip,
-          onSuccess = {
-            /*
-                This is a trick to force a recompose, because the reference wouldn't
-                change and update the UI.
-            */
-            tripsViewModel.selectTrip(Trip())
+            imageUri = imageUrl
+        )
 
-            tripsViewModel.selectTrip(trip)
-            onUpdate()
-          })
+        if (!isEditMode) {
+            tripsViewModel.createTrip(trip)
+            navigationActions.goBack()
+        } else {
+            tripsViewModel.updateTrip(
+                trip,
+                onSuccess = {
+                    tripsViewModel.selectTrip(Trip())
+                    tripsViewModel.selectTrip(trip)
+                    onUpdate()
+                }
+            )
+        }
     }
-  }
 
-  Scaffold(
-      modifier = Modifier.testTag("addTrip"),
-      topBar = {
-        if (!isEditMode)
-            TopAppBar(
-                title = { Text("Create a New Trip", Modifier.testTag("addTripTitle")) },
-                navigationIcon = {
-                  IconButton(
-                      onClick = { navigationActions.goBack() }, Modifier.testTag("goBackButton")) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "Back",
+    Scaffold(
+        modifier = Modifier.testTag("addTrip"),
+        topBar = {
+            if (!isEditMode)
+                TopAppBar(
+                    title = { Text("Create a New Trip", Modifier.testTag("addTripTitle")) },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = { navigationActions.goBack() },
+                            Modifier.testTag("goBackButton")
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                                contentDescription = "Back",
+                            )
+                        }
+                    }
+                )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(imageHeight)
+                        .aspectRatio(1.8f)
+                        .clip(RoundedCornerShape(5.dp))
+                        .testTag("imageContainer")
+                ) {
+                    if (imageUri.isNotEmpty()) {
+                        Image(
+                            painter = rememberAsyncImagePainter(model = imageUri),
+                            contentDescription = "Selected image",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
-                      }
-                })
-      }) { paddingValues ->
-        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-          Column(
-              modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
-              verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (imageUri != "") {
-                  Image(
-                      painter = rememberAsyncImagePainter(model = imageUri),
-                      contentDescription = "Selected image",
-                      contentScale = ContentScale.Crop,
-                      modifier =
-                          Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(5.dp)))
-                } else {
-                  Image(
-                      painter = painterResource(id = imageId),
-                      contentDescription = "Default trip image",
-                      contentScale = ContentScale.Crop,
-                      modifier =
-                          Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(5.dp)))
+                    } else {
+                        Image(
+                            painter = painterResource(id = imageId),
+                            contentDescription = "Default trip image",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = { galleryLauncher.launch("image/*") },
-                    modifier = Modifier.fillMaxWidth()) {
-                      Text("Select Image from Gallery")
-                    }
+                    onClick = { imageCropper(null) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Select Image from Gallery")
+                }
 
                 OutlinedTextField(
                     value = name,
@@ -216,131 +251,146 @@ fun AddTripScreen(
                     isError = name.isEmpty(),
                     label = { Text("Trip *") },
                     placeholder = { Text("Name the trip") },
-                    modifier = Modifier.fillMaxWidth().testTag("inputTripTitle"))
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("inputTripTitle")
+                )
 
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text("Description") },
                     placeholder = { Text("Describe the trip") },
-                    modifier = Modifier.fillMaxWidth().testTag("inputTripDescription"))
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("inputTripDescription")
+                )
 
                 OutlinedTextField(
                     value = locations,
                     onValueChange = { locations = it },
                     label = { Text("Locations") },
                     placeholder = { Text("Name the locations, comma-separated") },
-                    modifier = Modifier.fillMaxWidth().testTag("inputTripLocations"))
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("inputTripLocations")
+                )
 
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                  OutlinedTextField(
-                      value = formattedStartDate,
-                      onValueChange = {},
-                      readOnly = true,
-                      enabled = false,
-                      label = { Text("Start Date *") },
-                      colors =
-                          TextFieldDefaults.colors(
-                              disabledContainerColor = Color.Transparent,
-                              // focusedTextColor = Color.Black,
-                              // unfocusedTextColor = Color.Black,
-                              disabledTextColor = Color.Black),
-                      modifier =
-                          Modifier.fillMaxWidth(0.49f).testTag("inputStartDate").clickable {
-                            selectedDateField = DateField.START
-                            showModal = true
-                          })
+                    OutlinedTextField(
+                        value = formattedStartDate,
+                        onValueChange = {},
+                        readOnly = true,
+                        enabled = false,
+                        label = { Text("Start Date *") },
+                        colors = TextFieldDefaults.colors(
+                            disabledContainerColor = Color.Transparent,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth(0.49f)
+                            .testTag("inputStartDate")
+                            .clickable {
+                                selectedDateField = DateField.START
+                                showModal = true
+                            }
+                    )
 
-                  OutlinedTextField(
-                      value = formattedEndDate,
-                      onValueChange = {},
-                      readOnly = true,
-                      enabled = false,
-                      label = { Text("End Date *") },
-                      colors =
-                          TextFieldDefaults.colors(
-                              disabledContainerColor = Color.Transparent,
-                              // focusedTextColor = Color.Black,
-                              // unfocusedTextColor = Color.Black,
-                              disabledTextColor = Color.Black),
-                      modifier =
-                          Modifier.fillMaxWidth(0.49f).testTag("inputEndDate").clickable {
-                            selectedDateField = DateField.END
-                            showModal = true
-                          })
+                    OutlinedTextField(
+                        value = formattedEndDate,
+                        onValueChange = {},
+                        readOnly = true,
+                        enabled = false,
+                        label = { Text("End Date *") },
+                        colors = TextFieldDefaults.colors(
+                            disabledContainerColor = Color.Transparent,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth(0.49f)
+                            .testTag("inputEndDate")
+                            .clickable {
+                                selectedDateField = DateField.END
+                                showModal = true
+                            }
+                    )
                 }
+
                 if (showModal) {
-                  DatePickerModal(
-                      onDateSelected = { selectedDate ->
-                        if (selectedDateField == DateField.START) {
-                          startDate = selectedDate
-                        } else if (selectedDateField == DateField.END) {
-                          endDate = selectedDate
-                        }
-                        showModal = false
-                      },
-                      onDismiss = { showModal = false },
-                      selectedDate =
-                          when (selectedDateField) {
+                    DatePickerModal(
+                        onDateSelected = { selectedDate ->
+                            if (selectedDateField == DateField.START) {
+                                startDate = selectedDate
+                            } else if (selectedDateField == DateField.END) {
+                                endDate = selectedDate
+                            }
+                            showModal = false
+                        },
+                        onDismiss = { showModal = false },
+                        selectedDate = when (selectedDateField) {
                             DateField.START -> startDate ?: System.currentTimeMillis()
                             DateField.END -> endDate ?: System.currentTimeMillis()
                             else -> System.currentTimeMillis()
-                          })
+                        }
+                    )
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                      RadioButton(
-                          onClick = { tripType = TripType.BUSINESS },
-                          selected = tripType == TripType.BUSINESS,
-                          modifier = Modifier.testTag("tripTypeBusiness"))
-                      Text("Business")
-                      RadioButton(
-                          onClick = { tripType = TripType.TOURISM },
-                          selected = tripType == TripType.TOURISM,
-                          modifier = Modifier.testTag("tripTypeTourism"))
-                      Text("Tourism")
-                    }
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    RadioButton(
+                        onClick = { tripType = TripType.BUSINESS },
+                        selected = tripType == TripType.BUSINESS,
+                        modifier = Modifier.testTag("tripTypeBusiness")
+                    )
+                    Text("Business")
+                    RadioButton(
+                        onClick = { tripType = TripType.TOURISM },
+                        selected = tripType == TripType.TOURISM,
+                        modifier = Modifier.testTag("tripTypeTourism")
+                    )
+                    Text("Tourism")
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
-              }
+            }
 
-          Button(
-              onClick = {
-                if (imageUri.isNotBlank() &&
-                    imageUri != tripsViewModel.selectedTrip.value?.imageUri) {
-                  val imageUriParsed = Uri.parse(imageUri)
-                  tripsViewModel.uploadImageToFirebase(
-                      uri = imageUriParsed,
-                      onSuccess = { downloadUrl -> createTripWithImage(downloadUrl) },
-                      onFailure = { exception ->
-                        Toast.makeText(
-                                context,
-                                "Failed to upload image: ${exception.message}",
-                                Toast.LENGTH_SHORT)
-                            .show()
-                      })
-                } else {
-                  createTripWithImage(imageUri)
-                }
-              },
-              enabled =
-                  name.isNotBlank() &&
-                      formattedStartDate.isNotBlank() &&
-                      formattedEndDate.isNotBlank(),
-              modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("tripSave")) {
+            Button(
+                onClick = {
+                    if (imageUri.isNotBlank() && imageUri != tripsViewModel.selectedTrip.value?.imageUri) {
+                        val imageUriParsed = Uri.parse(imageUri)
+                        tripsViewModel.uploadImageToFirebase(
+                            uri = imageUriParsed,
+                            onSuccess = { downloadUrl -> createTripWithImage(downloadUrl) },
+                            onFailure = { exception ->
+                                Toast.makeText(
+                                    context,
+                                    "Failed to upload image: ${exception.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        )
+                    } else {
+                        createTripWithImage(imageUri)
+                    }
+                },
+                enabled = name.isNotBlank() && formattedStartDate.isNotBlank() && formattedEndDate.isNotBlank(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .testTag("tripSave")
+            ) {
                 Text("Save Trip")
-              }
+            }
         }
-      }
+    }
 }
 
 enum class DateField {
-  START,
-  END
+    START,
+    END
 }
