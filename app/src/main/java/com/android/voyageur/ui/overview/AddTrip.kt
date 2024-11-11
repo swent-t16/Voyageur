@@ -66,6 +66,7 @@ import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.ui.formFields.DatePickerModal
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.profile.findActivity
 import com.google.firebase.Firebase

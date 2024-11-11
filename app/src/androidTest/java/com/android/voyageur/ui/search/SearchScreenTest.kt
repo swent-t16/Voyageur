@@ -95,7 +95,7 @@ class SearchScreenTest {
     val searchQuery = "test"
     val mockPlaceList =
         listOf(Place.builder().setName("Test Place 1").setId("1").setRating(4.0).build())
-    `when`(placesRepository.searchPlaces(eq(searchQuery), any(), any())).thenAnswer {
+    `when`(placesRepository.searchPlaces(eq(searchQuery), any(), any(), any())).thenAnswer {
       val onSuccess = it.arguments[1] as (List<Place>) -> Unit
       onSuccess(mockPlaceList)
     }
@@ -107,7 +107,7 @@ class SearchScreenTest {
   @Test
   fun testNoResultsFoundPlaces() {
     val searchQuery = "test"
-    `when`(placesRepository.searchPlaces(eq(searchQuery), any(), any())).thenAnswer {
+    `when`(placesRepository.searchPlaces(eq(searchQuery), any(), any(), any())).thenAnswer {
       val onSuccess = it.arguments[1] as (List<Place>) -> Unit
       onSuccess(emptyList())
     }

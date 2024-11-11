@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.android.voyageur.model.activity.Activity
@@ -25,6 +24,8 @@ import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.ui.formFields.DatePickerModal
+import com.android.voyageur.ui.formFields.TimePickerInput
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
@@ -214,7 +215,8 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                         activityDate = selectedDate
                         showModal = false
                       },
-                      onDismiss = { showModal = false })
+                      onDismiss = { showModal = false },
+                      selectedDate = System.currentTimeMillis())
                 }
 
                 FlowRow(
@@ -356,76 +358,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
       }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DatePickerModal(onDateSelected: (Long?) -> Unit, onDismiss: () -> Unit) {
-  val datePickerState = rememberDatePickerState()
-
-  DatePickerDialog(
-      onDismissRequest = onDismiss,
-      confirmButton = {
-        TextButton(
-            onClick = {
-              onDateSelected(datePickerState.selectedDateMillis)
-              onDismiss()
-            }) {
-              Text("OK")
-            }
-      },
-      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }) {
-        DatePicker(state = datePickerState)
-      }
-}
-
 enum class TimeField {
   START,
   END
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TimePickerInput(
-    initialHour: Int?,
-    initialMinute: Int?,
-    onTimeSelected: (Long?) -> Unit,
-    onDismiss: () -> Unit
-) {
-  val timeState = rememberTimePickerState(is24Hour = true)
-
-  if (initialHour != null && initialMinute != null) {
-    timeState.hour = initialHour
-    timeState.minute = initialMinute
-  }
-
-  Dialog(onDismissRequest = onDismiss) {
-    Surface(
-        shape = MaterialTheme.shapes.extraLarge,
-        tonalElevation = 10.dp,
-        modifier = Modifier.padding(16.dp)) {
-          Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                text = "Select time",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineMedium)
-            TimeInput(state = timeState)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-              TextButton(onClick = onDismiss) { Text(text = "Cancel") }
-              TextButton(
-                  onClick = {
-                    val selectedTime =
-                        Calendar.getInstance()
-                            .apply {
-                              set(Calendar.HOUR_OF_DAY, timeState.hour)
-                              set(Calendar.MINUTE, timeState.minute)
-                            }
-                            .timeInMillis
-                    onTimeSelected(selectedTime)
-                  }) {
-                    Text(text = "OK")
-                  }
-            }
-          }
-        }
-  }
 }
