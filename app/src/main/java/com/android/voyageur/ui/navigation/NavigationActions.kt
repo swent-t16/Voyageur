@@ -4,6 +4,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -76,6 +80,24 @@ open class NavigationActions(
       restoreState = true
     }
   }
+
+  /**
+   * This is a mutable state that represents the current tab index for the trip. (0 for Schedule, 1
+   * for Activities, 2 for Settings) This is used to determine which tab is currently selected in
+   * the TobTabs composable for a trip. It needs to be part of the navigation actions in order to
+   * remember which tab was selecting when opening another screen and trying to go back. For
+   * example, when we open AddActivityScreen from the Activities tab, we want to go back to this
+   * tab.
+   */
+  var currentTabIndexForTrip by mutableIntStateOf(0) //defaults to schedule tab
+
+  /**
+   * This is a mutable state that represents whether the daily view is selected in the ByDayScreen.
+   * This is used to determine which view is currently selected in the Schedule Screen. Similarly to
+   * currentTabIndexForTrip, it needs to be part of the navigation actions in order to remember
+   * which view was selected when opening another screen and trying to go back.
+   */
+  var isDailyViewSelected by mutableStateOf(true) //defaults to daily view
 
   /**
    * Navigate to the specified screen.

@@ -2,12 +2,12 @@ package com.android.voyageur.ui.trip.schedule
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.navigation.NavHostController
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.ui.navigation.NavigationActions
-import com.android.voyageur.ui.navigation.Route
 import com.google.firebase.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -15,13 +15,14 @@ import java.util.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 
 class ScheduleScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   private lateinit var navigationActions: NavigationActions
+  private lateinit var navHostController: NavHostController
+
   private lateinit var mockTrip: Trip
 
   @Before
@@ -29,8 +30,10 @@ class ScheduleScreenTest {
     // Set default locale for consistent testing
     Locale.setDefault(Locale.US)
 
-    navigationActions = Mockito.mock(NavigationActions::class.java)
-    `when`(navigationActions.currentRoute()).thenReturn(Route.TOP_TABS)
+    //    navigationActions = Mockito.mock(NavigationActions::class.java)
+    navHostController = mock(NavHostController::class.java)
+    navigationActions = NavigationActions(navHostController)
+    //    `when`(navigationActions.currentRoute()).thenReturn(Route.TOP_TABS)
 
     mockTrip =
         Trip(
@@ -165,5 +168,15 @@ class ScheduleScreenTest {
     composeTestRule.onNodeWithText("Weekly").performClick()
     composeTestRule.onNodeWithText("Daily").assertIsEnabled()
     composeTestRule.onNodeWithText("Weekly").assertIsEnabled()
+  }
+
+  @Test
+  fun checkIfIsDailyViewSelected_updatesProperly() {
+    assert(navigationActions.isDailyViewSelected)
+      composeTestRule.onNodeWithText("Weekly").performClick()
+
+    assert(!navigationActions.isDailyViewSelected)
+    composeTestRule.onNodeWithText("Daily").performClick()
+    assert(navigationActions.isDailyViewSelected)
   }
 }

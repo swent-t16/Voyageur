@@ -2,33 +2,32 @@ package com.android.voyageur.ui.trip
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.navigation.NavHostController
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
-import com.android.voyageur.ui.navigation.Route
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 
 class TopTabsTest {
-  val sampleTrip = Trip(name = "Sample Trip")
+  private val sampleTrip = Trip(name = "Sample Trip")
 
   private lateinit var tripRepository: TripRepository
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
+  private lateinit var navHostController: NavHostController
 
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
   fun setUp() {
     tripRepository = mock(TripRepository::class.java)
-    navigationActions = mock(NavigationActions::class.java)
+    navHostController = mock(NavHostController::class.java)
+    navigationActions = NavigationActions(navHostController)
     tripsViewModel = TripsViewModel(tripRepository)
-
-    `when`(navigationActions.currentRoute()).thenReturn(Route.TOP_TABS)
   }
 
   @Test
@@ -81,5 +80,24 @@ class TopTabsTest {
     composeTestRule.onNodeWithText("Settings").performClick()
     composeTestRule.onNodeWithText("Settings").assertIsSelected()
     composeTestRule.onNodeWithTag("settingsScreen").assertIsDisplayed()
+  }
+
+  @Test
+  fun testCurrentTabIndexForTrip_updatesProperly() {
+    tripsViewModel.selectTrip(sampleTrip)
+
+    composeTestRule.setContent { TopTabs(tripsViewModel, navigationActions) }
+
+    composeTestRule.onNodeWithText("Schedule").assertExists()
+    composeTestRule.onNodeWithText("Activities").assertExists()
+    composeTestRule.onNodeWithText("Settings").assertExists()
+
+    composeTestRule.onNodeWithText("Activities").performClick()
+    assert(navigationActions.currentTabIndexForTrip == 1)
+
+    composeTestRule.onNodeWithText("Settings").performClick()
+    assert(navigationActions.currentTabIndexForTrip == 2)
+    composeTestRule.onNodeWithText("Schedule").performClick()
+    assert(navigationActions.currentTabIndexForTrip == 0)
   }
 }

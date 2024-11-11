@@ -7,8 +7,6 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,9 +23,6 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
   // Define tab items
   val tabs = listOf("Schedule", "Activities", "Settings")
 
-  // Remember the currently selected tab index
-  var selectedTabIndex by remember { mutableIntStateOf(0) }
-
   val trip =
       tripsViewModel.selectedTrip.value
           ?: return Text(text = "No trip selected. Should not happen", color = Color.Red)
@@ -37,33 +32,36 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
     TopBarWithImage(trip, navigationActions)
     // TabRow composable for creating top tabs
     TabRow(
-        selectedTabIndex = selectedTabIndex,
+        selectedTabIndex = navigationActions.currentTabIndexForTrip,
         modifier = Modifier.fillMaxWidth().testTag("tabRow"),
     ) {
       // Create each tab with a Tab composable
       tabs.forEachIndexed { index, title ->
         Tab(
-            selected = selectedTabIndex == index,
-            onClick = { selectedTabIndex = index },
+            selected = navigationActions.currentTabIndexForTrip == index,
+            onClick = { navigationActions.currentTabIndexForTrip = index },
             text = { Text(title) })
       }
     }
 
     // Display content based on selected tab
-    when (selectedTabIndex) {
-      0 -> ScheduleScreen(trip, navigationActions)
+    when (navigationActions.currentTabIndexForTrip) {
+      0 -> {
+        ScheduleScreen(trip, navigationActions)
+      }
       1 -> {
         ActivitiesScreen(trip, navigationActions)
       }
-      2 ->
-          SettingsScreen(
-              trip,
-              navigationActions,
-              tripsViewModel = tripsViewModel,
-              onUpdate = {
-                selectedTabIndex = 0
-                selectedTabIndex = 2
-              })
+      2 -> {
+        SettingsScreen(
+            trip,
+            navigationActions,
+            tripsViewModel = tripsViewModel,
+            onUpdate = {
+              navigationActions.currentTabIndexForTrip = 0
+              navigationActions.currentTabIndexForTrip = 2
+            })
+      }
     }
   }
 }
