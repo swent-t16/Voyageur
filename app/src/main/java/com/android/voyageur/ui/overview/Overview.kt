@@ -109,10 +109,12 @@ fun OverviewScreen(
 
 @Composable
 fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: NavigationActions) {
-  // TODO: add a clickable once we implement the Schedule screens
   val dateRange = trip.startDate.toDateString() + "-" + trip.endDate.toDateString()
   Card(
       onClick = {
+        // When opening a trip, navigate to the Schedule screen, with the daily view enabled
+        navigationActions.getNavigationState().currentTabIndexForTrip = 0
+        navigationActions.getNavigationState().isDailyViewSelected = true
         navigationActions.navigateTo(Screen.TOP_TABS)
         tripsViewModel.selectTrip(trip)
       },
