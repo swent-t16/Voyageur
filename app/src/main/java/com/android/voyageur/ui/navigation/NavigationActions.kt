@@ -89,7 +89,7 @@ open class NavigationActions(
    * example, when we open AddActivityScreen from the Activities tab, we want to go back to this
    * tab.
    */
-  var currentTabIndexForTrip by mutableIntStateOf(0) //defaults to schedule tab
+  var currentTabIndexForTrip by mutableIntStateOf(0) // defaults to schedule tab
 
   /**
    * This is a mutable state that represents whether the daily view is selected in the ByDayScreen.
@@ -97,7 +97,7 @@ open class NavigationActions(
    * currentTabIndexForTrip, it needs to be part of the navigation actions in order to remember
    * which view was selected when opening another screen and trying to go back.
    */
-  var isDailyViewSelected by mutableStateOf(true) //defaults to daily view
+  var isDailyViewSelected by mutableStateOf(true) // defaults to daily view
 
   /**
    * Navigate to the specified screen.

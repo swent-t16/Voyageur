@@ -173,7 +173,7 @@ class ScheduleScreenTest {
   @Test
   fun checkIfIsDailyViewSelected_updatesProperly() {
     assert(navigationActions.isDailyViewSelected)
-      composeTestRule.onNodeWithText("Weekly").performClick()
+    composeTestRule.onNodeWithText("Weekly").performClick()
 
     assert(!navigationActions.isDailyViewSelected)
     composeTestRule.onNodeWithText("Daily").performClick()
