@@ -50,22 +50,24 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
 
     // TabRow composable for creating top tabs
     TabRow(
-        selectedTabIndex = selectedTabIndex,
+        selectedTabIndex = navigationActions.getNavigationState().currentTabIndexForTrip,
         modifier = Modifier.fillMaxWidth().testTag("tabRow"),
     ) {
       // Create each tab with a Tab composable
       tabs.forEachIndexed { index, title ->
         Tab(
-            selected = selectedTabIndex == index,
-            onClick = { updateTabIndex(index) },
+            selected = navigationActions.getNavigationState().currentTabIndexForTrip == index,
+            onClick = { navigationActions.getNavigationState().currentTabIndexForTrip = index },
             text = { Text(title) })
       }
     }
 
     // Display content based on selected tab
-    when (selectedTabIndex) {
+    when (navigationActions.getNavigationState().currentTabIndexForTrip) {
       0 -> ScheduleScreen(selectedTrip, navigationActions)
-      1 -> ActivitiesScreen(selectedTrip, navigationActions)
+      1 -> {
+        ActivitiesScreen(selectedTrip, navigationActions)
+      }
       2 ->
           SettingsScreen(
               selectedTrip,
