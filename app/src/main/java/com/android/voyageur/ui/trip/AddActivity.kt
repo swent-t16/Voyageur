@@ -134,15 +134,15 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                   .time
             }
-                ?: dateNormalized.apply {
-                  Calendar.getInstance()
-                      .apply {
-                        time = dateNormalized
-                        set(Calendar.HOUR_OF_DAY, 23)
-                        set(Calendar.MINUTE, 59)
-                      }
-                      .time
-                })
+                ?: Calendar.getInstance()
+                    .apply {
+                      time = dateNormalized
+                      set(Calendar.HOUR_OF_DAY, 23)
+                      set(Calendar.MINUTE, 59)
+                      set(Calendar.SECOND, 59)
+                      set(Calendar.MILLISECOND, 999)
+                    }
+                    .time)
 
     if (startTime != null &&
         endTime != null &&
@@ -151,9 +151,12 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
       return
     }
 
-    if (startTime == null && endTime == null)
+    if (activityDate != null && startTime == null && endTime == null)
         Toast.makeText(context, "No times selected, defaults to 00:00 - 23:59", Toast.LENGTH_SHORT)
             .show()
+
+    if (activityDate == null)
+        Toast.makeText(context, "No date assigned, created as draft", Toast.LENGTH_SHORT).show()
 
     if (startTime != null && endTime == null)
         Toast.makeText(context, "No end time selected, defaults to 23:59", Toast.LENGTH_SHORT)
