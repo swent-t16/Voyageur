@@ -16,7 +16,6 @@ import androidx.compose.ui.platform.testTag
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.trip.activities.ActivitiesScreen
-import com.android.voyageur.ui.trip.activities.SAMPLE_ACTIVITIES
 import com.android.voyageur.ui.trip.schedule.ScheduleScreen
 import com.android.voyageur.ui.trip.schedule.TopBarWithImage
 import com.android.voyageur.ui.trip.settings.SettingsScreen
@@ -54,7 +53,6 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
     when (selectedTabIndex) {
       0 -> ScheduleScreen(trip, navigationActions)
       1 -> {
-        trip.activities = SAMPLE_ACTIVITIES
         ActivitiesScreen(trip, navigationActions)
       }
       2 ->

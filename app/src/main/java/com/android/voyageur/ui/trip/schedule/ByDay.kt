@@ -30,14 +30,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.voyageur.model.activity.Activity
-import com.android.voyageur.model.activity.ActivityType
-import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.activity.isDraft
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
-import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -68,77 +66,19 @@ fun ByDayScreen(
             selectedItem = navigationActions.currentRoute())
       },
       content = { pd ->
-        // TODO: HARDCODED ACTIVITY LIST to be removed when we have actual list
         // TODO: sort activities by their hour
         val tripActivities = trip.activities
-        val oneDayAfterNow = Timestamp(Timestamp.now().seconds + 86400, 0)
-        val fakeActivities =
-            listOf(
-                Activity(
-                    title = "Breakfast",
-                    description = "",
-                    activityType = ActivityType.RESTAURANT,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 20.25,
-                    location = Location()),
-                Activity(
-                    title = "Dinner",
-                    description = "",
-                    activityType = ActivityType.RESTAURANT,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 23.25,
-                    location = Location()),
-                Activity(
-                    title = "Dinner2",
-                    description = "",
-                    activityType = ActivityType.RESTAURANT,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 23.25,
-                    location = Location()),
-                Activity(
-                    title = "Dinner3",
-                    description = "",
-                    activityType = ActivityType.RESTAURANT,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 23.25,
-                    location = Location()),
-                Activity(
-                    title = "Dinner4",
-                    description = "",
-                    activityType = ActivityType.RESTAURANT,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 23.25,
-                    location = Location()),
-                Activity(
-                    title = "Dinner5",
-                    description = "",
-                    activityType = ActivityType.RESTAURANT,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 23.25,
-                    location = Location()),
-                Activity(
-                    title = "Too long name to be displayed on the Activity Box",
-                    description = "",
-                    activityType = ActivityType.OTHER,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 00.00,
-                    location = Location()),
-                Activity(
-                    title = "Visit city",
-                    description = "",
-                    activityType = ActivityType.OTHER,
-                    startTime = oneDayAfterNow,
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 00.00,
-                    location = Location()))
-        val groupedActivities = groupActivitiesByDate(tripActivities)
+        val groupedActivities =
+            groupActivitiesByDate(tripActivities)
+                .mapValues { (_, activities) ->
+                  // Filter out draft activities from each group
+                  activities.filter { !it.isDraft() }
+                }
+                .filter { (_, activities) ->
+                  // Filter out groups that become empty after removing draft activities
+                  activities.isNotEmpty()
+                }
+        //        val groupedActivities = groupActivitiesByDate(tripActivities)
         if (groupedActivities.isEmpty()) {
           Text(
               modifier = Modifier.padding(pd).testTag("emptyByDayPrompt"),
@@ -166,7 +106,14 @@ fun ByDayScreen(
 
 // TODO: Test this works
 fun groupActivitiesByDate(activities: List<Activity>): Map<LocalDate, List<Activity>> {
-  return activities.groupBy { activity ->
+  val sortedActivities =
+      activities.sortedWith(
+          compareBy(
+              { it.startTime }, // First, sort by startTime
+              { it.endTime } // If startTime is equal, sort by endTime
+              ))
+
+  return sortedActivities.groupBy { activity ->
     activity.startTime.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
   }
 }
@@ -199,7 +146,10 @@ fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
                 Modifier.padding(horizontal = 30.dp, vertical = 10.dp).testTag("activityColumn"),
         ) {
           val numberOfActivities = activitiesForDay.size
-          activitiesForDay.take(4).forEach { activity -> ActivityBox(activity) }
+          activitiesForDay
+              .filter { !it.isDraft() }
+              .take(4)
+              .forEach { activity -> ActivityBox(activity) }
           if (numberOfActivities > 4) {
             Text(
                 text = "and ${numberOfActivities - 3} more",
