@@ -65,9 +65,9 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
       return
     }
 
-    if (startTime == null && endTime != null){
-        Toast.makeText(context, "Please select a start time first", Toast.LENGTH_SHORT).show()
-        return
+    if (startTime == null && endTime != null) {
+      Toast.makeText(context, "Please select a start time first", Toast.LENGTH_SHORT).show()
+      return
     }
 
     fun normalizeToMidnight(date: Date): Date {
@@ -90,9 +90,9 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
       return
     }
 
-    val startTimestamp = Timestamp(
-        startTime
-            ?.let {
+    val startTimestamp =
+        Timestamp(
+            startTime?.let {
               Calendar.getInstance()
                   .apply {
                     time = dateNormalized
@@ -107,18 +107,19 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                   .time
             }
-            ?: dateNormalized.apply {
-                Calendar.getInstance().apply {
-                    time = dateNormalized
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                }.time
-            }
-      )
+                ?: dateNormalized.apply {
+                  Calendar.getInstance()
+                      .apply {
+                        time = dateNormalized
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                      }
+                      .time
+                })
 
-    val endTimestamp = Timestamp(
-        endTime
-            ?.let {
+    val endTimestamp =
+        Timestamp(
+            endTime?.let {
               Calendar.getInstance()
                   .apply {
                     time = dateNormalized
@@ -133,14 +134,15 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                   .time
             }
-            ?: dateNormalized.apply {
-                Calendar.getInstance().apply {
-                    time = dateNormalized
-                    set(Calendar.HOUR_OF_DAY, 23)
-                    set(Calendar.MINUTE, 59)
-                }.time
-            }
-    )
+                ?: dateNormalized.apply {
+                  Calendar.getInstance()
+                      .apply {
+                        time = dateNormalized
+                        set(Calendar.HOUR_OF_DAY, 23)
+                        set(Calendar.MINUTE, 59)
+                      }
+                      .time
+                })
 
     if (startTime != null &&
         endTime != null &&
