@@ -14,6 +14,11 @@ import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRe
 import com.google.android.libraries.places.api.net.PlacesClient
 import kotlin.math.cos
 
+/**
+ * Repository class for interacting with the Google Places API.
+ *
+ * @property placesClient The PlacesClient used to make API requests.
+ */
 class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRepository {
   private val placeFields =
       listOf(
@@ -30,12 +35,11 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
           Place.Field.PRICE_LEVEL)
 
   /**
-   * This function is used to convert a circular radius around a location (LatLng) to a rectangular
-   * bounds, as the maps sdk doesn't support circular bounds
+   * Converts a circular radius around a location (LatLng) to rectangular bounds.
    *
-   * @param center the location used as the user location
-   * @param radius the radius area for the circle search
-   * @return the converted bounds around the center point
+   * @param center The center location.
+   * @param radius The radius in meters.
+   * @return The rectangular bounds around the center point.
    */
   private fun circularBounds(center: LatLng, radius: Double): RectangularBounds {
     val earthRadius = 6371000.0 // Earth's radius in meters
@@ -51,6 +55,14 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
     return RectangularBounds.newInstance(southwest, northeast)
   }
 
+  /**
+   * Searches for places based on a query and location.
+   *
+   * @param query The search query.
+   * @param location The location to search around.
+   * @param onSuccess Callback invoked with the list of found places.
+   * @param onFailure Callback invoked with an exception if the search fails.
+   */
   override fun searchPlaces(
       query: String,
       location: LatLng?,
@@ -78,6 +90,13 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
         .addOnFailureListener { exception -> onFailure(exception) }
   }
 
+  /**
+   * Fetches detailed information for a list of place IDs.
+   *
+   * @param placeIds The list of place IDs to fetch details for.
+   * @param onSuccess Callback invoked with the list of detailed places.
+   * @param onFailure Callback invoked with an exception if the fetch fails.
+   */
   private fun fetchPlaceDetails(
       placeIds: List<String>,
       onSuccess: (List<CustomPlace>) -> Unit,

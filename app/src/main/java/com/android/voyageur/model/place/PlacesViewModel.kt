@@ -12,6 +12,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel class for managing place search queries and results.
+ *
+ * @property placesRepository The repository used to search for places.
+ */
 open class PlacesViewModel(private val placesRepository: PlacesRepository) : ViewModel() {
   private val _query = MutableStateFlow("")
   val query: StateFlow<String> = _query
@@ -22,6 +27,12 @@ open class PlacesViewModel(private val placesRepository: PlacesRepository) : Vie
   // Job to manage debounce coroutine
   private var debounceJob: Job? = null
 
+  /**
+   * Sets the search query and triggers a search after a debounce period.
+   *
+   * @param query The search query.
+   * @param location The location to search around.
+   */
   fun setQuery(query: String, location: LatLng?) {
     debounceJob?.cancel()
     _query.value = query
@@ -34,6 +45,12 @@ open class PlacesViewModel(private val placesRepository: PlacesRepository) : Vie
         }
   }
 
+  /**
+   * Searches for places based on the query and location.
+   *
+   * @param query The search query.
+   * @param location The location to search around.
+   */
   fun searchPlaces(query: String, location: LatLng?) {
     placesRepository.searchPlaces(
         query,
@@ -43,6 +60,12 @@ open class PlacesViewModel(private val placesRepository: PlacesRepository) : Vie
   }
 
   companion object {
+    /**
+     * Provides a factory to create an instance of PlacesViewModel.
+     *
+     * @param placesClient The PlacesClient used to make API requests.
+     * @return A ViewModelProvider.Factory to create PlacesViewModel instances.
+     */
     fun provideFactory(placesClient: PlacesClient): ViewModelProvider.Factory =
         object : ViewModelProvider.Factory {
           @Suppress("UNCHECKED_CAST")
