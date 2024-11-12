@@ -314,40 +314,31 @@ class AddTripScreenTest {
     assert(result == null)
   }
 
-    @Test
-    fun addTripScreen_imageContainer_hasCorrectAspectRatio() {
-        composeTestRule.setContent {
-            AddTripScreen(tripsViewModel, navigationActions)
-        }
+  @Test
+  fun addTripScreen_imageContainer_hasCorrectAspectRatio() {
+    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
 
-        // Verify the image container has correct aspect ratio modifier
-        composeTestRule.onNodeWithTag("imageContainer")
-            .assertExists()
+    // Verify the image container has correct aspect ratio modifier
+    composeTestRule.onNodeWithTag("imageContainer").assertExists()
+  }
+
+  @Test
+  fun addTripScreen_imageHeight_respectsScreenSize() {
+    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+
+    // Verify image height is calculated correctly based on screen width
+    composeTestRule.onNodeWithTag("imageContainer").assertExists()
+  }
+
+  @Test
+  fun addTripScreen_imageCropper_error() {
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel = tripsViewModel, navigationActions = navigationActions)
     }
 
-    @Test
-    fun addTripScreen_imageHeight_respectsScreenSize() {
-        composeTestRule.setContent {
-            AddTripScreen(tripsViewModel, navigationActions)
-        }
+    // Simulate failed image cropping
+    composeTestRule.onNodeWithText("Select Image from Gallery").performClick()
 
-        // Verify image height is calculated correctly based on screen width
-        composeTestRule.onNodeWithTag("imageContainer")
-            .assertExists()
-    }
-
-    @Test
-    fun addTripScreen_imageCropper_error() {
-        composeTestRule.setContent {
-            AddTripScreen(
-                tripsViewModel = tripsViewModel,
-                navigationActions = navigationActions
-            )
-        }
-
-        // Simulate failed image cropping
-        composeTestRule.onNodeWithText("Select Image from Gallery").performClick()
-
-        // Verify error toast is shown (would need to check for Toast message)
-    }
+    // Verify error toast is shown (would need to check for Toast message)
+  }
 }
