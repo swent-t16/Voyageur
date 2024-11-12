@@ -158,9 +158,12 @@ open class UserViewModel(
         onFailure = { exception -> _isLoading.value = false })
   }
 
+    //select user - used in search screen
     fun selectUser(user: User) {
         _selectedUser.value = user
     }
+
+    //deselect user - used in search screen
     fun deselectUser() {
         _selectedUser.value = null
     }

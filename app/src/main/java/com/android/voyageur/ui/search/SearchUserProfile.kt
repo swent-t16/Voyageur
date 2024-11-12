@@ -20,20 +20,30 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.profile.interests.InterestChip
 
+/**
+ * Composable function for displaying a detailed profile of a selected user.
+ * Displays a loading indicator if data is loading and navigates back to search if no user data is available.
+ *
+ * @param userViewModel The UserViewModel used for managing user data and interactions.
+ * @param navigationActions The NavigationActions used for handling navigation actions within the app.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchUserProfileScreen(
     userViewModel: UserViewModel,
     navigationActions: NavigationActions
 ) {
+    // Observing the selected user and loading state from the ViewModel
     val user by userViewModel.selectedUser.collectAsState()
     val isLoading by userViewModel.isLoading.collectAsState()
 
+    // Navigate back to search if no user data is available and loading is complete
     if (user == null && !isLoading) {
         LaunchedEffect(Unit) { navigationActions.navigateTo(Route.SEARCH) }
         return
     }
 
+    // Scaffold layout containing top bar for navigation and content for displaying user details
     Scaffold(
         modifier = Modifier.testTag("userProfileScreen"),
         topBar = {
@@ -41,8 +51,8 @@ fun SearchUserProfileScreen(
                 title = { Text("User Profile") },
                 navigationIcon = {
                     IconButton(onClick = {
-                        userViewModel.deselectUser()
-                        navigationActions.goBack()
+                        userViewModel.deselectUser() // Clears selected user in the ViewModel
+                        navigationActions.goBack()   // Navigate back
                     }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
@@ -61,6 +71,7 @@ fun SearchUserProfileScreen(
                     .testTag("userProfileScreenContent"),
                 contentAlignment = Alignment.Center
             ) {
+                // Display appropriate content based on loading and user state
                 when {
                     isLoading -> {
                         CircularProgressIndicator(modifier = Modifier.testTag("userProfileLoadingIndicator"))
@@ -83,9 +94,17 @@ fun SearchUserProfileScreen(
     )
 }
 
+/**
+ * Composable function for displaying the details of a selected user.
+ * Displays profile picture, name, email, interests, and an "Add Contact" button.
+ *
+ * @param userData The selected User object containing user details.
+ * @param userViewModel The UserViewModel used for managing user data and interactions.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
+    // Observing if the selected user is already a contact
     val isContactAdded by remember {
         derivedStateOf { userViewModel.user.value?.contacts?.contains(userData.id) ?: false }
     }
@@ -98,6 +117,7 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Display profile picture or a default icon if the picture is unavailable
         if (userData.profilePicture.isNotEmpty()) {
             Image(
                 painter = rememberAsyncImagePainter(model = userData.profilePicture),
@@ -119,6 +139,7 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Display user's name and email or fallback text if unavailable
         Text(
             text = "Name: ${userData.name.takeIf { it.isNotEmpty() } ?: "No name available"}",
             style = MaterialTheme.typography.titleLarge,
@@ -132,6 +153,7 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Display user's interests or fallback message if there are none
         Text(
             text = "Interests:",
             style = MaterialTheme.typography.titleMedium,
@@ -160,6 +182,7 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Add Contact button, which is enabled only if the user is not already a contact
         Button(
             onClick = { userViewModel.addContact(userData.id) },
             enabled = !isContactAdded,
