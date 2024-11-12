@@ -85,7 +85,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
         (dateNormalized.after(normalizeToMidnight(selectedTrip.endDate.toDate())) ||
             dateNormalized.before(normalizeToMidnight(selectedTrip.startDate.toDate())))) {
       Toast.makeText(
-              context, "The activity date is not within the trip's dates", Toast.LENGTH_SHORT)
+              context, "Please select a date within the trip's scheduled dates", Toast.LENGTH_SHORT)
           .show()
       return
     }
