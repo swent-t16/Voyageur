@@ -21,82 +21,70 @@ import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.profile.interests.InterestChip
 
 /**
- * Composable function for displaying a detailed profile of a selected user.
- * Displays a loading indicator if data is loading and navigates back to search if no user data is available.
+ * Composable function for displaying a detailed profile of a selected user. Displays a loading
+ * indicator if data is loading and navigates back to search if no user data is available.
  *
  * @param userViewModel The UserViewModel used for managing user data and interactions.
- * @param navigationActions The NavigationActions used for handling navigation actions within the app.
+ * @param navigationActions The NavigationActions used for handling navigation actions within the
+ *   app.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchUserProfileScreen(
-    userViewModel: UserViewModel,
-    navigationActions: NavigationActions
-) {
-    // Observing the selected user and loading state from the ViewModel
-    val user by userViewModel.selectedUser.collectAsState()
-    val isLoading by userViewModel.isLoading.collectAsState()
+fun SearchUserProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
+  // Observing the selected user and loading state from the ViewModel
+  val user by userViewModel.selectedUser.collectAsState()
+  val isLoading by userViewModel.isLoading.collectAsState()
 
-    // Navigate back to search if no user data is available and loading is complete
-    if (user == null && !isLoading) {
-        LaunchedEffect(Unit) { navigationActions.navigateTo(Route.SEARCH) }
-        return
-    }
+  // Navigate back to search if no user data is available and loading is complete
+  if (user == null && !isLoading) {
+    LaunchedEffect(Unit) { navigationActions.navigateTo(Route.SEARCH) }
+    return
+  }
 
-    // Scaffold layout containing top bar for navigation and content for displaying user details
-    Scaffold(
-        modifier = Modifier.testTag("userProfileScreen"),
-        topBar = {
-            TopAppBar(
-                title = { Text("User Profile") },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        userViewModel.deselectUser() // Clears selected user in the ViewModel
-                        navigationActions.goBack()   // Navigate back
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            modifier = Modifier.testTag("userProfileBackButton")
-                        )
-                    }
+  // Scaffold layout containing top bar for navigation and content for displaying user details
+  Scaffold(
+      modifier = Modifier.testTag("userProfileScreen"),
+      topBar = {
+        TopAppBar(
+            title = { Text("User Profile") },
+            navigationIcon = {
+              IconButton(
+                  onClick = {
+                    userViewModel.deselectUser() // Clears selected user in the ViewModel
+                    navigationActions.goBack() // Navigate back
+                  }) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        modifier = Modifier.testTag("userProfileBackButton"))
+                  }
+            })
+      },
+      content = { paddingValues ->
+        Box(
+            modifier =
+                Modifier.fillMaxSize().padding(paddingValues).testTag("userProfileScreenContent"),
+            contentAlignment = Alignment.Center) {
+              // Display appropriate content based on loading and user state
+              when {
+                isLoading -> {
+                  CircularProgressIndicator(
+                      modifier = Modifier.testTag("userProfileLoadingIndicator"))
                 }
-            )
-        },
-        content = { paddingValues ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .testTag("userProfileScreenContent"),
-                contentAlignment = Alignment.Center
-            ) {
-                // Display appropriate content based on loading and user state
-                when {
-                    isLoading -> {
-                        CircularProgressIndicator(modifier = Modifier.testTag("userProfileLoadingIndicator"))
-                    }
-                    user != null -> {
-                        SearchUserProfileContent(
-                            userData = user!!,
-                            userViewModel = userViewModel
-                        )
-                    }
-                    else -> {
-                        Text(
-                            "No user data available",
-                            modifier = Modifier.testTag("userProfileNoData")
-                        )
-                    }
+                user != null -> {
+                  SearchUserProfileContent(userData = user!!, userViewModel = userViewModel)
                 }
+                else -> {
+                  Text("No user data available", modifier = Modifier.testTag("userProfileNoData"))
+                }
+              }
             }
-        }
-    )
+      })
 }
 
 /**
- * Composable function for displaying the details of a selected user.
- * Displays profile picture, name, email, interests, and an "Add Contact" button.
+ * Composable function for displaying the details of a selected user. Displays profile picture,
+ * name, email, interests, and an "Add Contact" button.
  *
  * @param userData The selected User object containing user details.
  * @param userViewModel The UserViewModel used for managing user data and interactions.
@@ -104,37 +92,26 @@ fun SearchUserProfileScreen(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
-    // Observing if the selected user is already a contact
-    val isContactAdded by remember {
-        derivedStateOf { userViewModel.user.value?.contacts?.contains(userData.id) ?: false }
-    }
+  // Observing if the selected user is already a contact
+  val isContactAdded by remember {
+    derivedStateOf { userViewModel.user.value?.contacts?.contains(userData.id) ?: false }
+  }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .testTag("userProfileContent"),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+  Column(
+      modifier = Modifier.fillMaxSize().padding(16.dp).testTag("userProfileContent"),
+      verticalArrangement = Arrangement.Center,
+      horizontalAlignment = Alignment.CenterHorizontally) {
         // Display profile picture or a default icon if the picture is unavailable
         if (userData.profilePicture.isNotEmpty()) {
-            Image(
-                painter = rememberAsyncImagePainter(model = userData.profilePicture),
-                contentDescription = "Profile Picture",
-                modifier = Modifier
-                    .size(128.dp)
-                    .clip(CircleShape)
-                    .testTag("userProfilePicture")
-            )
+          Image(
+              painter = rememberAsyncImagePainter(model = userData.profilePicture),
+              contentDescription = "Profile Picture",
+              modifier = Modifier.size(128.dp).clip(CircleShape).testTag("userProfilePicture"))
         } else {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "Default Profile Picture",
-                modifier = Modifier
-                    .size(128.dp)
-                    .testTag("userProfileDefaultPicture")
-            )
+          Icon(
+              imageVector = Icons.Default.AccountCircle,
+              contentDescription = "Default Profile Picture",
+              modifier = Modifier.size(128.dp).testTag("userProfileDefaultPicture"))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -143,13 +120,11 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
         Text(
             text = "Name: ${userData.name.takeIf { it.isNotEmpty() } ?: "No name available"}",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.testTag("userProfileName")
-        )
+            modifier = Modifier.testTag("userProfileName"))
         Text(
             text = "Email: ${userData.email.takeIf { it.isNotEmpty() } ?: "No email available"}",
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.testTag("userProfileEmail")
-        )
+            modifier = Modifier.testTag("userProfileEmail"))
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -157,27 +132,24 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
         Text(
             text = "Interests:",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(vertical = 8.dp).testTag("userProfileInterestsTitle")
-        )
+            modifier = Modifier.padding(vertical = 8.dp).testTag("userProfileInterestsTitle"))
 
         if (userData.interests.isNotEmpty()) {
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .testTag("userProfileInterestsFlow"),
-                horizontalArrangement = Arrangement.Center
-            ) {
+          FlowRow(
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .padding(horizontal = 16.dp)
+                      .testTag("userProfileInterestsFlow"),
+              horizontalArrangement = Arrangement.Center) {
                 userData.interests.forEach { interest ->
-                    InterestChip(interest = interest, modifier = Modifier.padding(4.dp))
+                  InterestChip(interest = interest, modifier = Modifier.padding(4.dp))
                 }
-            }
+              }
         } else {
-            Text(
-                text = "No interests added yet",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.testTag("userProfileNoInterests")
-            )
+          Text(
+              text = "No interests added yet",
+              style = MaterialTheme.typography.bodyMedium,
+              modifier = Modifier.testTag("userProfileNoInterests"))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -185,18 +157,19 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
         // Add/Remove Contact button
         Button(
             onClick = {
-                if (isContactAdded) {
-                    userViewModel.removeContact(userData.id)
-                } else {
-                    userViewModel.addContact(userData.id)
-                }
+              if (isContactAdded) {
+                userViewModel.removeContact(userData.id)
+              } else {
+                userViewModel.addContact(userData.id)
+              }
             },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isContactAdded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-            ),
-            modifier = Modifier.testTag("userProfileAddRemoveContactButton")
-        ) {
-            Text(text = if (isContactAdded) "Remove" else "Add")
-        }
-    }
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor =
+                        if (isContactAdded) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.primary),
+            modifier = Modifier.testTag("userProfileAddRemoveContactButton")) {
+              Text(text = if (isContactAdded) "Remove" else "Add")
+            }
+      }
 }

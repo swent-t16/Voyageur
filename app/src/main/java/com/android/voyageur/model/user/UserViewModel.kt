@@ -26,10 +26,10 @@ open class UserViewModel(
   internal val _searchedUsers = MutableStateFlow<List<User>>(emptyList())
   val searchedUsers: StateFlow<List<User>> = _searchedUsers
 
-    internal val _selectedUser = MutableStateFlow<User?>(null)
-    val selectedUser: StateFlow<User?> = _selectedUser.asStateFlow()
+  internal val _selectedUser = MutableStateFlow<User?>(null)
+  val selectedUser: StateFlow<User?> = _selectedUser.asStateFlow()
 
-    internal val _isLoading = MutableStateFlow(false)
+  internal val _isLoading = MutableStateFlow(false)
   val isLoading: StateFlow<Boolean> = _isLoading
 
   // Job to manage debounce coroutine
@@ -103,16 +103,15 @@ open class UserViewModel(
     if (user.value != null) updateUser(newUser)
   }
 
-    fun removeContact(userId: String) {
-        val contacts = user.value?.contacts?.toMutableSet() ?: return
-        if (contacts.remove(userId)) {
-            val updatedUser = user.value!!.copy(contacts = contacts.toList())
-            updateUser(updatedUser)
-        }
+  fun removeContact(userId: String) {
+    val contacts = user.value?.contacts?.toMutableSet() ?: return
+    if (contacts.remove(userId)) {
+      val updatedUser = user.value!!.copy(contacts = contacts.toList())
+      updateUser(updatedUser)
     }
+  }
 
-
-    fun updateUser(updatedUser: User) {
+  fun updateUser(updatedUser: User) {
     _isLoading.value = true
     userRepository.updateUser(
         updatedUser,
@@ -167,17 +166,17 @@ open class UserViewModel(
         onFailure = { exception -> _isLoading.value = false })
   }
 
-    //select user - used in search screen
-    fun selectUser(user: User) {
-        _selectedUser.value = user
-    }
+  // select user - used in search screen
+  fun selectUser(user: User) {
+    _selectedUser.value = user
+  }
 
-    //deselect user - used in search screen
-    fun deselectUser() {
-        _selectedUser.value = null
-    }
+  // deselect user - used in search screen
+  fun deselectUser() {
+    _selectedUser.value = null
+  }
 
-    companion object {
+  companion object {
     val Factory: ViewModelProvider.Factory =
         object : ViewModelProvider.Factory {
           @Suppress("UNCHECKED_CAST")

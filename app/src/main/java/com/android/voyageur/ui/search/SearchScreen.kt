@@ -47,7 +47,6 @@ import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
-import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -331,8 +330,7 @@ fun SearchScreen(
                           userViewModel = userViewModel,
                           fieldColor = Color.LightGray,
                           modifier = Modifier.testTag("userItem_${user.id}"),
-                          navigationActions = navigationActions
-                      )
+                          navigationActions = navigationActions)
                     }
                   }
                 }
@@ -367,9 +365,9 @@ fun UserSearchResultItem(
               .fillMaxWidth()
               .padding(vertical = 8.dp, horizontal = 16.dp)
               .clickable {
-                  // Navigate to the user profile screen with userId
-                  userViewModel.selectUser(user)
-                  navigationActions.navigateTo(Screen.SEARCH_USER_PROFILE)
+                // Navigate to the user profile screen with userId
+                userViewModel.selectUser(user)
+                navigationActions.navigateTo(Screen.SEARCH_USER_PROFILE)
               } // Make the Row clickable
               .background(Color.White, shape = RoundedCornerShape(8.dp))
               .padding(16.dp),

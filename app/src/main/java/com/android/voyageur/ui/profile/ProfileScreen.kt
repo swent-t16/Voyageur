@@ -89,10 +89,10 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
                   CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
                 }
                 user != null -> {
-                    ProfileContent(
-                        userData = user!!,
-                        onSignOut = { isSigningOut = true },
-                        onEdit = { navigationActions.navigateTo(Route.EDIT_PROFILE) })
+                  ProfileContent(
+                      userData = user!!,
+                      onSignOut = { isSigningOut = true },
+                      onEdit = { navigationActions.navigateTo(Route.EDIT_PROFILE) })
                 }
                 else -> {
                   Text("No user data available", modifier = Modifier.testTag("noUserData"))
