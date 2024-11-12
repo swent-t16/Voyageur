@@ -44,8 +44,9 @@ class AddActivityScreenTest {
     whenever(tripsViewModel.getNewTripId()).thenReturn("mockTripId")
     doNothing().`when`(tripRepository).updateTrip(any(), any(), any())
 
+    val toastMock = mockk<Toast>(relaxed = true)
     mockkStatic(Toast::class)
-    every { Toast.makeText(any(), any<String>(), any()) } returns mockk()
+    every { Toast.makeText(any(), any<String>(), any()) } returns toastMock
   }
 
   @Test
