@@ -1,11 +1,11 @@
 package com.android.voyageur
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavType
-import androidx.navigation.compose.*
-import androidx.navigation.navArgument
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
@@ -33,50 +33,35 @@ fun VoyageurApp(placesClient: PlacesClient) {
         viewModel(factory = PlacesViewModel.provideFactory(placesClient))
 
     NavHost(navController = navController, startDestination = Route.AUTH) {
-        // Authentication Navigation Graph
-        navigation(startDestination = Screen.AUTH, route = "auth_graph") {
+        navigation(
+            startDestination = Screen.AUTH,
+            route = Route.AUTH,
+        ) {
             composable(Screen.AUTH) { SignInScreen(navigationActions) }
         }
-
-        // Overview Navigation Graph
-        navigation(startDestination = Screen.OVERVIEW, route = "overview_graph") {
+        navigation(
+            startDestination = Screen.OVERVIEW,
+            route = Route.OVERVIEW,
+        ) {
             composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigationActions) }
             composable(Screen.ADD_TRIP) { AddTripScreen(tripsViewModel, navigationActions) }
         }
-
-        // Search Navigation Graph
-        navigation(startDestination = Screen.SEARCH, route = "search_graph") {
+        navigation(
+            startDestination = Screen.SEARCH,
+            route = Route.SEARCH,
+        ) {
             composable(Screen.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigationActions) }
-
-            // Search User Profile as a nested screen within Search Graph
-            composable(
-                route = Route.SEARCH_USER_PROFILE,
-                arguments = listOf(navArgument("userId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId")
-                if (userId != null) {
-                    SearchUserProfileScreen(
-                        userId = userId,
-                        userViewModel = userViewModel,
-                        navigationActions = navigationActions
-                    )
-                } else {
-                    // Handle null userId by navigating back to Search
-                    LaunchedEffect(Unit) {
-                        navigationActions.navigateTo(Screen.SEARCH)
-                    }
-                }
-            }
+            composable(Screen.SEARCH_USER_PROFILE) {SearchUserProfileScreen(userViewModel, navigationActions) }
         }
-
-        // Profile Navigation Graph
-        navigation(startDestination = Screen.PROFILE, route = "profile_graph") {
+        navigation(
+            startDestination = Screen.PROFILE,
+            route = Route.PROFILE,
+        ) {
             composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigationActions) }
             composable(Screen.EDIT_PROFILE) { EditProfileScreen(userViewModel, navigationActions) }
         }
 
-        // Top Tabs Navigation Graph
-        navigation(startDestination = Screen.TOP_TABS, route = "top_tabs_graph") {
+        navigation(startDestination = Screen.TOP_TABS, route = Route.TOP_TABS) {
             composable(Screen.TOP_TABS) { TopTabs(tripsViewModel, navigationActions) }
             composable(Screen.ADD_ACTIVITY) { AddActivityScreen(tripsViewModel, navigationActions) }
         }

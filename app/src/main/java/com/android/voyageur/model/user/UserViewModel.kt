@@ -26,7 +26,10 @@ open class UserViewModel(
   internal val _searchedUsers = MutableStateFlow<List<User>>(emptyList())
   val searchedUsers: StateFlow<List<User>> = _searchedUsers
 
-  internal val _isLoading = MutableStateFlow(false)
+    internal val _selectedUser = MutableStateFlow<User?>(null)
+    val selectedUser: StateFlow<User?> = _selectedUser.asStateFlow()
+
+    internal val _isLoading = MutableStateFlow(false)
   val isLoading: StateFlow<Boolean> = _isLoading
 
   // Job to manage debounce coroutine
@@ -154,22 +157,12 @@ open class UserViewModel(
         },
         onFailure = { exception -> _isLoading.value = false })
   }
-    /**
-     * Fetches a user by their userId and returns a StateFlow<User?>.
-     * Emits the user data or null if not found.
-     */
-    fun getUserById(userId: String): StateFlow<User?> {
-        val userState = MutableStateFlow<User?>(null)
-        viewModelScope.launch {
-            userRepository.getUserById(
-                userId,
-                onSuccess = { retrievedUser ->
-                    userState.value = retrievedUser
-                },
-                onFailure = { userState.value = null }
-            )
-        }
-        return userState.asStateFlow()
+
+    fun selectUser(user: User) {
+        _selectedUser.value = user
+    }
+    fun deselectUser() {
+        _selectedUser.value = null
     }
 
     companion object {

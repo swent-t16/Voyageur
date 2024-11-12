@@ -15,6 +15,7 @@ object Route {
   const val EDIT_PROFILE = "Edit Profile Screen"
   const val AUTH = "Auth"
   const val TOP_TABS = "TopTabs"
+  const val SEARCH_USER_PROFILE = "Search User Profile Screen"
 }
 
 object Screen {
@@ -30,6 +31,7 @@ object Screen {
   const val ADD_ACTIVITY = "Add Activity Screen"
   const val SETTINGS = "Settings Screen"
   const val TOP_TABS = "Top Tabs Screen"
+    const val SEARCH_USER_PROFILE = "Search User Profile Screen"
 }
 
 data class TopLevelDestination(

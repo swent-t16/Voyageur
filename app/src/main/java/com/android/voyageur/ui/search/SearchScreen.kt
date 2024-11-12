@@ -368,7 +368,8 @@ fun UserSearchResultItem(
               .padding(vertical = 8.dp, horizontal = 16.dp)
               .clickable {
                   // Navigate to the user profile screen with userId
-                  navigationActions.navigateTo(Screen.searchUserProfile(user.id))
+                  userViewModel.selectUser(user)
+                  navigationActions.navigateTo(Screen.SEARCH_USER_PROFILE)
               } // Make the Row clickable
               .background(Color.White, shape = RoundedCornerShape(8.dp))
               .padding(16.dp),
