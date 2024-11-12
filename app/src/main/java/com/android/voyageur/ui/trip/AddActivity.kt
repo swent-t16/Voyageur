@@ -65,11 +65,6 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
       return
     }
 
-    if (startTime == null && endTime != null) {
-      Toast.makeText(context, "Please select a start time first", Toast.LENGTH_SHORT).show()
-      return
-    }
-
     fun normalizeToMidnight(date: Date): Date {
       val calendar =
           Calendar.getInstance().apply {
@@ -84,9 +79,24 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
 
     val today = normalizeToMidnight(Date())
     val dateNormalized = activityDate?.let { normalizeToMidnight(Date(it)) } ?: Date(0)
+    val selectedTrip = tripsViewModel.selectedTrip.value!!
+
+    if (activityDate != null &&
+        (dateNormalized.after(normalizeToMidnight(selectedTrip.endDate.toDate())) ||
+            dateNormalized.before(normalizeToMidnight(selectedTrip.startDate.toDate())))) {
+      Toast.makeText(
+              context, "The activity date is not within the trip's dates", Toast.LENGTH_SHORT)
+          .show()
+      return
+    }
 
     if (activityDate != null && dateNormalized.before(today)) {
       Toast.makeText(context, "The activity date cannot be in the past", Toast.LENGTH_SHORT).show()
+      return
+    }
+
+    if (startTime == null && endTime != null) {
+      Toast.makeText(context, "Please select a start time first", Toast.LENGTH_SHORT).show()
       return
     }
 
@@ -172,7 +182,6 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
             estimatedPrice = estimatedPrice,
             activityType = activityType)
 
-    val selectedTrip = tripsViewModel.selectedTrip.value!!
     val updatedTrip = selectedTrip.copy(activities = selectedTrip.activities + activity)
     tripsViewModel.updateTrip(
         updatedTrip,
