@@ -1,10 +1,14 @@
 package com.android.voyageur.model.place
 
+import android.util.Log
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
+import com.google.android.libraries.places.api.model.PhotoMetadata
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.RectangularBounds
-import com.google.android.libraries.places.api.model.kotlin.circularBounds
+import com.google.android.libraries.places.api.net.FetchPhotoRequest
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
@@ -50,7 +54,7 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
   override fun searchPlaces(
       query: String,
       location: LatLng?,
-      onSuccess: (List<Place>) -> Unit,
+      onSuccess: (List<CustomPlace>) -> Unit,
       onFailure: (Exception) -> Unit
   ) {
     val token = AutocompleteSessionToken.newInstance()
@@ -63,7 +67,7 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
             .setSessionToken(token)
             .setQuery(query)
             .setTypesFilter(filter)
-    if (bounds != null) builder = builder.setLocationRestriction(bounds)
+    if (bounds != null) builder = builder.setLocationBias(bounds)
     val request = builder.build()
     placesClient
         .findAutocompletePredictions(request)
@@ -76,20 +80,37 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
 
   private fun fetchPlaceDetails(
       placeIds: List<String>,
-      onSuccess: (List<Place>) -> Unit,
+      onSuccess: (List<CustomPlace>) -> Unit,
       onFailure: (Exception) -> Unit
   ) {
-    val places = mutableListOf<Place>()
+    val places = mutableListOf<CustomPlace>()
     var failedRequests = 0
 
     // Define which fields to retrieve for each place
-
     placeIds.forEach { placeId ->
       val request = FetchPlaceRequest.builder(placeId, placeFields).build()
       placesClient
           .fetchPlace(request)
           .addOnSuccessListener { response ->
-            places.add(response.place)
+            val place = response.place
+            val bitmaps = mutableListOf<ImageBitmap>()
+
+            val photosMetadata =
+                (place.photoMetadatas?.map { it } ?: emptyList<PhotoMetadata>()).take(3)
+            for (photoMetadata in photosMetadata) {
+              val photoRequest = FetchPhotoRequest.builder(photoMetadata).build()
+              placesClient
+                  .fetchPhoto(photoRequest)
+                  .addOnSuccessListener { fetchPhotoResponse ->
+                    val bitmap = fetchPhotoResponse.bitmap.asImageBitmap()
+                    bitmaps.add(bitmap)
+                  }
+                  .addOnFailureListener { exception ->
+                    Log.e("PlacesRepository", "Failed to fetch photo", exception)
+                  }
+            }
+            places.add(CustomPlace(place, bitmaps))
+
             if (places.size + failedRequests == placeIds.size) {
               onSuccess(places)
             }

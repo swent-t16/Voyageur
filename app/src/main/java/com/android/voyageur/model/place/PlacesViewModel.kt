@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.PlacesClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -17,8 +16,8 @@ open class PlacesViewModel(private val placesRepository: PlacesRepository) : Vie
   private val _query = MutableStateFlow("")
   val query: StateFlow<String> = _query
 
-  private val _searchedPlaces = MutableStateFlow<List<Place>>(emptyList())
-  val searchedPlaces: StateFlow<List<Place>> = _searchedPlaces
+  private val _searchedPlaces = MutableStateFlow<List<CustomPlace>>(emptyList())
+  val searchedPlaces: StateFlow<List<CustomPlace>> = _searchedPlaces
 
   // Job to manage debounce coroutine
   private var debounceJob: Job? = null
