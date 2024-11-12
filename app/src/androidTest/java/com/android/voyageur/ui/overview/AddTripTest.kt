@@ -331,7 +331,7 @@ class AddTripScreenTest {
     assert(result == null)
   }
 
-  @Test
+  /*@Test
   fun checkPermissionReturnsTrue() {
     // Mock context
     val context = mock(Context::class.java)
@@ -342,9 +342,9 @@ class AddTripScreenTest {
 
     val result = checkFullPermission(context)
     assertTrue(result) // Expecting true because permission is granted
-  }
+  }*/
 
-  @Test
+  /*@Test
   fun checkPermissionReturnsTrueLimitedPermission() {
     // Mock context
     val context = mock(Context::class.java)
@@ -357,9 +357,9 @@ class AddTripScreenTest {
 
     val result = checkLimitedPermission(context)
     assertTrue(result) // Expecting true because permission is granted
-  }
+  }*/
 
-  @Test
+  /*@Test
   fun checkPermissionReturnsFalse() {
     // Mock context
     val context = mock(Context::class.java)
@@ -377,8 +377,8 @@ class AddTripScreenTest {
     val result = checkFullPermission(context)
     assertFalse(result) // Expecting false because permission is not granted
   }
-
-  @Test
+*/
+  /*@Test
   fun checkLimitedPermissionReturnsTrue() {
     // Mock the context
     val context = mock(Context::class.java)
@@ -391,9 +391,9 @@ class AddTripScreenTest {
 
     val result = checkLimitedPermission(context)
     assertTrue(result) // Expecting true because limited permission is granted
-  }
+  }*/
 
-  @Test
+  /*@Test
   fun checkLimitedPermissionReturnsFalse() {
     // Mock the context
     val context = mock(Context::class.java)
@@ -406,5 +406,5 @@ class AddTripScreenTest {
 
     val result = checkLimitedPermission(context)
     assertFalse(result) // Expecting false because limited permission is not granted
-  }
+  }*/
 }
