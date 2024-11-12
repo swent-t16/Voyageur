@@ -103,7 +103,16 @@ open class UserViewModel(
     if (user.value != null) updateUser(newUser)
   }
 
-  fun updateUser(updatedUser: User) {
+    fun removeContact(userId: String) {
+        val contacts = user.value?.contacts?.toMutableSet() ?: return
+        if (contacts.remove(userId)) {
+            val updatedUser = user.value!!.copy(contacts = contacts.toList())
+            updateUser(updatedUser)
+        }
+    }
+
+
+    fun updateUser(updatedUser: User) {
     _isLoading.value = true
     userRepository.updateUser(
         updatedUser,

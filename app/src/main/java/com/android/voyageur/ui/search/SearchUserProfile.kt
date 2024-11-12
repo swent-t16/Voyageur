@@ -182,13 +182,21 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Add Contact button, which is enabled only if the user is not already a contact
+        // Add/Remove Contact button
         Button(
-            onClick = { userViewModel.addContact(userData.id) },
-            enabled = !isContactAdded,
-            modifier = Modifier.testTag("userProfileAddContactButton")
+            onClick = {
+                if (isContactAdded) {
+                    userViewModel.removeContact(userData.id)
+                } else {
+                    userViewModel.addContact(userData.id)
+                }
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isContactAdded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.testTag("userProfileAddRemoveContactButton")
         ) {
-            Text(text = if (isContactAdded) "Added" else "Add")
+            Text(text = if (isContactAdded) "Remove" else "Add")
         }
     }
 }
