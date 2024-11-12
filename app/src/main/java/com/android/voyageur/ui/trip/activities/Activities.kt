@@ -82,14 +82,7 @@ fun ActivitiesScreen(
             selectedItem = navigationActions.currentRoute())
       },
       floatingActionButton = {
-        FloatingActionButton(
-            onClick = { navigationActions.navigateTo(Screen.ADD_ACTIVITY) },
-            modifier = Modifier.testTag("createActivityButton")) {
-              Icon(
-                  Icons.Outlined.Add,
-                  "Floating action button",
-                  modifier = Modifier.testTag("addIcon"))
-            }
+        AddActivityButton(navigationActions)
       },
       content = { pd ->
         LazyColumn(
@@ -229,4 +222,17 @@ fun ActivityItem(
           }
         }
       })
+}
+
+
+@Composable
+fun AddActivityButton(navigationActions: NavigationActions) {
+    FloatingActionButton(
+        onClick = { navigationActions.navigateTo(Screen.ADD_ACTIVITY) },
+        modifier = Modifier.testTag("createActivityButton")) {
+        Icon(
+            Icons.Outlined.Add,
+            "Floating action button",
+            modifier = Modifier.testTag("addIcon"))
+    }
 }

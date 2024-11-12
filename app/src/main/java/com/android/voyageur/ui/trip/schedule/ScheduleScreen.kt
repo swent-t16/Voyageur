@@ -19,10 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.voyageur.model.trip.Trip
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 
 @Composable
-fun ScheduleScreen(trip: Trip, navigationActions: NavigationActions) {
+fun ScheduleScreen(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: NavigationActions) {
   var isDailySelected by remember { mutableStateOf(true) }
 
   Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
@@ -57,7 +58,7 @@ fun ScheduleScreen(trip: Trip, navigationActions: NavigationActions) {
 
     // Conditionally show content based on isDailySelected
     if (isDailySelected) {
-      ByDayScreen(trip, navigationActions)
+      ByDayScreen(tripsViewModel, trip, navigationActions)
     } else {
       WeeklyViewScreen(
           trip = trip,

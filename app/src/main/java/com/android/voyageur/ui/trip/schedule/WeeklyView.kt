@@ -36,6 +36,7 @@ import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.ui.trip.activities.AddActivityButton
 import com.google.firebase.Timestamp
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -53,14 +54,7 @@ fun WeeklyViewScreen(
 
   Scaffold(
       floatingActionButton = {
-        FloatingActionButton(
-            onClick = { navigationActions.navigateTo(Screen.ADD_ACTIVITY) },
-            modifier = Modifier.testTag("createActivityButton")) {
-              Icon(
-                  Icons.Outlined.Add,
-                  "Floating action button",
-                  modifier = Modifier.testTag("addIcon"))
-            }
+          AddActivityButton(navigationActions)
       },
       modifier = Modifier.fillMaxSize().testTag("weeklyViewScreen"),
       bottomBar = {

@@ -32,10 +32,13 @@ import androidx.compose.ui.unit.sp
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.isDraft
 import com.android.voyageur.model.trip.Trip
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.ui.trip.activities.ActivitiesForOneDayScreen
+import com.android.voyageur.ui.trip.activities.AddActivityButton
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -43,20 +46,13 @@ import java.util.Locale
 
 @Composable
 fun ByDayScreen(
+    tripsViewModel: TripsViewModel,
     trip: Trip,
     navigationActions: NavigationActions,
 ) {
   Scaffold(
-      // TODO: Final implementation of ByDayScreen
       floatingActionButton = {
-        FloatingActionButton(
-            onClick = { navigationActions.navigateTo(Screen.ADD_ACTIVITY) },
-            modifier = Modifier.testTag("createActivityButton")) {
-              Icon(
-                  Icons.Outlined.Add,
-                  "Floating action button",
-                  modifier = Modifier.testTag("addIcon"))
-            }
+          AddActivityButton(navigationActions)
       },
       modifier = Modifier.testTag("byDayScreen"),
       bottomBar = {
@@ -95,7 +91,7 @@ fun ByDayScreen(
           ) {
             groupedActivities.forEach { (day, activitiesForDay) ->
               item {
-                DayActivityCard(day, activitiesForDay)
+                DayActivityCard(tripsViewModel, day, activitiesForDay, navigationActions)
                 Spacer(modifier = Modifier.height(10.dp))
               }
             }
@@ -119,9 +115,12 @@ fun groupActivitiesByDate(activities: List<Activity>): Map<LocalDate, List<Activ
 }
 
 @Composable
-fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
+fun DayActivityCard(tripsViewModel: TripsViewModel, day: LocalDate, activitiesForDay: List<Activity>, navigationActions: NavigationActions) {
   Card(
-      onClick = {},
+      onClick = {
+          tripsViewModel.selectDay(day)
+          navigationActions.navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
+           },
       modifier =
           Modifier.width(353.dp)
               .height(215.dp)

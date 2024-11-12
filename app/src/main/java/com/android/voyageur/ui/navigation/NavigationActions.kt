@@ -30,6 +30,7 @@ object Screen {
   const val ADD_ACTIVITY = "Add Activity Screen"
   const val SETTINGS = "Settings Screen"
   const val TOP_TABS = "Top Tabs Screen"
+    const val ACTIVITIES_FOR_ONE_DAY = "Activities For One Day Screen"
 }
 
 data class TopLevelDestination(

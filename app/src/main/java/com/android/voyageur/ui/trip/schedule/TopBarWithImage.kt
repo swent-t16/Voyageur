@@ -44,7 +44,7 @@ import com.google.firebase.Timestamp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarWithImage(selectedTrip: Trip, navigationActions: NavigationActions) {
+fun TopBarWithImageAndText(selectedTrip: Trip, navigationActions: NavigationActions, text1: String, text2: String) {
   Box(modifier = Modifier.fillMaxWidth().height(145.dp)) {
     // Background Image
     if (selectedTrip.imageUri.isNotEmpty()) {
@@ -80,7 +80,7 @@ fun TopBarWithImage(selectedTrip: Trip, navigationActions: NavigationActions) {
               horizontalAlignment = Alignment.CenterHorizontally,
               verticalArrangement = Arrangement.Center) {
                 Text(
-                    text = selectedTrip.name,
+                    text = text1,
                     fontSize = 24.sp,
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
@@ -89,10 +89,7 @@ fun TopBarWithImage(selectedTrip: Trip, navigationActions: NavigationActions) {
                 )
                 Text(
                     // TODO: Replace with correct date format
-                    text =
-                        selectedTrip.startDate.toDateWithoutYearString() +
-                            " - " +
-                            selectedTrip.endDate.toDateWithYearString(),
+                    text = text2,
                     textAlign = TextAlign.Center,
                     fontSize = 14.sp,
                     color = Color.Black)
@@ -107,7 +104,7 @@ fun TopBarWithImage(selectedTrip: Trip, navigationActions: NavigationActions) {
         navigationIcon = {
           // Back Button with Circular White Background
           IconButton(
-              onClick = { navigationActions.navigateTo(Screen.OVERVIEW) },
+              onClick = { navigationActions.goBack() },
               modifier =
                   Modifier.padding(8.dp)
                       .size(40.dp)
