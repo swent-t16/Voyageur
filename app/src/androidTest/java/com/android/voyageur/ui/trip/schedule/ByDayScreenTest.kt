@@ -175,17 +175,66 @@ class ByDayScreenTest {
   }
 
   @Test
-  fun activitiesAreGroupedByStartAndEndTime() {
+  fun activitiesAreGroupedByStartTime() {
+    val diffStartTimeTrip =
+        Trip(
+            name = "Sample Trip",
+            activities =
+                listOf(
+                    // The activities on 2nd of January have different start time
+                    Activity(
+                        title = "Activity 3",
+                        description = "2 January activity",
+                        startTime = createTimestamp(2022, 1, 2, 12, 0),
+                        endTime = createTimestamp(2022, 1, 2, 14, 0),
+                        estimatedPrice = 20.0,
+                        activityType = ActivityType.RESTAURANT),
+                    Activity(
+                        title = "Activity 2",
+                        description = "2 January activity",
+                        startTime = createTimestamp(2022, 1, 2, 11, 0),
+                        endTime = createTimestamp(2022, 1, 2, 14, 0),
+                        estimatedPrice = 20.0,
+                        activityType = ActivityType.RESTAURANT),
+                ))
 
-    val groupedActivities = groupActivitiesByDate(sampleTrip.activities)
-    // take the 2 activities which have the same start time, but different end times
-    val sortedActivitiesByEnd = groupedActivities[LocalDate.of(2022, 1, 1)]
+    val groupedActivities = groupActivitiesByDate(diffStartTimeTrip.activities)
     // Take the 2 activities which are on the same day, same start time
     val sortedActivitiesByStart = groupedActivities[LocalDate.of(2022, 1, 2)]
 
     assertTrue(
         "Activities are not sorted by start time",
         sortedActivitiesByStart!![0].startTime <= sortedActivitiesByStart[1].startTime)
+  }
+
+  @Test
+  fun activitiesAreGroupedByEndTime() {
+
+    val diffEndTimeTrip =
+        Trip(
+            name = "Sample Trip",
+            activities =
+                listOf(
+                    Activity(
+                        title = "Activity 1",
+                        description = " 1 January activity",
+                        estimatedPrice = 10.0,
+                        startTime = createTimestamp(2022, 1, 1, 12, 0),
+                        endTime = createTimestamp(2022, 1, 1, 14, 0),
+                        activityType = ActivityType.MUSEUM),
+                    Activity(
+                        title = "Activity 1",
+                        description = " 1 January activity",
+                        estimatedPrice = 10.0,
+                        startTime = createTimestamp(2022, 1, 1, 12, 0),
+                        endTime = createTimestamp(2022, 1, 1, 13, 0),
+                        activityType = ActivityType.MUSEUM),
+                ))
+
+    val groupedActivities = groupActivitiesByDate(diffEndTimeTrip.activities)
+    // take the 2 activities which have the same start time, but different end times
+    val sortedActivitiesByEnd = groupedActivities[LocalDate.of(2022, 1, 1)]
+
     assertTrue(
         "Activities are not sorted by end time",
         sortedActivitiesByEnd!![0].endTime <= sortedActivitiesByEnd[1].endTime)
