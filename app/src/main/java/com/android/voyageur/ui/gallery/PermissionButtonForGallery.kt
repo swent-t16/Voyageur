@@ -27,6 +27,15 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
 @Composable
+        /**
+         * A Composable function that displays a button for selecting a photo from the gallery,
+         * handling permission requests and rationale dialogs if needed.
+         *
+         * @param onUriSelected Callback invoked with the selected image URI or `null` if no image is selected.
+         * @param messageToShow The text displayed on the button.
+         * @param dialogMessage The message shown in the rationale dialog when permission is denied.
+         * @param modifier Modifier to style the button layout and add test tags.
+         */
 fun PermissionButtonForGallery(
     onUriSelected: (Uri?) -> Unit,
     messageToShow: String,
@@ -34,6 +43,7 @@ fun PermissionButtonForGallery(
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
+    val compActivity = context.findActivity()
   var showRationaleDialog by remember { mutableStateOf(false) }
   val permissionVersion =
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -69,8 +79,8 @@ fun PermissionButtonForGallery(
             // If permission is granted, launch the gallery
             galleryLauncher.launch("image/*")
           }
-          ActivityCompat.shouldShowRequestPermissionRationale(
-              context.findActivity(), permissionVersion) -> {
+            compActivity != null && ActivityCompat.shouldShowRequestPermissionRationale(
+              compActivity, permissionVersion) -> {
             // Show rationale
             showRationaleDialog = true
           }
@@ -114,6 +124,10 @@ fun PermissionButtonForGallery(
       }
 }
 
+/**
+ * Checks if the app has full permission to read media images or external storage,
+ * depending on the Android version.
+ */
 fun checkFullPermission(context: Context): Boolean {
   return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
     ContextCompat.checkSelfPermission(context, READ_MEDIA_IMAGES) == PERMISSION_GRANTED
@@ -121,18 +135,21 @@ fun checkFullPermission(context: Context): Boolean {
     ContextCompat.checkSelfPermission(context, READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED
   }
 }
-
+/**
+ * Checks if the app has limited permission to read user-selected media on Android
+ * versions that support it.
+ */
 fun checkLimitedPermission(context: Context): Boolean {
   return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
       ContextCompat.checkSelfPermission(context, READ_MEDIA_VISUAL_USER_SELECTED) ==
           PERMISSION_GRANTED)
 }
 /**
- * Return Component Activity associated with Context to show dialog. Unwraps context on which it is
+ * Returns Component Activity associated with Context to show dialog. Unwraps context on which it is
  * called upon.
  * *
  */
-fun Context.findActivity(): ComponentActivity {
+fun Context.findActivity(): ComponentActivity? {
   var context = this
   while (context is ContextWrapper) {
     if (context is ComponentActivity) {
@@ -140,5 +157,5 @@ fun Context.findActivity(): ComponentActivity {
     }
     context = context.baseContext
   }
-  throw IllegalStateException("No Activity found")
+  return null
 }
