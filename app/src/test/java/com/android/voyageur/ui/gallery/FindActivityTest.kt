@@ -1,4 +1,4 @@
-package com.android.voyageur.ui.profile
+package com.android.voyageur.ui.gallery
 
 import android.content.ContextWrapper
 import androidx.activity.ComponentActivity
