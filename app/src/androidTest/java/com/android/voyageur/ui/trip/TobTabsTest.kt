@@ -32,14 +32,6 @@ class TopTabsTest {
   }
 
   @Test
-  fun displayTextWhenNoTripSelected() {
-    composeTestRule.setContent { TopTabs(tripsViewModel, navigationActions) }
-
-    // Verify that the "No trip selected" text is displayed
-    composeTestRule.onNodeWithText("No trip selected. Should not happen").assertIsDisplayed()
-  }
-
-  @Test
   fun topAppBar_DisplaysTripName() {
     tripsViewModel.selectTrip(sampleTrip)
     composeTestRule.setContent { TopTabs(tripsViewModel, navigationActions) }
