@@ -48,6 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -371,17 +372,26 @@ fun AddTripScreen(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                      RadioButton(
-                          onClick = { tripType = TripType.BUSINESS },
-                          selected = tripType == TripType.BUSINESS,
-                          modifier = Modifier.testTag("tripTypeBusiness"))
-                      Text("Business")
-                      RadioButton(
-                          onClick = { tripType = TripType.TOURISM },
-                          selected = tripType == TripType.TOURISM,
-                          modifier = Modifier.testTag("tripTypeTourism"))
-                      Text("Tourism")
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically) {
+                      Row(
+                          verticalAlignment = Alignment.CenterVertically,
+                          modifier = Modifier.padding(end = 16.dp)) {
+                            RadioButton(
+                                onClick = { tripType = TripType.BUSINESS },
+                                selected = tripType == TripType.BUSINESS,
+                                modifier = Modifier.testTag("tripTypeBusiness"))
+                            Text("Business", modifier = Modifier.padding(start = 2.dp))
+                          }
+                      Row(
+                          verticalAlignment = Alignment.CenterVertically,
+                          modifier = Modifier.padding(start = 16.dp)) {
+                            RadioButton(
+                                onClick = { tripType = TripType.TOURISM },
+                                selected = tripType == TripType.TOURISM,
+                                modifier = Modifier.testTag("tripTypeTourism"))
+                            Text("Tourism", modifier = Modifier.padding(start = 2.dp))
+                          }
                     }
 
                 Spacer(modifier = Modifier.height(16.dp))
