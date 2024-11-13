@@ -36,7 +36,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -115,31 +114,25 @@ fun AddTripScreen(
         imageUri = trip.imageUri
         startDate = trip.startDate.toDate().time
         endDate = trip.endDate.toDate().time
-
       }
-    }else{
-        userList.clear()
+    } else {
+      userList.clear()
     }
   }
 
   val _trip = tripsViewModel.selectedTrip.value
   fun fetchContacts() {
-      userViewModel.getMyContacts({ it ->
-          Log.d("Users", it.size.toString())
-          userList.clear()
-          it.filter { user -> user.id != Firebase.auth.uid.orEmpty() }.forEach() { user ->
-              userList.add(
-                  Pair(
-                      user,
-                      isEditMode && _trip?.participants?.contains(user.id) ?: false
-                  )
-              )
+    userViewModel.getMyContacts({ it ->
+      Log.d("Users", it.size.toString())
+      userList.clear()
+      it.filter { user -> user.id != Firebase.auth.uid.orEmpty() }
+          .forEach() { user ->
+            userList.add(Pair(user, isEditMode && _trip?.participants?.contains(user.id) ?: false))
           }
-      })
+    })
   }
 
   fetchContacts()
-
 
   fun createTripWithImage(imageUrl: String) {
 

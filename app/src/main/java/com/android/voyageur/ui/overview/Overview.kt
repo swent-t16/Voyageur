@@ -217,21 +217,27 @@ fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
         ) {
           // Display participants (limit to 5 avatars max for space reasons)
           if (numberOfParticipants > 0) {
-            trip.participants.filter{it != Firebase.auth.uid.orEmpty()}.take(4).forEach { participant ->
-              // TODO: Replace Box with user avatars once they are designed
-              Box(
-                  modifier =
-                      Modifier.size(30.dp) // Set size for the avatar circle
-                          .testTag("participantAvatar")
-                          .background(Color.Gray, shape = RoundedCornerShape(50)), // Circular shape
-                  contentAlignment = Alignment.Center) {
-                    userViewModel._allParticipants.value
-                        .find { it.id == participant }
-                        ?.name
-                        ?.first()
-                        ?.let { Text(text = it.uppercaseChar().toString(), color = Color.White) }
-                  }
-            }
+            trip.participants
+                .filter { it != Firebase.auth.uid.orEmpty() }
+                .take(4)
+                .forEach { participant ->
+                  // TODO: Replace Box with user avatars once they are designed
+                  Box(
+                      modifier =
+                          Modifier.size(30.dp) // Set size for the avatar circle
+                              .testTag("participantAvatar")
+                              .background(
+                                  Color.Gray, shape = RoundedCornerShape(50)), // Circular shape
+                      contentAlignment = Alignment.Center) {
+                        userViewModel._allParticipants.value
+                            .find { it.id == participant }
+                            ?.name
+                            ?.first()
+                            ?.let {
+                              Text(text = it.uppercaseChar().toString(), color = Color.White)
+                            }
+                      }
+                }
             if (trip.participants.size > 4) {
               Text(
                   text = "and ${trip.participants.size - 4} more",
