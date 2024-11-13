@@ -2,15 +2,10 @@ package com.android.voyageur.ui.overview
 
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.READ_MEDIA_IMAGES
-import android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,7 +31,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -54,8 +47,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
@@ -64,8 +55,8 @@ import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.formFields.DatePickerModal
+import com.android.voyageur.ui.gallery.PermissionButtonForGallery
 import com.android.voyageur.ui.navigation.NavigationActions
-import com.android.voyageur.ui.profile.findActivity
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
@@ -106,25 +97,6 @@ fun AddTripScreen(
         READ_MEDIA_IMAGES
       } else {
         READ_EXTERNAL_STORAGE
-      }
-  val galleryLauncher =
-      rememberLauncherForActivityResult(
-          contract = ActivityResultContracts.GetContent(),
-          onResult = { uri -> uri?.let { imageUri = it.toString() } })
-  val permissionLauncher =
-      rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        when {
-          isGranted -> galleryLauncher.launch("image/*")
-          checkLimitedPermission(context) -> galleryLauncher.launch("image/*")
-          else -> {
-            // Permission is denied, show a message to the user
-            Toast.makeText(
-                    context,
-                    "Please allow access to select images from your gallery.",
-                    Toast.LENGTH_SHORT)
-                .show()
-          }
-        }
       }
 
   LaunchedEffect(isEditMode) {
@@ -260,27 +232,11 @@ fun AddTripScreen(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = {
-                      when {
-                        checkFullPermission(context) || checkLimitedPermission(context) -> {
-                          // If permission is granted, launch the gallery
-                          galleryLauncher.launch("image/*")
-                        }
-                        ActivityCompat.shouldShowRequestPermissionRationale(
-                            context.findActivity(), permissionVersion) -> {
-                          // Show rationale
-                          showRationaleDialog = true
-                        }
-                        else -> {
-                          permissionLauncher.launch(permissionVersion)
-                        }
-                      }
-                    },
-                    modifier = Modifier.fillMaxWidth()) {
-                      Text("Select Image from Gallery")
-                    }
+                PermissionButtonForGallery(
+                    onUriSelected = { uri -> imageUri = uri.toString() },
+                    "Select Image from Gallery",
+                    "This app needs access to your photos to allow you to select an image for your trip.",
+                    Modifier.fillMaxWidth())
 
                 OutlinedTextField(
                     value = name,
@@ -409,48 +365,10 @@ fun AddTripScreen(
                 Text("Save Trip")
               }
         }
-        // Show rationale dialog if needed
-        if (showRationaleDialog) {
-          AlertDialog(
-              onDismissRequest = { showRationaleDialog = false },
-              title = { Text("Permission Required") },
-              text = {
-                Text(
-                    "This app needs access to your photos to allow you to select an image for your trip.")
-              },
-              confirmButton = {
-                TextButton(
-                    onClick = {
-                      showRationaleDialog = false
-                      permissionLauncher.launch(permissionVersion)
-                    }) {
-                      Text("Allow")
-                    }
-              },
-              dismissButton = {
-                TextButton(onClick = { showRationaleDialog = false }) { Text("Cancel") }
-              })
-        }
       }
 }
 
 enum class DateField {
   START,
   END
-}
-
-// Function to check if full permission is granted
-fun checkFullPermission(context: Context): Boolean {
-  return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-    ContextCompat.checkSelfPermission(context, READ_MEDIA_IMAGES) == PERMISSION_GRANTED
-  } else {
-    ContextCompat.checkSelfPermission(context, READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED
-  }
-}
-
-// Function to check if limited access permission is granted
-fun checkLimitedPermission(context: Context): Boolean {
-  return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
-      ContextCompat.checkSelfPermission(context, READ_MEDIA_VISUAL_USER_SELECTED) ==
-          PERMISSION_GRANTED)
 }

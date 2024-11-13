@@ -1,15 +1,6 @@
 package com.android.voyageur.ui.profile
 
-import android.Manifest
-import android.content.Context
-import android.content.ContextWrapper
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
-import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +20,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,14 +38,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.gallery.PermissionButtonForGallery
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -78,33 +65,6 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
   // State variables for interests
   var interests by remember { mutableStateOf(user?.interests?.toMutableList() ?: mutableListOf()) }
   var newInterest by remember { mutableStateOf("") }
-
-  // Context and permission state variables
-  val context = LocalContext.current
-  var showPermissionRationale by remember { mutableStateOf(false) }
-  var permissionToRequest by remember { mutableStateOf("") }
-
-  // Check if user is null and navigate back to the Profile screen if true
-  if (user == null && !isLoading) {
-    navigationActions.navigateTo(Route.PROFILE)
-    return
-  }
-  // Photo picker launcher
-  val pickPhotoLauncher =
-      rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let { profilePictureUri = it }
-      }
-
-  // Permission launcher
-  val permissionLauncher =
-      rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) {
-          pickPhotoLauncher.launch("image/*")
-        } else {
-          Toast.makeText(context, "Permission denied. Unable to select photo.", Toast.LENGTH_SHORT)
-              .show()
-        }
-      }
 
   if (isSaving) {
     LaunchedEffect(isSaving) {
@@ -164,38 +124,11 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                               contentDescription = "Default Profile Picture",
                               modifier = Modifier.size(128.dp).testTag("defaultProfilePicture"))
                         }
-
-                        Button(
-                            onClick = {
-                              val permission =
-                                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                    Manifest.permission.READ_MEDIA_IMAGES
-                                  } else {
-                                    Manifest.permission.READ_EXTERNAL_STORAGE
-                                  }
-
-                              permissionToRequest = permission
-
-                              when {
-                                ContextCompat.checkSelfPermission(context, permission) ==
-                                    PackageManager.PERMISSION_GRANTED -> {
-                                  // Permission is granted
-                                  pickPhotoLauncher.launch("image/*")
-                                }
-                                ActivityCompat.shouldShowRequestPermissionRationale(
-                                    context.findActivity(), permission) -> {
-                                  // Show rationale
-                                  showPermissionRationale = true
-                                }
-                                else -> {
-                                  // Request permission
-                                  permissionLauncher.launch(permission)
-                                }
-                              }
-                            },
-                            modifier = Modifier.testTag("editImageButton")) {
-                              Text("Edit Profile Picture")
-                            }
+                        PermissionButtonForGallery(
+                            onUriSelected = { profilePictureUri = it },
+                            "Edit Profile Picture",
+                            "This app needs access to your photos to allow you to select a profile picture.",
+                            Modifier.testTag("editImageButton"))
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -286,30 +219,6 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                             modifier = Modifier.testTag("saveButton")) {
                               Text("Save")
                             }
-                        // Show rationale dialog if needed
-                        if (showPermissionRationale) {
-                          AlertDialog(
-                              onDismissRequest = { showPermissionRationale = false },
-                              title = { Text("Permission Required") },
-                              text = {
-                                Text(
-                                    "This app needs access to your photos to allow you to select a profile picture.")
-                              },
-                              confirmButton = {
-                                TextButton(
-                                    onClick = {
-                                      showPermissionRationale = false
-                                      permissionLauncher.launch(permissionToRequest)
-                                    }) {
-                                      Text("Allow")
-                                    }
-                              },
-                              dismissButton = {
-                                TextButton(onClick = { showPermissionRationale = false }) {
-                                  Text("Cancel")
-                                }
-                              })
-                        }
                       }
                 }
                     ?: run {
@@ -322,15 +231,4 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
               }
             }
       })
-}
-
-fun Context.findActivity(): ComponentActivity {
-  var context = this
-  while (context is ContextWrapper) {
-    if (context is ComponentActivity) {
-      return context
-    }
-    context = context.baseContext
-  }
-  throw IllegalStateException("No Activity found")
 }
