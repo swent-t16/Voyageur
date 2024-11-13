@@ -83,9 +83,14 @@ fun OverviewScreen(
             modifier = Modifier.padding(pd).testTag("overviewColumn"),
         ) {
           if (trips.isEmpty()) {
-            Text(
-                "You have no trips yet. Schedule one.",
-                modifier = Modifier.testTag("emptyTripPrompt"))
+            Box(
+                modifier = Modifier.padding(pd).fillMaxSize(),
+                contentAlignment = Alignment.Center) {
+                  Text(
+                      modifier = Modifier.testTag("emptyTripPrompt"),
+                      text = "You have no trips yet.",
+                  )
+                }
           } else {
             val sortedTrips = trips.sortedBy { trip -> trip.startDate }
             LazyColumn(
