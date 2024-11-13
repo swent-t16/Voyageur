@@ -4,8 +4,10 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.auth
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,6 +38,9 @@ open class UserViewModel(
   /** Flow holding the list of searched users based on the current query. */
   internal val _searchedUsers = MutableStateFlow<List<User>>(emptyList())
   val searchedUsers: StateFlow<List<User>> = _searchedUsers
+
+  internal val _allParticipants = MutableStateFlow<List<User>>(emptyList())
+  val allParticipants: StateFlow<List<User>> = _allParticipants
 
   /** Flow holding the currently selected user in the search screen. */
   internal val _selectedUser = MutableStateFlow<User?>(null)
@@ -239,5 +244,14 @@ open class UserViewModel(
             return UserViewModel(UserRepositoryFirebase.create()) as T
           }
         }
+  }
+
+  fun getUsersByIds(userIds: List<String>, onSuccess: (List<User>) -> Unit) {
+    userRepository.fetchUsersByIds(userIds, onSuccess, {})
+  }
+
+  fun getMyContacts(onSuccess: (List<User>) -> Unit) {
+    if (Firebase.auth.uid == null) return
+    userRepository.getContacts(Firebase.auth.uid ?: "", onSuccess, {})
   }
 }
