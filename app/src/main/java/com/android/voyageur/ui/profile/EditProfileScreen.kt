@@ -55,6 +55,11 @@ import com.android.voyageur.ui.profile.interests.InterestChipEditable
 fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
   val user by userViewModel.user.collectAsState()
   val isLoading by userViewModel.isLoading.collectAsState()
+  // Check if user is null and navigate back to the Profile screen if true
+  if (user == null && !isLoading) {
+    navigationActions.navigateTo(Route.PROFILE)
+    return
+  }
 
   var name by remember { mutableStateOf(user?.name ?: "") }
   var email by remember { mutableStateOf(user?.email ?: "") }
