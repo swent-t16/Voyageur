@@ -27,111 +27,118 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
 @Composable
-fun PermissionButtonForGallery(onUriSelected: (Uri?) -> Unit, messageToShow: String, dialogMessage: String, modifier: Modifier = Modifier)
-
-{   val context = LocalContext.current
-    var showRationaleDialog by remember { mutableStateOf(false) }
-    val permissionVersion =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            READ_MEDIA_IMAGES
-        } else {
-            READ_EXTERNAL_STORAGE
-        }
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+fun PermissionButtonForGallery(
+    onUriSelected: (Uri?) -> Unit,
+    messageToShow: String,
+    dialogMessage: String,
+    modifier: Modifier = Modifier
+) {
+  val context = LocalContext.current
+  var showRationaleDialog by remember { mutableStateOf(false) }
+  val permissionVersion =
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        READ_MEDIA_IMAGES
+      } else {
+        READ_EXTERNAL_STORAGE
+      }
+  val galleryLauncher =
+      rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            onUriSelected(uri)
+          onUriSelected(uri)
         } else {
-            Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
+          Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
         }
-    }
-    val permissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            when {
-                isGranted -> galleryLauncher.launch("image/*")
-                checkLimitedPermission(context) -> galleryLauncher.launch("image/*")
-                else -> {
-                    // Permission is denied, show a message to the user
-                    Toast.makeText(
-                        context,
-                        "Permission denied. Unable to select photo.",
-                        Toast.LENGTH_SHORT)
-                        .show()
-                }
-            }
+      }
+  val permissionLauncher =
+      rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        when {
+          isGranted -> galleryLauncher.launch("image/*")
+          checkLimitedPermission(context) -> galleryLauncher.launch("image/*")
+          else -> {
+            // Permission is denied, show a toast to the user
+            Toast.makeText(
+                    context, "Permission denied. Unable to select photo.", Toast.LENGTH_SHORT)
+                .show()
+          }
         }
-    Button(
-        onClick = {
-            when {
-                checkFullPermission(context) || checkLimitedPermission(context) -> {
-                    // If permission is granted, launch the gallery
-                    galleryLauncher.launch("image/*")
-                }
-                ActivityCompat.shouldShowRequestPermissionRationale(
-                    context.findActivity(), permissionVersion) -> {
-                    // Show rationale
-                    showRationaleDialog = true
-                }
-                else -> {
-                    permissionLauncher.launch(permissionVersion)
-                }
-            }
-        },
-        modifier = modifier) {
+      }
+  Button(
+      onClick = {
+        when {
+          checkFullPermission(context) || checkLimitedPermission(context) -> {
+            // If permission is granted, launch the gallery
+            galleryLauncher.launch("image/*")
+          }
+          ActivityCompat.shouldShowRequestPermissionRationale(
+              context.findActivity(), permissionVersion) -> {
+            // Show rationale
+            showRationaleDialog = true
+          }
+          else -> {
+            permissionLauncher.launch(permissionVersion)
+          }
+        }
+      },
+      modifier = modifier) {
         // Shows message corresponding to the screen
         Text(messageToShow)
         // Show rationale dialog if needed
         if (showRationaleDialog) {
-            AlertDialog(
-                onDismissRequest = { showRationaleDialog = false },
-                title = { Text("Permission Required") },
-                text = {
-                    Text(
-                        dialogMessage)
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showRationaleDialog = false
-                            permissionLauncher.launch(permissionVersion)
-                        }) {
-                        Text("Allow")
+          AlertDialog(
+              onDismissRequest = { showRationaleDialog = false },
+              title = { Text("Permission Required") },
+              text = { Text(dialogMessage) },
+              confirmButton = {
+                TextButton(
+                    onClick = {
+                      showRationaleDialog = false
+                      permissionLauncher.launch(permissionVersion)
+                    }) {
+                      Text("Allow")
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showRationaleDialog = false
-                        Toast.makeText(
-                            context,
-                            "Permission denied. Unable to select photo.",
-                            Toast.LENGTH_SHORT)
-                            .show()}) { Text("Cancel")}
-                })
+              },
+              dismissButton = {
+                TextButton(
+                    onClick = {
+                      showRationaleDialog = false
+                      Toast.makeText(
+                              context,
+                              "Permission denied. Unable to select photo.",
+                              Toast.LENGTH_SHORT)
+                          .show()
+                    }) {
+                      Text("Cancel")
+                    }
+              })
         }
-    }
+      }
 }
-// Function to check if full permission is granted
- fun checkFullPermission(context: Context): Boolean {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        ContextCompat.checkSelfPermission(context, READ_MEDIA_IMAGES) == PERMISSION_GRANTED
-    } else {
-        ContextCompat.checkSelfPermission(context, READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED
-    }
+
+fun checkFullPermission(context: Context): Boolean {
+  return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    ContextCompat.checkSelfPermission(context, READ_MEDIA_IMAGES) == PERMISSION_GRANTED
+  } else {
+    ContextCompat.checkSelfPermission(context, READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED
+  }
 }
-// Function to check if limited access permission is granted
+
 fun checkLimitedPermission(context: Context): Boolean {
-    return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
-            ContextCompat.checkSelfPermission(context, READ_MEDIA_VISUAL_USER_SELECTED) ==
-            PERMISSION_GRANTED)
+  return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+      ContextCompat.checkSelfPermission(context, READ_MEDIA_VISUAL_USER_SELECTED) ==
+          PERMISSION_GRANTED)
 }
-/** Return Component Activity associated with Context to show dialog
- * Unwraps context on which it is called upon
- * **/
+/**
+ * Return Component Activity associated with Context to show dialog. Unwraps context on which it is
+ * called upon.
+ * *
+ */
 fun Context.findActivity(): ComponentActivity {
-    var context = this
-    while (context is ContextWrapper) {
-        if (context is ComponentActivity) {
-            return context
-        }
-        context = context.baseContext
+  var context = this
+  while (context is ContextWrapper) {
+    if (context is ComponentActivity) {
+      return context
     }
-    throw IllegalStateException("No Activity found")
+    context = context.baseContext
+  }
+  throw IllegalStateException("No Activity found")
 }

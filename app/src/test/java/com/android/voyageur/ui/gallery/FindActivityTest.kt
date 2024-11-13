@@ -1,10 +1,13 @@
-package com.android.voyageur.ui.profile
+package com.android.voyageur.ui.gallery
 
+import android.content.Context
 import android.content.ContextWrapper
 import androidx.activity.ComponentActivity
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mockito.mock
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 
@@ -53,5 +56,14 @@ class FindActivityTest {
 
     // Assert: The result should be the original activity
     assertEquals(activity, result)
+  }
+
+  @Test
+  fun contextIsNotAnActivity_throwsIllegalStateException() {
+    // Create a mock context that doesn't contain a Component Activity
+    val nonActivityContext = mock(Context::class.java)
+
+    // Ensure that calling findActivity throws an IllegalStateException
+    assertThrows(IllegalStateException::class.java) { nonActivityContext.findActivity() }
   }
 }

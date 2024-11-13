@@ -2,15 +2,10 @@ package com.android.voyageur.ui.overview
 
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.READ_MEDIA_IMAGES
-import android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,7 +31,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -54,8 +47,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
@@ -241,10 +232,11 @@ fun AddTripScreen(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                 PermissionButtonForGallery(onUriSelected = { uri ->
-                     imageUri = uri.toString()
-                 }, "Select Image from Gallery","This app needs access to your photos to allow you to select an image for your trip.",
-                      Modifier.fillMaxWidth())
+                PermissionButtonForGallery(
+                    onUriSelected = { uri -> imageUri = uri.toString() },
+                    "Select Image from Gallery",
+                    "This app needs access to your photos to allow you to select an image for your trip.",
+                    Modifier.fillMaxWidth())
 
                 OutlinedTextField(
                     value = name,
@@ -380,4 +372,3 @@ enum class DateField {
   START,
   END
 }
-
