@@ -108,7 +108,7 @@ class SearchUserProfileScreenTest {
     userViewModel._isLoading.value = false
 
     composeTestRule.onNodeWithTag("userProfileAddRemoveContactButton").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Add").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Add to contacts").assertIsDisplayed()
   }
 
   @Test
