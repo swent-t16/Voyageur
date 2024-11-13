@@ -219,6 +219,7 @@ fun AddTripScreen(
       tripsViewModel.updateTrip(
           trip,
           onSuccess = {
+            Toast.makeText(context, "Trip updated successfully!", Toast.LENGTH_SHORT).show()
             /*
                 This is a trick to force a recompose, because the reference wouldn't
                 change and update the UI.
