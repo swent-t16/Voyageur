@@ -191,7 +191,11 @@ private fun ActivityBox(activity: Activity) {
       }
 }
 
-fun formatDailyDate(date: LocalDate): String {
-  val formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.ENGLISH)
-  return date.format(formatter)
+fun formatDailyDate(date: LocalDate?): String {
+    // Wrap in a try-catch to avoid an exception crashing the app
+    return try {
+        date?.format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.ENGLISH)) ?: "Invalid date"
+    } catch (e: Exception) {
+        "Invalid date"
+    }
 }
