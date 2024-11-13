@@ -83,6 +83,12 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
   val context = LocalContext.current
   var showPermissionRationale by remember { mutableStateOf(false) }
   var permissionToRequest by remember { mutableStateOf("") }
+
+  // Check if user is null and navigate back to the Profile screen if true
+  if (user == null && !isLoading) {
+    navigationActions.navigateTo(Route.PROFILE)
+    return
+  }
   // Photo picker launcher
   val pickPhotoLauncher =
       rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
