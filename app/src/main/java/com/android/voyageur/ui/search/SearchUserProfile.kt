@@ -40,7 +40,7 @@ fun SearchUserProfileScreen(userViewModel: UserViewModel, navigationActions: Nav
       modifier = Modifier.testTag("userProfileScreen"),
       topBar = {
         TopAppBar(
-            title = { Text("User Profile") },
+            title = { Text("${user?.name ?: "User"}'s Profile") },
             navigationIcon = {
               IconButton(
                   onClick = {

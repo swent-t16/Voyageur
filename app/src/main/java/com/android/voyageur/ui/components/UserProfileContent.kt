@@ -30,6 +30,22 @@ import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.user.User
 import com.android.voyageur.ui.profile.interests.InterestChip
 
+/**
+ * Composable function to display a user's profile information, including their profile picture,
+ * name, email, and interests. It also provides options to edit the profile, sign out, or add/remove
+ * the user as a contact based on the input parameters.
+ *
+ * @param userData The `User` object containing details such as the profile picture, name, email,
+ *   and interests.
+ * @param showEditAndSignOutButtons A Boolean flag that, if true, displays the Edit and Sign Out
+ *   buttons. Default is false.
+ * @param isContactAdded A Boolean flag indicating if the user is already added as a contact. Used
+ *   to toggle the Add/Remove Contact button text and color. Default is false.
+ * @param onSignOut A lambda function that executes when the Sign Out button is clicked. Optional.
+ * @param onEdit A lambda function that executes when the Edit button is clicked. Optional.
+ * @param onAddOrRemoveContact A lambda function that executes when the Add/Remove Contact button is
+ *   clicked. Optional.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun UserProfileContent(
@@ -44,6 +60,7 @@ fun UserProfileContent(
       modifier = Modifier.fillMaxSize().padding(16.dp).testTag("userProfileContent"),
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally) {
+        // Display user's profile picture or a default icon if no picture is available
         if (userData.profilePicture.isNotEmpty()) {
           Image(
               painter = rememberAsyncImagePainter(model = userData.profilePicture),
@@ -58,6 +75,7 @@ fun UserProfileContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Display user's name and email, with fallback text if unavailable
         Text(
             text = userData.name.takeIf { it.isNotEmpty() } ?: "No name available",
             style = MaterialTheme.typography.titleLarge,
@@ -69,6 +87,7 @@ fun UserProfileContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Display the user's interests or a message if no interests are added
         Text(
             text = "Interests:",
             style = MaterialTheme.typography.titleMedium,
@@ -92,6 +111,7 @@ fun UserProfileContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Conditional buttons for editing, signing out, or adding/removing as contact
         Row {
           if (showEditAndSignOutButtons && onEdit != null && onSignOut != null) {
             Button(onClick = onEdit, modifier = Modifier.testTag("editButton")) {
