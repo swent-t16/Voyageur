@@ -37,10 +37,12 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
     navigationActions.navigateTo(Route.OVERVIEW)
     return
   }
+  // Define selectedTrip variable with trip value (trip!!)
+  val selectedTrip = trip!!
 
   // Column for top tabs and content
   Column(modifier = Modifier.testTag("topTabs")) {
-    TopBarWithImage(trip!!, navigationActions)
+    TopBarWithImage(selectedTrip, navigationActions)
 
     // TabRow composable for creating top tabs
     TabRow(
@@ -58,11 +60,11 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
 
     // Display content based on selected tab
     when (selectedTabIndex) {
-      0 -> ScheduleScreen(trip!!, navigationActions)
-      1 -> ActivitiesScreen(trip!!, navigationActions)
+      0 -> ScheduleScreen(selectedTrip, navigationActions)
+      1 -> ActivitiesScreen(selectedTrip, navigationActions)
       2 ->
           SettingsScreen(
-              trip!!,
+              selectedTrip,
               navigationActions,
               tripsViewModel = tripsViewModel,
               onUpdate = {
