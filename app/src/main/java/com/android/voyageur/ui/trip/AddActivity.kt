@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -15,7 +16,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -58,6 +61,8 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
   val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
   var formattedStartTime = startTime?.let { timeFormat.format(Date(it)) } ?: ""
   var formattedEndTime = endTime?.let { timeFormat.format(Date(it)) } ?: ""
+
+  val keyboardController = LocalSoftwareKeyboardController.current
 
   fun createActivity() {
     fun normalizeToMidnight(date: Date): Date {
@@ -225,7 +230,11 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                     isError = title.isEmpty(),
                     label = { Text("Title *") },
                     placeholder = { Text("Name the activity") },
-                    modifier = Modifier.fillMaxWidth().testTag("inputActivityTitle"))
+                    modifier = Modifier.fillMaxWidth().testTag("inputActivityTitle"),
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+                    singleLine = true
+                    )
 
                 OutlinedTextField(
                     value = description,

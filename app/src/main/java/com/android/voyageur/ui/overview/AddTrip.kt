@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -51,8 +53,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -100,6 +104,8 @@ fun AddTripScreen(
   val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
   val formattedStartDate = startDate?.let { dateFormat.format(Date(it)) } ?: ""
   val formattedEndDate = endDate?.let { dateFormat.format(Date(it)) } ?: ""
+
+  val keyboardController = LocalSoftwareKeyboardController.current
 
   val permissionVersion =
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -288,7 +294,10 @@ fun AddTripScreen(
                     isError = name.isEmpty(),
                     label = { Text("Trip *") },
                     placeholder = { Text("Name the trip") },
-                    modifier = Modifier.fillMaxWidth().testTag("inputTripTitle"))
+                    modifier = Modifier.fillMaxWidth().testTag("inputTripTitle"),
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+                    singleLine = true)
 
                 OutlinedTextField(
                     value = description,
@@ -317,8 +326,6 @@ fun AddTripScreen(
                       colors =
                           TextFieldDefaults.colors(
                               disabledContainerColor = Color.Transparent,
-                              // focusedTextColor = Color.Black,
-                              // unfocusedTextColor = Color.Black,
                               disabledTextColor = Color.Black),
                       modifier =
                           Modifier.fillMaxWidth(0.49f).testTag("inputStartDate").clickable {
@@ -335,8 +342,6 @@ fun AddTripScreen(
                       colors =
                           TextFieldDefaults.colors(
                               disabledContainerColor = Color.Transparent,
-                              // focusedTextColor = Color.Black,
-                              // unfocusedTextColor = Color.Black,
                               disabledTextColor = Color.Black),
                       modifier =
                           Modifier.fillMaxWidth(0.49f).testTag("inputEndDate").clickable {
