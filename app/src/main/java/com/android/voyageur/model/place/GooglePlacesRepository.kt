@@ -125,7 +125,7 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
                     bitmaps.add(bitmap)
                   }
                   .addOnFailureListener { exception ->
-                    Log.e("PlacesRepository", "Failed to fetch photo", exception)
+                    Log.e("PlacesRepository", "Failed to fetch photo for $placeId", exception)
                   }
             }
             places.add(CustomPlace(place, bitmaps))
