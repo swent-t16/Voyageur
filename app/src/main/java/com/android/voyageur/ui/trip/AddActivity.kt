@@ -233,8 +233,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                     modifier = Modifier.fillMaxWidth().testTag("inputActivityTitle"),
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
-                    singleLine = true
-                    )
+                    singleLine = true)
 
                 OutlinedTextField(
                     value = description,
