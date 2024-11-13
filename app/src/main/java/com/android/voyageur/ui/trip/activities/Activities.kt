@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.Card
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,15 +37,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.voyageur.model.activity.Activity
-import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.activity.hasDescription
 import com.android.voyageur.model.activity.hasEndDate
 import com.android.voyageur.model.activity.hasStartTime
-import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -61,9 +62,15 @@ fun ActivitiesScreen(
         activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
       }
   val final =
-      trip.activities.filter { activity ->
-        activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
-      }
+      trip.activities
+          .filter { activity ->
+            activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
+          }
+          .sortedWith(
+              compareBy(
+                  { it.startTime }, // First, sort by startTime
+                  { it.endTime } // If startTime is equal, sort by endTime
+                  ))
 
   Scaffold(
       // TODO: Search Bar
@@ -73,6 +80,16 @@ fun ActivitiesScreen(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute())
+      },
+      floatingActionButton = {
+        FloatingActionButton(
+            onClick = { navigationActions.navigateTo(Screen.ADD_ACTIVITY) },
+            modifier = Modifier.testTag("createActivityButton")) {
+              Icon(
+                  Icons.Outlined.Add,
+                  "Floating action button",
+                  modifier = Modifier.testTag("addIcon"))
+            }
       },
       content = { pd ->
         LazyColumn(
@@ -213,79 +230,3 @@ fun ActivityItem(
         }
       })
 }
-
-fun createTimestamp(year: Int, month: Int, day: Int, hour: Int, minute: Int): Timestamp {
-  val calendar = java.util.Calendar.getInstance()
-  calendar.set(year, month - 1, day, hour, minute) // Month is 0-based
-  return Timestamp(calendar.time)
-}
-
-val SAMPLE_ACTIVITIES =
-    listOf(
-        Activity(
-            title = "Breakfast",
-            description = "",
-            activityType = ActivityType.RESTAURANT,
-            startTime = createTimestamp(2024, 11, 3, 10, 0),
-            endTime = createTimestamp(2024, 11, 3, 12, 30),
-            estimatedPrice = 20.25,
-            location = Location()),
-        Activity(
-            title = "Lunch",
-        ),
-        Activity(
-            title = "Dinner",
-            description = "Dinner description",
-            activityType = ActivityType.RESTAURANT,
-            startTime = Timestamp.now(),
-            endTime = Timestamp.now(),
-            estimatedPrice = 23.25,
-            location = Location()),
-        Activity(
-            title = "Dinner2",
-            description = "",
-            activityType = ActivityType.RESTAURANT,
-            startTime = Timestamp.now(),
-            endTime = Timestamp.now(),
-            estimatedPrice = 23.25,
-            location = Location()),
-        Activity(
-            title = "Dinner3",
-            description = "",
-            activityType = ActivityType.RESTAURANT,
-            startTime = createTimestamp(2024, 11, 3, 19, 30),
-            endTime = createTimestamp(2024, 11, 3, 21, 0),
-            estimatedPrice = 23.25,
-            location = Location()),
-        Activity(
-            title = "Dinner4",
-            description = "Too long description to be displayed on the Activity Box",
-            activityType = ActivityType.RESTAURANT,
-            startTime = Timestamp.now(),
-            endTime = Timestamp.now(),
-            estimatedPrice = 23.25,
-            location = Location()),
-        Activity(
-            title = "Dinner5",
-            description = "",
-            activityType = ActivityType.RESTAURANT,
-            startTime = Timestamp.now(),
-            endTime = Timestamp.now(),
-            estimatedPrice = 23.25,
-            location = Location()),
-        Activity(
-            title = "Too long name to be displayed on the Activity Box",
-            description = "",
-            activityType = ActivityType.OTHER,
-            startTime = Timestamp.now(),
-            endTime = Timestamp.now(),
-            estimatedPrice = 00.00,
-            location = Location()),
-        Activity(
-            title = "Visit city",
-            description = "",
-            activityType = ActivityType.OTHER,
-            startTime = Timestamp.now(),
-            endTime = Timestamp.now(),
-            estimatedPrice = 00.00,
-            location = Location()))

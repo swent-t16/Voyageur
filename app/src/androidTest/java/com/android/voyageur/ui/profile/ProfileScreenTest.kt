@@ -122,19 +122,16 @@ class ProfileScreenTest {
 
   @Test
   fun displayProfilePictureWhenUserHasProfilePicture() {
-    // Arrange: Mock a user with a profile picture
     val user =
         User(
             "123",
             "Jane Doe",
             "jane@example.com",
-            profilePicture = "http://example.com/profile.jpg",
-            interests = emptyList())
+            profilePicture = "http://example.com/profile.jpg")
     userViewModel._user.value = user
     userViewModel._isLoading.value = false
 
-    // Assert: Check that the profile picture is displayed
-    composeTestRule.onNodeWithTag("profilePicture").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("userProfilePicture").assertIsDisplayed()
   }
 
   @Test

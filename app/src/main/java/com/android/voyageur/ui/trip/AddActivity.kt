@@ -60,11 +60,6 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
   var formattedEndTime = endTime?.let { timeFormat.format(Date(it)) } ?: ""
 
   fun createActivity() {
-    if (activityDate == null && (startTime != null || endTime != null)) {
-      Toast.makeText(context, "Please select an activity date first", Toast.LENGTH_SHORT).show()
-      return
-    }
-
     fun normalizeToMidnight(date: Date): Date {
       val calendar =
           Calendar.getInstance().apply {
@@ -80,14 +75,13 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
     val today = normalizeToMidnight(Date())
     val dateNormalized = activityDate?.let { normalizeToMidnight(Date(it)) } ?: Date(0)
 
-    if (activityDate != null && dateNormalized.before(today)) {
-      Toast.makeText(context, "The activity date cannot be in the past", Toast.LENGTH_SHORT).show()
-      return
-    }
+    val selectedTrip = tripsViewModel.selectedTrip.value!!
+    val startDateNormalized = normalizeToMidnight(selectedTrip.startDate.toDate())
+    val endDateNormalized = normalizeToMidnight(selectedTrip.endDate.toDate())
 
     val startTimestamp =
-        startTime
-            ?.let {
+        Timestamp(
+            startTime?.let {
               Calendar.getInstance()
                   .apply {
                     time = dateNormalized
@@ -102,11 +96,19 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                   .time
             }
-            ?.let { Timestamp(it) } ?: Timestamp(0, 0)
+                ?: dateNormalized.apply {
+                  Calendar.getInstance()
+                      .apply {
+                        time = dateNormalized
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                      }
+                      .time
+                })
 
     val endTimestamp =
-        endTime
-            ?.let {
+        Timestamp(
+            endTime?.let {
               Calendar.getInstance()
                   .apply {
                     time = dateNormalized
@@ -121,13 +123,57 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                   .time
             }
-            ?.let { Timestamp(it) } ?: Timestamp(0, 0)
+                ?: Calendar.getInstance()
+                    .apply {
+                      time = dateNormalized
+                      set(Calendar.HOUR_OF_DAY, 23)
+                      set(Calendar.MINUTE, 59)
+                      set(Calendar.SECOND, 59)
+                      set(Calendar.MILLISECOND, 999)
+                    }
+                    .time)
 
-    if (startTime != null &&
-        endTime != null &&
-        endTimestamp.toDate().before(startTimestamp.toDate())) {
-      Toast.makeText(context, "End time must be after start time", Toast.LENGTH_SHORT).show()
-      return
+    when {
+      activityDate == null && (startTime != null || endTime != null) -> {
+        Toast.makeText(context, "Please select an activity date first", Toast.LENGTH_SHORT).show()
+        return
+      }
+      activityDate != null && dateNormalized.before(today) -> {
+        Toast.makeText(context, "The activity date cannot be in the past", Toast.LENGTH_SHORT)
+            .show()
+        return
+      }
+      activityDate != null &&
+          (dateNormalized.after(endDateNormalized) ||
+              dateNormalized.before(startDateNormalized)) -> {
+        Toast.makeText(
+                context,
+                "Please select a date within the trip's scheduled dates",
+                Toast.LENGTH_SHORT)
+            .show()
+        return
+      }
+      startTime == null && endTime != null -> {
+        Toast.makeText(context, "Please select a start time first", Toast.LENGTH_SHORT).show()
+        return
+      }
+      startTime != null &&
+          endTime != null &&
+          endTimestamp.toDate().before(startTimestamp.toDate()) -> {
+        Toast.makeText(context, "End time must be after start time", Toast.LENGTH_SHORT).show()
+        return
+      }
+      activityDate != null && startTime == null && endTime == null -> {
+        Toast.makeText(context, "No times selected, defaults to 00:00 - 23:59", Toast.LENGTH_SHORT)
+            .show()
+      }
+      activityDate == null -> {
+        Toast.makeText(context, "No date assigned, created as draft", Toast.LENGTH_SHORT).show()
+      }
+      startTime != null && endTime == null -> {
+        Toast.makeText(context, "No end time selected, defaults to 23:59", Toast.LENGTH_SHORT)
+            .show()
+      }
     }
 
     val activity =
@@ -140,7 +186,6 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
             estimatedPrice = estimatedPrice,
             activityType = activityType)
 
-    val selectedTrip = tripsViewModel.selectedTrip.value!!
     val updatedTrip = selectedTrip.copy(activities = selectedTrip.activities + activity)
     tripsViewModel.updateTrip(
         updatedTrip,
