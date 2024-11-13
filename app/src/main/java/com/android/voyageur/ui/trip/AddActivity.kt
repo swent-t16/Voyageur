@@ -258,7 +258,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                     colors =
                         TextFieldDefaults.colors(
                             disabledContainerColor = Color.Transparent,
-                            disabledTextColor = Color.Black),
+                            disabledTextColor = MaterialTheme.colorScheme.onSurface),
                     modifier =
                         Modifier.fillMaxWidth().testTag("inputDate").clickable { showModal = true })
 
@@ -285,7 +285,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                       colors =
                           TextFieldDefaults.colors(
                               disabledContainerColor = Color.Transparent,
-                              disabledTextColor = Color.Black),
+                              disabledTextColor = MaterialTheme.colorScheme.onSurface),
                       modifier =
                           Modifier.fillMaxWidth(0.49f).testTag("inputStartTime").clickable {
                             selectedTimeField = TimeField.START
@@ -301,7 +301,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                       colors =
                           TextFieldDefaults.colors(
                               disabledContainerColor = Color.Transparent,
-                              disabledTextColor = Color.Black),
+                              disabledTextColor = MaterialTheme.colorScheme.onSurface),
                       modifier =
                           Modifier.fillMaxWidth(0.49f).testTag("inputEndTime").clickable {
                             selectedTimeField = TimeField.END

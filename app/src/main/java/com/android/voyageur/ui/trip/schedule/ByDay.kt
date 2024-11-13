@@ -1,7 +1,6 @@
 package com.android.voyageur.ui.trip.schedule
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +14,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -132,6 +133,7 @@ private fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
               .height(215.dp)
               .padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 10.dp)
               .testTag("cardItem"),
+      colors = CardDefaults.cardColors(),
       shape = RoundedCornerShape(16.dp),
       content = {
         Text(
@@ -141,7 +143,6 @@ private fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight(500),
-                    color = Color(0xFF000000),
                     letterSpacing = 0.14.sp,
                 ),
             modifier = Modifier.padding(horizontal = 30.dp, vertical = 10.dp))
@@ -171,7 +172,7 @@ private fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
 /** Activity box which displays activity title. */
 private fun ActivityBox(activity: Activity) {
   // Appropriate background for both Light and Dark Themes
-  val backgroundColor = if (isSystemInDarkTheme()) Color.Black else Color.White
+  val backgroundColor = MaterialTheme.colorScheme.primaryContainer
   Box(
       modifier =
           Modifier.width(119.dp)
