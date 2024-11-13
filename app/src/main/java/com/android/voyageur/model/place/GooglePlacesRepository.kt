@@ -97,7 +97,7 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
    * @param onSuccess Callback invoked with the list of detailed places.
    * @param onFailure Callback invoked with an exception if the fetch fails.
    */
-  private fun fetchPlaceDetails(
+  fun fetchPlaceDetails(
       placeIds: List<String>,
       onSuccess: (List<CustomPlace>) -> Unit,
       onFailure: (Exception) -> Unit

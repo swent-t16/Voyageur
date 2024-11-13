@@ -1,5 +1,6 @@
 package com.android.voyageur.model.place
 
+import android.graphics.Bitmap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
@@ -12,6 +13,7 @@ import com.google.android.libraries.places.api.net.FetchPlaceResponse
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
 import com.google.android.libraries.places.api.net.PlacesClient
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertTrue
 import junit.framework.TestCase.fail
 import org.junit.Before
 import org.junit.Test
@@ -113,5 +115,39 @@ class GooglePlacesRepositoryTest {
 
     verify(mockPlacesClient).findAutocompletePredictions(any())
     verify(mockTask).addOnFailureListener(any())
+  }
+
+  @Test
+  fun testFetchPhotoMetadataAndRequest() {
+    val placeId = "testPlaceId"
+    val mockFetchPhotoTask = mock(Task::class.java) as Task<FetchPhotoResponse>
+
+    `when`(mockPlace.photoMetadatas).thenReturn(listOf(mockPhotoMetadata))
+
+    `when`(mockPlacesClient.fetchPhoto(any())).thenReturn(mockFetchPhotoTask)
+    `when`(mockFetchPhotoTask.addOnSuccessListener(any())).thenAnswer { invocation ->
+      val listener = invocation.arguments[0] as OnSuccessListener<FetchPhotoResponse>
+      listener.onSuccess(mockFetchPhotoResponse) // Simulate successful photo fetch
+      mockFetchPhotoTask
+    }
+    `when`(mockFetchPhotoTask.addOnFailureListener(any())).thenAnswer { invocation ->
+      val listener = invocation.arguments[0] as OnFailureListener
+      listener.onFailure(Exception("Photo API error")) // Simulate failure in photo fetch
+      mockFetchPhotoTask
+    }
+
+    val mockBitmap = mock(Bitmap::class.java)
+    `when`(mockFetchPhotoResponse.bitmap).thenReturn(mockBitmap)
+
+    val onSuccess: (List<CustomPlace>) -> Unit = { customPlaces ->
+      // Check if the bitmap list is not empty
+      assertTrue(customPlaces[0].photos.isNotEmpty())
+    }
+    val onFailure: (Exception) -> Unit = { fail("Failure callback should not be called") }
+
+    googlePlacesRepository.fetchPlaceDetails(listOf(placeId), onSuccess, onFailure)
+
+    verify(mockPlacesClient).fetchPhoto(any())
+    verify(mockFetchPhotoTask).addOnSuccessListener(any())
   }
 }
