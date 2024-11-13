@@ -71,6 +71,7 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
                 user != null -> {
                   ProfileContent(
                       userData = user!!,
+                      signedInUserId = user!!.id,
                       onSignOut = { isSigningOut = true },
                       onEdit = { navigationActions.navigateTo(Route.EDIT_PROFILE) })
                 }
@@ -83,7 +84,17 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
 }
 
 @Composable
-fun ProfileContent(userData: User, onSignOut: () -> Unit, onEdit: () -> Unit) {
-  UserProfileContent(
-      userData = userData, showEditAndSignOutButtons = true, onSignOut = onSignOut, onEdit = onEdit)
+fun ProfileContent(
+    userData: User,
+    signedInUserId: String,
+    onSignOut: () -> Unit,
+    onEdit: () -> Unit
+) {
+    UserProfileContent(
+        userData = userData,
+        signedInUserId = signedInUserId,
+        showEditAndSignOutButtons = true,
+        onSignOut = onSignOut,
+        onEdit = onEdit
+    )
 }

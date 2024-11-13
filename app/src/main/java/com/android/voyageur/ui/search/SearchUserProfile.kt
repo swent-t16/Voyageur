@@ -84,18 +84,25 @@ fun SearchUserProfileScreen(userViewModel: UserViewModel, navigationActions: Nav
  * @param userViewModel The UserViewModel used for managing user data and interactions.
  */
 @Composable
-fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
-  val isContactAdded by remember {
-    derivedStateOf { userViewModel.user.value?.contacts?.contains(userData.id) ?: false }
-  }
-  UserProfileContent(
-      userData = userData,
-      isContactAdded = isContactAdded,
-      onAddOrRemoveContact = {
-        if (isContactAdded) {
-          userViewModel.removeContact(userData.id)
-        } else {
-          userViewModel.addContact(userData.id)
+fun SearchUserProfileContent(
+    userData: User,
+    userViewModel: UserViewModel
+) {
+    val isContactAdded by remember {
+        derivedStateOf { userViewModel.user.value?.contacts?.contains(userData.id) ?: false }
+    }
+    val signedInUserId = userViewModel.user.value?.id ?: ""
+
+    UserProfileContent(
+        userData = userData,
+        signedInUserId = signedInUserId,
+        isContactAdded = isContactAdded,
+        onAddOrRemoveContact = {
+            if (isContactAdded) {
+                userViewModel.removeContact(userData.id)
+            } else {
+                userViewModel.addContact(userData.id)
+            }
         }
-      })
+    )
 }
