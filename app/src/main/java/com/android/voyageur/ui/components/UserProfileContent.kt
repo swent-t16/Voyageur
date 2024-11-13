@@ -50,6 +50,7 @@ import com.android.voyageur.ui.profile.interests.InterestChip
 @Composable
 fun UserProfileContent(
     userData: User,
+    signedInUserId: String,
     showEditAndSignOutButtons: Boolean = false,
     isContactAdded: Boolean = false,
     onSignOut: (() -> Unit)? = null,
@@ -60,7 +61,7 @@ fun UserProfileContent(
       modifier = Modifier.fillMaxSize().padding(16.dp).testTag("userProfileContent"),
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally) {
-        // Display user's profile picture or a default icon if no picture is available
+        // Display profile picture
         if (userData.profilePicture.isNotEmpty()) {
           Image(
               painter = rememberAsyncImagePainter(model = userData.profilePicture),
@@ -75,7 +76,7 @@ fun UserProfileContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Display user's name and email, with fallback text if unavailable
+        // Display name and email
         Text(
             text = userData.name.takeIf { it.isNotEmpty() } ?: "No name available",
             style = MaterialTheme.typography.titleLarge,
@@ -87,7 +88,7 @@ fun UserProfileContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Display the user's interests or a message if no interests are added
+        // Display interests
         Text(
             text = "Interests:",
             style = MaterialTheme.typography.titleMedium,
@@ -111,7 +112,7 @@ fun UserProfileContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Conditional buttons for editing, signing out, or adding/removing as contact
+        // Display buttons conditionally
         Row {
           if (showEditAndSignOutButtons && onEdit != null && onSignOut != null) {
             Button(onClick = onEdit, modifier = Modifier.testTag("editButton")) {
@@ -121,7 +122,7 @@ fun UserProfileContent(
             Button(onClick = onSignOut, modifier = Modifier.testTag("signOutButton")) {
               Text(text = "Sign Out")
             }
-          } else if (onAddOrRemoveContact != null) {
+          } else if (userData.id != signedInUserId && onAddOrRemoveContact != null) {
             Button(
                 onClick = onAddOrRemoveContact,
                 colors =

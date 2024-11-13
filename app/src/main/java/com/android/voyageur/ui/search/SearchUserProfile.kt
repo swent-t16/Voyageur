@@ -88,8 +88,11 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
   val isContactAdded by remember {
     derivedStateOf { userViewModel.user.value?.contacts?.contains(userData.id) ?: false }
   }
+  val signedInUserId = userViewModel.user.value?.id ?: ""
+
   UserProfileContent(
       userData = userData,
+      signedInUserId = signedInUserId,
       isContactAdded = isContactAdded,
       onAddOrRemoveContact = {
         if (isContactAdded) {
