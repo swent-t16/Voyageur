@@ -130,7 +130,7 @@ fun UserProfileContent(
                             if (isContactAdded) MaterialTheme.colorScheme.error
                             else MaterialTheme.colorScheme.primary),
                 modifier = Modifier.testTag("userProfileAddRemoveContactButton")) {
-                  Text(text = if (isContactAdded) "Remove" else "Add")
+                  Text(text = if (isContactAdded) "Remove from contacts" else "Add to contacts")
                 }
           }
         }
