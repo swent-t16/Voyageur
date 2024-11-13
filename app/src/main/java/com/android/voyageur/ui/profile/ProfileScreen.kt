@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.profile
 
+import UserProfileContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -102,75 +103,12 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
       })
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ProfileContent(userData: User, onSignOut: () -> Unit, onEdit: () -> Unit) {
-  Column(
-      modifier = Modifier.fillMaxSize().padding(16.dp).testTag("profileContent"),
-      verticalArrangement = Arrangement.Center,
-      horizontalAlignment = Alignment.CenterHorizontally) {
-        // Display the profile picture if available
-        if (userData.profilePicture.isNotEmpty()) {
-          Image(
-              painter = rememberAsyncImagePainter(model = userData.profilePicture),
-              contentDescription = "Profile Picture",
-              modifier = Modifier.size(128.dp).clip(CircleShape).testTag("profilePicture"))
-        } else {
-          Icon(
-              imageVector = Icons.Default.AccountCircle,
-              contentDescription = "Default Profile Picture",
-              modifier = Modifier.size(128.dp).testTag("defaultProfilePicture"))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Display user name and email
-        Text(
-            text = userData.name.takeIf { it.isNotEmpty() } ?: "No name available",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.testTag("userName"))
-        Text(
-            text = userData.email.takeIf { it.isNotEmpty() } ?: "No email available",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.testTag("userEmail"))
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Display interests
-        Text(
-            text = "Interests:",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(vertical = 8.dp))
-
-        if (userData.interests.isNotEmpty()) {
-          // Display interests using FlowRow for better layout
-          FlowRow(
-              modifier =
-                  Modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag("interestsFlowRow"),
-              horizontalArrangement = Arrangement.Center) {
-                userData.interests.forEach { interest ->
-                  InterestChip(interest = interest, modifier = Modifier.padding(4.dp))
-                }
-              }
-        } else {
-          // Display message when no interests are added
-          Text(
-              text = "No interests added yet",
-              style = MaterialTheme.typography.bodyMedium,
-              modifier = Modifier.testTag("noInterests"))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Edit and Sign out buttons
-        Row {
-          Button(onClick = onEdit, modifier = Modifier.testTag("editButton")) {
-            Text(text = "Edit")
-          }
-          Spacer(modifier = Modifier.width(16.dp))
-          Button(onClick = onSignOut, modifier = Modifier.testTag("signOutButton")) {
-            Text(text = "Sign Out")
-          }
-        }
-      }
+    UserProfileContent(
+        userData = userData,
+        showEditAndSignOutButtons = true,
+        onSignOut = onSignOut,
+        onEdit = onEdit
+    )
 }

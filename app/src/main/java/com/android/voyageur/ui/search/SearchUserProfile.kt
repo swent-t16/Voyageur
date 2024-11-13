@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.search
 
+import UserProfileContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -89,87 +90,20 @@ fun SearchUserProfileScreen(userViewModel: UserViewModel, navigationActions: Nav
  * @param userData The selected User object containing user details.
  * @param userViewModel The UserViewModel used for managing user data and interactions.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
-  // Observing if the selected user is already a contact
-  val isContactAdded by remember {
-    derivedStateOf { userViewModel.user.value?.contacts?.contains(userData.id) ?: false }
-  }
-
-  Column(
-      modifier = Modifier.fillMaxSize().padding(16.dp).testTag("userProfileContent"),
-      verticalArrangement = Arrangement.Center,
-      horizontalAlignment = Alignment.CenterHorizontally) {
-        // Display profile picture or a default icon if the picture is unavailable
-        if (userData.profilePicture.isNotEmpty()) {
-          Image(
-              painter = rememberAsyncImagePainter(model = userData.profilePicture),
-              contentDescription = "Profile Picture",
-              modifier = Modifier.size(128.dp).clip(CircleShape).testTag("userProfilePicture"))
-        } else {
-          Icon(
-              imageVector = Icons.Default.AccountCircle,
-              contentDescription = "Default Profile Picture",
-              modifier = Modifier.size(128.dp).testTag("userProfileDefaultPicture"))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Display user's name and email or fallback text if unavailable
-        Text(
-            text = "Name: ${userData.name.takeIf { it.isNotEmpty() } ?: "No name available"}",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.testTag("userProfileName"))
-        Text(
-            text = "Email: ${userData.email.takeIf { it.isNotEmpty() } ?: "No email available"}",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.testTag("userProfileEmail"))
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Display user's interests or fallback message if there are none
-        Text(
-            text = "Interests:",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(vertical = 8.dp).testTag("userProfileInterestsTitle"))
-
-        if (userData.interests.isNotEmpty()) {
-          FlowRow(
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .padding(horizontal = 16.dp)
-                      .testTag("userProfileInterestsFlow"),
-              horizontalArrangement = Arrangement.Center) {
-                userData.interests.forEach { interest ->
-                  InterestChip(interest = interest, modifier = Modifier.padding(4.dp))
-                }
-              }
-        } else {
-          Text(
-              text = "No interests added yet",
-              style = MaterialTheme.typography.bodyMedium,
-              modifier = Modifier.testTag("userProfileNoInterests"))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Add/Remove Contact button
-        Button(
-            onClick = {
-              if (isContactAdded) {
+    val isContactAdded by remember {
+        derivedStateOf { userViewModel.user.value?.contacts?.contains(userData.id) ?: false }
+    }
+    UserProfileContent(
+        userData = userData,
+        isContactAdded = isContactAdded,
+        onAddOrRemoveContact = {
+            if (isContactAdded) {
                 userViewModel.removeContact(userData.id)
-              } else {
+            } else {
                 userViewModel.addContact(userData.id)
-              }
-            },
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor =
-                        if (isContactAdded) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.primary),
-            modifier = Modifier.testTag("userProfileAddRemoveContactButton")) {
-              Text(text = if (isContactAdded) "Remove" else "Add")
             }
-      }
+        }
+    )
 }
