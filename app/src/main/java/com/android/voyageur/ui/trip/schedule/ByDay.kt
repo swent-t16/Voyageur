@@ -78,9 +78,12 @@ fun ByDayScreen(
                 }
         if (groupedActivities.isEmpty()) {
           // Display empty prompt if there are no activities
-          Text(
-              modifier = Modifier.padding(pd).testTag("emptyByDayPrompt"),
-              text = "You have no activities yet. Schedule one.")
+          Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                modifier = Modifier.testTag("emptyByDayPrompt"),
+                text = "You have no activities yet.",
+            )
+          }
         } else {
           LazyColumn(
               modifier =
