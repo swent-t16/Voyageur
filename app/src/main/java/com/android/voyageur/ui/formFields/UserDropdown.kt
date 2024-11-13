@@ -77,7 +77,7 @@ fun UserDropdown(
         modifier = Modifier.fillMaxWidth()) {
           users.forEachIndexed { index, userPair ->
             DropdownMenuItem(
-                text = { Text(userPair.first.name) },
+                text = { Text("${userPair.first.name} ") },
                 onClick = { onUpdate(userPair, index) },
                 leadingIcon = {
                   Checkbox(

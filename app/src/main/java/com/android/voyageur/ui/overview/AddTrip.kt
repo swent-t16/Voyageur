@@ -90,7 +90,6 @@ fun AddTripScreen(
   var endDate by remember { mutableStateOf<Long?>(null) }
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
   var imageUri by remember { mutableStateOf("") }
-  var showRationaleDialog by remember { mutableStateOf(false) }
   var userList = mutableStateListOf<Pair<User, Boolean>>()
 
   val context = LocalContext.current
@@ -123,14 +122,24 @@ fun AddTripScreen(
     }
   }
 
-  val trip = tripsViewModel.selectedTrip.collectAsState().value
-  userViewModel.getMyContacts({
-    Log.d("Users", it.size.toString())
-    userList.clear()
-    it.forEach() { user ->
-      userList.add(Pair(user, isEditMode && trip?.participants?.contains(user.id) ?: false))
-    }
-  })
+  val _trip = tripsViewModel.selectedTrip.value
+  fun fetchContacts() {
+      userViewModel.getMyContacts({ it ->
+          Log.d("Users", it.size.toString())
+          userList.clear()
+          it.filter { user -> user.id != Firebase.auth.uid.orEmpty() }.forEach() { user ->
+              userList.add(
+                  Pair(
+                      user,
+                      isEditMode && _trip?.participants?.contains(user.id) ?: false
+                  )
+              )
+          }
+      })
+  }
+
+  fetchContacts()
+
 
   fun createTripWithImage(imageUrl: String) {
 

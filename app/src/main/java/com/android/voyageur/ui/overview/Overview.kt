@@ -50,7 +50,9 @@ import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -189,7 +191,7 @@ fun TripItem(
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
-  val numberOfParticipants = trip.participants.size
+  val numberOfParticipants = trip.participants.size - 1
   val numberToString = generateParticipantString(numberOfParticipants)
   Column(
       modifier = Modifier.fillMaxHeight().padding(start = 0.dp, end = 0.dp, top = 8.dp),
@@ -215,7 +217,7 @@ fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
         ) {
           // Display participants (limit to 5 avatars max for space reasons)
           if (numberOfParticipants > 0) {
-            trip.participants.take(4).forEach { participant ->
+            trip.participants.filter{it != Firebase.auth.uid.orEmpty()}.take(4).forEach { participant ->
               // TODO: Replace Box with user avatars once they are designed
               Box(
                   modifier =
