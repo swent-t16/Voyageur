@@ -1,25 +1,18 @@
 package com.android.voyageur.ui.search
 
 import UserProfileContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
-import com.android.voyageur.ui.profile.interests.InterestChip
 
 /**
  * Composable function for displaying a detailed profile of a selected user. Displays a loading
@@ -92,18 +85,17 @@ fun SearchUserProfileScreen(userViewModel: UserViewModel, navigationActions: Nav
  */
 @Composable
 fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
-    val isContactAdded by remember {
-        derivedStateOf { userViewModel.user.value?.contacts?.contains(userData.id) ?: false }
-    }
-    UserProfileContent(
-        userData = userData,
-        isContactAdded = isContactAdded,
-        onAddOrRemoveContact = {
-            if (isContactAdded) {
-                userViewModel.removeContact(userData.id)
-            } else {
-                userViewModel.addContact(userData.id)
-            }
+  val isContactAdded by remember {
+    derivedStateOf { userViewModel.user.value?.contacts?.contains(userData.id) ?: false }
+  }
+  UserProfileContent(
+      userData = userData,
+      isContactAdded = isContactAdded,
+      onAddOrRemoveContact = {
+        if (isContactAdded) {
+          userViewModel.removeContact(userData.id)
+        } else {
+          userViewModel.addContact(userData.id)
         }
-    )
+      })
 }
