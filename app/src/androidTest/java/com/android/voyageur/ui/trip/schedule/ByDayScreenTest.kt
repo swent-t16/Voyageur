@@ -248,44 +248,46 @@ class ByDayScreenTest {
 
     verify(navigationActions).navigateTo(Screen.ADD_ACTIVITY)
   }
-    @Test
-    fun draftActivitiesAreNotDisplayed() {
-        val tripWithDraftActivities = Trip(
+
+  @Test
+  fun draftActivitiesAreNotDisplayed() {
+    val tripWithDraftActivities =
+        Trip(
             name = "Trip with Draft Activities",
-            activities = listOf(
-                // Draft activity, doesn't have start and end times
-                Activity(
-                    title = "Draft activity",
-                    description = "This is a published activity",
-                    estimatedPrice = 30.0,
-                    activityType = ActivityType.RESTAURANT,
-                ),
-                Activity(
-                    title = "Activity",
-                    description = "2 January activity",
-                    startTime = createTimestamp(2022, 1, 2, 12, 0),
-                    endTime = createTimestamp(2022, 1, 2, 14, 0),
-                    estimatedPrice = 20.0,
-                    activityType = ActivityType.RESTAURANT),
-            )
-        )
+            activities =
+                listOf(
+                    // Draft activity, doesn't have start and end times
+                    Activity(
+                        title = "Draft activity",
+                        description = "This is a published activity",
+                        estimatedPrice = 30.0,
+                        activityType = ActivityType.RESTAURANT,
+                    ),
+                    Activity(
+                        title = "Activity",
+                        description = "2 January activity",
+                        startTime = createTimestamp(2022, 1, 2, 12, 0),
+                        endTime = createTimestamp(2022, 1, 2, 14, 0),
+                        estimatedPrice = 20.0,
+                        activityType = ActivityType.RESTAURANT),
+                ))
 
-        composeTestRule.setContent { ByDayScreen(tripWithDraftActivities, navigationActions) }
+    composeTestRule.setContent { ByDayScreen(tripWithDraftActivities, navigationActions) }
 
-        // Check that the non-draft activity is displayed
-        composeTestRule.onNodeWithText("Activity").assertIsDisplayed()
+    // Check that the non-draft activity is displayed
+    composeTestRule.onNodeWithText("Activity").assertIsDisplayed()
 
-        // Check that the draft activity is NOT displayed
-        composeTestRule.onNodeWithText("Draft Activity").assertDoesNotExist()
+    // Check that the draft activity is NOT displayed
+    composeTestRule.onNodeWithText("Draft Activity").assertDoesNotExist()
+  }
+
+  @Test
+  fun formatDailyDate_ReturnsInvalidDate_ForExceptionScenario() {
+    try {
+      val invalidDate = LocalDate.of(2024, 2, 30) // February 30th does not exist
+      formatDailyDate(invalidDate)
+    } catch (e: Exception) {
+      assertEquals("Invalid date", "Invalid date")
     }
-    @Test
-    fun formatDailyDate_ReturnsInvalidDate_ForExceptionScenario() {
-        try {
-            val invalidDate = LocalDate.of(2024, 2, 30) // February 30th does not exist
-            formatDailyDate(invalidDate)
-        } catch (e: Exception) {
-            assertEquals("Invalid date", "Invalid date")
-        }
-    }
+  }
 }
-
