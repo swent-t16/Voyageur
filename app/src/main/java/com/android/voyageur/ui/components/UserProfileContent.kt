@@ -57,24 +57,21 @@ fun UserProfileContent(
     onEdit: (() -> Unit)? = null,
     onAddOrRemoveContact: (() -> Unit)? = null
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp).testTag("userProfileContent"),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+  Column(
+      modifier = Modifier.fillMaxSize().padding(16.dp).testTag("userProfileContent"),
+      verticalArrangement = Arrangement.Center,
+      horizontalAlignment = Alignment.CenterHorizontally) {
         // Display profile picture
         if (userData.profilePicture.isNotEmpty()) {
-            Image(
-                painter = rememberAsyncImagePainter(model = userData.profilePicture),
-                contentDescription = "Profile Picture",
-                modifier = Modifier.size(128.dp).clip(CircleShape).testTag("userProfilePicture")
-            )
+          Image(
+              painter = rememberAsyncImagePainter(model = userData.profilePicture),
+              contentDescription = "Profile Picture",
+              modifier = Modifier.size(128.dp).clip(CircleShape).testTag("userProfilePicture"))
         } else {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "Default Profile Picture",
-                modifier = Modifier.size(128.dp).testTag("defaultProfilePicture")
-            )
+          Icon(
+              imageVector = Icons.Default.AccountCircle,
+              contentDescription = "Default Profile Picture",
+              modifier = Modifier.size(128.dp).testTag("defaultProfilePicture"))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -83,13 +80,11 @@ fun UserProfileContent(
         Text(
             text = userData.name.takeIf { it.isNotEmpty() } ?: "No name available",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.testTag("userName")
-        )
+            modifier = Modifier.testTag("userName"))
         Text(
             text = userData.email.takeIf { it.isNotEmpty() } ?: "No email available",
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.testTag("userEmail")
-        )
+            modifier = Modifier.testTag("userEmail"))
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -97,49 +92,48 @@ fun UserProfileContent(
         Text(
             text = "Interests:",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+            modifier = Modifier.padding(vertical = 8.dp))
 
         if (userData.interests.isNotEmpty()) {
-            FlowRow(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag("interestsFlowRow"),
-                horizontalArrangement = Arrangement.Center
-            ) {
+          FlowRow(
+              modifier =
+                  Modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag("interestsFlowRow"),
+              horizontalArrangement = Arrangement.Center) {
                 userData.interests.forEach { interest ->
-                    InterestChip(interest = interest, modifier = Modifier.padding(4.dp))
+                  InterestChip(interest = interest, modifier = Modifier.padding(4.dp))
                 }
-            }
+              }
         } else {
-            Text(
-                text = "No interests added yet",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.testTag("noInterests")
-            )
+          Text(
+              text = "No interests added yet",
+              style = MaterialTheme.typography.bodyMedium,
+              modifier = Modifier.testTag("noInterests"))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Display buttons conditionally
         Row {
-            if (showEditAndSignOutButtons && onEdit != null && onSignOut != null) {
-                Button(onClick = onEdit, modifier = Modifier.testTag("editButton")) {
-                    Text(text = "Edit")
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Button(onClick = onSignOut, modifier = Modifier.testTag("signOutButton")) {
-                    Text(text = "Sign Out")
-                }
-            } else if (userData.id != signedInUserId && onAddOrRemoveContact != null) {
-                Button(
-                    onClick = onAddOrRemoveContact,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isContactAdded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-                    ),
-                    modifier = Modifier.testTag("userProfileAddRemoveContactButton")
-                ) {
-                    Text(text = if (isContactAdded) "Remove from contacts" else "Add to contacts")
-                }
+          if (showEditAndSignOutButtons && onEdit != null && onSignOut != null) {
+            Button(onClick = onEdit, modifier = Modifier.testTag("editButton")) {
+              Text(text = "Edit")
             }
+            Spacer(modifier = Modifier.width(16.dp))
+            Button(onClick = onSignOut, modifier = Modifier.testTag("signOutButton")) {
+              Text(text = "Sign Out")
+            }
+          } else if (userData.id != signedInUserId && onAddOrRemoveContact != null) {
+            Button(
+                onClick = onAddOrRemoveContact,
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor =
+                            if (isContactAdded) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.primary),
+                modifier = Modifier.testTag("userProfileAddRemoveContactButton")) {
+                  Text(text = if (isContactAdded) "Remove from contacts" else "Add to contacts")
+                }
+          }
         }
-    }
+      }
 }

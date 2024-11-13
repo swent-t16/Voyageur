@@ -90,11 +90,10 @@ fun ProfileContent(
     onSignOut: () -> Unit,
     onEdit: () -> Unit
 ) {
-    UserProfileContent(
-        userData = userData,
-        signedInUserId = signedInUserId,
-        showEditAndSignOutButtons = true,
-        onSignOut = onSignOut,
-        onEdit = onEdit
-    )
+  UserProfileContent(
+      userData = userData,
+      signedInUserId = signedInUserId,
+      showEditAndSignOutButtons = true,
+      onSignOut = onSignOut,
+      onEdit = onEdit)
 }
