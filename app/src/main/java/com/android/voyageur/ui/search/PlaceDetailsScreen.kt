@@ -110,8 +110,7 @@ fun PlaceDetailsContent(customPlace: CustomPlace) {
               modifier = Modifier.padding(bottom = 8.dp))
         }
 
-        EnhancedPhotoCarousel(customPlace = customPlace)
-
+        PhotoCarousel(customPlace = customPlace)
 
         // Display rating and number of ratings
         if (place.rating != null && place.userRatingsTotal != null) {
@@ -186,156 +185,137 @@ fun PlaceDetailsContent(customPlace: CustomPlace) {
 
 @Composable
 fun OpeningHoursWidget(openingHours: List<String>) {
-    var selectedDayIndex by remember { mutableStateOf(0) }
-    val daysOfWeek = listOf(
-        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-    )
+  var selectedDayIndex by remember { mutableStateOf(0) }
+  val daysOfWeek =
+      listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
-    Column(
-        modifier = Modifier
-            .padding(vertical = 8.dp)
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+  Column(
+      modifier = Modifier.padding(vertical = 8.dp).fillMaxWidth(),
+      horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = "Opening Hours",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.secondary
-            ),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+            style =
+                MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.secondary),
+            modifier = Modifier.padding(bottom = 8.dp))
 
         // Horizontal list of days
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
-            contentPadding = PaddingValues(horizontal = 16.dp)
-        ) {
-            items(daysOfWeek.size) { index ->
+            contentPadding = PaddingValues(horizontal = 16.dp)) {
+              items(daysOfWeek.size) { index ->
                 val isSelected = index == selectedDayIndex
                 Text(
                     text = daysOfWeek[index],
-                    modifier = Modifier
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                        .background(
-                            color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                            else Color.Transparent,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .clickable { selectedDayIndex = index }
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    modifier =
+                        Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            .background(
+                                color =
+                                    if (isSelected)
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                    else Color.Transparent,
+                                shape = RoundedCornerShape(12.dp))
+                            .clickable { selectedDayIndex = index }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                    color =
+                        if (isSelected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    fontSize = 14.sp
-                )
+                    fontSize = 14.sp)
+              }
             }
-        }
 
         // Display the selected day's hours
         if (selectedDayIndex >= 0 && selectedDayIndex < openingHours.size) {
-            Text(
-                text = openingHours[selectedDayIndex],
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 16.sp),
-                modifier = Modifier.padding(top = 8.dp)
-            )
+          Text(
+              text = openingHours[selectedDayIndex],
+              style = MaterialTheme.typography.bodySmall.copy(fontSize = 16.sp),
+              modifier = Modifier.padding(top = 8.dp))
         }
-    }
+      }
 }
 
 @Composable
-fun EnhancedPhotoCarousel(customPlace: CustomPlace) {
-    val coroutineScope = rememberCoroutineScope()
-    val photos by rememberUpdatedState(customPlace.photos) // Ensure state is up-to-date
+fun PhotoCarousel(customPlace: CustomPlace) {
+  val coroutineScope = rememberCoroutineScope()
+  val photos by rememberUpdatedState(customPlace.photos) // Ensure state is up-to-date
 
-    LaunchedEffect(photos) {
-        // Trigger recomposition when photos are updated
+  LaunchedEffect(photos) {
+    // Trigger recomposition when photos are updated
 
-    }
+  }
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(300.dp) // Adjust height as needed
-            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
-    ) {
+  Box(
+      modifier =
+          Modifier.fillMaxWidth()
+              .height(300.dp) // Adjust height as needed
+              .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))) {
         if (photos.isNotEmpty()) {
-            // HorizontalPager for images when available
-            val pagerState = rememberPagerState(pageCount = { photos.size })
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize()
-            ) { page ->
-                Image(
-                    bitmap = photos[page], // Replace with your image source
-                    contentDescription = "Place photo",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+          // HorizontalPager for images when available
+          val pagerState = rememberPagerState(pageCount = { photos.size })
+          HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
+            Image(
+                bitmap = photos[page], // Replace with your image source
+                contentDescription = "Place photo",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize())
+          }
 
-            // Bottom gradient for fade-out effect
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp) // Control how far up the gradient extends
-                    .align(Alignment.BottomCenter)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.7f) // Stronger fade effect
-                            )
-                        )
-                    )
-            )
+          // Bottom gradient for fade-out effect
+          Box(
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .height(150.dp) // Control how far up the gradient extends
+                      .align(Alignment.BottomCenter)
+                      .background(
+                          brush =
+                              Brush.verticalGradient(
+                                  colors =
+                                      listOf(
+                                          Color.Transparent,
+                                          Color.Black.copy(alpha = 0.7f) // Stronger fade effect
+                                          ))))
 
-            // Navigation arrows
-            IconButton(
-                onClick = {
-                    coroutineScope.launch {
-                        if (pagerState.currentPage > 0) {
-                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(16.dp)
-            ) {
+          // Navigation arrows
+          IconButton(
+              onClick = {
+                coroutineScope.launch {
+                  if (pagerState.currentPage > 0) {
+                    pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                  }
+                }
+              },
+              modifier = Modifier.align(Alignment.CenterStart).padding(16.dp)) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Previous image",
                     tint = Color.White.copy(alpha = 0.8f) // Adjust tint for visibility
-                )
-            }
+                    )
+              }
 
-            IconButton(
-                onClick = {
-                    coroutineScope.launch {
-                        if (pagerState.currentPage < pagerState.pageCount - 1) {
-                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(16.dp)
-            ) {
+          IconButton(
+              onClick = {
+                coroutineScope.launch {
+                  if (pagerState.currentPage < pagerState.pageCount - 1) {
+                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                  }
+                }
+              },
+              modifier = Modifier.align(Alignment.CenterEnd).padding(16.dp)) {
                 Icon(
                     imageVector = Icons.Default.ArrowForward,
                     contentDescription = "Next image",
                     tint = Color.White.copy(alpha = 0.8f) // Adjust tint for visibility
-                )
-            }
+                    )
+              }
         } else {
-            // Fallback image when there are no photos
-            Image(
-                painter = painterResource(id = R.drawable.image_not_found),
-                contentDescription = "Placeholder image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
+          // Fallback image when there are no photos
+          Image(
+              painter = painterResource(id = R.drawable.image_not_found),
+              contentDescription = "Placeholder image",
+              contentScale = ContentScale.Crop,
+              modifier = Modifier.fillMaxSize())
         }
-    }
+      }
 }
