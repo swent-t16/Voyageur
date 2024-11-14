@@ -115,8 +115,7 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
             val place = response.place
             val bitmaps = mutableListOf<ImageBitmap>()
 
-            val photosMetadata =
-                ((place.photoMetadatas)?: emptyList<PhotoMetadata>()).take(5)
+            val photosMetadata = ((place.photoMetadatas) ?: emptyList<PhotoMetadata>()).take(5)
             for (photoMetadata in photosMetadata) {
               val photoRequest = FetchPhotoRequest.builder(photoMetadata).build()
               placesClient
