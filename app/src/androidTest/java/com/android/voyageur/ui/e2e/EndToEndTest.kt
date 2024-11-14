@@ -92,12 +92,12 @@ class E2ETest {
           navController = navController,
           startDestination = Route.OVERVIEW,
       ) {
-        composable(Route.OVERVIEW) { OverviewScreen(tripsViewModel, navigation) }
+        composable(Route.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
         composable(Route.PROFILE) { ProfileScreen(userViewModel, navigation) }
         composable(Route.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigation) }
         composable(Route.TOP_TABS) { TopTabs(tripsViewModel, navigation) }
         composable(Screen.ADD_TRIP) { AddTripScreen(tripsViewModel, navigation) }
-        composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigation) }
+        composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
         composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigation) }
         composable(Screen.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigation) }
         composable(Screen.TOP_TABS) { TopTabs(tripsViewModel, navigation) }

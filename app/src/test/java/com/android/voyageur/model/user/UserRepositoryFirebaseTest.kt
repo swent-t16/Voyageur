@@ -239,4 +239,92 @@ class UserRepositoryFirebaseTest {
 
     shadowOf(Looper.getMainLooper()).idle()
   }
+
+  @Test
+  fun testFetchUsersByIds_success() {
+    val userIds = listOf("1", "2")
+    val mockTask = mock(Task::class.java) as Task<QuerySnapshot>
+    val testUserList =
+        listOf(
+            User("1", "John Doe", "john@example.com", "password123", "555-1234"),
+            User("2", "Jane Doe", "jane@example.com", "password456", "555-5678"))
+
+    `when`(mockCollectionReference.whereIn(FieldPath.documentId(), userIds)).thenReturn(mockQuery)
+    `when`(mockQuery.get()).thenReturn(mockTask)
+
+    `when`(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
+      val listener = invocation.arguments[0] as OnSuccessListener<QuerySnapshot>
+      listener.onSuccess(mockQuerySnapshot)
+      mockTask
+    }
+
+    `when`(mockQuerySnapshot.toObjects(User::class.java)).thenReturn(testUserList)
+
+    val onSuccess: (List<User>) -> Unit = { users -> assertEquals(testUserList, users) }
+
+    val onFailure: (Exception) -> Unit = {
+      assert(false) { "Failure should not be called in the success test" }
+    }
+
+    userRepository.fetchUsersByIds(userIds, onSuccess, onFailure)
+
+    verify(mockQuery).get()
+    verify(mockTask).addOnSuccessListener(any())
+  }
+
+  @Test
+  fun testFetchUsersByIds_failure() {
+    val userIds = listOf("1", "2")
+    val exception = Exception("Firestore error")
+    val mockTask = mock(Task::class.java) as Task<QuerySnapshot>
+
+    `when`(mockCollectionReference.whereIn(FieldPath.documentId(), userIds)).thenReturn(mockQuery)
+    `when`(mockQuery.get()).thenReturn(mockTask)
+
+    `when`(mockTask.addOnSuccessListener(any())).thenAnswer { mockTask }
+
+    `when`(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
+      val listener = invocation.arguments[0] as OnFailureListener
+      listener.onFailure(exception)
+      mockTask
+    }
+
+    val onSuccess: (List<User>) -> Unit = {
+      assert(false) { "Success should not be called in the failure test" }
+    }
+
+    val onFailure: (Exception) -> Unit = { e -> assertEquals("Firestore error", e.message) }
+
+    userRepository.fetchUsersByIds(userIds, onSuccess, onFailure)
+
+    verify(mockQuery).get()
+    verify(mockTask).addOnFailureListener(any())
+  }
+
+  @Test
+  fun testGetContacts_failure_userNotFound() {
+    val userId = "1"
+    val mockTask = mock(Task::class.java) as Task<DocumentSnapshot>
+
+    `when`(mockDocumentReference.get()).thenReturn(mockTask)
+    `when`(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
+      val listener = invocation.arguments[0] as OnSuccessListener<DocumentSnapshot>
+      `when`(mockDocumentSnapshot.toObject(User::class.java))
+          .thenReturn(null) // Simulate user not found
+      listener.onSuccess(mockDocumentSnapshot)
+      mockTask
+    }
+
+    val onSuccess: (List<User>) -> Unit = {
+      assert(false) { "Success should not be called in the failure test" }
+    }
+
+    val onFailure: (Exception) -> Unit = { exception ->
+      assertEquals("User not found", exception.message)
+    }
+
+    userRepository.getContacts(userId, onSuccess, onFailure)
+
+    verify(mockDocumentReference).get()
+  }
 }

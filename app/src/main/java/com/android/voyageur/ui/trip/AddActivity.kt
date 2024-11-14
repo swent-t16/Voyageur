@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -15,7 +16,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -59,17 +62,9 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
   var formattedStartTime = startTime?.let { timeFormat.format(Date(it)) } ?: ""
   var formattedEndTime = endTime?.let { timeFormat.format(Date(it)) } ?: ""
 
+  val keyboardController = LocalSoftwareKeyboardController.current
+
   fun createActivity() {
-    if (activityDate == null && (startTime != null || endTime != null)) {
-      Toast.makeText(context, "Please select an activity date first", Toast.LENGTH_SHORT).show()
-      return
-    }
-
-    if (startTime == null && endTime != null) {
-      Toast.makeText(context, "Please select a start time first", Toast.LENGTH_SHORT).show()
-      return
-    }
-
     fun normalizeToMidnight(date: Date): Date {
       val calendar =
           Calendar.getInstance().apply {
@@ -85,10 +80,9 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
     val today = normalizeToMidnight(Date())
     val dateNormalized = activityDate?.let { normalizeToMidnight(Date(it)) } ?: Date(0)
 
-    if (activityDate != null && dateNormalized.before(today)) {
-      Toast.makeText(context, "The activity date cannot be in the past", Toast.LENGTH_SHORT).show()
-      return
-    }
+    val selectedTrip = tripsViewModel.selectedTrip.value!!
+    val startDateNormalized = normalizeToMidnight(selectedTrip.startDate.toDate())
+    val endDateNormalized = normalizeToMidnight(selectedTrip.endDate.toDate())
 
     val startTimestamp =
         Timestamp(
@@ -144,23 +138,48 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                     }
                     .time)
 
-    if (startTime != null &&
-        endTime != null &&
-        endTimestamp.toDate().before(startTimestamp.toDate())) {
-      Toast.makeText(context, "End time must be after start time", Toast.LENGTH_SHORT).show()
-      return
-    }
-
-    if (activityDate != null && startTime == null && endTime == null)
+    when {
+      activityDate == null && (startTime != null || endTime != null) -> {
+        Toast.makeText(context, "Please select an activity date first", Toast.LENGTH_SHORT).show()
+        return
+      }
+      activityDate != null && dateNormalized.before(today) -> {
+        Toast.makeText(context, "The activity date cannot be in the past", Toast.LENGTH_SHORT)
+            .show()
+        return
+      }
+      activityDate != null &&
+          (dateNormalized.after(endDateNormalized) ||
+              dateNormalized.before(startDateNormalized)) -> {
+        Toast.makeText(
+                context,
+                "Please select a date within the trip's scheduled dates",
+                Toast.LENGTH_SHORT)
+            .show()
+        return
+      }
+      startTime == null && endTime != null -> {
+        Toast.makeText(context, "Please select a start time first", Toast.LENGTH_SHORT).show()
+        return
+      }
+      startTime != null &&
+          endTime != null &&
+          endTimestamp.toDate().before(startTimestamp.toDate()) -> {
+        Toast.makeText(context, "End time must be after start time", Toast.LENGTH_SHORT).show()
+        return
+      }
+      activityDate != null && startTime == null && endTime == null -> {
         Toast.makeText(context, "No times selected, defaults to 00:00 - 23:59", Toast.LENGTH_SHORT)
             .show()
-
-    if (activityDate == null)
+      }
+      activityDate == null -> {
         Toast.makeText(context, "No date assigned, created as draft", Toast.LENGTH_SHORT).show()
-
-    if (startTime != null && endTime == null)
+      }
+      startTime != null && endTime == null -> {
         Toast.makeText(context, "No end time selected, defaults to 23:59", Toast.LENGTH_SHORT)
             .show()
+      }
+    }
 
     val activity =
         Activity(
@@ -172,7 +191,6 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
             estimatedPrice = estimatedPrice,
             activityType = activityType)
 
-    val selectedTrip = tripsViewModel.selectedTrip.value!!
     val updatedTrip = selectedTrip.copy(activities = selectedTrip.activities + activity)
     tripsViewModel.updateTrip(
         updatedTrip,
@@ -212,7 +230,10 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                     isError = title.isEmpty(),
                     label = { Text("Title *") },
                     placeholder = { Text("Name the activity") },
-                    modifier = Modifier.fillMaxWidth().testTag("inputActivityTitle"))
+                    modifier = Modifier.fillMaxWidth().testTag("inputActivityTitle"),
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+                    singleLine = true)
 
                 OutlinedTextField(
                     value = description,
@@ -237,7 +258,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                     colors =
                         TextFieldDefaults.colors(
                             disabledContainerColor = Color.Transparent,
-                            disabledTextColor = Color.Black),
+                            disabledTextColor = MaterialTheme.colorScheme.onSurface),
                     modifier =
                         Modifier.fillMaxWidth().testTag("inputDate").clickable { showModal = true })
 
@@ -264,7 +285,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                       colors =
                           TextFieldDefaults.colors(
                               disabledContainerColor = Color.Transparent,
-                              disabledTextColor = Color.Black),
+                              disabledTextColor = MaterialTheme.colorScheme.onSurface),
                       modifier =
                           Modifier.fillMaxWidth(0.49f).testTag("inputStartTime").clickable {
                             selectedTimeField = TimeField.START
@@ -280,7 +301,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                       colors =
                           TextFieldDefaults.colors(
                               disabledContainerColor = Color.Transparent,
-                              disabledTextColor = Color.Black),
+                              disabledTextColor = MaterialTheme.colorScheme.onSurface),
                       modifier =
                           Modifier.fillMaxWidth(0.49f).testTag("inputEndTime").clickable {
                             selectedTimeField = TimeField.END

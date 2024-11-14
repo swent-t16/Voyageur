@@ -1,7 +1,6 @@
 package com.android.voyageur.ui.trip.schedule
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,9 +13,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +49,6 @@ fun ByDayScreen(
     navigationActions: NavigationActions,
 ) {
   Scaffold(
-      // TODO: Final implementation of ByDayScreen
       floatingActionButton = {
         FloatingActionButton(
             onClick = { navigationActions.navigateTo(Screen.ADD_ACTIVITY) },
@@ -66,7 +67,6 @@ fun ByDayScreen(
             selectedItem = navigationActions.currentRoute())
       },
       content = { pd ->
-        // TODO: sort activities by their hour
         val tripActivities = trip.activities
         val groupedActivities =
             groupActivitiesByDate(tripActivities)
@@ -78,11 +78,14 @@ fun ByDayScreen(
                   // Filter out groups that become empty after removing draft activities
                   activities.isNotEmpty()
                 }
-        //        val groupedActivities = groupActivitiesByDate(tripActivities)
         if (groupedActivities.isEmpty()) {
-          Text(
-              modifier = Modifier.padding(pd).testTag("emptyByDayPrompt"),
-              text = "You have no activities yet. Schedule one.")
+          // Display empty prompt if there are no activities
+          Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                modifier = Modifier.testTag("emptyByDayPrompt"),
+                text = "You have no activities yet.",
+            )
+          }
         } else {
           LazyColumn(
               modifier =
@@ -104,7 +107,10 @@ fun ByDayScreen(
       })
 }
 
-// TODO: Test this works
+/**
+ * Function to sort Activities. It sorts by startTime, and if startTime is equal sorts by endTime.
+ * It groups the activities in a map with the day as key.
+ */
 fun groupActivitiesByDate(activities: List<Activity>): Map<LocalDate, List<Activity>> {
   val sortedActivities =
       activities.sortedWith(
@@ -112,14 +118,15 @@ fun groupActivitiesByDate(activities: List<Activity>): Map<LocalDate, List<Activ
               { it.startTime }, // First, sort by startTime
               { it.endTime } // If startTime is equal, sort by endTime
               ))
-
+  // Group into a map with the day as key
   return sortedActivities.groupBy { activity ->
     activity.startTime.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
   }
 }
 
 @Composable
-fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
+/** Day Card which displays the date and a column with activities for the corresponding days. */
+private fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
   Card(
       onClick = {},
       modifier =
@@ -127,6 +134,7 @@ fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
               .height(215.dp)
               .padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 10.dp)
               .testTag("cardItem"),
+      colors = CardDefaults.cardColors(),
       shape = RoundedCornerShape(16.dp),
       content = {
         Text(
@@ -136,7 +144,6 @@ fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight(500),
-                    color = Color(0xFF000000),
                     letterSpacing = 0.14.sp,
                 ),
             modifier = Modifier.padding(horizontal = 30.dp, vertical = 10.dp))
@@ -151,8 +158,9 @@ fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
               .take(4)
               .forEach { activity -> ActivityBox(activity) }
           if (numberOfActivities > 4) {
+            // Displays additional text in case of too many activities
             Text(
-                text = "and ${numberOfActivities - 3} more",
+                text = "and ${numberOfActivities - 4} more",
                 style =
                     TextStyle(fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(top = 4.dp))
@@ -162,11 +170,14 @@ fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
 }
 
 @Composable
-fun ActivityBox(activity: Activity) {
-  val backgroundColor = if (isSystemInDarkTheme()) Color.Black else Color.White
+/** Activity box which displays activity title. */
+private fun ActivityBox(activity: Activity) {
+  // Appropriate background for both Light and Dark Themes
+  val backgroundColor = ButtonDefaults.buttonColors().containerColor
   Box(
       modifier =
           Modifier.width(119.dp)
+              .testTag("activityBox")
               .height(19.dp)
               .background(color = backgroundColor, shape = RoundedCornerShape(size = 25.dp)),
       contentAlignment = Alignment.CenterStart) {
@@ -177,6 +188,7 @@ fun ActivityBox(activity: Activity) {
                     fontSize = 10.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight(500),
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
                     letterSpacing = 0.1.sp,
                 ),
             maxLines = 1, // Limit to a single line
@@ -185,8 +197,11 @@ fun ActivityBox(activity: Activity) {
       }
 }
 
-// Function to format LocalDate to a "Day, d Month" format
-fun formatDailyDate(date: LocalDate): String {
-  val formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.ENGLISH)
-  return date.format(formatter)
+fun formatDailyDate(date: LocalDate?): String {
+  // Wrap in a try-catch to avoid an exception crashing the app
+  return try {
+    date?.format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.ENGLISH)) ?: "Invalid date"
+  } catch (e: Exception) {
+    "Invalid date"
+  }
 }

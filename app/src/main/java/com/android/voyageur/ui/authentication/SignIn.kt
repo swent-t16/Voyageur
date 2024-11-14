@@ -24,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.voyageur.R
@@ -129,27 +130,43 @@ fun rememberFirebaseAuthLauncher(
 
 @Composable
 fun GoogleSignInButton(onSignInClick: () -> Unit) {
-  Button(
-      onClick = onSignInClick,
-      colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-      shape = RoundedCornerShape(50),
-      border = BorderStroke(1.dp, Color.LightGray),
-      modifier = Modifier.padding(8.dp).height(48.dp).testTag("loginButton")) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth().testTag("googleSignInButtonRow")) {
-              Image(
-                  painter = painterResource(id = R.drawable.google_logo),
-                  contentDescription = "Google Logo",
-                  modifier = Modifier.size(30.dp).padding(end = 8.dp).testTag("googleLogo"))
+  BoxWithConstraints {
+    val buttonWidth =
+        if (maxWidth > 600.dp) {
+          250.dp
+        } else {
+          Dp.Unspecified
+        }
 
-              Text(
-                  text = "Sign in with Google",
-                  color = Color.Gray,
-                  fontSize = 16.sp,
-                  fontWeight = FontWeight.Medium,
-                  modifier = Modifier.testTag("googleSignInButtonText"))
-            }
-      }
+    Button(
+        onClick = onSignInClick,
+        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+        shape = RoundedCornerShape(50),
+        border = BorderStroke(1.dp, Color.LightGray),
+        modifier =
+            Modifier.padding(8.dp)
+                .height(48.dp)
+                .let { modifier ->
+                  if (buttonWidth != Dp.Unspecified) modifier.width(buttonWidth)
+                  else modifier.fillMaxWidth()
+                }
+                .testTag("loginButton")) {
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.Center,
+              modifier = Modifier.fillMaxWidth().testTag("googleSignInButtonRow")) {
+                Image(
+                    painter = painterResource(id = R.drawable.google_logo),
+                    contentDescription = "Google Logo",
+                    modifier = Modifier.size(30.dp).padding(end = 8.dp).testTag("googleLogo"))
+
+                Text(
+                    text = "Sign in with Google",
+                    color = Color.Gray,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.testTag("googleSignInButtonText"))
+              }
+        }
+  }
 }
