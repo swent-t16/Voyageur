@@ -65,7 +65,6 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.formFields.DatePickerModal
-import com.android.voyageur.ui.formFields.UserDropdown
 import com.android.voyageur.ui.gallery.PermissionButtonForGallery
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.firebase.Firebase
@@ -290,9 +289,10 @@ fun AddTripScreen(
 
                 Spacer(modifier = Modifier.height(2.dp))
 
-                UserDropdown(
-                    userList,
-                    onUpdate = { pair, index -> userList[index] = Pair(pair.first, !pair.second) })
+                //                UserDropdown(
+                //                    userList,
+                //                    onUpdate = { pair, index -> userList[index] = Pair(pair.first,
+                // !pair.second) })
 
                 OutlinedTextField(
                     value = description,
