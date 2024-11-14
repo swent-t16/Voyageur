@@ -31,6 +31,8 @@ import com.android.voyageur.ui.formFields.DatePickerModal
 import com.android.voyageur.ui.formFields.TimePickerInput
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.firebase.Timestamp
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -49,7 +51,8 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
   var selectedTimeField by remember { mutableStateOf<TimeField?>(null) }
   var startTime by remember { mutableStateOf<Long?>(null) }
   var endTime by remember { mutableStateOf<Long?>(null) }
-  var estimatedPrice by remember { mutableStateOf<Double>(0.0) }
+  var priceInput by remember { mutableStateOf("") }
+  var estimatedPrice by remember { mutableStateOf<Double?>(null) }
   var activityType by remember { mutableStateOf(ActivityType.WALK) }
   var expanded by remember { mutableStateOf(false) }
 
@@ -188,7 +191,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
             location = Location(country = "Unknown", city = "Unknown", county = null, zip = null),
             startTime = startTimestamp,
             endTime = endTimestamp,
-            estimatedPrice = estimatedPrice,
+            estimatedPrice = estimatedPrice ?: 0.0,
             activityType = activityType)
 
     val updatedTrip = selectedTrip.copy(activities = selectedTrip.activities + activity)
@@ -360,11 +363,31 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                 }
 
+                fun formatPrice(price: Double): String {
+                  val symbols =
+                      DecimalFormatSymbols.getInstance(Locale.getDefault()).apply {
+                        groupingSeparator = '\''
+                      }
+                  val decimalFormat =
+                      if (price % 1.0 == 0.0) {
+                        DecimalFormat("#,###", symbols)
+                      } else {
+                        DecimalFormat("#,###.##", symbols)
+                      }
+                  return decimalFormat.format(price)
+                }
+
                 OutlinedTextField(
-                    value = estimatedPrice.toString(),
+                    value = priceInput.ifEmpty { estimatedPrice?.let { formatPrice(it) } ?: "" },
                     onValueChange = { input ->
-                      val newValue = input.replace("[^0-9.]".toRegex(), "")
-                      estimatedPrice = newValue.toDouble()
+                      val filteredInput = input.filter { it.isDigit() || it == '.' }
+                      if (filteredInput.count { it == '.' } <= 1) {
+                        val decimalParts = filteredInput.split(".")
+                        if (decimalParts.size <= 1 || decimalParts[1].length <= 2) {
+                          priceInput = filteredInput
+                          estimatedPrice = filteredInput.toDoubleOrNull()
+                        }
+                      }
                     },
                     label = { Text("Estimated Price (CHF)") },
                     placeholder = { Text("Enter estimated price") },
