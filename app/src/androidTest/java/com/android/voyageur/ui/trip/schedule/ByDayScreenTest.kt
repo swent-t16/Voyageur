@@ -8,6 +8,8 @@ import androidx.compose.ui.test.performClick
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.Trip
+import com.android.voyageur.model.trip.TripRepository
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
@@ -77,24 +79,28 @@ class ByDayScreenTest {
               ))
 
   private lateinit var navigationActions: NavigationActions
+  private lateinit var tripsViewModel: TripsViewModel
+  private lateinit var tripsRepository: TripRepository
 
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
   fun setUp() {
     navigationActions = mock(NavigationActions::class.java)
+    tripsRepository = mock(TripRepository::class.java)
+    tripsViewModel = TripsViewModel(tripsRepository)
   }
 
   @Test
   fun hasRequiredComponents() {
-    composeTestRule.setContent { ByDayScreen(oneActivityTrip, navigationActions) }
+    composeTestRule.setContent { ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions) }
     composeTestRule.onNodeWithTag("byDayScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
   }
 
   @Test
   fun displaysBottomNavigationCorrectly() {
-    composeTestRule.setContent { ByDayScreen(oneActivityTrip, navigationActions) }
+    composeTestRule.setContent { ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions) }
 
     // Check that the bottom navigation menu is displayed
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
@@ -108,7 +114,7 @@ class ByDayScreenTest {
   // Add test for floating action button
   @Test
   fun floatingActionButtonIsDisplayed() {
-    composeTestRule.setContent { ByDayScreen(oneActivityTrip, navigationActions) }
+    composeTestRule.setContent { ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions) }
     // Test floating button is displayed
     composeTestRule.onNodeWithTag("createActivityButton").assertIsDisplayed()
     // Test correct icon is displayed
@@ -120,7 +126,7 @@ class ByDayScreenTest {
     // Create a trip with no activities
     val emptyTrip = Trip(name = "Empty Trip", activities = emptyList())
 
-    composeTestRule.setContent { ByDayScreen(emptyTrip, navigationActions) }
+    composeTestRule.setContent { ByDayScreen(tripsViewModel, emptyTrip, navigationActions) }
 
     // Check that the empty state message is displayed
     composeTestRule.onNodeWithTag("emptyByDayPrompt").assertIsDisplayed()
@@ -141,7 +147,9 @@ class ByDayScreenTest {
                       endTime = createTimestamp(2022, 1, 1, 11 + index, 0),
                       activityType = ActivityType.OTHER)
                 })
-    composeTestRule.setContent { ByDayScreen(tripWithManyActivities, navigationActions) }
+    composeTestRule.setContent {
+      ByDayScreen(tripsViewModel, tripWithManyActivities, navigationActions)
+    }
 
     // Check that the "and X more" text is displayed
     composeTestRule.onNodeWithText("and 1 more").assertIsDisplayed()
@@ -150,14 +158,14 @@ class ByDayScreenTest {
   @Test
   fun dayCardIsDisplayed() {
     // Create a trip with only one activity to check for day card
-    composeTestRule.setContent { ByDayScreen(oneActivityTrip, navigationActions) }
+    composeTestRule.setContent { ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions) }
     composeTestRule.onNodeWithTag("cardItem", useUnmergedTree = true).assertIsDisplayed()
   }
 
   @Test
   fun activityBoxIsCorrectlyDisplayed() {
     // Create a trip with only one activity to check for activity box
-    composeTestRule.setContent { ByDayScreen(oneActivityTrip, navigationActions) }
+    composeTestRule.setContent { ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions) }
     // Check activity box is displayed
     composeTestRule.onNodeWithTag("activityBox", useUnmergedTree = true).assertIsDisplayed()
     // Check if activity title is displayed
@@ -209,7 +217,7 @@ class ByDayScreenTest {
 
   @Test
   fun clickingCreateActivityButton_navigatesToAddActivityScreen() {
-    composeTestRule.setContent { ByDayScreen(sampleTrip, navigationActions) }
+    composeTestRule.setContent { ByDayScreen(tripsViewModel, sampleTrip, navigationActions) }
 
     composeTestRule.onNodeWithTag("createActivityButton").performClick()
 
@@ -239,7 +247,9 @@ class ByDayScreenTest {
                         activityType = ActivityType.RESTAURANT),
                 ))
 
-    composeTestRule.setContent { ByDayScreen(tripWithDraftActivities, navigationActions) }
+    composeTestRule.setContent {
+      ByDayScreen(tripsViewModel, tripWithDraftActivities, navigationActions)
+    }
 
     // Check that the non-draft activity is displayed
     composeTestRule.onNodeWithText("Activity").assertIsDisplayed()
@@ -256,5 +266,13 @@ class ByDayScreenTest {
     } catch (e: Exception) {
       assertEquals("Invalid date", "Invalid date")
     }
+  }
+
+  @Test
+  fun clickingOnDayCardNavigatesToActivitiesForOneDayScreen() {
+    composeTestRule.setContent { ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions) }
+    composeTestRule.onNodeWithTag("cardItem").performClick()
+    verify(navigationActions).navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
+    assert(tripsViewModel.selectedDay.value == LocalDate.of(2022, 1, 1))
   }
 }
