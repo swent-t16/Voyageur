@@ -59,7 +59,8 @@ fun UserDropdown(
                 .height(TextFieldDefaults.MinHeight)
                 .border(OutlinedTextFieldDefaults.UnfocusedBorderThickness, Color.Black)
                 .padding(start = 14.dp)
-                .clickable { expanded = true },
+                .clickable { expanded = true }
+                .testTag("expander"),
         verticalAlignment = Alignment.CenterVertically) {
           val selectedUsers = users.filter { it.second }
           if (selectedUsers.isEmpty()) {
