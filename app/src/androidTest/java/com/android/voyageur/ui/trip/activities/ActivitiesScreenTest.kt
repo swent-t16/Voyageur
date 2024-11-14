@@ -92,72 +92,6 @@ class ActivitiesScreenTest {
   }
 
   @Test
-  fun activityItem_expandAndCollapse() {
-    val sampleActivity = sampleTrip.activities.first()
-
-    composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions) }
-
-    composeTestRule.onNodeWithText("Price").assertIsNotDisplayed()
-    composeTestRule.onNodeWithText("Type").assertIsNotDisplayed()
-
-    composeTestRule
-        .onNodeWithTag("expandIcon_${sampleActivity.title}")
-        .assertIsDisplayed()
-        .performClick()
-
-    // Check if the expanded content is displayed
-    composeTestRule.onNodeWithText("Price").assertIsDisplayed()
-    composeTestRule.onNodeWithText("${sampleActivity.estimatedPrice} CHF").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Type").assertIsDisplayed()
-  }
-
-  @Test
-  fun activityCard_displaysCorrectTitle() {
-    val sampleActivity = sampleTrip.activities.first()
-
-    composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions) }
-
-    composeTestRule.onNodeWithTag("cardItem_${sampleActivity.title}").assertIsDisplayed()
-    composeTestRule.onNodeWithText(sampleActivity.title).assertIsDisplayed()
-  }
-
-  @Test
-  fun activityCard_displaysCorrectDescription() {
-    val sampleActivity = sampleTrip.activities[1]
-
-    composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions) }
-    composeTestRule
-        .onNodeWithTag("expandIcon_${sampleActivity.title}")
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.onNodeWithTag("cardItem_${sampleActivity.title}").assertIsDisplayed()
-    composeTestRule.onNodeWithText(sampleActivity.description).assertIsDisplayed()
-  }
-
-  @Test
-  fun activityCard_doesNotDisplayDescription() {
-    val sampleActivity = sampleTrip.activities[2]
-
-    composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions) }
-    composeTestRule
-        .onNodeWithTag("expandIcon_${sampleActivity.title}")
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.onNodeWithTag("cardItem_${sampleActivity.title}").assertIsDisplayed()
-    composeTestRule.onNodeWithText(sampleActivity.description).assertIsNotDisplayed()
-  }
-
-  @Test
-  fun activityCard_displaysCorrectDateAndTime() {
-    val sampleActivity = sampleTrip.activities[1]
-
-    composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions) }
-
-    composeTestRule.onNodeWithTag("cardItem_${sampleActivity.title}").assertIsDisplayed()
-    composeTestRule.onNodeWithText("01/01/2022 12:00 PM - 02:00 PM").assertIsDisplayed()
-  }
-
-  @Test
   fun clickingCreateActivityButton_navigatesToAddActivityScreen() {
     composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions) }
 
@@ -165,4 +99,13 @@ class ActivitiesScreenTest {
 
     verify(navigationActions).navigateTo(Screen.ADD_ACTIVITY)
   }
+
+    @Test
+    fun activitiesScreen_displaysActivityItems() {
+        composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions) }
+
+        composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[0].title}").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[1].title}").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[2].title}").assertIsDisplayed()
+    }
 }

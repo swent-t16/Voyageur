@@ -6,6 +6,7 @@ import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.google.firebase.Timestamp
@@ -23,12 +24,14 @@ class ScheduleScreenTest {
 
   private lateinit var navigationActions: NavigationActions
   private lateinit var mockTrip: Trip
+  private lateinit var tripsViewModel: TripsViewModel
 
   @Before
   fun setUp() {
     // Set default locale for consistent testing
     Locale.setDefault(Locale.US)
 
+      tripsViewModel = Mockito.mock(TripsViewModel::class.java)
     navigationActions = Mockito.mock(NavigationActions::class.java)
     `when`(navigationActions.currentRoute()).thenReturn(Route.TOP_TABS)
 
@@ -60,7 +63,7 @@ class ScheduleScreenTest {
                         ActivityType.MUSEUM)))
 
     composeTestRule.setContent {
-      ScheduleScreen(trip = mockTrip, navigationActions = navigationActions)
+      ScheduleScreen(tripsViewModel = tripsViewModel, trip = mockTrip, navigationActions = navigationActions)
     }
   }
 
