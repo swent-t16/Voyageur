@@ -264,7 +264,10 @@ fun PhotoCarousel(customPlace: CustomPlace) {
   var photos by remember { mutableStateOf(customPlace.photos) }
 
   // Use a LaunchedEffect to react to changes in the photos list
-  LaunchedEffect(customPlace.photos) { photos = customPlace.photos }
+  LaunchedEffect(customPlace.photos) {
+    photos = emptyList()
+    photos = customPlace.photos
+  }
 
   Box(
       modifier =
