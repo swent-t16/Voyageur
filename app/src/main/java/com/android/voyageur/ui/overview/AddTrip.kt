@@ -128,14 +128,14 @@ fun AddTripScreen(
 
   val _trip = tripsViewModel.selectedTrip.value
   fun fetchContacts() {
-    userViewModel.getMyContacts({ it ->
+    userViewModel.getMyContacts { it ->
       Log.d("Users", it.size.toString())
       userList.clear()
       it.filter { user -> user.id != Firebase.auth.uid.orEmpty() }
           .forEach() { user ->
             userList.add(Pair(user, isEditMode && _trip?.participants?.contains(user.id) ?: false))
           }
-    })
+    }
   }
 
   fetchContacts()
