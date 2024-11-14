@@ -10,6 +10,7 @@ import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
@@ -36,6 +37,7 @@ class OverviewScreenTest {
     navigationActions = mock(NavigationActions::class.java)
     tripViewModel = TripsViewModel(tripRepository)
     `when`(navigationActions.currentRoute()).thenReturn(Route.OVERVIEW)
+    `when`(navigationActions.getNavigationState()).thenReturn(NavigationState())
     composeTestRule.setContent { OverviewScreen(tripViewModel, navigationActions) }
   }
 
@@ -147,6 +149,35 @@ class OverviewScreenTest {
     // Verify the trip is selected and navigation to the BY_DAY screen is called
     assert(tripViewModel.selectedTrip.value == mockTrip)
     verify(navigationActions).navigateTo(screen = Screen.TOP_TABS)
+  }
+
+  @Test
+  fun clickingTripCardUpdatesNavigationState() {
+    val mockTrip =
+        Trip(
+            id = "1",
+            creator = "Andreea",
+            participants = listOf("Alex", "Mihai"),
+            name = "Paris Trip")
+    val mockTrips = listOf(mockTrip)
+
+    // Simulate getting the mock trip from the repository
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
+    }
+
+    tripViewModel.getTrips()
+
+    // Simulate clicking the trip card
+    composeTestRule.onNodeWithTag("cardItem").performClick()
+
+    // Verify the trip is selected
+    assert(tripViewModel.selectedTrip.value == mockTrip)
+
+    // Verify the navigation state is updated
+    val navigationState = navigationActions.getNavigationState()
+    assert(navigationState.currentTabIndexForTrip == 0)
+    assert(navigationState.isDailyViewSelected)
   }
 
   @Test

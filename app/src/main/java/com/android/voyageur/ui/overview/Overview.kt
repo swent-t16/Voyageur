@@ -124,6 +124,9 @@ fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: Navi
 
   Card(
       onClick = {
+        // When opening a trip, navigate to the Schedule screen, with the daily view enabled
+        navigationActions.getNavigationState().currentTabIndexForTrip = 0
+        navigationActions.getNavigationState().isDailyViewSelected = true
         navigationActions.navigateTo(Screen.TOP_TABS)
         tripsViewModel.selectTrip(trip)
       },
