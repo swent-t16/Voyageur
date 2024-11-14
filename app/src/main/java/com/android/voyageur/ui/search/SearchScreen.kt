@@ -229,12 +229,7 @@ fun SearchScreen(
       },
       floatingActionButtonPosition = FabPosition.Start,
       content = { pd ->
-        val textFieldsColours =
-            if (isSystemInDarkTheme()) {
-              Color.DarkGray
-            } else {
-              Color.LightGray
-            }
+        val textFieldsColours = MaterialTheme.colorScheme.background
 
         Column(modifier = Modifier.padding(pd).fillMaxSize().testTag("searchScreenContent")) {
           Spacer(modifier = Modifier.height(24.dp))
@@ -249,7 +244,9 @@ fun SearchScreen(
               modifier =
                   Modifier.padding(horizontal = 16.dp)
                       .fillMaxWidth()
-                      .background(color = textFieldsColours, shape = MaterialTheme.shapes.medium)
+                      .background(
+                          color = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray,
+                          shape = MaterialTheme.shapes.medium)
                       .padding(8.dp)
                       .testTag("searchBar"),
               verticalAlignment = Alignment.CenterVertically) {

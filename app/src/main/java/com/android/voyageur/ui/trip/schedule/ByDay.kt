@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -172,7 +173,7 @@ private fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
 /** Activity box which displays activity title. */
 private fun ActivityBox(activity: Activity) {
   // Appropriate background for both Light and Dark Themes
-  val backgroundColor = MaterialTheme.colorScheme.primaryContainer
+  val backgroundColor = ButtonDefaults.buttonColors().containerColor
   Box(
       modifier =
           Modifier.width(119.dp)
@@ -187,6 +188,7 @@ private fun ActivityBox(activity: Activity) {
                     fontSize = 10.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight(500),
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
                     letterSpacing = 0.1.sp,
                 ),
             maxLines = 1, // Limit to a single line
