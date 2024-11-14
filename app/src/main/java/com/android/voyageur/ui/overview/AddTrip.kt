@@ -277,18 +277,14 @@ fun AddTripScreen(
                     isError = name.isEmpty(),
                     label = { Text("Trip *") },
                     placeholder = { Text("Name the trip") },
-                    modifier = Modifier.fillMaxWidth().testTag("inputTripTitle")
+                    modifier = Modifier.fillMaxWidth().testTag("inputTripTitle"),
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth().testTag("inputTripTitle"),
-                )
+                    singleLine = true)
 
                 UserDropdown(
                     userList,
-                    onUpdate = { pair, index -> userList[index] = Pair(pair.first, !pair.second) }
-                  )
-
+                    onUpdate = { pair, index -> userList[index] = Pair(pair.first, !pair.second) })
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
