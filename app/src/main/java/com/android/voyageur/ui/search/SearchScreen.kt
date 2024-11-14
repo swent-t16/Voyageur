@@ -264,7 +264,9 @@ fun SearchScreen(
                       placesViewModel.setQuery(searchQuery.text, userLocation)
                     },
                     modifier = Modifier.weight(1f).padding(8.dp).testTag("searchTextField"),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
+                    textStyle =
+                        LocalTextStyle.current.copy(
+                            fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done))
               }
 
