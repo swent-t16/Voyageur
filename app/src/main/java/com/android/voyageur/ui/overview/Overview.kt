@@ -9,13 +9,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -83,14 +86,13 @@ fun OverviewScreen(
             modifier = Modifier.padding(paddingValues).testTag("overviewColumn").fillMaxSize(),
         ) {
           if (trips.isEmpty()) {
-            Box(
-                modifier = Modifier.padding(pd).fillMaxSize(),
-                contentAlignment = Alignment.Center) {
-                  Text(
-                      modifier = Modifier.testTag("emptyTripPrompt"),
-                      text = "You have no trips yet.",
-                  )
-                }
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+              Text(
+                  "You have no trips yet. Schedule one.",
+                  modifier = Modifier.testTag("emptyTripPrompt"),
+                  style = MaterialTheme.typography.bodyLarge,
+                  color = MaterialTheme.colorScheme.onSurface)
+            }
           } else {
             val sortedTrips = trips.sortedBy { it.startDate }
             LazyColumn(
@@ -111,9 +113,15 @@ fun OverviewScreen(
 
 @Composable
 fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: NavigationActions) {
-  // TODO: add a clickable once we implement the Schedule screens
+  val configuration = LocalConfiguration.current
+  val screenWidth = configuration.screenWidthDp.dp
+
+  // Calculate responsive card width and height
+  val cardWidth = (screenWidth - 32.dp).coerceAtMost(400.dp)
+  val cardHeight = (cardWidth * 0.6f).coerceAtLeast(180.dp)
+  val imageWidth = (cardWidth * 0.35f).coerceAtLeast(100.dp)
   val dateRange = trip.startDate.toDateString() + " - " + trip.endDate.toDateString()
-  val themeColor = MaterialTheme.colorScheme.onSurface
+
   Card(
       onClick = {
         navigationActions.navigateTo(Screen.TOP_TABS)
@@ -154,25 +162,16 @@ fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: Navi
                         modifier = Modifier.fillMaxWidth(),
                         text = trip.name,
                         textAlign = TextAlign.Start,
-                        style =
-                            TextStyle(
-                                fontSize = 23.sp,
-                                lineHeight = 20.sp,
-                                fontWeight = FontWeight(500),
-                                color = themeColor,
-                                letterSpacing = 0.23.sp))
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+
                     Text(
                         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                         text = dateRange,
                         textAlign = TextAlign.Start,
-                        style =
-                            TextStyle(
-                                fontSize = 10.sp,
-                                lineHeight = 20.sp,
-                                fontWeight = FontWeight(500),
-                                color = themeColor,
-                                letterSpacing = 0.1.sp,
-                            ))
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+
                     DisplayParticipants(trip)
                   }
             }
@@ -186,41 +185,48 @@ fun DisplayParticipants(trip: Trip) {
   val avatarSize = (screenWidth * 0.06f).coerceIn(24.dp, 32.dp)
   val numberOfParticipants = trip.participants.size
   val numberToString = generateParticipantString(numberOfParticipants)
-  val themeColor = MaterialTheme.colorScheme.onSurface
+
   Column(
       modifier = Modifier.fillMaxHeight().padding(start = 0.dp, end = 0.dp, top = 8.dp),
-      verticalArrangement = Arrangement.Bottom, // Align top to bottom
-  ) {
-    Text(
-        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-        text = numberToString,
-        textAlign = TextAlign.Start,
-        style =
-            TextStyle(
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight(500),
-                color = themeColor,
-                letterSpacing = 0.1.sp,
-            ))
-    Spacer(modifier = Modifier.height(8.dp))
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(3.dp) // Space between avatars
-        ) {
-          // Display participants (limit to 5 avatars max for space reasons)
-          if (numberOfParticipants > 0) {
-            trip.participants.take(4).forEach { participant ->
-              // TODO: Replace Box with user avatars once they are designed
-              Box(
-                  modifier =
-                      Modifier.size(30.dp) // Set size for the avatar circle
-                          .testTag("participantAvatar")
-                          .background(Color.Gray, shape = RoundedCornerShape(50)), // Circular shape
-                  contentAlignment = Alignment.Center) {
-                    Text(text = participant.first().uppercaseChar().toString(), color = Color.White)
-                  }
+      verticalArrangement = Arrangement.Bottom) {
+        Text(
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            text = numberToString,
+            textAlign = TextAlign.Start,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+              if (numberOfParticipants > 0) {
+                trip.participants.take(4).forEach { participant ->
+                  Surface(
+                      modifier = Modifier.size(avatarSize).testTag("participantAvatar"),
+                      shape = CircleShape,
+                      color = MaterialTheme.colorScheme.secondaryContainer) {
+                        Box(contentAlignment = Alignment.Center) {
+                          Text(
+                              text = participant.first().uppercase(),
+                              style = MaterialTheme.typography.bodySmall,
+                              color = MaterialTheme.colorScheme.onSecondaryContainer)
+                        }
+                      }
+                }
+
+                if (trip.participants.size > 4) {
+                  Text(
+                      text = "and ${trip.participants.size - 4} more",
+                      style = MaterialTheme.typography.bodySmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                      modifier =
+                          Modifier.align(Alignment.CenterVertically)
+                              .testTag("additionalParticipantsText"))
+                }
+              }
             }
       }
 }
