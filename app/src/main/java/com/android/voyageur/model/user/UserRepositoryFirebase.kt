@@ -72,15 +72,18 @@ class UserRepositoryFirebase(private val db: FirebaseFirestore) : UserRepository
       onSuccess: (List<User>) -> Unit,
       onFailure: (Exception) -> Unit
   ) {
-    db.collection(collectionPath)
-        .whereIn(FieldPath.documentId(), ids)
-        .get()
-        .addOnSuccessListener { documents ->
-          // Convert the query result to a list of User objects
-          val users = documents.toObjects(User::class.java)
-          onSuccess(users)
-        }
-        .addOnFailureListener { exception -> onFailure(exception) }
+    if(ids.isEmpty())
+        onSuccess(listOf())
+    else
+        db.collection(collectionPath)
+            .whereIn(FieldPath.documentId(), ids)
+            .get()
+            .addOnSuccessListener { documents ->
+              // Convert the query result to a list of User objects
+              val users = documents.toObjects(User::class.java)
+              onSuccess(users)
+            }
+            .addOnFailureListener { exception -> onFailure(exception) }
   }
 
   /**
