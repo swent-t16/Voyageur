@@ -124,7 +124,7 @@ class ByDayScreenTest {
 
     // Check that the empty state message is displayed
     composeTestRule.onNodeWithTag("emptyByDayPrompt").assertIsDisplayed()
-    composeTestRule.onNodeWithText("You have no activities yet. Schedule one.").assertIsDisplayed()
+    composeTestRule.onNodeWithText("You have no activities yet.").assertIsDisplayed()
   }
 
   @Test

@@ -13,6 +13,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimeInput
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,30 +40,33 @@ fun TimePickerInput(
         shape = MaterialTheme.shapes.extraLarge,
         tonalElevation = 10.dp,
         modifier = Modifier.padding(16.dp)) {
-          Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                text = "Select time",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineMedium)
-            TimeInput(state = timeState)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-              TextButton(onClick = onDismiss) { Text(text = "Cancel") }
-              TextButton(
-                  onClick = {
-                    val selectedTime =
-                        Calendar.getInstance()
-                            .apply {
-                              set(Calendar.HOUR_OF_DAY, timeState.hour)
-                              set(Calendar.MINUTE, timeState.minute)
-                            }
-                            .timeInMillis
-                    onTimeSelected(selectedTime)
-                  }) {
-                    Text(text = "OK")
-                  }
-            }
-          }
+          Column(
+              modifier = Modifier.padding(16.dp),
+              horizontalAlignment = Alignment.CenterHorizontally,
+              verticalArrangement = Arrangement.Center) {
+                Text(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                    text = "Select time",
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.headlineMedium)
+                TimeInput(state = timeState)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                  TextButton(onClick = onDismiss) { Text(text = "Cancel") }
+                  TextButton(
+                      onClick = {
+                        val selectedTime =
+                            Calendar.getInstance()
+                                .apply {
+                                  set(Calendar.HOUR_OF_DAY, timeState.hour)
+                                  set(Calendar.MINUTE, timeState.minute)
+                                }
+                                .timeInMillis
+                        onTimeSelected(selectedTime)
+                      }) {
+                        Text(text = "OK")
+                      }
+                }
+              }
         }
   }
 }

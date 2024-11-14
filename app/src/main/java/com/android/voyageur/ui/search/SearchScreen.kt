@@ -229,12 +229,7 @@ fun SearchScreen(
       },
       floatingActionButtonPosition = FabPosition.Start,
       content = { pd ->
-        val textFieldsColours =
-            if (isSystemInDarkTheme()) {
-              Color.DarkGray
-            } else {
-              Color.LightGray
-            }
+        val textFieldsColours = MaterialTheme.colorScheme.background
 
         Column(modifier = Modifier.padding(pd).fillMaxSize().testTag("searchScreenContent")) {
           Spacer(modifier = Modifier.height(24.dp))
@@ -249,7 +244,9 @@ fun SearchScreen(
               modifier =
                   Modifier.padding(horizontal = 16.dp)
                       .fillMaxWidth()
-                      .background(color = textFieldsColours, shape = MaterialTheme.shapes.medium)
+                      .background(
+                          color = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray,
+                          shape = MaterialTheme.shapes.medium)
                       .padding(8.dp)
                       .testTag("searchBar"),
               verticalAlignment = Alignment.CenterVertically) {
@@ -263,7 +260,9 @@ fun SearchScreen(
                       placesViewModel.setQuery(searchQuery.text, userLocation)
                     },
                     modifier = Modifier.weight(1f).padding(8.dp).testTag("searchTextField"),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 18.sp))
+                    textStyle =
+                        LocalTextStyle.current.copy(
+                            fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface))
               }
 
           // Tabs
@@ -395,7 +394,7 @@ fun UserSearchResultItem(
                 userViewModel.selectUser(user)
                 navigationActions.navigateTo(Screen.SEARCH_USER_PROFILE)
               } // Make the Row clickable
-              .background(Color.White, shape = RoundedCornerShape(8.dp))
+              .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp))
               .padding(16.dp),
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.CenterVertically) {
@@ -416,7 +415,7 @@ fun UserSearchResultItem(
                 text = user.name,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.testTag("userName_${user.id}"))
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -441,7 +440,7 @@ fun UserSearchResultItem(
             modifier = Modifier.width(120.dp).height(40.dp).testTag("addContactButton")) {
               Text(
                   text = if (isContactAdded) "Added" else "Add",
-                  color = if (isContactAdded) Color.DarkGray else Color.White,
+                  color = if (isContactAdded) Color.LightGray else Color.White,
                   fontSize = 14.sp,
                   maxLines = 1,
                   textAlign = TextAlign.Center,

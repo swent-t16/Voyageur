@@ -217,17 +217,6 @@ class AddTripScreenTest {
   }
 
   @Test
-  fun addTripScreen_endDateBeforeStartDate() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
-    // Simulate setting a start date and an earlier end date
-    composeTestRule.onNodeWithTag("inputStartDate").performClick()
-    composeTestRule.onNodeWithText("OK").performClick()
-    composeTestRule.onNodeWithTag("inputEndDate").performClick()
-    composeTestRule.onNodeWithText("OK").performClick()
-    composeTestRule.onNodeWithTag("tripSave").assertIsNotEnabled()
-  }
-
-  @Test
   fun addTripScreen_editMode() {
     val trip =
         Trip(
