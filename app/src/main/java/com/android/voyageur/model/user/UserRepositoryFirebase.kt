@@ -72,8 +72,7 @@ class UserRepositoryFirebase(private val db: FirebaseFirestore) : UserRepository
       onSuccess: (List<User>) -> Unit,
       onFailure: (Exception) -> Unit
   ) {
-    if(ids.isEmpty())
-        onSuccess(listOf())
+    if (ids.isEmpty()) onSuccess(listOf())
     else
         db.collection(collectionPath)
             .whereIn(FieldPath.documentId(), ids)
