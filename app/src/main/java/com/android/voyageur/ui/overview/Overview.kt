@@ -23,6 +23,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -92,9 +93,14 @@ fun OverviewScreen(
             modifier = Modifier.padding(pd).testTag("overviewColumn"),
         ) {
           if (trips.isEmpty()) {
-            Text(
-                "You have no trips yet. Schedule one.",
-                modifier = Modifier.testTag("emptyTripPrompt"))
+            Box(
+                modifier = Modifier.padding(pd).fillMaxSize(),
+                contentAlignment = Alignment.Center) {
+                  Text(
+                      modifier = Modifier.testTag("emptyTripPrompt"),
+                      text = "You have no trips yet.",
+                  )
+                }
           } else {
             val sortedTrips = trips.sortedBy { trip -> trip.startDate }
             LazyColumn(
@@ -126,6 +132,7 @@ fun TripItem(
 ) {
   // TODO: add a clickable once we implement the Schedule screens
   val dateRange = trip.startDate.toDateString() + "-" + trip.endDate.toDateString()
+  val themeColor = MaterialTheme.colorScheme.onSurface
   Card(
       onClick = {
         navigationActions.navigateTo(Screen.TOP_TABS)
@@ -168,7 +175,7 @@ fun TripItem(
                                 fontSize = 23.sp,
                                 lineHeight = 20.sp,
                                 fontWeight = FontWeight(500),
-                                color = Color(0xFF000000),
+                                color = themeColor,
                                 letterSpacing = 0.23.sp))
                     Text(
                         modifier = Modifier.fillMaxWidth().padding(start = 15.dp, top = 4.dp),
@@ -179,7 +186,7 @@ fun TripItem(
                                 fontSize = 10.sp,
                                 lineHeight = 20.sp,
                                 fontWeight = FontWeight(500),
-                                color = Color(0xFF000000),
+                                color = themeColor,
                                 letterSpacing = 0.1.sp,
                             ))
                     DisplayParticipants(trip, userViewModel)
@@ -193,6 +200,7 @@ fun TripItem(
 fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
   val numberOfParticipants = trip.participants.size - 1
   val numberToString = generateParticipantString(numberOfParticipants)
+  val themeColor = MaterialTheme.colorScheme.onSurface
   Column(
       modifier = Modifier.fillMaxHeight().padding(start = 0.dp, end = 0.dp, top = 8.dp),
       verticalArrangement = Arrangement.Bottom, // Align top to bottom
@@ -206,7 +214,7 @@ fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight(500),
-                color = Color(0xFF000000),
+                color = themeColor,
                 letterSpacing = 0.1.sp,
             ))
     Spacer(modifier = Modifier.height(8.dp))
