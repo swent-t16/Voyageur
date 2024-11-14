@@ -42,7 +42,6 @@ class OverviewScreenTest {
     userViewModel = UserViewModel(userRepository)
     tripViewModel = TripsViewModel(tripRepository)
     `when`(navigationActions.currentRoute()).thenReturn(Route.OVERVIEW)
-    composeTestRule.setContent { OverviewScreen(tripViewModel, navigationActions, userViewModel) }
     val mockUsers =
         listOf(
             com.android.voyageur.model.user.User(
@@ -61,7 +60,7 @@ class OverviewScreenTest {
       onSuccess(mockUsers) // Simulate a successful callback
     }
     `when`(navigationActions.getNavigationState()).thenReturn(NavigationState())
-    composeTestRule.setContent { OverviewScreen(tripViewModel, navigationActions) }
+    composeTestRule.setContent { OverviewScreen(tripViewModel, navigationActions, userViewModel) }
   }
 
   @Test
