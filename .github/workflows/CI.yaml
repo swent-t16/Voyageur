@@ -79,7 +79,7 @@ jobs:
         env:
           MAPS_API_KEY: $ {{ secrets.PLACES_API_KEY }}
           PLACES_API_KEY: ${{ secrets.PLACES_API_KEY }}
-        run: echo PLACES_API_KEY=\$PLACES_API_KEY\ > ./local.properties
+        run: echo "PLACES_API_KEY=\${{ secrets.PLACES_API_KEY }}" > ./local.properties
 
       - name: Grant execute permission for gradlew
         run: |
