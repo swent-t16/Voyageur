@@ -60,6 +60,13 @@ class UserRepositoryFirebase(private val db: FirebaseFirestore) : UserRepository
         .addOnFailureListener { exception -> onFailure(exception) }
   }
 
+  /**
+   * Fetches all the users in the give list
+   *
+   * @param ids the list of userIDs to fetch
+   * @param onSuccess callback for the response
+   * @param onFailure callback for error handling
+   */
   override fun fetchUsersByIds(
       ids: List<String>,
       onSuccess: (List<User>) -> Unit,
@@ -76,6 +83,13 @@ class UserRepositoryFirebase(private val db: FirebaseFirestore) : UserRepository
         .addOnFailureListener { exception -> onFailure(exception) }
   }
 
+  /**
+   * Fetches all the contacts of the user and returns them into a list
+   *
+   * @param userId The id of the user to fetch the contacts of
+   * @param onSuccess callback for the response
+   * @param onFailure callback for error handling
+   */
   override fun getContacts(
       userId: String,
       onSuccess: (List<User>) -> Unit,

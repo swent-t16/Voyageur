@@ -1,6 +1,7 @@
 package com.android.voyageur.model.user
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -246,12 +247,24 @@ open class UserViewModel(
         }
   }
 
+  /**
+   * Fetches all the users in the give list
+   *
+   * @param userIds the list of userIDs to fetch
+   * @param onSuccess callback for the response
+   */
   fun getUsersByIds(userIds: List<String>, onSuccess: (List<User>) -> Unit) {
-    userRepository.fetchUsersByIds(userIds, onSuccess, {})
+    userRepository.fetchUsersByIds(
+        userIds, onSuccess, { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
   }
-
+  /**
+   * Fetches all the contacts of the current user and returns them into a list
+   *
+   * @param onSuccess callback for the response
+   */
   fun getMyContacts(onSuccess: (List<User>) -> Unit) {
     if (Firebase.auth.uid == null) return
-    userRepository.getContacts(Firebase.auth.uid ?: "", onSuccess, {})
+    userRepository.getContacts(
+        Firebase.auth.uid ?: "", onSuccess, { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
   }
 }
