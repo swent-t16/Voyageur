@@ -282,9 +282,12 @@ fun AddTripScreen(
                     keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
                     singleLine = true)
 
+                Spacer(modifier = Modifier.height(2.dp))
+
                 UserDropdown(
                     userList,
                     onUpdate = { pair, index -> userList[index] = Pair(pair.first, !pair.second) })
+
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
