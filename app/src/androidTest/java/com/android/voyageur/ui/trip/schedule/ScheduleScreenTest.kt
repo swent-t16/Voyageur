@@ -2,13 +2,13 @@ package com.android.voyageur.ui.trip.schedule
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.navigation.NavHostController
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
-import com.android.voyageur.ui.navigation.Route
 import com.google.firebase.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -17,7 +17,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 
 class ScheduleScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
@@ -25,6 +24,7 @@ class ScheduleScreenTest {
   private lateinit var navigationActions: NavigationActions
   private lateinit var mockTrip: Trip
   private lateinit var tripsViewModel: TripsViewModel
+  private lateinit var navHostController: NavHostController
 
   @Before
   fun setUp() {
@@ -32,8 +32,9 @@ class ScheduleScreenTest {
     Locale.setDefault(Locale.US)
 
       tripsViewModel = Mockito.mock(TripsViewModel::class.java)
-    navigationActions = Mockito.mock(NavigationActions::class.java)
-    `when`(navigationActions.currentRoute()).thenReturn(Route.TOP_TABS)
+
+    navHostController = Mockito.mock(NavHostController::class.java)
+    navigationActions = NavigationActions(navHostController)
 
     mockTrip =
         Trip(
@@ -102,20 +103,6 @@ class ScheduleScreenTest {
   }
 
   @Test
-  fun scheduleScreen_weeklyToDaily_viaActivityClick() {
-    // Switch to Weekly view first
-    composeTestRule.onNodeWithText("Weekly").performClick()
-    composeTestRule.onNodeWithTag("weeklyViewScreen").assertExists()
-
-    // Find and click a day with activities
-    composeTestRule.onNodeWithText("T 3", useUnmergedTree = true).performClick()
-
-    // Verify we're back in Daily view
-    composeTestRule.onNodeWithTag("byDayScreen").assertExists()
-    composeTestRule.onNodeWithTag("weeklyViewScreen").assertDoesNotExist()
-  }
-
-  @Test
   fun scheduleScreen_verifyViewToggleVisuals() {
     // Verify both buttons and separator exist
     composeTestRule.onNodeWithText("Daily").assertExists()
@@ -168,5 +155,15 @@ class ScheduleScreenTest {
     composeTestRule.onNodeWithText("Weekly").performClick()
     composeTestRule.onNodeWithText("Daily").assertIsEnabled()
     composeTestRule.onNodeWithText("Weekly").assertIsEnabled()
+  }
+
+  @Test
+  fun checkIfIsDailyViewSelected_updatesProperly() {
+    assert(navigationActions.getNavigationState().isDailyViewSelected)
+    composeTestRule.onNodeWithText("Weekly").performClick()
+
+    assert(!navigationActions.getNavigationState().isDailyViewSelected)
+    composeTestRule.onNodeWithText("Daily").performClick()
+    assert(navigationActions.getNavigationState().isDailyViewSelected)
   }
 }

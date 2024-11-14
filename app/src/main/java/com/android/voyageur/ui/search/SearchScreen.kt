@@ -13,8 +13,20 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -24,8 +36,27 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,15 +69,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import coil.compose.rememberAsyncImagePainter
+import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.android.voyageur.ui.navigation.Screen
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -67,7 +98,6 @@ import com.google.maps.android.compose.rememberCameraPositionState
  * @param placesViewModel ViewModel for place-related data.
  * @param navigationActions Navigation actions for bottom navigation.
  */
-@OptIn(ExperimentalPermissionsApi::class)
 @SuppressLint("MissingPermission")
 @Composable
 fun SearchScreen(
@@ -199,12 +229,7 @@ fun SearchScreen(
       },
       floatingActionButtonPosition = FabPosition.Start,
       content = { pd ->
-        val textFieldsColours =
-            if (isSystemInDarkTheme()) {
-              Color.DarkGray
-            } else {
-              Color.LightGray
-            }
+        val textFieldsColours = MaterialTheme.colorScheme.background
 
         Column(modifier = Modifier.padding(pd).fillMaxSize().testTag("searchScreenContent")) {
           Spacer(modifier = Modifier.height(24.dp))
@@ -219,7 +244,9 @@ fun SearchScreen(
               modifier =
                   Modifier.padding(horizontal = 16.dp)
                       .fillMaxWidth()
-                      .background(color = textFieldsColours, shape = MaterialTheme.shapes.medium)
+                      .background(
+                          color = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray,
+                          shape = MaterialTheme.shapes.medium)
                       .padding(8.dp)
                       .testTag("searchBar"),
               verticalAlignment = Alignment.CenterVertically) {
@@ -233,7 +260,9 @@ fun SearchScreen(
                       placesViewModel.setQuery(searchQuery.text, userLocation)
                     },
                     modifier = Modifier.weight(1f).padding(8.dp).testTag("searchTextField"),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 18.sp))
+                    textStyle =
+                        LocalTextStyle.current.copy(
+                            fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface))
               }
 
           // Tabs
@@ -279,12 +308,12 @@ fun SearchScreen(
                               .clip(RoundedCornerShape(16.dp))
                               .testTag("googleMap"),
                       cameraPositionState = cameraPositionState) {
-                        searchedPlaces.forEach { place ->
-                          place.latLng?.let {
+                        searchedPlaces.forEach { customPlace ->
+                          customPlace.place.latLng?.let {
                             Marker(
                                 state = MarkerState(position = it),
-                                title = place.displayName ?: "Unknown Place",
-                                snippet = place.address ?: "No address")
+                                title = customPlace.place.displayName ?: "Unknown Place",
+                                snippet = customPlace.place.address ?: "No address")
                           }
                         }
                       }
@@ -306,9 +335,7 @@ fun SearchScreen(
                     if (searchedPlaces.isEmpty()) {
                       item { NoResultsFound() }
                     } else {
-                      items(searchedPlaces) { place ->
-                        PlaceSearchResultItem(place, Modifier.testTag("placeItem_${place.id}"))
-                      }
+                      items(searchedPlaces) { place -> PlaceSearchResultItem(place) }
                     }
                   }
             }
@@ -328,7 +355,7 @@ fun SearchScreen(
                           userViewModel = userViewModel,
                           fieldColor = Color.LightGray,
                           modifier = Modifier.testTag("userItem_${user.id}"),
-                      )
+                          navigationActions = navigationActions)
                     }
                   }
                 }
@@ -351,7 +378,8 @@ fun UserSearchResultItem(
     user: User,
     modifier: Modifier = Modifier,
     userViewModel: UserViewModel,
-    fieldColor: Color
+    fieldColor: Color,
+    navigationActions: NavigationActions
 ) {
   val isContactAdded =
       userViewModel.user.collectAsState().value?.contacts?.contains(user.id) ?: false
@@ -361,7 +389,12 @@ fun UserSearchResultItem(
           modifier
               .fillMaxWidth()
               .padding(vertical = 8.dp, horizontal = 16.dp)
-              .background(Color.White, shape = RoundedCornerShape(8.dp))
+              .clickable {
+                // Navigate to the user profile screen with userId
+                userViewModel.selectUser(user)
+                navigationActions.navigateTo(Screen.SEARCH_USER_PROFILE)
+              } // Make the Row clickable
+              .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp))
               .padding(16.dp),
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.CenterVertically) {
@@ -382,7 +415,7 @@ fun UserSearchResultItem(
                 text = user.name,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.testTag("userName_${user.id}"))
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -407,7 +440,7 @@ fun UserSearchResultItem(
             modifier = Modifier.width(120.dp).height(40.dp).testTag("addContactButton")) {
               Text(
                   text = if (isContactAdded) "Added" else "Add",
-                  color = if (isContactAdded) Color.DarkGray else Color.White,
+                  color = if (isContactAdded) Color.LightGray else Color.White,
                   fontSize = 14.sp,
                   maxLines = 1,
                   textAlign = TextAlign.Center,
@@ -423,7 +456,8 @@ fun UserSearchResultItem(
  * @param modifier Modifier for the composable.
  */
 @Composable
-fun PlaceSearchResultItem(place: Place, modifier: Modifier = Modifier) {
+fun PlaceSearchResultItem(customPlace: CustomPlace, modifier: Modifier = Modifier) {
+  val place = customPlace.place
   Row(
       modifier =
           modifier
