@@ -377,7 +377,6 @@ fun SearchScreen(
  * @param userViewModel ViewModel for user-related data.
  * @param fieldColor Background color for the user item.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun UserSearchResultItem(
     user: User,
