@@ -44,7 +44,6 @@ fun SearchUserProfileScreen(userViewModel: UserViewModel, navigationActions: Nav
             navigationIcon = {
               IconButton(
                   onClick = {
-                    userViewModel.deselectUser() // Clears selected user in the ViewModel
                     navigationActions.goBack() // Navigate back
                   }) {
                     Icon(

@@ -181,7 +181,7 @@ fun TripItem(
                                 color = themeColor,
                                 letterSpacing = 0.23.sp))
                     Text(
-                        modifier = Modifier.fillMaxWidth().padding(start = 15.dp, top = 4.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                         text = dateRange,
                         textAlign = TextAlign.Start,
                         style =
@@ -205,7 +205,7 @@ fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
   val numberToString = generateParticipantString(numberOfParticipants)
   val themeColor = MaterialTheme.colorScheme.onSurface
   Column(
-      modifier = Modifier.fillMaxHeight().padding(start = 0.dp, end = 0.dp, top = 8.dp),
+      modifier = Modifier.fillMaxHeight().padding(top = 8.dp),
       verticalArrangement = Arrangement.Bottom, // Align top to bottom
   ) {
     Text(
@@ -271,13 +271,9 @@ fun Timestamp.toDateString(): String {
 
 // Helper function to generate the correct string
 fun generateParticipantString(numberOfParticipants: Int): String {
-  return if (numberOfParticipants == 0) {
-    "No participants."
-  } else {
-    if (numberOfParticipants == 1) {
-      "$numberOfParticipants Participant:"
-    } else {
-      "$numberOfParticipants Participants:"
-    }
+  return when (numberOfParticipants) {
+    0 -> "No participants."
+    1 -> "1 Participant:"
+    else -> "$numberOfParticipants Participants:"
   }
 }

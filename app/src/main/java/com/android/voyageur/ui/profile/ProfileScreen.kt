@@ -4,6 +4,8 @@ import UserProfileContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,7 +31,6 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
   // Observe user and loading state from UserViewModel
   val user by userViewModel.user.collectAsState()
   val isLoading by userViewModel.isLoading.collectAsState()
-
   var isSigningOut by remember { mutableStateOf(false) }
 
   // Navigate to AUTH if user is null and not loading
@@ -51,15 +52,16 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
       modifier = Modifier.testTag("profileScreen"),
       bottomBar = {
         BottomNavigationMenu(
-            onTabSelect = { route -> navigationActions.navigateTo(route) },
+            onTabSelect = { navigationActions.navigateTo(it) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
-            selectedItem = navigationActions.currentRoute(),
-        )
-      },
-      content = { paddingValues ->
+            selectedItem = navigationActions.currentRoute())
+      }) { padding ->
         Box(
             modifier =
-                Modifier.fillMaxSize().padding(paddingValues).testTag("profileScreenContent"),
+                Modifier.fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .testTag("profileScreenContent"),
             contentAlignment = Alignment.Center) {
               when {
                 isSigningOut -> {
@@ -80,7 +82,7 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
                 }
               }
             }
-      })
+      }
 }
 
 @Composable
