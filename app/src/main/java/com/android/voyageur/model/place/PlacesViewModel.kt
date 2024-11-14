@@ -24,6 +24,9 @@ open class PlacesViewModel(private val placesRepository: PlacesRepository) : Vie
   private val _searchedPlaces = MutableStateFlow<List<CustomPlace>>(emptyList())
   val searchedPlaces: StateFlow<List<CustomPlace>> = _searchedPlaces
 
+  private val _selectedPlace = MutableStateFlow<CustomPlace?>(null)
+  val selectedPlace: StateFlow<CustomPlace?> = _selectedPlace
+
   // Job to manage debounce coroutine
   private var debounceJob: Job? = null
 
@@ -57,6 +60,20 @@ open class PlacesViewModel(private val placesRepository: PlacesRepository) : Vie
         location,
         onSuccess = { places -> _searchedPlaces.value = places },
         onFailure = { exception -> Log.e("PlacesViewModel", "Failed to search places", exception) })
+  }
+
+  /**
+   * Selects a place to display its details.
+   *
+   * @param place The place to select.
+   */
+  fun selectPlace(place: CustomPlace) {
+    _selectedPlace.value = place
+  }
+
+  /** Deselects the currently selected place. */
+  fun deselectPlace() {
+    _selectedPlace.value = null
   }
 
   companion object {

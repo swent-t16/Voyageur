@@ -86,7 +86,6 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.libraries.places.api.model.Place
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
@@ -109,7 +108,6 @@ fun SearchScreen(
     requirePermission: Boolean = true
 ) {
   var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
-  var selectedTab by remember { mutableStateOf(FilterType.USERS) }
   var isMapView by remember { mutableStateOf(false) }
   var userLocation by remember { mutableStateOf<LatLng?>(null) }
   val searchedUsers by userViewModel.searchedUsers.collectAsState()
@@ -199,9 +197,9 @@ fun SearchScreen(
               }
         })
   }
-
-  LaunchedEffect(selectedTab) {
-    if (selectedTab == FilterType.PLACES && requirePermission) {
+  LaunchedEffect(navigationActions.getNavigationState().currentTabForSearch) {
+    if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES &&
+        requirePermission) {
       if (permissions.all {
         ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
       }) {
@@ -221,7 +219,7 @@ fun SearchScreen(
             selectedItem = navigationActions.currentRoute())
       },
       floatingActionButton = {
-        if (selectedTab == FilterType.PLACES) {
+        if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {
           FloatingActionButton(
               modifier = Modifier.testTag("toggleMapViewButton"),
               onClick = { isMapView = !isMapView }) {
@@ -270,15 +268,21 @@ fun SearchScreen(
               }
 
           // Tabs
-          TabRow(modifier = Modifier.testTag("tabRow"), selectedTabIndex = selectedTab.ordinal) {
-            FilterType.values().forEachIndexed { index, filterType ->
-              Tab(
-                  modifier = Modifier.testTag("filterButton_${filterType.name}"),
-                  selected = selectedTab == filterType,
-                  onClick = { selectedTab = filterType },
-                  text = { Text(filterType.name) })
-            }
-          }
+          TabRow(
+              modifier = Modifier.testTag("tabRow"),
+              selectedTabIndex =
+                  navigationActions.getNavigationState().currentTabForSearch.ordinal) {
+                FilterType.values().forEachIndexed { index, filterType ->
+                  Tab(
+                      modifier = Modifier.testTag("filterButton_${filterType.name}"),
+                      selected =
+                          navigationActions.getNavigationState().currentTabForSearch == filterType,
+                      onClick = {
+                        navigationActions.getNavigationState().currentTabForSearch = filterType
+                      },
+                      text = { Text(filterType.name) })
+                }
+              }
 
           Spacer(modifier = Modifier.height(16.dp))
 
@@ -288,7 +292,7 @@ fun SearchScreen(
               modifier = Modifier.padding(horizontal = 16.dp))
 
           // Search results based on the selected tab
-          if (selectedTab == FilterType.PLACES) {
+          if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {
             if (isMapView) {
               var cameraPositionState = rememberCameraPositionState {
                 position =
@@ -339,7 +343,14 @@ fun SearchScreen(
                     if (searchedPlaces.isEmpty()) {
                       item { NoResultsFound() }
                     } else {
-                      items(searchedPlaces) { place -> PlaceSearchResultItem(place) }
+                      items(searchedPlaces) { place ->
+                        PlaceSearchResultItem(
+                            place,
+                            Modifier.clickable {
+                              placesViewModel.selectPlace(place)
+                              navigationActions.navigateTo(Screen.PLACE_DETAILS)
+                            })
+                      }
                     }
                   }
             }

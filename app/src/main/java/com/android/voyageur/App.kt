@@ -17,6 +17,7 @@ import com.android.voyageur.ui.overview.AddTripScreen
 import com.android.voyageur.ui.overview.OverviewScreen
 import com.android.voyageur.ui.profile.EditProfileScreen
 import com.android.voyageur.ui.profile.ProfileScreen
+import com.android.voyageur.ui.search.PlaceDetailsScreen
 import com.android.voyageur.ui.search.SearchScreen
 import com.android.voyageur.ui.search.SearchUserProfileScreen
 import com.android.voyageur.ui.trip.AddActivityScreen
@@ -57,6 +58,7 @@ fun VoyageurApp(placesClient: PlacesClient) {
       composable(Screen.SEARCH_USER_PROFILE) {
         SearchUserProfileScreen(userViewModel, navigationActions)
       }
+      composable(Screen.PLACE_DETAILS) { PlaceDetailsScreen(navigationActions, placesViewModel) }
     }
     navigation(
         startDestination = Screen.PROFILE,

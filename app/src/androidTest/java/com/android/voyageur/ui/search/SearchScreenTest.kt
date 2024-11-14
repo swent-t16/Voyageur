@@ -12,6 +12,7 @@ import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
 import com.google.android.libraries.places.api.model.Place
 import org.junit.Before
@@ -28,6 +29,7 @@ class SearchScreenTest {
   private lateinit var userRepository: UserRepository
   private lateinit var placesViewModel: PlacesViewModel
   private lateinit var placesRepository: PlacesRepository
+  private lateinit var navigationState: NavigationState
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -38,7 +40,9 @@ class SearchScreenTest {
     placesRepository = mock(PlacesRepository::class.java)
     userViewModel = UserViewModel(userRepository)
     placesViewModel = PlacesViewModel(placesRepository)
+    navigationState = NavigationState()
     `when`(navigationActions.currentRoute()).thenReturn(Route.SEARCH)
+    `when`(navigationActions.getNavigationState()).thenReturn(navigationState)
     composeTestRule.setContent {
       SearchScreen(userViewModel, placesViewModel, navigationActions, false)
     }

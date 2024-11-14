@@ -32,6 +32,7 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
           Place.Field.RATING,
           Place.Field.USER_RATINGS_TOTAL,
           Place.Field.LAT_LNG,
+          Place.Field.WEBSITE_URI,
           Place.Field.PRICE_LEVEL)
 
   /**
@@ -114,8 +115,7 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
             val place = response.place
             val bitmaps = mutableListOf<ImageBitmap>()
 
-            val photosMetadata =
-                (place.photoMetadatas?.map { it } ?: emptyList<PhotoMetadata>()).take(3)
+            val photosMetadata = ((place.photoMetadatas) ?: emptyList<PhotoMetadata>()).take(5)
             for (photoMetadata in photosMetadata) {
               val photoRequest = FetchPhotoRequest.builder(photoMetadata).build()
               placesClient
