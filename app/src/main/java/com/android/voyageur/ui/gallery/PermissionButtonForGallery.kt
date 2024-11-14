@@ -25,6 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
+import com.android.voyageur.ui.utils.rememberImageCropper
 
 @Composable
 /**
@@ -35,12 +37,16 @@ import androidx.core.content.ContextCompat
  *   selected.
  * @param messageToShow The text displayed on the button.
  * @param dialogMessage The message shown in the rationale dialog when permission is denied.
+ * @param aspectRatioX The X value for the image cropper aspect ratio. Default is 1.
+ * @param aspectRatioY The Y value for the image cropper aspect ratio. Default is 1.
  * @param modifier Modifier to style the button layout and add test tags.
  */
 fun PermissionButtonForGallery(
     onUriSelected: (Uri?) -> Unit,
     messageToShow: String,
     dialogMessage: String,
+    aspectRatioX: Int = 1,
+    aspectRatioY: Int = 1,
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -52,14 +58,23 @@ fun PermissionButtonForGallery(
       } else {
         READ_EXTERNAL_STORAGE
       }
+
+  // Image cropper setup with configurable aspect ratio
+  val imageCropper =
+      rememberImageCropper(aspectRatioX = aspectRatioX, aspectRatioY = aspectRatioY) { result ->
+        result.imageUri?.let { uri -> onUriSelected(uri.toUri()) }
+        result.error?.let { error -> Toast.makeText(context, error, Toast.LENGTH_SHORT).show() }
+      }
+
   val galleryLauncher =
       rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-          onUriSelected(uri)
+          imageCropper(uri)
         } else {
           Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
         }
       }
+
   val permissionLauncher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         when {
@@ -73,6 +88,7 @@ fun PermissionButtonForGallery(
           }
         }
       }
+
   Button(
       onClick = {
         when {
@@ -94,6 +110,7 @@ fun PermissionButtonForGallery(
       modifier = modifier) {
         // Shows message corresponding to the screen
         Text(messageToShow)
+
         // Show rationale dialog if needed
         if (showRationaleDialog) {
           AlertDialog(
@@ -137,6 +154,7 @@ fun checkFullPermission(context: Context): Boolean {
     ContextCompat.checkSelfPermission(context, READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED
   }
 }
+
 /**
  * Checks if the app has limited permission to read user-selected media on Android versions that
  * support it.
@@ -146,10 +164,10 @@ fun checkLimitedPermission(context: Context): Boolean {
       ContextCompat.checkSelfPermission(context, READ_MEDIA_VISUAL_USER_SELECTED) ==
           PERMISSION_GRANTED)
 }
+
 /**
  * Returns Component Activity associated with Context to show dialog. Unwraps context on which it is
  * called upon.
- * *
  */
 fun Context.findActivity(): ComponentActivity? {
   var context = this

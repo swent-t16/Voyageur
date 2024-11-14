@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -57,7 +58,9 @@ fun UserDropdown(
         modifier =
             Modifier.fillMaxWidth()
                 .height(TextFieldDefaults.MinHeight)
-                .border(OutlinedTextFieldDefaults.UnfocusedBorderThickness, Color.Black)
+                .border(
+                    OutlinedTextFieldDefaults.UnfocusedBorderThickness,
+                    MaterialTheme.colorScheme.outline)
                 .padding(start = 14.dp)
                 .clickable { expanded = true }
                 .testTag("expander"),

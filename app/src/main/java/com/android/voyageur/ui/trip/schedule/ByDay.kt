@@ -11,13 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,10 +30,12 @@ import androidx.compose.ui.unit.sp
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.isDraft
 import com.android.voyageur.model.trip.Trip
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.ui.trip.activities.AddActivityButton
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -45,20 +43,12 @@ import java.util.Locale
 
 @Composable
 fun ByDayScreen(
+    tripsViewModel: TripsViewModel,
     trip: Trip,
     navigationActions: NavigationActions,
 ) {
   Scaffold(
-      floatingActionButton = {
-        FloatingActionButton(
-            onClick = { navigationActions.navigateTo(Screen.ADD_ACTIVITY) },
-            modifier = Modifier.testTag("createActivityButton")) {
-              Icon(
-                  Icons.Outlined.Add,
-                  "Floating action button",
-                  modifier = Modifier.testTag("addIcon"))
-            }
-      },
+      floatingActionButton = { AddActivityButton(navigationActions) },
       modifier = Modifier.testTag("byDayScreen"),
       bottomBar = {
         BottomNavigationMenu(
@@ -98,7 +88,7 @@ fun ByDayScreen(
           ) {
             groupedActivities.forEach { (day, activitiesForDay) ->
               item {
-                DayActivityCard(day, activitiesForDay)
+                DayActivityCard(tripsViewModel, day, activitiesForDay, navigationActions)
                 Spacer(modifier = Modifier.height(10.dp))
               }
             }
@@ -126,9 +116,17 @@ fun groupActivitiesByDate(activities: List<Activity>): Map<LocalDate, List<Activ
 
 @Composable
 /** Day Card which displays the date and a column with activities for the corresponding days. */
-private fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
+private fun DayActivityCard(
+    tripsViewModel: TripsViewModel,
+    day: LocalDate,
+    activitiesForDay: List<Activity>,
+    navigationActions: NavigationActions
+) {
   Card(
-      onClick = {},
+      onClick = {
+        tripsViewModel.selectDay(day)
+        navigationActions.navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
+      },
       modifier =
           Modifier.width(353.dp)
               .height(215.dp)

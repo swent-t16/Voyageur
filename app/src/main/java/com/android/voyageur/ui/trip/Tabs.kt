@@ -16,7 +16,9 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.trip.activities.ActivitiesScreen
 import com.android.voyageur.ui.trip.schedule.ScheduleScreen
-import com.android.voyageur.ui.trip.schedule.TopBarWithImage
+import com.android.voyageur.ui.trip.schedule.TopBarWithImageAndText
+import com.android.voyageur.ui.trip.schedule.toDateWithYearString
+import com.android.voyageur.ui.trip.schedule.toDateWithoutYearString
 import com.android.voyageur.ui.trip.settings.SettingsScreen
 
 @Composable
@@ -37,8 +39,13 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
 
   // Column for top tabs and content
   Column(modifier = Modifier.testTag("topTabs")) {
-    TopBarWithImage(selectedTrip, navigationActions)
-
+    TopBarWithImageAndText(
+        selectedTrip,
+        navigationActions,
+        selectedTrip.name,
+        selectedTrip.startDate.toDateWithoutYearString() +
+            " - " +
+            selectedTrip.endDate.toDateWithYearString())
     // TabRow composable for creating top tabs
     TabRow(
         selectedTabIndex = navigationActions.getNavigationState().currentTabIndexForTrip,
@@ -55,7 +62,7 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
 
     // Display content based on selected tab
     when (navigationActions.getNavigationState().currentTabIndexForTrip) {
-      0 -> ScheduleScreen(selectedTrip, navigationActions)
+      0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions)
       1 -> ActivitiesScreen(selectedTrip, navigationActions)
       2 ->
           SettingsScreen(

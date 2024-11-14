@@ -131,7 +131,7 @@ fun TripItem(
     userViewModel: UserViewModel
 ) {
   // TODO: add a clickable once we implement the Schedule screens
-  val dateRange = trip.startDate.toDateString() + "-" + trip.endDate.toDateString()
+  val dateRange = trip.startDate.toDateString() + " - " + trip.endDate.toDateString()
   val themeColor = MaterialTheme.colorScheme.onSurface
   Card(
       onClick = {
@@ -265,7 +265,7 @@ fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
 
 // Helper function to convert Timestamp to String format.
 fun Timestamp.toDateString(): String {
-  val sdf = java.text.SimpleDateFormat("MMM dd yyyy.", java.util.Locale.getDefault())
+  val sdf = java.text.SimpleDateFormat("MMM dd yyyy", java.util.Locale.getDefault())
   return sdf.format(this.toDate())
 }
 
