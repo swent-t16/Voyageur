@@ -16,9 +16,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.gallery.PermissionButtonForGallery
@@ -27,7 +24,6 @@ import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.profile.interests.InterestChipEditable
-import com.android.voyageur.ui.utils.rememberImageCropper
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -43,37 +39,11 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
   var name by remember { mutableStateOf(user?.name ?: "") }
   var email by remember { mutableStateOf(user?.email ?: "") }
   var profilePictureUri by remember { mutableStateOf<Uri?>(null) }
-  var imageUri by remember { mutableStateOf("") }
   var isSaving by remember { mutableStateOf(false) }
 
   // State variables for interests
   var interests by remember { mutableStateOf(user?.interests?.toMutableList() ?: mutableListOf()) }
   var newInterest by remember { mutableStateOf("") }
-
-  // Context and permission state variables
-  val context = LocalContext.current
-  var showPermissionRationale by remember { mutableStateOf(false) }
-  var permissionToRequest by remember { mutableStateOf("") }
-
-  val imageCropper =
-      rememberImageCropper(aspectRatioX = 1, aspectRatioY = 1) { result ->
-        result.imageUri?.let {
-          profilePictureUri = it.toUri()
-          imageUri = it
-        }
-        result.error?.let { error -> Toast.makeText(context, error, Toast.LENGTH_SHORT).show() }
-      }
-
-  // Permission launcher
-  val permissionLauncher =
-      rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) {
-          imageCropper(null)
-        } else {
-          Toast.makeText(context, "Permission denied. Unable to select photo.", Toast.LENGTH_SHORT)
-              .show()
-        }
-      }
 
   if (isSaving) {
     LaunchedEffect(isSaving) {
@@ -133,41 +103,12 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                               modifier = Modifier.size(128.dp).testTag("defaultProfilePicture"))
                         }
 
-                        Button(
-                            onClick = {
-                              val permission =
-                                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                    Manifest.permission.READ_MEDIA_IMAGES
-                                  } else {
-                                    Manifest.permission.READ_EXTERNAL_STORAGE
-                                  }
-
-                              permissionToRequest = permission
-
-                              when {
-                                ContextCompat.checkSelfPermission(context, permission) ==
-                                    PackageManager.PERMISSION_GRANTED -> {
-                                  // Permission is granted
-                                  imageCropper(null)
-                                }
-                                ActivityCompat.shouldShowRequestPermissionRationale(
-                                    context.findActivity(), permission) -> {
-                                  // Show rationale
-                                  showPermissionRationale = true
-                                }
-                                else -> {
-                                  // Request permission
-                                  permissionLauncher.launch(permission)
-                                }
-                              }
-                            },
-                            modifier = Modifier.testTag("editImageButton")) {
-                              Text("Edit Profile Picture")
-                            }
                         PermissionButtonForGallery(
                             onUriSelected = { profilePictureUri = it },
                             "Edit Profile Picture",
                             "This app needs access to your photos to allow you to select a profile picture.",
+                            1,
+                            1,
                             Modifier.testTag("editImageButton"))
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -258,25 +199,4 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
               }
             }
       }
-
-  if (showPermissionRationale) {
-    AlertDialog(
-        onDismissRequest = { showPermissionRationale = false },
-        title = { Text("Permission Required") },
-        text = {
-          Text("This app needs access to your photos to allow you to select a profile picture.")
-        },
-        confirmButton = {
-          TextButton(
-              onClick = {
-                showPermissionRationale = false
-                permissionLauncher.launch(permissionToRequest)
-              }) {
-                Text("Allow")
-              }
-        },
-        dismissButton = {
-          TextButton(onClick = { showPermissionRationale = false }) { Text("Cancel") }
-        })
-  }
 }

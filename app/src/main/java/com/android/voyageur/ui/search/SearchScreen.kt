@@ -18,7 +18,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -394,13 +393,14 @@ fun UserSearchResultItem(
       modifier =
           modifier
               .fillMaxWidth()
-              .padding(vertical = 8.dp, horizontal = 16.dp)
+              .padding(vertical = 12.dp, horizontal = 16.dp)
               .clickable {
                 // Navigate to the user profile screen with userId
                 userViewModel.selectUser(user)
                 navigationActions.navigateTo(Screen.SEARCH_USER_PROFILE)
               } // Make the Row clickable
-              .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp))
+              .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp))
+              .padding(16.dp),
       verticalAlignment = Alignment.CenterVertically) {
         Image(
             painter = rememberAsyncImagePainter(model = user.profilePicture),

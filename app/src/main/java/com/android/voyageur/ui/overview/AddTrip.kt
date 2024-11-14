@@ -1,19 +1,18 @@
 package com.android.voyageur.ui.overview
 
-import android.Manifest.permission.READ_EXTERNAL_STORAGE
-import android.Manifest.permission.READ_MEDIA_IMAGES
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -58,7 +57,6 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.formFields.DatePickerModal
 import com.android.voyageur.ui.gallery.PermissionButtonForGallery
 import com.android.voyageur.ui.navigation.NavigationActions
-import com.android.voyageur.ui.utils.rememberImageCropper
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
@@ -85,7 +83,6 @@ fun AddTripScreen(
   var endDate by remember { mutableStateOf<Long?>(null) }
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
   var imageUri by remember { mutableStateOf("") }
-  var showRationaleDialog by remember { mutableStateOf(false) }
 
   val context = LocalContext.current
   val imageId = R.drawable.default_trip_image
@@ -98,18 +95,6 @@ fun AddTripScreen(
   val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
   val formattedStartDate = startDate?.let { dateFormat.format(Date(it)) } ?: ""
   val formattedEndDate = endDate?.let { dateFormat.format(Date(it)) } ?: ""
-
-  // Use the new image cropper utility
-  val imageCropper = rememberImageCropper { result ->
-    result.imageUri?.let { imageUri = it }
-    result.error?.let { error -> Toast.makeText(context, error, Toast.LENGTH_SHORT).show() }
-  }
-  val permissionVersion =
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        READ_MEDIA_IMAGES
-      } else {
-        READ_EXTERNAL_STORAGE
-      }
 
   LaunchedEffect(isEditMode) {
     if (isEditMode && tripsViewModel.selectedTrip.value != null) {
@@ -226,7 +211,7 @@ fun AddTripScreen(
                     modifier =
                         Modifier.fillMaxWidth()
                             .height(imageHeight)
-                            .aspectRatio(1.8f)
+                            .aspectRatio(1.78f)
                             .clip(RoundedCornerShape(5.dp))
                             .testTag("imageContainer")) {
                       if (imageUri.isNotEmpty()) {
@@ -246,9 +231,11 @@ fun AddTripScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
                 PermissionButtonForGallery(
-                    onUriSelected = { uri -> imageUri = uri.toString(), imageCropper(null) },
+                    onUriSelected = { uri -> imageUri = uri.toString() },
                     "Select Image from Gallery",
                     "This app needs access to your photos to allow you to select an image for your trip.",
+                    16,
+                    9,
                     Modifier.fillMaxWidth())
 
                 OutlinedTextField(
