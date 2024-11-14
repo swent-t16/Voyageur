@@ -3,9 +3,11 @@ package com.android.voyageur.ui.profile
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.*
@@ -25,7 +27,7 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.profile.interests.InterestChipEditable
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
   val user by userViewModel.user.collectAsState()
@@ -40,7 +42,6 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
   var email by remember { mutableStateOf(user?.email ?: "") }
   var profilePictureUri by remember { mutableStateOf<Uri?>(null) }
   var isSaving by remember { mutableStateOf(false) }
-
   // State variables for interests
   var interests by remember { mutableStateOf(user?.interests?.toMutableList() ?: mutableListOf()) }
   var newInterest by remember { mutableStateOf("") }
@@ -69,8 +70,7 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
-            selectedItem = navigationActions.currentRoute(),
-        )
+            selectedItem = navigationActions.currentRoute())
       }) { paddingValues ->
         Box(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
@@ -80,10 +80,14 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
               } else {
                 user?.let { userData ->
                   Column(
-                      modifier = Modifier.fillMaxSize().padding(16.dp),
-                      verticalArrangement = Arrangement.Center,
+                      modifier =
+                          Modifier.fillMaxSize()
+                              .verticalScroll(rememberScrollState())
+                              .padding(horizontal = 16.dp),
                       horizontalAlignment = Alignment.CenterHorizontally) {
                         // Display the selected image or the existing profile picture
+                        Spacer(modifier = Modifier.height(24.dp))
+
                         if (profilePictureUri != null) {
                           Image(
                               painter = rememberAsyncImagePainter(model = profilePictureUri),
@@ -103,6 +107,8 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                               modifier = Modifier.size(128.dp).testTag("defaultProfilePicture"))
                         }
 
+                        Spacer(modifier = Modifier.height(16.dp))
+
                         PermissionButtonForGallery(
                             onUriSelected = { profilePictureUri = it },
                             "Edit Profile Picture",
@@ -111,14 +117,13 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                             1,
                             Modifier.testTag("editImageButton"))
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
                         OutlinedTextField(
                             value = name,
                             onValueChange = { name = it },
                             label = { Text("Name") },
-                            modifier = Modifier.testTag("nameField"),
-                        )
+                            modifier = Modifier.testTag("nameField"))
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -130,25 +135,29 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                             enabled = false,
                             modifier = Modifier.testTag("emailField"))
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Text(text = "Interests", style = MaterialTheme.typography.titleMedium)
 
                         // Display interests
-                        Text(
-                            text = "Interests:",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(vertical = 8.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         if (interests.isNotEmpty()) {
                           // Display interests using FlowRow for better layout
-                          FlowRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                            interests.forEach { interest ->
-                              InterestChipEditable(
-                                  interest = interest,
-                                  onRemove = {
-                                    interests = interests.filter { it != interest }.toMutableList()
-                                  })
-                            }
-                          }
+                          FlowRow(
+                              modifier = Modifier.fillMaxWidth(),
+                              horizontalArrangement = Arrangement.Center,
+                              maxItemsInEachRow = 3) {
+                                interests.forEach { interest ->
+                                  InterestChipEditable(
+                                      interest = interest,
+                                      onRemove = {
+                                        interests =
+                                            interests.filter { it != interest }.toMutableList()
+                                      },
+                                  )
+                                }
+                              }
                         } else {
                           // Display message when no interests are added
                           Text(
@@ -160,42 +169,39 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // Input field to add new interest
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                          OutlinedTextField(
-                              value = newInterest,
-                              onValueChange = { newInterest = it },
-                              label = { Text("Add Interest") },
-                              maxLines = 1,
-                              placeholder = { Text("Press Enter to add interest") },
-                              modifier = Modifier.testTag("newInterestField"),
-                              keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                              keyboardActions =
-                                  KeyboardActions(
-                                      onDone = {
-                                        if (newInterest.isNotBlank()) {
-                                          if (!interests.contains(newInterest.trim())) {
-                                            interests.add(newInterest.trim())
-                                          }
-                                          newInterest = ""
-                                        }
-                                      }))
-                        }
+                        OutlinedTextField(
+                            value = newInterest,
+                            onValueChange = { newInterest = it },
+                            label = { Text("Add Interest") },
+                            maxLines = 1,
+                            placeholder = { Text("Press Enter to add interest") },
+                            modifier = Modifier.testTag("newInterestField"),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions =
+                                KeyboardActions(
+                                    onDone = {
+                                      if (newInterest.isNotBlank() &&
+                                          !interests.contains(newInterest.trim())) {
+                                        interests.add(newInterest.trim())
+                                        newInterest = ""
+                                      }
+                                    }))
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
                         Button(
                             onClick = { isSaving = true },
                             modifier = Modifier.testTag("saveButton")) {
                               Text("Save")
                             }
+
+                        Spacer(modifier = Modifier.height(24.dp))
                       }
                 }
                     ?: run {
-                      Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            "No user data available",
-                            modifier = Modifier.testTag("noUserData").padding(16.dp))
-                      }
+                      Text(
+                          "No user data available",
+                          modifier = Modifier.testTag("noUserData").padding(16.dp))
                     }
               }
             }

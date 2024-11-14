@@ -17,7 +17,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -264,7 +263,9 @@ fun SearchScreen(
                       placesViewModel.setQuery(searchQuery.text, userLocation)
                     },
                     modifier = Modifier.weight(1f).padding(8.dp).testTag("searchTextField"),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
+                    textStyle =
+                        LocalTextStyle.current.copy(
+                            fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done))
               }
 
@@ -375,7 +376,6 @@ fun SearchScreen(
  * @param userViewModel ViewModel for user-related data.
  * @param fieldColor Background color for the user item.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun UserSearchResultItem(
     user: User,
