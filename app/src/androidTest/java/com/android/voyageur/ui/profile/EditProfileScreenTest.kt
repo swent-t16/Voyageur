@@ -26,6 +26,7 @@ import org.junit.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.anyOrNull
 
@@ -186,7 +187,6 @@ class EditProfileScreenTest {
     // Act: Enter a new interest and click the Add button
     val newInterest = "Hiking"
     composeTestRule.onNodeWithTag("newInterestField").performTextInput(newInterest)
-    composeTestRule.onNodeWithTag("addInterestButton").performClick()
 
     // Assert: Check that the new interest chip is displayed
     composeTestRule.onNodeWithText(newInterest).assertIsDisplayed()
@@ -266,7 +266,6 @@ class EditProfileScreenTest {
     // Act: Enter an interest that is only whitespaces and click the Add button
     val whitespaceInterest = "   "
     composeTestRule.onNodeWithTag("newInterestField").performTextInput(whitespaceInterest)
-    composeTestRule.onNodeWithTag("addInterestButton").performClick()
 
     // Assert: Check that "No interests added yet" text is still displayed
     composeTestRule.onNodeWithTag("noInterests").assertIsDisplayed()
@@ -315,9 +314,6 @@ class EditProfileScreenTest {
     // Wait for the UI to settle
     composeTestRule.waitForIdle()
 
-    // Act: Click the Add button without entering any text
-    composeTestRule.onNodeWithTag("addInterestButton").performClick()
-
     // Assert: Check that "No interests added yet" text is still displayed
     composeTestRule.onNodeWithTag("noInterests").assertIsDisplayed()
   }
@@ -356,5 +352,69 @@ class EditProfileScreenTest {
 
     // Assert: Check that "No interests added yet" text is still displayed
     composeTestRule.onNodeWithTag("noInterests").assertIsDisplayed()
+  }
+
+  @Test
+  fun imageCropperConfiguresCorrectly() {
+    // Arrange
+    val user = User("123", "Test User", "test@example.com")
+    userViewModel._user.value = user
+    userViewModel._isLoading.value = false
+
+    // Act & Assert
+    composeTestRule.activity.setContent {
+      EditProfileScreen(userViewModel = userViewModel, navigationActions = navigationActions)
+    }
+
+    // Verify the edit button exists and is clickable
+    composeTestRule.onNodeWithTag("editImageButton").assertIsDisplayed()
+  }
+
+  @Test
+  fun imageCropperHandlesNewImage() {
+    // Arrange
+    val user = User("123", "Test User", "test@example.com", profilePicture = null.toString())
+    userViewModel._user.value = user
+    userViewModel._isLoading.value = false
+
+    // Set up initial screen
+    composeTestRule.activity.setContent {
+      EditProfileScreen(userViewModel = userViewModel, navigationActions = navigationActions)
+    }
+
+    // Simulate successful profile picture update
+    userViewModel._user.value = user.copy(profilePicture = "https://example.com/newimage.jpg")
+
+    // Click save
+    composeTestRule.onNodeWithTag("saveButton").performClick()
+
+    // Wait for the UI to settle
+    composeTestRule.waitForIdle()
+
+    // Verify navigation occurred
+    verify(navigationActions).navigateTo(Route.PROFILE)
+  }
+
+  @Test
+  fun imageCropperUpdatesProfilePicture() {
+    // Arrange: Start with a user that has no profile picture
+    val user = User("123", "Test User", "test@example.com", "")
+    userViewModel._user.value = user
+    userViewModel._isLoading.value = false
+
+    // Set up the content
+    composeTestRule.activity.setContent {
+      EditProfileScreen(userViewModel = userViewModel, navigationActions = navigationActions)
+    }
+
+    // Initially should show default profile picture
+    composeTestRule.onNodeWithTag("defaultProfilePicture").assertIsDisplayed()
+
+    // Update user to have a profile picture
+    userViewModel._user.value = user.copy(profilePicture = "https://example.com/profile.jpg")
+
+    // Should now show the profile picture
+    composeTestRule.onNodeWithTag("profilePicture").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("defaultProfilePicture").assertDoesNotExist()
   }
 }

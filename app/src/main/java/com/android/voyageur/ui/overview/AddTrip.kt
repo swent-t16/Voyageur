@@ -1,20 +1,19 @@
 package com.android.voyageur.ui.overview
 
-import android.Manifest.permission.READ_EXTERNAL_STORAGE
-import android.Manifest.permission.READ_MEDIA_IMAGES
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
@@ -100,18 +100,16 @@ fun AddTripScreen(
   val context = LocalContext.current
   val imageId = R.drawable.default_trip_image
 
+  // Get screen dimensions and calculate responsive image height
+  val configuration = LocalConfiguration.current
+  val screenWidth = configuration.screenWidthDp.dp
+  val imageHeight = remember(screenWidth) { (screenWidth * 9f / 16f).coerceAtMost(300.dp) }
+
   val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
   val formattedStartDate = startDate?.let { dateFormat.format(Date(it)) } ?: ""
   val formattedEndDate = endDate?.let { dateFormat.format(Date(it)) } ?: ""
 
   val keyboardController = LocalSoftwareKeyboardController.current
-
-  val permissionVersion =
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        READ_MEDIA_IMAGES
-      } else {
-        READ_EXTERNAL_STORAGE
-      }
 
   LaunchedEffect(isEditMode) {
     if (isEditMode && tripsViewModel.selectedTrip.value != null) {
@@ -130,20 +128,19 @@ fun AddTripScreen(
 
   val _trip = tripsViewModel.selectedTrip.value
   fun fetchContacts() {
-    userViewModel.getMyContacts({ it ->
+    userViewModel.getMyContacts { it ->
       Log.d("Users", it.size.toString())
       userList.clear()
       it.filter { user -> user.id != Firebase.auth.uid.orEmpty() }
           .forEach() { user ->
             userList.add(Pair(user, isEditMode && _trip?.participants?.contains(user.id) ?: false))
           }
-    })
+    }
   }
 
   fetchContacts()
 
   fun createTripWithImage(imageUrl: String) {
-
     if (startDate == null || endDate == null) {
       Toast.makeText(context, "Please select both start and end dates", Toast.LENGTH_SHORT).show()
       return
@@ -209,6 +206,7 @@ fun AddTripScreen(
                 else listOf(),
             type = tripType,
             imageUri = imageUrl)
+
     if (!isEditMode) {
       tripsViewModel.createTrip(trip)
       navigationActions.goBack()
@@ -248,27 +246,35 @@ fun AddTripScreen(
           Column(
               modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
               verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (imageUri != "") {
-                  Image(
-                      painter = rememberAsyncImagePainter(model = imageUri),
-                      contentDescription = "Selected image",
-                      contentScale = ContentScale.Crop,
-                      modifier =
-                          Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(5.dp)))
-                } else {
-                  Image(
-                      painter = painterResource(id = imageId),
-                      contentDescription = "Default trip image",
-                      contentScale = ContentScale.Crop,
-                      modifier =
-                          Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(5.dp)))
-                }
+                Box(
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .height(imageHeight)
+                            .aspectRatio(1.78f)
+                            .clip(RoundedCornerShape(5.dp))
+                            .testTag("imageContainer")) {
+                      if (imageUri.isNotEmpty()) {
+                        Image(
+                            painter = rememberAsyncImagePainter(model = imageUri),
+                            contentDescription = "Selected image",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize())
+                      } else {
+                        Image(
+                            painter = painterResource(id = imageId),
+                            contentDescription = "Default trip image",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize())
+                      }
+                    }
 
                 Spacer(modifier = Modifier.height(16.dp))
                 PermissionButtonForGallery(
                     onUriSelected = { uri -> imageUri = uri.toString() },
                     "Select Image from Gallery",
                     "This app needs access to your photos to allow you to select an image for your trip.",
+                    16,
+                    9,
                     Modifier.fillMaxWidth())
 
                 OutlinedTextField(
@@ -338,6 +344,7 @@ fun AddTripScreen(
                             showModal = true
                           })
                 }
+
                 if (showModal) {
                   DatePickerModal(
                       onDateSelected = { selectedDate ->
@@ -356,6 +363,7 @@ fun AddTripScreen(
                             else -> System.currentTimeMillis()
                           })
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
