@@ -1,6 +1,7 @@
 package com.android.voyageur.model.user
 
 import android.net.Uri
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
@@ -56,6 +57,55 @@ class UserRepositoryFirebase(private val db: FirebaseFirestore) : UserRepository
         .document(id)
         .delete()
         .addOnSuccessListener { onSuccess() }
+        .addOnFailureListener { exception -> onFailure(exception) }
+  }
+
+  /**
+   * Fetches all the users in the give list
+   *
+   * @param ids the list of userIDs to fetch
+   * @param onSuccess callback for the response
+   * @param onFailure callback for error handling
+   */
+  override fun fetchUsersByIds(
+      ids: List<String>,
+      onSuccess: (List<User>) -> Unit,
+      onFailure: (Exception) -> Unit
+  ) {
+    db.collection(collectionPath)
+        .whereIn(FieldPath.documentId(), ids)
+        .get()
+        .addOnSuccessListener { documents ->
+          // Convert the query result to a list of User objects
+          val users = documents.toObjects(User::class.java)
+          onSuccess(users)
+        }
+        .addOnFailureListener { exception -> onFailure(exception) }
+  }
+
+  /**
+   * Fetches all the contacts of the user and returns them into a list
+   *
+   * @param userId The id of the user to fetch the contacts of
+   * @param onSuccess callback for the response
+   * @param onFailure callback for error handling
+   */
+  override fun getContacts(
+      userId: String,
+      onSuccess: (List<User>) -> Unit,
+      onFailure: (Exception) -> Unit
+  ) {
+    db.collection(collectionPath)
+        .document(userId)
+        .get()
+        .addOnSuccessListener { document ->
+          val user = document.toObject(User::class.java)
+          if (user != null) {
+            fetchUsersByIds(user.contacts, onSuccess, onFailure)
+          } else {
+            onFailure(Exception("User not found"))
+          }
+        }
         .addOnFailureListener { exception -> onFailure(exception) }
   }
 

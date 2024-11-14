@@ -43,7 +43,9 @@ fun VoyageurApp(placesClient: PlacesClient) {
         startDestination = Screen.OVERVIEW,
         route = Route.OVERVIEW,
     ) {
-      composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigationActions) }
+      composable(Screen.OVERVIEW) {
+        OverviewScreen(tripsViewModel, navigationActions, userViewModel)
+      }
       composable(Screen.ADD_TRIP) { AddTripScreen(tripsViewModel, navigationActions) }
     }
     navigation(

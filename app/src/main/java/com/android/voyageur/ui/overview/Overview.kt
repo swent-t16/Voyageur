@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.overview
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -44,20 +46,27 @@ import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
+    userViewModel: UserViewModel
 ) {
   val trips by tripsViewModel.trips.collectAsState()
-
+  LaunchedEffect(trips) {
+    userViewModel.getUsersByIds(
+        trips.map { it.participants }.flatten(), { userViewModel._allParticipants.value = it })
+  }
   Scaffold(
       floatingActionButton = {
         FloatingActionButton(
@@ -103,7 +112,8 @@ fun OverviewScreen(
                       TripItem(
                           tripsViewModel = tripsViewModel,
                           trip = trip,
-                          navigationActions = navigationActions)
+                          navigationActions = navigationActions,
+                          userViewModel = userViewModel)
                       Spacer(modifier = Modifier.height(10.dp))
                     }
                   }
@@ -114,7 +124,13 @@ fun OverviewScreen(
 }
 
 @Composable
-fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: NavigationActions) {
+fun TripItem(
+    tripsViewModel: TripsViewModel,
+    trip: Trip,
+    navigationActions: NavigationActions,
+    userViewModel: UserViewModel
+) {
+  // TODO: add a clickable once we implement the Schedule screens
   val dateRange = trip.startDate.toDateString() + "-" + trip.endDate.toDateString()
   val themeColor = MaterialTheme.colorScheme.onSurface
   Card(
@@ -176,15 +192,16 @@ fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: Navi
                                 color = themeColor,
                                 letterSpacing = 0.1.sp,
                             ))
-                    DisplayParticipants(trip)
+                    DisplayParticipants(trip, userViewModel)
                   }
             }
       })
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun DisplayParticipants(trip: Trip) {
-  val numberOfParticipants = trip.participants.size
+fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
+  val numberOfParticipants = trip.participants.size - 1
   val numberToString = generateParticipantString(numberOfParticipants)
   val themeColor = MaterialTheme.colorScheme.onSurface
   Column(
@@ -211,17 +228,27 @@ fun DisplayParticipants(trip: Trip) {
         ) {
           // Display participants (limit to 5 avatars max for space reasons)
           if (numberOfParticipants > 0) {
-            trip.participants.take(4).forEach { participant ->
-              // TODO: Replace Box with user avatars once they are designed
-              Box(
-                  modifier =
-                      Modifier.size(30.dp) // Set size for the avatar circle
-                          .testTag("participantAvatar")
-                          .background(Color.Gray, shape = RoundedCornerShape(50)), // Circular shape
-                  contentAlignment = Alignment.Center) {
-                    Text(text = participant.first().uppercaseChar().toString(), color = Color.White)
-                  }
-            }
+            trip.participants
+                .filter { it != Firebase.auth.uid.orEmpty() }
+                .take(4)
+                .forEach { participant ->
+                  // TODO: Replace Box with user avatars once they are designed
+                  Box(
+                      modifier =
+                          Modifier.size(30.dp) // Set size for the avatar circle
+                              .testTag("participantAvatar")
+                              .background(
+                                  Color.Gray, shape = RoundedCornerShape(50)), // Circular shape
+                      contentAlignment = Alignment.Center) {
+                        userViewModel._allParticipants.value
+                            .find { it.id == participant }
+                            ?.name
+                            ?.first()
+                            ?.let {
+                              Text(text = it.uppercaseChar().toString(), color = Color.White)
+                            }
+                      }
+                }
             if (trip.participants.size > 4) {
               Text(
                   text = "and ${trip.participants.size - 4} more",
