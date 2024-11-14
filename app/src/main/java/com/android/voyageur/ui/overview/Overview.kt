@@ -2,36 +2,46 @@ package com.android.voyageur.ui.overview
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
@@ -70,41 +80,32 @@ fun OverviewScreen(
       },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        TopAppBar(
-            title = {
-              Text(
-                  text = "Your trips",
-                  style = MaterialTheme.typography.headlineMedium,
-                  color = MaterialTheme.colorScheme.onSurface)
-            },
-            modifier = Modifier.testTag("topBarTitle"),
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface))
+        TopAppBar(title = { Text(text = "Your trips") }, modifier = Modifier.testTag("topBarTitle"))
       },
       bottomBar = {
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute())
-      }) { paddingValues ->
+      },
+      content = { pd ->
         Column(
-            modifier = Modifier.padding(paddingValues).testTag("overviewColumn").fillMaxSize(),
+            modifier = Modifier.padding(pd).testTag("overviewColumn"),
         ) {
           if (trips.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-              Text(
-                  "You have no trips yet. Schedule one.",
-                  modifier = Modifier.testTag("emptyTripPrompt"),
-                  style = MaterialTheme.typography.bodyLarge,
-                  color = MaterialTheme.colorScheme.onSurface)
-            }
+            Box(
+                modifier = Modifier.padding(pd).fillMaxSize(),
+                contentAlignment = Alignment.Center) {
+                  Text(
+                      modifier = Modifier.testTag("emptyTripPrompt"),
+                      text = "You have no trips yet.",
+                  )
+                }
           } else {
-            val sortedTrips = trips.sortedBy { it.startDate }
+            val sortedTrips = trips.sortedBy { trip -> trip.startDate }
             LazyColumn(
-                contentPadding = PaddingValues(horizontal = horizontalPadding, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+                horizontalAlignment = Alignment.CenterHorizontally, // Center items horizontally
                 modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
                   sortedTrips.forEach { trip ->
                     item {
@@ -119,7 +120,7 @@ fun OverviewScreen(
                 }
           }
         }
-      }
+      })
 }
 
 @Composable
@@ -130,7 +131,7 @@ fun TripItem(
     userViewModel: UserViewModel
 ) {
   // TODO: add a clickable once we implement the Schedule screens
-  val dateRange = trip.startDate.toDateString() + "-" + trip.endDate.toDateString()
+  val dateRange = trip.startDate.toDateString() + " - " + trip.endDate.toDateString()
   val themeColor = MaterialTheme.colorScheme.onSurface
   Card(
       onClick = {
@@ -141,33 +142,30 @@ fun TripItem(
         tripsViewModel.selectTrip(trip)
       },
       modifier =
-          Modifier.width(cardWidth).height(cardHeight).padding(vertical = 4.dp).testTag("cardItem"),
+          Modifier.width(353.dp)
+              .height(228.dp)
+              .padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 10.dp)
+              .testTag("cardItem"),
       shape = RoundedCornerShape(16.dp),
-      colors =
-          CardDefaults.cardColors(
-              containerColor = MaterialTheme.colorScheme.surfaceVariant,
-              contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
-      elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+      content = {
         Row(
             modifier = Modifier.fillMaxSize().testTag("cardRow"),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-              Box(modifier = Modifier.width(imageWidth).fillMaxHeight()) {
-                if (trip.imageUri.isNotEmpty()) {
-                  Image(
-                      painter = rememberAsyncImagePainter(model = trip.imageUri),
-                      contentDescription = "Selected image",
-                      contentScale = ContentScale.Crop,
-                      modifier = Modifier.fillMaxSize().testTag("tripImage"))
-                } else {
-                  Image(
-                      painter = painterResource(id = R.drawable.default_trip_image),
-                      contentDescription = "Trip image overview",
-                      contentScale = ContentScale.Crop,
-                      modifier = Modifier.fillMaxSize().testTag("defaultTripImage"))
-                }
-              }
-
+              // modifier.weight(1f) is used here to set the image for 1/3 of the card
+              if (trip.imageUri.isNotEmpty()) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = trip.imageUri),
+                    contentDescription = "Selected image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.width(120.dp).height(217.dp).testTag("tripImage"))
+              } else {
+                Image(
+                    painter = painterResource(id = R.drawable.default_trip_image),
+                    contentDescription = "Trip image overview",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.width(120.dp).height(217.dp).testTag("defaultTripImage"))
+              } // modifier.weight(2f) is used here to set the column to 2/3 of the card
               Column(
                   modifier = Modifier.fillMaxSize().padding(16.dp).weight(2f),
                   verticalArrangement = Arrangement.Top) {
@@ -175,11 +173,15 @@ fun TripItem(
                         modifier = Modifier.fillMaxWidth(),
                         text = trip.name,
                         textAlign = TextAlign.Start,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-
+                        style =
+                            TextStyle(
+                                fontSize = 23.sp,
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(500),
+                                color = themeColor,
+                                letterSpacing = 0.23.sp))
                     Text(
-                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        modifier = Modifier.fillMaxWidth().padding(start = 15.dp, top = 4.dp),
                         text = dateRange,
                         textAlign = TextAlign.Start,
                         style =
@@ -193,7 +195,7 @@ fun TripItem(
                     DisplayParticipants(trip, userViewModel)
                   }
             }
-      }
+      })
 }
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -201,7 +203,7 @@ fun TripItem(
 fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
   val numberOfParticipants = trip.participants.size - 1
   val numberToString = generateParticipantString(numberOfParticipants)
-
+  val themeColor = MaterialTheme.colorScheme.onSurface
   Column(
       modifier = Modifier.fillMaxHeight().padding(start = 0.dp, end = 0.dp, top = 8.dp),
       verticalArrangement = Arrangement.Bottom, // Align top to bottom
@@ -261,15 +263,21 @@ fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
   }
 }
 
+// Helper function to convert Timestamp to String format.
 fun Timestamp.toDateString(): String {
   val sdf = java.text.SimpleDateFormat("MMM dd yyyy", java.util.Locale.getDefault())
   return sdf.format(this.toDate())
 }
 
+// Helper function to generate the correct string
 fun generateParticipantString(numberOfParticipants: Int): String {
-  return when (numberOfParticipants) {
-    0 -> "No participants."
-    1 -> "1 Participant:"
-    else -> "$numberOfParticipants Participants:"
+  return if (numberOfParticipants == 0) {
+    "No participants."
+  } else {
+    if (numberOfParticipants == 1) {
+      "$numberOfParticipants Participant:"
+    } else {
+      "$numberOfParticipants Participants:"
+    }
   }
 }

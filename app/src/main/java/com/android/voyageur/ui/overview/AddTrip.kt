@@ -2,7 +2,6 @@ package com.android.voyageur.ui.overview
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
