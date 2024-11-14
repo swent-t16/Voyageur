@@ -31,8 +31,6 @@ import com.android.voyageur.ui.formFields.DatePickerModal
 import com.android.voyageur.ui.formFields.TimePickerInput
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.firebase.Timestamp
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -363,22 +361,8 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                   }
                 }
 
-                fun formatPrice(price: Double): String {
-                  val symbols =
-                      DecimalFormatSymbols.getInstance(Locale.getDefault()).apply {
-                        groupingSeparator = '\''
-                      }
-                  val decimalFormat =
-                      if (price % 1.0 == 0.0) {
-                        DecimalFormat("#,###", symbols)
-                      } else {
-                        DecimalFormat("#,###.##", symbols)
-                      }
-                  return decimalFormat.format(price)
-                }
-
                 OutlinedTextField(
-                    value = priceInput.ifEmpty { estimatedPrice?.let { formatPrice(it) } ?: "" },
+                    value = priceInput,
                     onValueChange = { input ->
                       val filteredInput = input.filter { it.isDigit() || it == '.' }
                       if (filteredInput.count { it == '.' } <= 1) {
@@ -394,7 +378,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth().testTag("inputActivityPrice"))
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 ExposedDropdownMenuBox(
                     expanded = expanded, onExpandedChange = { expanded = !expanded }) {
