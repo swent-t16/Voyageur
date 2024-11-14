@@ -1,7 +1,6 @@
 package com.android.voyageur.ui.trip.activities
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -100,12 +99,12 @@ class ActivitiesScreenTest {
     verify(navigationActions).navigateTo(Screen.ADD_ACTIVITY)
   }
 
-    @Test
-    fun activitiesScreen_displaysActivityItems() {
-        composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions) }
+  @Test
+  fun activitiesScreen_displaysActivityItems() {
+    composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions) }
 
-        composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[0].title}").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[1].title}").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[2].title}").assertIsDisplayed()
-    }
+    composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[0].title}").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[1].title}").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[2].title}").assertIsDisplayed()
+  }
 }

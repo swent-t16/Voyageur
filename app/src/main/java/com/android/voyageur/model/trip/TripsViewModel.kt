@@ -8,11 +8,11 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
+import java.time.LocalDate
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.time.LocalDate
 
 open class TripsViewModel(
     private val tripsRepository: TripRepository,
@@ -24,9 +24,9 @@ open class TripsViewModel(
   private val _selectedTrip = MutableStateFlow<Trip?>(null)
   open val selectedTrip: StateFlow<Trip?> = _selectedTrip.asStateFlow()
 
-    // useful for displaying the activities for one day:
-    private val _selectedDay = MutableStateFlow<LocalDate?>(null)
-    open val selectedDay: StateFlow<LocalDate?> = _selectedDay.asStateFlow()
+  // useful for displaying the activities for one day:
+  private val _selectedDay = MutableStateFlow<LocalDate?>(null)
+  open val selectedDay: StateFlow<LocalDate?> = _selectedDay.asStateFlow()
 
   init {
     tripsRepository.init {
@@ -55,9 +55,9 @@ open class TripsViewModel(
     _selectedTrip.value = trip
   }
 
-    fun selectDay(day: LocalDate) {
-        _selectedDay.value = day
-    }
+  fun selectDay(day: LocalDate) {
+    _selectedDay.value = day
+  }
 
   fun getNewTripId(): String = tripsRepository.getNewTripId()
 

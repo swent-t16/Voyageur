@@ -21,7 +21,11 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 
 @Composable
-fun ScheduleScreen(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: NavigationActions) {
+fun ScheduleScreen(
+    tripsViewModel: TripsViewModel,
+    trip: Trip,
+    navigationActions: NavigationActions
+) {
 
   Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
     // Row for the "Daily" and "Weekly" buttons
@@ -68,9 +72,7 @@ fun ScheduleScreen(tripsViewModel: TripsViewModel, trip: Trip, navigationActions
       ByDayScreen(tripsViewModel, trip, navigationActions)
     } else {
       WeeklyViewScreen(
-          trip = trip,
-          navigationActions = navigationActions,
-          onDaySelected = { navigationActions.getNavigationState().isDailyViewSelected = false })
+          tripsViewModel = tripsViewModel, trip = trip, navigationActions = navigationActions)
     }
   }
 }

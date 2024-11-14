@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.Trip
+import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -21,7 +22,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 
 class ByDayScreenTest {
   // Create one activity trip to check for activity box and Day card
@@ -80,15 +80,15 @@ class ByDayScreenTest {
 
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
+  private lateinit var tripsRepository: TripRepository
 
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
   fun setUp() {
     navigationActions = mock(NavigationActions::class.java)
-    tripsViewModel = mock(TripsViewModel::class.java)
-      `when`(tripsViewModel.selectDay(LocalDate.of(2022, 1, 1)))
-          .thenReturn(Unit)
+    tripsRepository = mock(TripRepository::class.java)
+    tripsViewModel = TripsViewModel(tripsRepository)
   }
 
   @Test
@@ -147,7 +147,9 @@ class ByDayScreenTest {
                       endTime = createTimestamp(2022, 1, 1, 11 + index, 0),
                       activityType = ActivityType.OTHER)
                 })
-    composeTestRule.setContent { ByDayScreen(tripsViewModel, tripWithManyActivities, navigationActions) }
+    composeTestRule.setContent {
+      ByDayScreen(tripsViewModel, tripWithManyActivities, navigationActions)
+    }
 
     // Check that the "and X more" text is displayed
     composeTestRule.onNodeWithText("and 1 more").assertIsDisplayed()
@@ -245,7 +247,9 @@ class ByDayScreenTest {
                         activityType = ActivityType.RESTAURANT),
                 ))
 
-    composeTestRule.setContent { ByDayScreen(tripsViewModel, tripWithDraftActivities, navigationActions) }
+    composeTestRule.setContent {
+      ByDayScreen(tripsViewModel, tripWithDraftActivities, navigationActions)
+    }
 
     // Check that the non-draft activity is displayed
     composeTestRule.onNodeWithText("Activity").assertIsDisplayed()
@@ -264,10 +268,11 @@ class ByDayScreenTest {
     }
   }
 
-    @Test
-    fun clickingOnDayCardNavigatesToActivitiesForOneDayScreen() {
-        composeTestRule.setContent { ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions) }
-        composeTestRule.onNodeWithTag("cardItem").performClick()
-        verify(navigationActions).navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
-    }
+  @Test
+  fun clickingOnDayCardNavigatesToActivitiesForOneDayScreen() {
+    composeTestRule.setContent { ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions) }
+    composeTestRule.onNodeWithTag("cardItem").performClick()
+    verify(navigationActions).navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
+    assert(tripsViewModel.selectedDay.value == LocalDate.of(2022, 1, 1))
+  }
 }

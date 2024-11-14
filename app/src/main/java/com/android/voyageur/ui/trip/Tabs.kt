@@ -39,7 +39,11 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
 
   // Column for top tabs and content
   Column(modifier = Modifier.testTag("topTabs")) {
-    TopBarWithImageAndText(selectedTrip, navigationActions, selectedTrip.name, selectedTrip.startDate.toDateWithoutYearString() +
+    TopBarWithImageAndText(
+        selectedTrip,
+        navigationActions,
+        selectedTrip.name,
+        selectedTrip.startDate.toDateWithoutYearString() +
             " - " +
             selectedTrip.endDate.toDateWithYearString())
     // TabRow composable for creating top tabs

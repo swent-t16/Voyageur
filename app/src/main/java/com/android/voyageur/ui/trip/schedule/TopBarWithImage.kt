@@ -39,12 +39,20 @@ import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.ui.navigation.NavigationActions
-import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
 
+/**
+ * TopBarWithImageAndText is a composable function that displays a TopAppBar with the trip image and
+ * 2 custom texts
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarWithImageAndText(selectedTrip: Trip, navigationActions: NavigationActions, text1: String, text2: String) {
+fun TopBarWithImageAndText(
+    selectedTrip: Trip,
+    navigationActions: NavigationActions,
+    text1: String,
+    text2: String
+) {
   Box(modifier = Modifier.fillMaxWidth().height(145.dp)) {
     // Background Image
     if (selectedTrip.imageUri.isNotEmpty()) {

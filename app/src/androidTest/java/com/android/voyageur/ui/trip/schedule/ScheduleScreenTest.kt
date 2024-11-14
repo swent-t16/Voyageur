@@ -31,7 +31,7 @@ class ScheduleScreenTest {
     // Set default locale for consistent testing
     Locale.setDefault(Locale.US)
 
-      tripsViewModel = Mockito.mock(TripsViewModel::class.java)
+    tripsViewModel = Mockito.mock(TripsViewModel::class.java)
 
     navHostController = Mockito.mock(NavHostController::class.java)
     navigationActions = NavigationActions(navHostController)
@@ -64,7 +64,8 @@ class ScheduleScreenTest {
                         ActivityType.MUSEUM)))
 
     composeTestRule.setContent {
-      ScheduleScreen(tripsViewModel = tripsViewModel, trip = mockTrip, navigationActions = navigationActions)
+      ScheduleScreen(
+          tripsViewModel = tripsViewModel, trip = mockTrip, navigationActions = navigationActions)
     }
   }
 

@@ -31,7 +31,7 @@ object Screen {
   const val EDIT_PROFILE = "Edit Profile Screen"
   const val ADD_ACTIVITY = "Add Activity Screen"
   const val TOP_TABS = "Top Tabs Screen"
-    const val ACTIVITIES_FOR_ONE_DAY = "Activities For One Day Screen"
+  const val ACTIVITIES_FOR_ONE_DAY = "Activities For One Day Screen"
   const val SEARCH_USER_PROFILE = "Search User Profile Screen"
 }
 

@@ -6,9 +6,13 @@ import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
+import com.android.voyageur.model.trip.TripRepository
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
+import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
@@ -24,7 +28,8 @@ class WeeklyViewScreenTest {
 
   private lateinit var navigationActions: NavigationActions
   private lateinit var mockTrip: Trip
-  private var isDailyViewSelected = false
+  private lateinit var tripsViewModel: TripsViewModel
+  private lateinit var tripsRepository: TripRepository
 
   @Before
   fun setUp() {
@@ -32,6 +37,9 @@ class WeeklyViewScreenTest {
     Locale.setDefault(Locale.US)
 
     navigationActions = Mockito.mock(NavigationActions::class.java)
+    tripsRepository = Mockito.mock(TripRepository::class.java)
+
+    tripsViewModel = TripsViewModel(tripsRepository)
 
     // Mock current route for navigation actions
     `when`(navigationActions.currentRoute()).thenReturn(Route.TOP_TABS)
@@ -82,9 +90,10 @@ class WeeklyViewScreenTest {
 
     composeTestRule.setContent {
       WeeklyViewScreen(
+          tripsViewModel = tripsViewModel,
           trip = mockTrip,
           navigationActions = navigationActions,
-          onDaySelected = { isDailyViewSelected = true })
+      )
     }
     composeTestRule.waitForIdle()
   }
@@ -112,17 +121,6 @@ class WeeklyViewScreenTest {
     composeTestRule.waitForIdle()
     // Look for the full text that would appear in a day with activities
     composeTestRule.onNodeWithText("T 3", useUnmergedTree = true).assertExists()
-  }
-
-  @Test
-  fun dayActivityCount_switchesToDailyView() {
-    composeTestRule.waitForIdle()
-    assert(!isDailyViewSelected)
-
-    // Click on a day that's within the trip range
-    composeTestRule.onNodeWithText("T 3", useUnmergedTree = true).performClick()
-
-    assert(isDailyViewSelected)
   }
 
   @Test
@@ -169,12 +167,11 @@ class WeeklyViewScreenTest {
   @Test
   fun weeklyViewScreen_verifyDayButtonInteraction() {
     composeTestRule.waitForIdle()
-    assert(!isDailyViewSelected)
 
     // Find and click a day button that should be within the trip range
     composeTestRule.onNodeWithText("T 3", useUnmergedTree = true).performClick()
-
-    assert(isDailyViewSelected)
+    verify(navigationActions).navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
+    assert(tripsViewModel.selectedDay.value == LocalDate.of(2024, 10, 3))
   }
 
   @Test

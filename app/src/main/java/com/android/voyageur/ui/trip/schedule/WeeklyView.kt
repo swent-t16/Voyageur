@@ -12,13 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.trip.Trip
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -46,16 +43,14 @@ import java.util.Locale
 
 @Composable
 fun WeeklyViewScreen(
+    tripsViewModel: TripsViewModel,
     trip: Trip,
     navigationActions: NavigationActions,
-    onDaySelected: () -> Unit // Add this parameter
 ) {
   val weeks = generateWeeks(trip.startDate, trip.endDate)
 
   Scaffold(
-      floatingActionButton = {
-          AddActivityButton(navigationActions)
-      },
+      floatingActionButton = { AddActivityButton(navigationActions) },
       modifier = Modifier.fillMaxSize().testTag("weeklyViewScreen"),
       bottomBar = {
         BottomNavigationMenu(
@@ -71,13 +66,13 @@ fun WeeklyViewScreen(
                 item { Spacer(modifier = Modifier.height(16.dp)) }
                 items(weeks.size) { weekIndex ->
                   WeekCard(
+                      tripsViewModel = tripsViewModel,
                       trip = trip,
                       weekStart = weeks[weekIndex].first,
                       weekEnd = weeks[weekIndex].last,
                       activities = trip.activities,
                       weekIndex = weekIndex,
-                      onDaySelected = onDaySelected // Pass the callback
-                      )
+                      navigationActions = navigationActions)
                 }
               }
         }
@@ -86,12 +81,13 @@ fun WeeklyViewScreen(
 
 @Composable
 private fun WeekCard(
+    tripsViewModel: TripsViewModel,
     trip: Trip,
     weekStart: LocalDate,
     weekEnd: LocalDate,
     activities: List<Activity>,
     weekIndex: Int,
-    onDaySelected: () -> Unit
+    navigationActions: NavigationActions
 ) {
   Card(
       modifier = Modifier.width(340.dp).testTag("weekCard_$weekIndex"),
@@ -121,12 +117,13 @@ private fun WeekCard(
                     }
 
                 DayActivityCount(
+                    tripsViewModel = tripsViewModel,
                     date = currentDate,
                     activityCount = activitiesForDay.size,
                     trip = trip,
                     dayIndex = dayOffset,
                     weekIndex = weekIndex,
-                    onDaySelected = onDaySelected)
+                    navigationActions = navigationActions)
               }
             }
       }
@@ -134,12 +131,13 @@ private fun WeekCard(
 
 @Composable
 private fun DayActivityCount(
+    tripsViewModel: TripsViewModel,
     date: LocalDate,
     activityCount: Int,
     trip: Trip,
     dayIndex: Int,
     weekIndex: Int,
-    onDaySelected: () -> Unit
+    navigationActions: NavigationActions
 ) {
   val tripStartDate =
       trip.startDate.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
@@ -148,7 +146,10 @@ private fun DayActivityCount(
 
   if (isDateInTrip) {
     Button(
-        onClick = onDaySelected,
+        onClick = {
+          tripsViewModel.selectDay(date)
+          navigationActions.navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
+        },
         modifier =
             Modifier.fillMaxWidth()
                 .height(36.dp) // Reduced height
