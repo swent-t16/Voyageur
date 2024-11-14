@@ -1,19 +1,44 @@
 package com.android.voyageur.ui.overview
 
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.Manifest.permission.READ_MEDIA_IMAGES
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.*
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -31,6 +56,7 @@ import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.formFields.DatePickerModal
+import com.android.voyageur.ui.gallery.PermissionButtonForGallery
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.utils.rememberImageCropper
 import com.google.firebase.Firebase
@@ -59,6 +85,7 @@ fun AddTripScreen(
   var endDate by remember { mutableStateOf<Long?>(null) }
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
   var imageUri by remember { mutableStateOf("") }
+  var showRationaleDialog by remember { mutableStateOf(false) }
 
   val context = LocalContext.current
   val imageId = R.drawable.default_trip_image
@@ -77,6 +104,12 @@ fun AddTripScreen(
     result.imageUri?.let { imageUri = it }
     result.error?.let { error -> Toast.makeText(context, error, Toast.LENGTH_SHORT).show() }
   }
+  val permissionVersion =
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        READ_MEDIA_IMAGES
+      } else {
+        READ_EXTERNAL_STORAGE
+      }
 
   LaunchedEffect(isEditMode) {
     if (isEditMode && tripsViewModel.selectedTrip.value != null) {
@@ -149,7 +182,9 @@ fun AddTripScreen(
                 },
             startDate = startTimestamp,
             endDate = endTimestamp,
-            activities = listOf(),
+            activities =
+                if (isEditMode) tripsViewModel.selectedTrip.value?.activities ?: listOf()
+                else listOf(),
             type = tripType,
             imageUri = imageUrl)
 
@@ -210,10 +245,11 @@ fun AddTripScreen(
                     }
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                Button(onClick = { imageCropper(null) }, modifier = Modifier.fillMaxWidth()) {
-                  Text("Select Image from Gallery")
-                }
+                PermissionButtonForGallery(
+                    onUriSelected = { uri -> imageUri = uri.toString(), imageCropper(null) },
+                    "Select Image from Gallery",
+                    "This app needs access to your photos to allow you to select an image for your trip.",
+                    Modifier.fillMaxWidth())
 
                 OutlinedTextField(
                     value = name,

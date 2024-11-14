@@ -173,16 +173,6 @@ class EditProfileScreenTest {
     composeTestRule.onNodeWithTag("emailField").assertIsNotEnabled()
   }
 
-  @Test
-  fun noUserDataDisplaysMessage() {
-    // Arrange: Set user to null and isLoading to false
-    userViewModel._user.value = null
-    userViewModel._isLoading.value = false
-
-    // Assert: Check that the "No user data available" text is displayed
-    composeTestRule.onNodeWithTag("noUserData").assertIsDisplayed()
-    composeTestRule.onNodeWithText("No user data available").assertIsDisplayed()
-  }
   // New test: Add Interest
   @Test
   fun addInterestSuccessfully() {

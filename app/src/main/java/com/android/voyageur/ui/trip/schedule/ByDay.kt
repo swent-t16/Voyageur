@@ -30,14 +30,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.voyageur.model.activity.Activity
-import com.android.voyageur.model.activity.ActivityType
-import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.activity.isDraft
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
-import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -49,7 +47,6 @@ fun ByDayScreen(
     navigationActions: NavigationActions,
 ) {
   Scaffold(
-      // TODO: Final implementation of ByDayScreen
       floatingActionButton = {
         FloatingActionButton(
             onClick = { navigationActions.navigateTo(Screen.ADD_ACTIVITY) },
@@ -68,78 +65,19 @@ fun ByDayScreen(
             selectedItem = navigationActions.currentRoute())
       },
       content = { pd ->
-        // TODO: HARDCODED ACTIVITY LIST to be removed when we have actual list
-        // TODO: sort activities by their hour
         val tripActivities = trip.activities
-        val oneDayAfterNow = Timestamp(Timestamp.now().seconds + 86400, 0)
-        val fakeActivities =
-            listOf(
-                Activity(
-                    title = "Breakfast",
-                    description = "",
-                    activityType = ActivityType.RESTAURANT,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 20.25,
-                    location = Location()),
-                Activity(
-                    title = "Dinner",
-                    description = "",
-                    activityType = ActivityType.RESTAURANT,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 23.25,
-                    location = Location()),
-                Activity(
-                    title = "Dinner2",
-                    description = "",
-                    activityType = ActivityType.RESTAURANT,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 23.25,
-                    location = Location()),
-                Activity(
-                    title = "Dinner3",
-                    description = "",
-                    activityType = ActivityType.RESTAURANT,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 23.25,
-                    location = Location()),
-                Activity(
-                    title = "Dinner4",
-                    description = "",
-                    activityType = ActivityType.RESTAURANT,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 23.25,
-                    location = Location()),
-                Activity(
-                    title = "Dinner5",
-                    description = "",
-                    activityType = ActivityType.RESTAURANT,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 23.25,
-                    location = Location()),
-                Activity(
-                    title = "Too long name to be displayed on the Activity Box",
-                    description = "",
-                    activityType = ActivityType.OTHER,
-                    startTime = Timestamp.now(),
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 00.00,
-                    location = Location()),
-                Activity(
-                    title = "Visit city",
-                    description = "",
-                    activityType = ActivityType.OTHER,
-                    startTime = oneDayAfterNow,
-                    endTime = Timestamp.now(),
-                    estimatedPrice = 00.00,
-                    location = Location()))
-        val groupedActivities = groupActivitiesByDate(tripActivities)
+        val groupedActivities =
+            groupActivitiesByDate(tripActivities)
+                .mapValues { (_, activities) ->
+                  // Filter out draft activities from each group
+                  activities.filter { !it.isDraft() }
+                }
+                .filter { (_, activities) ->
+                  // Filter out groups that become empty after removing draft activities
+                  activities.isNotEmpty()
+                }
         if (groupedActivities.isEmpty()) {
+          // Display empty prompt if there are no activities
           Text(
               modifier = Modifier.padding(pd).testTag("emptyByDayPrompt"),
               text = "You have no activities yet. Schedule one.")
@@ -164,15 +102,26 @@ fun ByDayScreen(
       })
 }
 
-// TODO: Test this works
+/**
+ * Function to sort Activities. It sorts by startTime, and if startTime is equal sorts by endTime.
+ * It groups the activities in a map with the day as key.
+ */
 fun groupActivitiesByDate(activities: List<Activity>): Map<LocalDate, List<Activity>> {
-  return activities.groupBy { activity ->
+  val sortedActivities =
+      activities.sortedWith(
+          compareBy(
+              { it.startTime }, // First, sort by startTime
+              { it.endTime } // If startTime is equal, sort by endTime
+              ))
+  // Group into a map with the day as key
+  return sortedActivities.groupBy { activity ->
     activity.startTime.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
   }
 }
 
 @Composable
-fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
+/** Day Card which displays the date and a column with activities for the corresponding days. */
+private fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
   Card(
       onClick = {},
       modifier =
@@ -199,10 +148,14 @@ fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
                 Modifier.padding(horizontal = 30.dp, vertical = 10.dp).testTag("activityColumn"),
         ) {
           val numberOfActivities = activitiesForDay.size
-          activitiesForDay.take(4).forEach { activity -> ActivityBox(activity) }
+          activitiesForDay
+              .filter { !it.isDraft() }
+              .take(4)
+              .forEach { activity -> ActivityBox(activity) }
           if (numberOfActivities > 4) {
+            // Displays additional text in case of too many activities
             Text(
-                text = "and ${numberOfActivities - 3} more",
+                text = "and ${numberOfActivities - 4} more",
                 style =
                     TextStyle(fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(top = 4.dp))
@@ -212,11 +165,14 @@ fun DayActivityCard(day: LocalDate, activitiesForDay: List<Activity>) {
 }
 
 @Composable
-fun ActivityBox(activity: Activity) {
+/** Activity box which displays activity title. */
+private fun ActivityBox(activity: Activity) {
+  // Appropriate background for both Light and Dark Themes
   val backgroundColor = if (isSystemInDarkTheme()) Color.Black else Color.White
   Box(
       modifier =
           Modifier.width(119.dp)
+              .testTag("activityBox")
               .height(19.dp)
               .background(color = backgroundColor, shape = RoundedCornerShape(size = 25.dp)),
       contentAlignment = Alignment.CenterStart) {
@@ -235,8 +191,11 @@ fun ActivityBox(activity: Activity) {
       }
 }
 
-// Function to format LocalDate to a "Day, d Month" format
-fun formatDailyDate(date: LocalDate): String {
-  val formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.ENGLISH)
-  return date.format(formatter)
+fun formatDailyDate(date: LocalDate?): String {
+  // Wrap in a try-catch to avoid an exception crashing the app
+  return try {
+    date?.format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.ENGLISH)) ?: "Invalid date"
+  } catch (e: Exception) {
+    "Invalid date"
+  }
 }

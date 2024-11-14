@@ -1,15 +1,6 @@
 package com.android.voyageur.ui.profile
 
-import android.Manifest
-import android.content.Context
-import android.content.ContextWrapper
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
-import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -22,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -31,6 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.gallery.PermissionButtonForGallery
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -43,6 +34,11 @@ import com.android.voyageur.ui.utils.rememberImageCropper
 fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
   val user by userViewModel.user.collectAsState()
   val isLoading by userViewModel.isLoading.collectAsState()
+  // Check if user is null and navigate back to the Profile screen if true
+  if (user == null && !isLoading) {
+    navigationActions.navigateTo(Route.PROFILE)
+    return
+  }
 
   var name by remember { mutableStateOf(user?.name ?: "") }
   var email by remember { mutableStateOf(user?.email ?: "") }
@@ -168,6 +164,11 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                             modifier = Modifier.testTag("editImageButton")) {
                               Text("Edit Profile Picture")
                             }
+                        PermissionButtonForGallery(
+                            onUriSelected = { profilePictureUri = it },
+                            "Edit Profile Picture",
+                            "This app needs access to your photos to allow you to select a profile picture.",
+                            Modifier.testTag("editImageButton"))
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -245,7 +246,6 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                             modifier = Modifier.testTag("saveButton")) {
                               Text("Save")
                             }
-                        // Show rationale dialog if needed
                       }
                 }
                     ?: run {
@@ -279,15 +279,4 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
           TextButton(onClick = { showPermissionRationale = false }) { Text("Cancel") }
         })
   }
-}
-
-fun Context.findActivity(): ComponentActivity {
-  var context = this
-  while (context is ContextWrapper) {
-    if (context is ComponentActivity) {
-      return context
-    }
-    context = context.baseContext
-  }
-  throw IllegalStateException("No Activity found")
 }

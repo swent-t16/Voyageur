@@ -5,6 +5,7 @@ activityKtx = "1.9.3"
 coilCompose = "2.4.0"
 fragmentKtxVersion = "1.6.1"
 places = "4.0.0"
+robolectricVersion = "4.10"
 sonar = "4.4.1.3373"
 
 # Plugins
@@ -78,6 +79,8 @@ navigationTesting = "2.8.2"
 firebaseStorageKtx = "21.0.1"
 testng = "6.9.6"
 foundationAndroid = "1.7.5"
+core = "1.46.0"
+junitKtx = "1.2.1"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -133,6 +136,7 @@ places = { module = "com.google.android.libraries.places:places", version.ref = 
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+robolectric-v410 = { module = "org.robolectric:robolectric", version.ref = "robolectricVersion" }
 test-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "androidxCoreKtx" }
 androidx-ui-test-junit4-android = { group = "androidx.compose.ui", name = "ui-test-junit4-android", version.ref = "uiTestJunit4Android" }
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
@@ -141,6 +145,8 @@ androidx-navigation-testing = { group = "androidx.navigation", name = "navigatio
 firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
 testng = { group = "org.testng", name = "testng", version.ref = "testng" }
 androidx-foundation-android = { group = "androidx.compose.foundation", name = "foundation-android", version.ref = "foundationAndroid" }
+core = { group = "com.google.ar", name = "core", version.ref = "core" }
+androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
 
 
 [plugins]
