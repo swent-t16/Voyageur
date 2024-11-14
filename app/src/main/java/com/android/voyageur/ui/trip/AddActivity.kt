@@ -49,7 +49,8 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
   var selectedTimeField by remember { mutableStateOf<TimeField?>(null) }
   var startTime by remember { mutableStateOf<Long?>(null) }
   var endTime by remember { mutableStateOf<Long?>(null) }
-  var estimatedPrice by remember { mutableStateOf<Double>(0.0) }
+  var priceInput by remember { mutableStateOf("") }
+  var estimatedPrice by remember { mutableStateOf<Double?>(null) }
   var activityType by remember { mutableStateOf(ActivityType.WALK) }
   var expanded by remember { mutableStateOf(false) }
 
@@ -188,7 +189,7 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
             location = Location(country = "Unknown", city = "Unknown", county = null, zip = null),
             startTime = startTimestamp,
             endTime = endTimestamp,
-            estimatedPrice = estimatedPrice,
+            estimatedPrice = estimatedPrice ?: 0.0,
             activityType = activityType)
 
     val updatedTrip = selectedTrip.copy(activities = selectedTrip.activities + activity)
@@ -361,17 +362,23 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
                 }
 
                 OutlinedTextField(
-                    value = estimatedPrice.toString(),
+                    value = priceInput,
                     onValueChange = { input ->
-                      val newValue = input.replace("[^0-9.]".toRegex(), "")
-                      estimatedPrice = newValue.toDouble()
+                      val filteredInput = input.filter { it.isDigit() || it == '.' }
+                      if (filteredInput.count { it == '.' } <= 1) {
+                        val decimalParts = filteredInput.split(".")
+                        if (decimalParts.size <= 1 || decimalParts[1].length <= 2) {
+                          priceInput = filteredInput
+                          estimatedPrice = filteredInput.toDoubleOrNull()
+                        }
+                      }
                     },
                     label = { Text("Estimated Price (CHF)") },
                     placeholder = { Text("Enter estimated price") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth().testTag("inputActivityPrice"))
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 ExposedDropdownMenuBox(
                     expanded = expanded, onExpandedChange = { expanded = !expanded }) {
