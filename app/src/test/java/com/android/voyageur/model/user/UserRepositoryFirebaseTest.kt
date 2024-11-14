@@ -301,7 +301,6 @@ class UserRepositoryFirebaseTest {
     verify(mockTask).addOnFailureListener(any())
   }
 
-
   @Test
   fun testGetContacts_failure_userNotFound() {
     val userId = "1"
@@ -310,7 +309,8 @@ class UserRepositoryFirebaseTest {
     `when`(mockDocumentReference.get()).thenReturn(mockTask)
     `when`(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
       val listener = invocation.arguments[0] as OnSuccessListener<DocumentSnapshot>
-      `when`(mockDocumentSnapshot.toObject(User::class.java)).thenReturn(null) // Simulate user not found
+      `when`(mockDocumentSnapshot.toObject(User::class.java))
+          .thenReturn(null) // Simulate user not found
       listener.onSuccess(mockDocumentSnapshot)
       mockTask
     }
@@ -327,5 +327,4 @@ class UserRepositoryFirebaseTest {
 
     verify(mockDocumentReference).get()
   }
-
 }
