@@ -336,7 +336,14 @@ fun SearchScreen(
                     if (searchedPlaces.isEmpty()) {
                       item { NoResultsFound() }
                     } else {
-                      items(searchedPlaces) { place -> PlaceSearchResultItem(place) }
+                      items(searchedPlaces) { place ->
+                        PlaceSearchResultItem(
+                            place,
+                            Modifier.clickable {
+                              placesViewModel.selectPlace(place)
+                              navigationActions.navigateTo(Screen.PLACE_DETAILS)
+                            })
+                      }
                     }
                   }
             }

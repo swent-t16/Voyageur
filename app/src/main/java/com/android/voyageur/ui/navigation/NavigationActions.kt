@@ -32,6 +32,7 @@ object Screen {
   const val SETTINGS = "Settings Screen"
   const val TOP_TABS = "Top Tabs Screen"
   const val SEARCH_USER_PROFILE = "Search User Profile Screen"
+  const val PLACE_DETAILS = "Place Details Screen"
 }
 
 data class TopLevelDestination(
