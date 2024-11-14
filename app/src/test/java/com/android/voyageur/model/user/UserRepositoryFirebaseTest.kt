@@ -300,4 +300,32 @@ class UserRepositoryFirebaseTest {
     verify(mockQuery).get()
     verify(mockTask).addOnFailureListener(any())
   }
+
+
+  @Test
+  fun testGetContacts_failure_userNotFound() {
+    val userId = "1"
+    val mockTask = mock(Task::class.java) as Task<DocumentSnapshot>
+
+    `when`(mockDocumentReference.get()).thenReturn(mockTask)
+    `when`(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
+      val listener = invocation.arguments[0] as OnSuccessListener<DocumentSnapshot>
+      `when`(mockDocumentSnapshot.toObject(User::class.java)).thenReturn(null) // Simulate user not found
+      listener.onSuccess(mockDocumentSnapshot)
+      mockTask
+    }
+
+    val onSuccess: (List<User>) -> Unit = {
+      assert(false) { "Success should not be called in the failure test" }
+    }
+
+    val onFailure: (Exception) -> Unit = { exception ->
+      assertEquals("User not found", exception.message)
+    }
+
+    userRepository.getContacts(userId, onSuccess, onFailure)
+
+    verify(mockDocumentReference).get()
+  }
+
 }
