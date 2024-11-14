@@ -1,6 +1,7 @@
 package com.android.voyageur.model.place
 
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.libraries.places.api.model.Place
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -55,5 +56,21 @@ class PlacesViewModelTest {
     placesViewModel.setQuery(query2, LatLng(0.0, 0.0))
     delay(200) // Wait for debounce delay
     verify(placesRepository).searchPlaces(eq(query2), any(), any(), any())
+  }
+
+  @Test
+  fun testSelectPlace() {
+    val place = CustomPlace(place = mock(Place::class.java), photos = emptyList())
+    placesViewModel.selectPlace(place)
+    assert(placesViewModel.selectedPlace.value == place)
+  }
+
+  @Test
+  fun testDeselectPlace() {
+    val place = CustomPlace(place = mock(Place::class.java), photos = emptyList())
+    placesViewModel.selectPlace(place)
+    assert(placesViewModel.selectedPlace.value == place)
+    placesViewModel.deselectPlace()
+    assert(placesViewModel.selectedPlace.value == null)
   }
 }

@@ -37,7 +37,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -52,10 +51,17 @@ import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import kotlinx.coroutines.launch
 
+/**
+ * Composable function that displays the details of a selected place.
+ *
+ * @param navigationActions Actions to handle navigation events.
+ * @param placesViewModel ViewModel that holds the state of the selected place.
+ */
 @SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaceDetailsScreen(navigationActions: NavigationActions, placesViewModel: PlacesViewModel) {
+  val customPlace by placesViewModel.selectedPlace.collectAsState()
   Scaffold(
       topBar = {
         TopAppBar(
@@ -80,19 +86,23 @@ fun PlaceDetailsScreen(navigationActions: NavigationActions, placesViewModel: Pl
               Column(
                   modifier = Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
                   horizontalAlignment = Alignment.CenterHorizontally) {
-                    val selectedPlace = placesViewModel.selectedPlace
-                    selectedPlace.value?.let { PlaceDetailsContent(customPlace = it) }
+                    customPlace?.let { PlaceDetailsContent(customPlace = it) }
                   }
             }
       })
 }
 
+/**
+ * Composable function that displays the content of the place details.
+ *
+ * @param customPlace The place to display details for.
+ */
 @Composable
 fun PlaceDetailsContent(customPlace: CustomPlace) {
   val context = LocalContext.current
 
   Column(
-      modifier = Modifier.padding(16.dp).fillMaxWidth(),
+      modifier = Modifier.padding(16.dp).fillMaxWidth().testTag("PlaceDetailsContent"),
       horizontalAlignment = Alignment.CenterHorizontally) {
         val place = customPlace.place
         place.name?.let {
@@ -120,12 +130,12 @@ fun PlaceDetailsContent(customPlace: CustomPlace) {
                   MaterialTheme.typography.bodyMedium.copy(
                       fontWeight = FontWeight.SemiBold,
                       color = MaterialTheme.colorScheme.secondary),
-              modifier = Modifier.padding(bottom = 8.dp))
+              modifier = Modifier.padding(bottom = 8.dp).testTag("RatingText"))
         } else {
           Text(
               text = "No ratings available",
               style = MaterialTheme.typography.bodySmall.copy(fontSize = 16.sp),
-              modifier = Modifier.padding(bottom = 8.dp))
+              modifier = Modifier.padding(bottom = 8.dp).testTag("NoRatingsText"))
         }
 
         Text(
@@ -133,18 +143,18 @@ fun PlaceDetailsContent(customPlace: CustomPlace) {
                 if (place.priceLevel != null) "Price Level: ${"$".repeat(place.priceLevel)}"
                 else "Price Level: N/A",
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 16.sp),
-            modifier = Modifier.padding(bottom = 8.dp))
+            modifier = Modifier.padding(bottom = 8.dp).testTag("PriceLevelText"))
         Text(
             text = "Phone: ${place.internationalPhoneNumber ?: "N/A"}",
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 16.sp),
-            modifier = Modifier.padding(bottom = 8.dp))
+            modifier = Modifier.padding(bottom = 8.dp).testTag("PhoneNumberText"))
 
         place.openingHours?.let { OpeningHoursWidget(openingHours = it.weekdayText) }
             ?: run {
               Text(
                   text = "Opening hours not available",
                   style = MaterialTheme.typography.bodySmall.copy(fontSize = 16.sp),
-                  modifier = Modifier.padding(bottom = 8.dp))
+                  modifier = Modifier.padding(bottom = 8.dp).testTag("NoOpeningHoursText"))
             }
 
         Row(
@@ -159,7 +169,7 @@ fun PlaceDetailsContent(customPlace: CustomPlace) {
                       Toast.makeText(context, "Website not available", Toast.LENGTH_SHORT).show()
                     }
                   },
-                  modifier = Modifier.weight(1f)) {
+                  modifier = Modifier.weight(1f).testTag("LearnMoreButton")) {
                     Text(text = "Learn More", style = MaterialTheme.typography.labelLarge)
                   }
 
@@ -176,13 +186,18 @@ fun PlaceDetailsContent(customPlace: CustomPlace) {
                       context.startActivity(mapIntent)
                     }
                   },
-                  modifier = Modifier.weight(1f)) {
+                  modifier = Modifier.weight(1f).testTag("GetDirectionsButton")) {
                     Text(text = "Get Directions")
                   }
             }
       }
 }
 
+/**
+ * Composable function that displays the opening hours of a place.
+ *
+ * @param openingHours List of opening hours for each day of the week.
+ */
 @Composable
 fun OpeningHoursWidget(openingHours: List<String>) {
   var selectedDayIndex by remember { mutableStateOf(0) }
@@ -190,7 +205,7 @@ fun OpeningHoursWidget(openingHours: List<String>) {
       listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
   Column(
-      modifier = Modifier.padding(vertical = 8.dp).fillMaxWidth(),
+      modifier = Modifier.padding(vertical = 8.dp).fillMaxWidth().testTag("OpeningHoursWidget"),
       horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = "Opening Hours",
@@ -210,6 +225,7 @@ fun OpeningHoursWidget(openingHours: List<String>) {
                     text = daysOfWeek[index],
                     modifier =
                         Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            .testTag("DayText$index")
                             .background(
                                 color =
                                     if (isSelected)
@@ -231,51 +247,41 @@ fun OpeningHoursWidget(openingHours: List<String>) {
           Text(
               text = openingHours[selectedDayIndex],
               style = MaterialTheme.typography.bodySmall.copy(fontSize = 16.sp),
-              modifier = Modifier.padding(top = 8.dp))
+              modifier = Modifier.padding(top = 8.dp).testTag("OpeningHoursText"))
         }
       }
 }
 
+/**
+ * Composable function that displays a photo carousel for a place.
+ *
+ * @param customPlace The place containing the photos to display.
+ */
 @Composable
 fun PhotoCarousel(customPlace: CustomPlace) {
   val coroutineScope = rememberCoroutineScope()
-  val photos by rememberUpdatedState(customPlace.photos) // Ensure state is up-to-date
+  // Use a state variable to observe changes in photos
+  var photos by remember { mutableStateOf(customPlace.photos) }
 
-  LaunchedEffect(photos) {
-    // Trigger recomposition when photos are updated
-
-  }
+  // Use a LaunchedEffect to react to changes in the photos list
+  LaunchedEffect(customPlace.photos) { photos = customPlace.photos }
 
   Box(
       modifier =
           Modifier.fillMaxWidth()
-              .height(300.dp) // Adjust height as needed
-              .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))) {
+              .height(350.dp) // Adjust height as needed
+              .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
+              .testTag("PhotoCarousel")) {
         if (photos.isNotEmpty()) {
           // HorizontalPager for images when available
           val pagerState = rememberPagerState(pageCount = { photos.size })
           HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
             Image(
-                bitmap = photos[page], // Replace with your image source
+                bitmap = photos[page],
                 contentDescription = "Place photo",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize())
+                modifier = Modifier.fillMaxSize().testTag("PlacePhoto$page"))
           }
-
-          // Bottom gradient for fade-out effect
-          Box(
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .height(150.dp) // Control how far up the gradient extends
-                      .align(Alignment.BottomCenter)
-                      .background(
-                          brush =
-                              Brush.verticalGradient(
-                                  colors =
-                                      listOf(
-                                          Color.Transparent,
-                                          Color.Black.copy(alpha = 0.7f) // Stronger fade effect
-                                          ))))
 
           // Navigation arrows
           IconButton(
@@ -286,12 +292,14 @@ fun PhotoCarousel(customPlace: CustomPlace) {
                   }
                 }
               },
-              modifier = Modifier.align(Alignment.CenterStart).padding(16.dp)) {
+              modifier =
+                  Modifier.align(Alignment.CenterStart)
+                      .padding(16.dp)
+                      .testTag("PreviousImageButton")) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Previous image",
-                    tint = Color.White.copy(alpha = 0.8f) // Adjust tint for visibility
-                    )
+                    tint = Color.White.copy(alpha = 0.8f))
               }
 
           IconButton(
@@ -302,12 +310,12 @@ fun PhotoCarousel(customPlace: CustomPlace) {
                   }
                 }
               },
-              modifier = Modifier.align(Alignment.CenterEnd).padding(16.dp)) {
+              modifier =
+                  Modifier.align(Alignment.CenterEnd).padding(16.dp).testTag("NextImageButton")) {
                 Icon(
                     imageVector = Icons.Default.ArrowForward,
                     contentDescription = "Next image",
-                    tint = Color.White.copy(alpha = 0.8f) // Adjust tint for visibility
-                    )
+                    tint = Color.White.copy(alpha = 0.8f))
               }
         } else {
           // Fallback image when there are no photos
@@ -315,7 +323,7 @@ fun PhotoCarousel(customPlace: CustomPlace) {
               painter = painterResource(id = R.drawable.image_not_found),
               contentDescription = "Placeholder image",
               contentScale = ContentScale.Crop,
-              modifier = Modifier.fillMaxSize())
+              modifier = Modifier.fillMaxSize().testTag("PlaceholderImage"))
         }
       }
 }

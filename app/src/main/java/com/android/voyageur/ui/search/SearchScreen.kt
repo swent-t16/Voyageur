@@ -194,7 +194,8 @@ fun SearchScreen(
         })
   }
   LaunchedEffect(navigationActions.getNavigationState().currentTabForSearch) {
-    if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES && requirePermission) {
+    if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES &&
+        requirePermission) {
       if (permissions.all {
         ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
       }) {
@@ -264,15 +265,21 @@ fun SearchScreen(
               }
 
           // Tabs
-          TabRow(modifier = Modifier.testTag("tabRow"), selectedTabIndex = navigationActions.getNavigationState().currentTabForSearch.ordinal) {
-            FilterType.values().forEachIndexed { index, filterType ->
-              Tab(
-                  modifier = Modifier.testTag("filterButton_${filterType.name}"),
-                  selected = navigationActions.getNavigationState().currentTabForSearch == filterType,
-                  onClick = { navigationActions.getNavigationState().currentTabForSearch = filterType },
-                  text = { Text(filterType.name) })
-            }
-          }
+          TabRow(
+              modifier = Modifier.testTag("tabRow"),
+              selectedTabIndex =
+                  navigationActions.getNavigationState().currentTabForSearch.ordinal) {
+                FilterType.values().forEachIndexed { index, filterType ->
+                  Tab(
+                      modifier = Modifier.testTag("filterButton_${filterType.name}"),
+                      selected =
+                          navigationActions.getNavigationState().currentTabForSearch == filterType,
+                      onClick = {
+                        navigationActions.getNavigationState().currentTabForSearch = filterType
+                      },
+                      text = { Text(filterType.name) })
+                }
+              }
 
           Spacer(modifier = Modifier.height(16.dp))
 
