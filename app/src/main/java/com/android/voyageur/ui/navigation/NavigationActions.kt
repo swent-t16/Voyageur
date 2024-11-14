@@ -4,6 +4,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -25,11 +29,7 @@ object Screen {
   const val AUTH = "SignIn Screen"
   const val ADD_TRIP = "Add Trip Screen"
   const val EDIT_PROFILE = "Edit Profile Screen"
-  const val BY_DAY = "By Day Screen"
-  const val BY_WEEK = "By Week Screen"
-  const val ACTIVITIES = "Activities Screen"
   const val ADD_ACTIVITY = "Add Activity Screen"
-  const val SETTINGS = "Settings Screen"
   const val TOP_TABS = "Top Tabs Screen"
   const val SEARCH_USER_PROFILE = "Search User Profile Screen"
 }
@@ -51,6 +51,26 @@ object TopLevelDestinations {
 
 val LIST_TOP_LEVEL_DESTINATION =
     listOf(TopLevelDestinations.OVERVIEW, TopLevelDestinations.SEARCH, TopLevelDestinations.PROFILE)
+
+/** State for the navigation of the app */
+open class NavigationState {
+  /**
+   * This is a mutable state that represents the current tab index for the trip. (0 for Schedule, 1
+   * for Activities, 2 for Settings) This is used to determine which tab is currently selected in
+   * the TobTabs composable for a trip. It needs to be part of the navigation actions in order to
+   * remember which tab was selecting when opening another screen and trying to go back. For
+   * example, when we open AddActivityScreen from the Activities tab, we want to go back to this
+   * tab.
+   */
+  var currentTabIndexForTrip by mutableIntStateOf(0) // Default to 0 (Schedule tab)
+  /**
+   * This is a mutable state that represents whether the daily view is selected in the ByDayScreen.
+   * This is used to determine which view is currently selected in the Schedule Screen. Similarly to
+   * currentTabIndexForTrip, it needs to be part of the navigation actions in order to remember
+   * which view was selected when opening another screen and trying to go back.
+   */
+  var isDailyViewSelected by mutableStateOf(true) // Default to true (Daily view selected)
+}
 
 open class NavigationActions(
     private val navController: NavHostController,
@@ -99,4 +119,10 @@ open class NavigationActions(
    * @return The current route
    */
   open fun currentRoute(): String = navController.currentDestination?.route ?: ""
+
+  private val navigationState = NavigationState()
+
+  open fun getNavigationState(): NavigationState {
+    return navigationState
+  }
 }

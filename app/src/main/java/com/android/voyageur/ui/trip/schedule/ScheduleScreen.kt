@@ -11,8 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,7 +21,6 @@ import com.android.voyageur.ui.navigation.NavigationActions
 
 @Composable
 fun ScheduleScreen(trip: Trip, navigationActions: NavigationActions) {
-  var isDailySelected by remember { mutableStateOf(true) }
 
   Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
     // Row for the "Daily" and "Weekly" buttons
@@ -31,38 +28,48 @@ fun ScheduleScreen(trip: Trip, navigationActions: NavigationActions) {
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp, end = 16.dp),
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically) {
-          TextButton(onClick = { isDailySelected = true }) {
-            Text(
-                text = "Daily",
-                style = MaterialTheme.typography.bodyMedium,
-                color =
-                    if (isDailySelected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                fontWeight = if (isDailySelected) FontWeight.Bold else FontWeight.Normal)
-          }
+          TextButton(
+              onClick = { navigationActions.getNavigationState().isDailyViewSelected = true }) {
+                Text(
+                    text = "Daily",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color =
+                        if (navigationActions.getNavigationState().isDailyViewSelected)
+                            MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    fontWeight =
+                        if (navigationActions.getNavigationState().isDailyViewSelected)
+                            FontWeight.Bold
+                        else FontWeight.Normal)
+              }
           Text(
               text = " / ",
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-          TextButton(onClick = { isDailySelected = false }) {
-            Text(
-                text = "Weekly",
-                style = MaterialTheme.typography.bodyMedium,
-                color =
-                    if (!isDailySelected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                fontWeight = if (!isDailySelected) FontWeight.Bold else FontWeight.Normal)
-          }
+          TextButton(
+              onClick = { navigationActions.getNavigationState().isDailyViewSelected = false }) {
+                Text(
+                    text = "Weekly",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color =
+                        if (!navigationActions.getNavigationState().isDailyViewSelected)
+                            MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    fontWeight =
+                        if (!navigationActions.getNavigationState().isDailyViewSelected)
+                            FontWeight.Bold
+                        else FontWeight.Normal)
+              }
         }
 
     // Conditionally show content based on isDailySelected
-    if (isDailySelected) {
+    if (navigationActions.getNavigationState().isDailyViewSelected) {
       ByDayScreen(trip, navigationActions)
     } else {
       WeeklyViewScreen(
           trip = trip,
           navigationActions = navigationActions,
-          onDaySelected = { isDailySelected = true })
+          onDaySelected = { navigationActions.getNavigationState().isDailyViewSelected = false })
     }
   }
 }
