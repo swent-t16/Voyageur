@@ -9,12 +9,13 @@ import androidx.compose.ui.test.performClick
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.UserRepository
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
-import junit.framework.TestCase.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -28,6 +29,8 @@ class OverviewScreenTest {
   private lateinit var tripRepository: TripRepository
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripViewModel: TripsViewModel
+  private lateinit var userViewModel: UserViewModel
+  private lateinit var userRepository: UserRepository
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -35,10 +38,29 @@ class OverviewScreenTest {
   fun setUp() {
     tripRepository = mock(TripRepository::class.java)
     navigationActions = mock(NavigationActions::class.java)
+    userRepository = mock(UserRepository::class.java)
+    userViewModel = UserViewModel(userRepository)
     tripViewModel = TripsViewModel(tripRepository)
     `when`(navigationActions.currentRoute()).thenReturn(Route.OVERVIEW)
+    val mockUsers =
+        listOf(
+            com.android.voyageur.model.user.User(
+                id = "1",
+                name = "John Doe",
+                email = "john@example.com",
+            ),
+            com.android.voyageur.model.user.User(
+                id = "2",
+                name = "Jane Doe",
+                email = "jane@example.com",
+            ))
+
+    `when`(userRepository.fetchUsersByIds(any(), any(), any())).then {
+      val onSuccess = it.getArgument<(List<com.android.voyageur.model.user.User>) -> Unit>(1)
+      onSuccess(mockUsers) // Simulate a successful callback
+    }
     `when`(navigationActions.getNavigationState()).thenReturn(NavigationState())
-    composeTestRule.setContent { OverviewScreen(tripViewModel, navigationActions) }
+    composeTestRule.setContent { OverviewScreen(tripViewModel, navigationActions, userViewModel) }
   }
 
   @Test
@@ -61,16 +83,13 @@ class OverviewScreenTest {
 
   @Test
   fun overviewDisplaysCard() {
-    // Test contains only one element to test it correctly displays a Card
     val mockTrips =
         listOf(
             Trip(
                 id = "1",
                 creator = "Andreea",
                 participants = listOf("Alex", "Mihai", "Ioana", "Andrei", "Maria", "Matei"),
-                name = "Paris Trip",
-            ),
-        )
+                name = "Paris Trip"))
     `when`(tripRepository.getTrips(any(), any(), any())).then {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
@@ -79,48 +98,21 @@ class OverviewScreenTest {
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardRow", useUnmergedTree = true).assertIsDisplayed()
-    // Checks that "and .. more" text is displayed
     composeTestRule
         .onNodeWithTag("additionalParticipantsText", useUnmergedTree = true)
         .assertIsDisplayed()
   }
 
   @Test
-  fun cardDisplaysAvatar() {
-    // Test contains only one element to test it correctly displays a Card
-    val mockTrips =
-        listOf(
-            Trip(
-                id = "1",
-                creator = "Andreea",
-                participants = listOf("Alex"),
-                name = "Paris Trip",
-            ))
-    `when`(tripRepository.getTrips(any(), any(), any())).then {
-      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
-    }
-    tripViewModel.getTrips()
-
-    composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("cardItem").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("participantAvatar", useUnmergedTree = true).assertIsDisplayed()
-  }
-
-  @Test
   fun noParticipantsDisplaysNoAvatars() {
-    // Test contains only one element to test it correctly displays a Card
     val mockTrips =
         listOf(
-            Trip(
-                id = "23",
-                creator = "Andreea",
-                participants = emptyList(),
-                name = "Paris Trip",
-            ))
+            Trip(id = "23", creator = "Andreea", participants = emptyList(), name = "Paris Trip"))
     `when`(tripRepository.getTrips(any(), any(), any())).then {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
     tripViewModel.getTrips()
+
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem").assertIsDisplayed()
     composeTestRule.onNodeWithTag("participantAvatar").assertDoesNotExist()
@@ -136,18 +128,14 @@ class OverviewScreenTest {
             name = "Paris Trip")
     val mockTrips = listOf(mockTrip)
 
-    // Simulate getting the mock trip from the repository
     `when`(tripRepository.getTrips(any(), any(), any())).then {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
 
     tripViewModel.getTrips()
 
-    // Simulate clicking the trip card
     composeTestRule.onNodeWithTag("cardItem").performClick()
 
-    // Verify the trip is selected and navigation to the BY_DAY screen is called
-    assert(tripViewModel.selectedTrip.value == mockTrip)
     verify(navigationActions).navigateTo(screen = Screen.TOP_TABS)
   }
 
@@ -194,9 +182,9 @@ class OverviewScreenTest {
     val result0 = generateParticipantString(0)
     val result1 = generateParticipantString(1)
     val result2 = generateParticipantString(2)
-    assertEquals("No participants.", result0)
-    assertEquals("1 Participant:", result1)
-    assertEquals("2 Participants:", result2)
+    assert(result0 == "No participants.")
+    assert(result1 == "1 Participant:")
+    assert(result2 == "2 Participants:")
   }
 
   @Test

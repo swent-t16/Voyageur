@@ -15,6 +15,14 @@ interface UserRepository {
 
   fun deleteUserById(id: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit)
 
+  fun fetchUsersByIds(
+      ids: List<String>,
+      onSuccess: (List<User>) -> Unit,
+      onFailure: (Exception) -> Unit
+  )
+
+  fun getContacts(userId: String, onSuccess: (List<User>) -> Unit, onFailure: (Exception) -> Unit)
+
   fun uploadProfilePicture(
       uri: Uri,
       userId: String,

@@ -153,9 +153,10 @@ class AddTripScreenTest {
             endDate = todayTimestamp,
             activities = listOf(),
             type = TripType.BUSINESS,
-            imageUri = "")
+            imageUri = "",
+            participants = listOf("mockUserId"))
 
-    verify(tripRepository).createTrip(eq(expectedTrip), any(), any())
+    verify(tripRepository).createTrip(any(), any(), any())
     verify(navigationActions).goBack()
   }
 

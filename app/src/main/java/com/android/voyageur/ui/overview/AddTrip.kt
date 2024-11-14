@@ -2,6 +2,8 @@ package com.android.voyageur.ui.overview
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -38,6 +40,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,7 +63,10 @@ import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.User
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.formFields.DatePickerModal
+import com.android.voyageur.ui.formFields.UserDropdown
 import com.android.voyageur.ui.gallery.PermissionButtonForGallery
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.firebase.Firebase
@@ -71,14 +77,15 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-@SuppressLint("StateFlowValueCalledInComposition")
+@SuppressLint("StateFlowValueCalledInComposition", "UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AddTripScreen(
     tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory),
     navigationActions: NavigationActions,
     isEditMode: Boolean = false,
-    onUpdate: () -> Unit = {}
+    onUpdate: () -> Unit = {},
+    userViewModel: UserViewModel = viewModel(factory = UserViewModel.Factory)
 ) {
   var name by remember { mutableStateOf("") }
   var description by remember { mutableStateOf("") }
@@ -89,6 +96,7 @@ fun AddTripScreen(
   var endDate by remember { mutableStateOf<Long?>(null) }
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
   var imageUri by remember { mutableStateOf("") }
+  var userList = mutableStateListOf<Pair<User, Boolean>>()
 
   val context = LocalContext.current
   val imageId = R.drawable.default_trip_image
@@ -114,8 +122,24 @@ fun AddTripScreen(
         startDate = trip.startDate.toDate().time
         endDate = trip.endDate.toDate().time
       }
+    } else {
+      userList.clear()
     }
   }
+
+  val _trip = tripsViewModel.selectedTrip.value
+  fun fetchContacts() {
+    userViewModel.getMyContacts({ it ->
+      Log.d("Users", it.size.toString())
+      userList.clear()
+      it.filter { user -> user.id != Firebase.auth.uid.orEmpty() }
+          .forEach() { user ->
+            userList.add(Pair(user, isEditMode && _trip?.participants?.contains(user.id) ?: false))
+          }
+    })
+  }
+
+  fetchContacts()
 
   fun createTripWithImage(imageUrl: String) {
     if (startDate == null || endDate == null) {
@@ -125,7 +149,6 @@ fun AddTripScreen(
 
     val startTimestamp = Timestamp(Date(startDate!!))
     val endTimestamp = Timestamp(Date(endDate!!))
-
     fun normalizeToMidnight(date: Date): Date {
       val calendar =
           Calendar.getInstance().apply {
@@ -160,6 +183,10 @@ fun AddTripScreen(
             creator = Firebase.auth.uid.orEmpty(),
             description = description,
             name = name,
+            participants =
+                (userList.filter { it.second }.map { it.first.id } + Firebase.auth.uid.orEmpty())
+                    .toSet()
+                    .toList(),
             locations =
                 locations.split(";").map { locationString ->
                   val parts = locationString.split(",").map { it.trim() }
@@ -262,6 +289,9 @@ fun AddTripScreen(
                     keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
                     singleLine = true)
 
+                UserDropdown(
+                    userList,
+                    onUpdate = { pair, index -> userList[index] = Pair(pair.first, !pair.second) })
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },

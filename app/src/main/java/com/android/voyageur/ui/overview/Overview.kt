@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.overview
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -34,22 +36,27 @@ import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
-import com.android.voyageur.ui.navigation.*
+import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.navigation.BottomNavigationMenu
+import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
+import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Screen
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
+    userViewModel: UserViewModel
 ) {
   val trips by tripsViewModel.trips.collectAsState()
-  val configuration = LocalConfiguration.current
-  val screenWidth = configuration.screenWidthDp.dp
-
-  // Calculate responsive padding based on screen width
-  val horizontalPadding = (screenWidth * 0.04f).coerceAtLeast(8.dp)
-
+  LaunchedEffect(trips) {
+    userViewModel.getUsersByIds(
+        trips.map { it.participants }.flatten(), { userViewModel._allParticipants.value = it })
+  }
   Scaffold(
       floatingActionButton = {
         FloatingActionButton(
@@ -99,11 +106,15 @@ fun OverviewScreen(
                 contentPadding = PaddingValues(horizontal = horizontalPadding, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
-                  items(sortedTrips) { trip ->
-                    TripItem(
-                        tripsViewModel = tripsViewModel,
-                        trip = trip,
-                        navigationActions = navigationActions)
+                  sortedTrips.forEach { trip ->
+                    item {
+                      TripItem(
+                          tripsViewModel = tripsViewModel,
+                          trip = trip,
+                          navigationActions = navigationActions,
+                          userViewModel = userViewModel)
+                      Spacer(modifier = Modifier.height(10.dp))
+                    }
                   }
                 }
           }
@@ -112,16 +123,15 @@ fun OverviewScreen(
 }
 
 @Composable
-fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: NavigationActions) {
-  val configuration = LocalConfiguration.current
-  val screenWidth = configuration.screenWidthDp.dp
-
-  // Calculate responsive card width and height
-  val cardWidth = (screenWidth - 32.dp).coerceAtMost(400.dp)
-  val cardHeight = (cardWidth * 0.6f).coerceAtLeast(180.dp)
-  val imageWidth = (cardWidth * 0.35f).coerceAtLeast(100.dp)
-  val dateRange = trip.startDate.toDateString() + " - " + trip.endDate.toDateString()
-
+fun TripItem(
+    tripsViewModel: TripsViewModel,
+    trip: Trip,
+    navigationActions: NavigationActions,
+    userViewModel: UserViewModel
+) {
+  // TODO: add a clickable once we implement the Schedule screens
+  val dateRange = trip.startDate.toDateString() + "-" + trip.endDate.toDateString()
+  val themeColor = MaterialTheme.colorScheme.onSurface
   Card(
       onClick = {
         // When opening a trip, navigate to the Schedule screen, with the daily view enabled
@@ -172,66 +182,83 @@ fun TripItem(tripsViewModel: TripsViewModel, trip: Trip, navigationActions: Navi
                         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                         text = dateRange,
                         textAlign = TextAlign.Start,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
-
-                    DisplayParticipants(trip)
+                        style =
+                            TextStyle(
+                                fontSize = 10.sp,
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(500),
+                                color = themeColor,
+                                letterSpacing = 0.1.sp,
+                            ))
+                    DisplayParticipants(trip, userViewModel)
                   }
             }
       }
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun DisplayParticipants(trip: Trip) {
-  val configuration = LocalConfiguration.current
-  val screenWidth = configuration.screenWidthDp.dp
-  val avatarSize = (screenWidth * 0.06f).coerceIn(24.dp, 32.dp)
-  val numberOfParticipants = trip.participants.size
+fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
+  val numberOfParticipants = trip.participants.size - 1
   val numberToString = generateParticipantString(numberOfParticipants)
 
   Column(
       modifier = Modifier.fillMaxHeight().padding(start = 0.dp, end = 0.dp, top = 8.dp),
-      verticalArrangement = Arrangement.Bottom) {
-        Text(
-            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-            text = numberToString,
-            textAlign = TextAlign.Start,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-              if (numberOfParticipants > 0) {
-                trip.participants.take(4).forEach { participant ->
-                  Surface(
-                      modifier = Modifier.size(avatarSize).testTag("participantAvatar"),
-                      shape = CircleShape,
-                      color = MaterialTheme.colorScheme.secondaryContainer) {
-                        Box(contentAlignment = Alignment.Center) {
-                          Text(
-                              text = participant.first().uppercase(),
-                              style = MaterialTheme.typography.bodySmall,
-                              color = MaterialTheme.colorScheme.onSecondaryContainer)
-                        }
+      verticalArrangement = Arrangement.Bottom, // Align top to bottom
+  ) {
+    Text(
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        text = numberToString,
+        textAlign = TextAlign.Start,
+        style =
+            TextStyle(
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight(500),
+                color = themeColor,
+                letterSpacing = 0.1.sp,
+            ))
+    Spacer(modifier = Modifier.height(8.dp))
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(3.dp) // Space between avatars
+        ) {
+          // Display participants (limit to 5 avatars max for space reasons)
+          if (numberOfParticipants > 0) {
+            trip.participants
+                .filter { it != Firebase.auth.uid.orEmpty() }
+                .take(4)
+                .forEach { participant ->
+                  // TODO: Replace Box with user avatars once they are designed
+                  Box(
+                      modifier =
+                          Modifier.size(30.dp) // Set size for the avatar circle
+                              .testTag("participantAvatar")
+                              .background(
+                                  Color.Gray, shape = RoundedCornerShape(50)), // Circular shape
+                      contentAlignment = Alignment.Center) {
+                        userViewModel._allParticipants.value
+                            .find { it.id == participant }
+                            ?.name
+                            ?.first()
+                            ?.let {
+                              Text(text = it.uppercaseChar().toString(), color = Color.White)
+                            }
                       }
                 }
-
-                if (trip.participants.size > 4) {
-                  Text(
-                      text = "and ${trip.participants.size - 4} more",
-                      style = MaterialTheme.typography.bodySmall,
-                      color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                      modifier =
-                          Modifier.align(Alignment.CenterVertically)
-                              .testTag("additionalParticipantsText"))
-                }
-              }
+            if (trip.participants.size > 4) {
+              Text(
+                  text = "and ${trip.participants.size - 4} more",
+                  fontSize = 8.sp,
+                  color = Color.Gray,
+                  modifier =
+                      Modifier.align(Alignment.CenterVertically)
+                          .testTag("additionalParticipantsText"))
             }
-      }
+          }
+        }
+  }
 }
 
 fun Timestamp.toDateString(): String {
