@@ -232,13 +232,10 @@ fun SearchScreen(
               }
         }
       },
-      floatingActionButtonPosition = FabPosition.Start) { pd ->
-        val textFieldsColours =
-            if (isSystemInDarkTheme()) {
-              MaterialTheme.colorScheme.surfaceVariant
-            } else {
-              MaterialTheme.colorScheme.surfaceVariant
-            }
+      floatingActionButtonPosition = FabPosition.Start,
+      content = { pd ->
+        val textFieldsColours = MaterialTheme.colorScheme.background
+
         Column(modifier = Modifier.padding(pd).fillMaxSize().testTag("searchScreenContent")) {
           Spacer(modifier = Modifier.height(24.dp))
           Text(
@@ -252,7 +249,9 @@ fun SearchScreen(
               modifier =
                   Modifier.padding(horizontal = 16.dp)
                       .fillMaxWidth()
-                      .background(color = textFieldsColours, shape = MaterialTheme.shapes.medium)
+                      .background(
+                          color = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray,
+                          shape = MaterialTheme.shapes.medium)
                       .padding(8.dp)
                       .testTag("searchBar"),
               verticalAlignment = Alignment.CenterVertically) {
@@ -402,14 +401,35 @@ fun UserSearchResultItem(
               .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp))
               .padding(16.dp),
       verticalAlignment = Alignment.CenterVertically) {
-        Image(
-            painter = rememberAsyncImagePainter(model = user.profilePicture),
-            contentDescription = "${user.name}'s profile picture",
-            modifier =
-                Modifier.size(60.dp)
-                    .clip(CircleShape)
-                    .background(fieldColor, shape = CircleShape)
-                    .testTag("userProfilePicture_${user.id}"))
+        FlowRow {
+          Image(
+              painter = rememberAsyncImagePainter(model = user.profilePicture),
+              contentDescription = "${user.name}'s profile picture",
+              modifier =
+                  Modifier.size(60.dp)
+                      .clip(CircleShape)
+                      .background(fieldColor, shape = CircleShape)
+                      .testTag("userProfilePicture_${user.id}"))
+
+          Spacer(modifier = Modifier.width(16.dp))
+
+          Column {
+            Text(
+                text = user.name,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.testTag("userName_${user.id}"))
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "@${user.username}",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                modifier = Modifier.testTag("userUsername_${user.id}"))
+          }
+        }
 
         Spacer(modifier = Modifier.width(16.dp))
 

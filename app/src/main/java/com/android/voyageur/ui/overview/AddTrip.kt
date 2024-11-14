@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -26,6 +28,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -38,14 +41,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
@@ -95,6 +101,8 @@ fun AddTripScreen(
   val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
   val formattedStartDate = startDate?.let { dateFormat.format(Date(it)) } ?: ""
   val formattedEndDate = endDate?.let { dateFormat.format(Date(it)) } ?: ""
+
+  val keyboardController = LocalSoftwareKeyboardController.current
 
   LaunchedEffect(isEditMode) {
     if (isEditMode && tripsViewModel.selectedTrip.value != null) {
@@ -180,6 +188,11 @@ fun AddTripScreen(
       tripsViewModel.updateTrip(
           trip,
           onSuccess = {
+            Toast.makeText(context, "Trip updated successfully!", Toast.LENGTH_SHORT).show()
+            /*
+                This is a trick to force a recompose, because the reference wouldn't
+                change and update the UI.
+            */
             tripsViewModel.selectTrip(Trip())
             tripsViewModel.selectTrip(trip)
             onUpdate()
@@ -244,7 +257,10 @@ fun AddTripScreen(
                     isError = name.isEmpty(),
                     label = { Text("Trip *") },
                     placeholder = { Text("Name the trip") },
-                    modifier = Modifier.fillMaxWidth().testTag("inputTripTitle"))
+                    modifier = Modifier.fillMaxWidth().testTag("inputTripTitle"),
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+                    singleLine = true)
 
                 OutlinedTextField(
                     value = description,
@@ -273,7 +289,7 @@ fun AddTripScreen(
                       colors =
                           TextFieldDefaults.colors(
                               disabledContainerColor = Color.Transparent,
-                          ),
+                              disabledTextColor = MaterialTheme.colorScheme.onSurface),
                       modifier =
                           Modifier.fillMaxWidth(0.49f).testTag("inputStartDate").clickable {
                             selectedDateField = DateField.START
@@ -289,7 +305,7 @@ fun AddTripScreen(
                       colors =
                           TextFieldDefaults.colors(
                               disabledContainerColor = Color.Transparent,
-                          ),
+                              disabledTextColor = MaterialTheme.colorScheme.onSurface),
                       modifier =
                           Modifier.fillMaxWidth(0.49f).testTag("inputEndDate").clickable {
                             selectedDateField = DateField.END
@@ -320,17 +336,26 @@ fun AddTripScreen(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                      RadioButton(
-                          onClick = { tripType = TripType.BUSINESS },
-                          selected = tripType == TripType.BUSINESS,
-                          modifier = Modifier.testTag("tripTypeBusiness"))
-                      Text("Business")
-                      RadioButton(
-                          onClick = { tripType = TripType.TOURISM },
-                          selected = tripType == TripType.TOURISM,
-                          modifier = Modifier.testTag("tripTypeTourism"))
-                      Text("Tourism")
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically) {
+                      Row(
+                          verticalAlignment = Alignment.CenterVertically,
+                          modifier = Modifier.padding(end = 16.dp)) {
+                            RadioButton(
+                                onClick = { tripType = TripType.BUSINESS },
+                                selected = tripType == TripType.BUSINESS,
+                                modifier = Modifier.testTag("tripTypeBusiness"))
+                            Text("Business", modifier = Modifier.padding(start = 2.dp))
+                          }
+                      Row(
+                          verticalAlignment = Alignment.CenterVertically,
+                          modifier = Modifier.padding(start = 16.dp)) {
+                            RadioButton(
+                                onClick = { tripType = TripType.TOURISM },
+                                selected = tripType == TripType.TOURISM,
+                                modifier = Modifier.testTag("tripTypeTourism"))
+                            Text("Tourism", modifier = Modifier.padding(start = 2.dp))
+                          }
                     }
 
                 Spacer(modifier = Modifier.height(16.dp))
