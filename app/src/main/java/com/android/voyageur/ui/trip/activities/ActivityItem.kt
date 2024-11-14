@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.trip.activities
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,6 +60,8 @@ fun ActivityItem(
     val startTimeFormatted = timeFormat.format(startLocalDateTime)
     val endTimeFormatted = timeFormat.format(endLocalDateTime)
 
+    val context = LocalContext.current
+
     Card(
         shape = MaterialTheme.shapes.medium,
         modifier = Modifier.padding(start = 10.dp, end = 10.dp).testTag("cardItem_${activity.title}"),
@@ -84,7 +88,9 @@ fun ActivityItem(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         // Delete icon, visible only when expanded
                         AnimatedVisibility(visible = isExpanded) {
-                            IconButton(onClick = { /*TODO: delete activity*/}) {
+                            IconButton(onClick = { /*TODO: delete activity*/
+                                Toast.makeText(context, "Delete activity not implemented yet", Toast.LENGTH_SHORT).show()
+                            }) {
                                 Icon(
                                     imageVector = Icons.TwoTone.Delete,
                                     contentDescription = "Delete Activity",

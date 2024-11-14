@@ -39,9 +39,9 @@ fun ActivitiesForOneDayScreen(tripsViewModel: TripsViewModel, navigationActions:
         ))
 
     Scaffold (
+        modifier = Modifier.testTag("activitiesForOneDayScreen"),
         topBar = {
             TopBarWithImageAndText(trip, navigationActions, day.toDateWithYearString(), trip.name)
-            Log.d("ActivitiesForOneDay", day.toDateWithYearString())
         },
         floatingActionButton = {
             AddActivityButton(navigationActions)
