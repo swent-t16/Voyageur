@@ -165,6 +165,7 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
                               value = newInterest,
                               onValueChange = { newInterest = it },
                               label = { Text("Add Interest") },
+                              maxLines = 1,
                               placeholder = { Text("Press Enter to add interest") },
                               modifier = Modifier.testTag("newInterestField"),
                               keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),

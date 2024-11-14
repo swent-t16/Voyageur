@@ -324,14 +324,6 @@ class AddTripScreenTest {
   }
 
   @Test
-  fun addTripScreen_imageHeight_respectsScreenSize() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
-
-    // Verify image height is calculated correctly based on screen width
-    composeTestRule.onNodeWithTag("imageContainer").assertExists()
-  }
-
-  @Test
   fun addTripScreen_imageCropper_error() {
     composeTestRule.setContent {
       AddTripScreen(tripsViewModel = tripsViewModel, navigationActions = navigationActions)

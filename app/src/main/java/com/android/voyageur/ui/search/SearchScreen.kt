@@ -233,12 +233,8 @@ fun SearchScreen(
         }
       },
       floatingActionButtonPosition = FabPosition.Start) { pd ->
-        val textFieldsColours =
-            if (isSystemInDarkTheme()) {
-              MaterialTheme.colorScheme.surfaceVariant
-            } else {
-              MaterialTheme.colorScheme.surfaceVariant
-            }
+        val textFieldsColours = MaterialTheme.colorScheme.surfaceVariant
+
         Column(modifier = Modifier.padding(pd).fillMaxSize().testTag("searchScreenContent")) {
           Spacer(modifier = Modifier.height(24.dp))
           Text(
