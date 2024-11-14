@@ -13,7 +13,7 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 
 class TopTabsTest {
-  val sampleTrip = Trip(name = "Sample Trip")
+  private val sampleTrip = Trip(name = "Sample Trip")
 
   private lateinit var tripRepository: TripRepository
   private lateinit var navigationActions: NavigationActions

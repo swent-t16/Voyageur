@@ -8,9 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.android.voyageur.model.trip.TripsViewModel
@@ -25,13 +22,6 @@ import com.android.voyageur.ui.trip.settings.SettingsScreen
 fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions) {
   // Define tab items
   val tabs = listOf("Schedule", "Activities", "Settings")
-
-  // Remember the currently selected tab index
-  var selectedTabIndex by remember { mutableIntStateOf(navigationActions.getNavigationState("currentTabIndexForTrip", 0)) }
-    fun updateTabIndex(newIndex: Int) {
-        selectedTabIndex = newIndex
-        navigationActions.setNavigationState("currentTabIndexForTrip", newIndex)
-    }
 
   // Collect selectedTrip as state to avoid calling .value directly in composition
   val trip by tripsViewModel.selectedTrip.collectAsState()
@@ -74,8 +64,8 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
               navigationActions,
               tripsViewModel = tripsViewModel,
               onUpdate = {
-                updateTabIndex(0)
-                updateTabIndex(2)
+                navigationActions.getNavigationState().currentTabIndexForTrip = 0
+                navigationActions.getNavigationState().currentTabIndexForTrip = 2
               })
     }
   }
