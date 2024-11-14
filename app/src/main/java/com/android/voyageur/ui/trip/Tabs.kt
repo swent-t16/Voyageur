@@ -54,7 +54,7 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
     }
 
     // Display content based on selected tab
-      when (navigationActions.getNavigationState().currentTabIndexForTrip) {
+    when (navigationActions.getNavigationState().currentTabIndexForTrip) {
       0 -> ScheduleScreen(selectedTrip, navigationActions)
       1 -> ActivitiesScreen(selectedTrip, navigationActions)
       2 ->
