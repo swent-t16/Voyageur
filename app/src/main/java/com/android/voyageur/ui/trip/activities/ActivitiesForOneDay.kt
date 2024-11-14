@@ -51,8 +51,6 @@ fun ActivitiesForOneDayScreen(
                   { it.endTime } // If startTime is equal, sort by endTime
                   ))
 
-
-
   Scaffold(
       modifier = Modifier.testTag("activitiesForOneDayScreen"),
       topBar = {
@@ -60,28 +58,28 @@ fun ActivitiesForOneDayScreen(
       },
       floatingActionButton = { AddActivityButton(navigationActions) },
       content = { pd ->
-          if (activities.isEmpty()) {
-              // Display empty prompt if there are no activities
-              Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
-                  Text(
-                      modifier = Modifier.testTag("emptyByDayPrompt"),
-                      text = "You have no activities yet.",
-                  )
-              }
-          } else {
-              LazyColumn(
-                  modifier =
-                  Modifier.padding(pd).padding(top = 16.dp).fillMaxWidth().testTag("lazyColumn"),
-                  verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
-              ) {
-                  activities.forEach { activity ->
-                      item {
-                          ActivityItem(activity)
-                          Spacer(modifier = Modifier.height(10.dp))
-                      }
-                  }
-              }
+        if (activities.isEmpty()) {
+          // Display empty prompt if there are no activities
+          Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                modifier = Modifier.testTag("emptyByDayPrompt"),
+                text = "You have no activities yet.",
+            )
           }
+        } else {
+          LazyColumn(
+              modifier =
+                  Modifier.padding(pd).padding(top = 16.dp).fillMaxWidth().testTag("lazyColumn"),
+              verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+          ) {
+            activities.forEach { activity ->
+              item {
+                ActivityItem(activity)
+                Spacer(modifier = Modifier.height(10.dp))
+              }
+            }
+          }
+        }
       })
 }
 

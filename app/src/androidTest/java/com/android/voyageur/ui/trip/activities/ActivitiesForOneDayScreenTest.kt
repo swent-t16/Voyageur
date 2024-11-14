@@ -76,12 +76,12 @@ class ActivitiesForOneDayScreenTest {
     composeTestRule.onNodeWithText("Draft Activity").assertIsNotDisplayed()
   }
 
-    @Test
-    fun displaysNoActivitiesText() {
-        val selectedDayFlow = MutableStateFlow<LocalDate?>(LocalDate.of(2022, 1, 3))
-        `when`(tripsViewModel.selectedDay).thenReturn(selectedDayFlow)
+  @Test
+  fun displaysNoActivitiesText() {
+    val selectedDayFlow = MutableStateFlow<LocalDate?>(LocalDate.of(2022, 1, 3))
+    `when`(tripsViewModel.selectedDay).thenReturn(selectedDayFlow)
 
-        composeTestRule.setContent { ActivitiesForOneDayScreen(tripsViewModel, navigationActions) }
-        composeTestRule.onNodeWithText("You have no activities yet.").assertIsDisplayed()
-    }
+    composeTestRule.setContent { ActivitiesForOneDayScreen(tripsViewModel, navigationActions) }
+    composeTestRule.onNodeWithText("You have no activities yet.").assertIsDisplayed()
+  }
 }
