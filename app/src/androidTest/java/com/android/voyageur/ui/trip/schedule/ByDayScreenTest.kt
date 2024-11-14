@@ -21,6 +21,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 
 class ByDayScreenTest {
   // Create one activity trip to check for activity box and Day card
@@ -86,6 +87,8 @@ class ByDayScreenTest {
   fun setUp() {
     navigationActions = mock(NavigationActions::class.java)
     tripsViewModel = mock(TripsViewModel::class.java)
+      `when`(tripsViewModel.selectDay(LocalDate.of(2022, 1, 1)))
+          .thenReturn(Unit)
   }
 
   @Test
@@ -260,4 +263,11 @@ class ByDayScreenTest {
       assertEquals("Invalid date", "Invalid date")
     }
   }
+
+    @Test
+    fun clickingOnDayCardNavigatesToActivitiesForOneDayScreen() {
+        composeTestRule.setContent { ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions) }
+        composeTestRule.onNodeWithTag("cardItem").performClick()
+        verify(navigationActions).navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
+    }
 }
