@@ -117,7 +117,8 @@ fun TopBarWithImageAndText(
                   Modifier.padding(8.dp)
                       .size(40.dp)
                       .clip(CircleShape)
-                      .background(Color.White.copy(alpha = 0.7f))) {
+                      .background(Color.White.copy(alpha = 0.7f))
+                      .testTag("goBackButton")) {
                 Icon(
                     imageVector = Icons.Outlined.ArrowBack,
                     contentDescription = "Home",
