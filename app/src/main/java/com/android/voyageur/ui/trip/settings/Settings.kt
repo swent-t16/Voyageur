@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -21,6 +22,7 @@ fun SettingsScreen(
     trip: Trip,
     navigationActions: NavigationActions,
     tripsViewModel: TripsViewModel,
+    userViewModel: UserViewModel,
     onUpdate: () -> Unit = {}
 ) {
 
@@ -35,7 +37,12 @@ fun SettingsScreen(
       },
       content = { pd ->
         Box(modifier = Modifier.padding(pd)) {
-          AddTripScreen(tripsViewModel, navigationActions, isEditMode = true, onUpdate = onUpdate)
+          AddTripScreen(
+              tripsViewModel,
+              navigationActions,
+              isEditMode = true,
+              onUpdate = onUpdate,
+              userViewModel = userViewModel)
         }
       })
 }
