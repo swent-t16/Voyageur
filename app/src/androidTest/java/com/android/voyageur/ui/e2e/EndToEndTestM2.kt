@@ -229,6 +229,7 @@ class E2ETestM2 {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
     tripsViewModel.getTrips()
+    userViewModel._isLoading.value = false
 
     composeTestRule
         .onNodeWithText("You have no trips yet.")

@@ -165,6 +165,7 @@ class E2ETest {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
     tripsViewModel.getTrips()
+    userViewModel._isLoading.value = false
 
     composeTestRule.onNodeWithTag("cardItem").assertIsDisplayed() // check view by day of the trip
     composeTestRule.onNodeWithTag("cardItem").performClick()
