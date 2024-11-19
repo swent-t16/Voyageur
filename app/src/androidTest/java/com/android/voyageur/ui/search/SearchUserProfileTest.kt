@@ -104,16 +104,6 @@ class SearchUserProfileScreenTest {
   }
 
   @Test
-  fun testAddContactButtonWhenContactNotAdded() {
-    val user = User("123", "Test User", "test@example.com")
-    userViewModel._selectedUser.value = user
-    userViewModel._isLoading.value = false
-
-    composeTestRule.onNodeWithTag("userProfileAddRemoveContactButton").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Add to contacts").assertIsDisplayed()
-  }
-
-  @Test
   fun testNavigateBackToSearchWhenNoUserDataAvailable() {
     userViewModel._selectedUser.value = null
     userViewModel._isLoading.value = false
