@@ -4,6 +4,10 @@ import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
+/**
+ * Used for displaying friend requests and notifications Appears as a parameter to the
+ * ${UserViewModel}
+ */
 class FriendRequestRepositoryFirebase(private val db: FirebaseFirestore) : FriendRequestRepository {
   private val collectionPath = "friendRequests"
 
