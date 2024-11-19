@@ -137,14 +137,14 @@ class E2ETestM2 {
         composable(Route.SEARCH) {
           SearchScreen(userViewModel, placesViewModel, navigation, requirePermission = false)
         }
-        composable(Route.TOP_TABS) { TopTabs(tripsViewModel, navigation) }
+        composable(Route.TOP_TABS) { TopTabs(tripsViewModel, navigation, userViewModel) }
         composable(Route.SEARCH_USER_PROFILE) { SearchUserProfileScreen(userViewModel, navigation) }
         composable(Screen.ADD_TRIP) { AddTripScreen(tripsViewModel, navigation) }
         composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
         composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigation) }
         composable(Screen.EDIT_PROFILE) { EditProfileScreen(userViewModel, navigation) }
         composable(Screen.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigation) }
-        composable(Screen.TOP_TABS) { TopTabs(tripsViewModel, navigation) }
+        composable(Screen.TOP_TABS) { TopTabs(tripsViewModel, navigation, userViewModel) }
         composable(Screen.ADD_ACTIVITY) { AddActivityScreen(tripsViewModel, navigation) }
         composable(Screen.ACTIVITIES_FOR_ONE_DAY) {
           ActivitiesForOneDayScreen(tripsViewModel, navigation)

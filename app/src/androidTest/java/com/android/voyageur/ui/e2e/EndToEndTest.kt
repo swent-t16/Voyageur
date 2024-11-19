@@ -12,6 +12,7 @@ import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -30,9 +31,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 
 @RunWith(AndroidJUnit4::class)
 class E2ETest {
@@ -66,8 +70,31 @@ class E2ETest {
 
     userRepository = mock(UserRepository::class.java)
     userViewModel = UserViewModel(userRepository)
-
     firebaseAuth = mock(FirebaseAuth::class.java)
+    val firebaseUser = mock(FirebaseUser::class.java)
+
+    // Mock FirebaseAuth to return our mocked firebaseUser
+    `when`(firebaseAuth.currentUser).thenReturn(firebaseUser)
+
+    // Mock methods of FirebaseUser to return non-null values
+    `when`(firebaseUser.uid).thenReturn("123")
+    `when`(firebaseUser.displayName).thenReturn("Test User")
+    `when`(firebaseUser.email).thenReturn("test@example.com")
+    `when`(firebaseUser.photoUrl).thenReturn(null) // Or a valid URI if needed
+
+    // Mock userRepository.getUserById to call onSuccess with a User
+    doAnswer { invocation ->
+          val userId = invocation.getArgument<String>(0)
+          val onSuccess = invocation.getArgument<(User) -> Unit>(1)
+          val user = User(userId, "Test User", "test@example.com", interests = emptyList())
+          onSuccess(user)
+          null
+        }
+        .`when`(userRepository)
+        .getUserById(anyString(), anyOrNull(), anyOrNull())
+
+    // Create the UserViewModel with the mocked userRepository and firebaseAuth
+    userViewModel = UserViewModel(userRepository, firebaseAuth)
     mockUser = mock(FirebaseUser::class.java)
     mockAuthResult = mock(AuthResult::class.java)
     mockAuthTask = mock(Task::class.java) as Task<AuthResult>
@@ -95,12 +122,12 @@ class E2ETest {
         composable(Route.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
         composable(Route.PROFILE) { ProfileScreen(userViewModel, navigation) }
         composable(Route.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigation) }
-        composable(Route.TOP_TABS) { TopTabs(tripsViewModel, navigation) }
+        composable(Route.TOP_TABS) { TopTabs(tripsViewModel, navigation, userViewModel) }
         composable(Screen.ADD_TRIP) { AddTripScreen(tripsViewModel, navigation) }
         composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
         composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigation) }
         composable(Screen.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigation) }
-        composable(Screen.TOP_TABS) { TopTabs(tripsViewModel, navigation) }
+        composable(Screen.TOP_TABS) { TopTabs(tripsViewModel, navigation, userViewModel) }
       }
     }
     composeTestRule.onNodeWithTag("overviewScreen").assertIsDisplayed()

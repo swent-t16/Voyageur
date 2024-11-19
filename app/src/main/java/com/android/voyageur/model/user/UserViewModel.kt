@@ -49,6 +49,10 @@ open class UserViewModel(
 
   /** Flow indicating if a loading process is active. */
   internal val _isLoading = MutableStateFlow(false)
+
+  val _contacts = MutableStateFlow<List<User>>(emptyList())
+  val contacts: StateFlow<List<User>> = _contacts
+
   val isLoading: StateFlow<Boolean> = _isLoading
 
   // Job to manage debounce coroutine for search queries

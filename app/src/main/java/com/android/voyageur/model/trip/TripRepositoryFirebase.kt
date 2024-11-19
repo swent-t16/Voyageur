@@ -30,7 +30,7 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
       onFailure: (Exception) -> Unit
   ) {
     db.collection(collectionPath)
-        .whereEqualTo("creator", creator)
+        .whereArrayContains("participants", creator)
         .get()
         .addOnSuccessListener { result ->
           val trips = result.map { document -> document.toObject(Trip::class.java) }

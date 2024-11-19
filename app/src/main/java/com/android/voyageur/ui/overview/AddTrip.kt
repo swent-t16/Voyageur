@@ -38,11 +38,12 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,9 +63,9 @@ import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
-import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.formFields.DatePickerModal
+import com.android.voyageur.ui.formFields.UserDropdown
 import com.android.voyageur.ui.gallery.PermissionButtonForGallery
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.firebase.Firebase
@@ -94,8 +95,20 @@ fun AddTripScreen(
   var endDate by remember { mutableStateOf<Long?>(null) }
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
   var imageUri by remember { mutableStateOf("") }
-  var userList = mutableStateListOf<Pair<User, Boolean>>()
 
+  val contactsAndUsers by userViewModel.contacts.collectAsState()
+  val userList =
+      remember(contactsAndUsers, isEditMode) {
+        contactsAndUsers
+            .filter { user -> user.id != Firebase.auth.uid.orEmpty() }
+            .map {
+              if (!isEditMode) Pair(it, false)
+              else {
+                Pair(it, tripsViewModel.selectedTrip.value?.participants?.contains(it.id) ?: false)
+              }
+            }
+            .toMutableStateList()
+      }
   val context = LocalContext.current
   val imageId = R.drawable.default_trip_image
 
@@ -109,6 +122,7 @@ fun AddTripScreen(
   val formattedEndDate = endDate?.let { dateFormat.format(Date(it)) } ?: ""
 
   val keyboardController = LocalSoftwareKeyboardController.current
+  Log.d("USERLIST", contactsAndUsers.size.toString())
 
   LaunchedEffect(isEditMode) {
     if (isEditMode && tripsViewModel.selectedTrip.value != null) {
@@ -121,23 +135,11 @@ fun AddTripScreen(
         endDate = trip.endDate.toDate().time
       }
     } else {
-      userList.clear()
+      //      userList.clear()
     }
   }
 
   val _trip = tripsViewModel.selectedTrip.value
-  fun fetchContacts() {
-    userViewModel.getMyContacts { it ->
-      Log.d("Users", it.size.toString())
-      userList.clear()
-      it.filter { user -> user.id != Firebase.auth.uid.orEmpty() }
-          .forEach() { user ->
-            userList.add(Pair(user, isEditMode && _trip?.participants?.contains(user.id) ?: false))
-          }
-    }
-  }
-
-  fetchContacts()
 
   fun createTripWithImage(imageUrl: String) {
     if (startDate == null || endDate == null) {
@@ -289,10 +291,9 @@ fun AddTripScreen(
 
                 Spacer(modifier = Modifier.height(2.dp))
 
-                //                UserDropdown(
-                //                    userList,
-                //                    onUpdate = { pair, index -> userList[index] = Pair(pair.first,
-                // !pair.second) })
+                UserDropdown(
+                    userList,
+                    onUpdate = { pair, index -> userList[index] = Pair(pair.first, !pair.second) })
 
                 OutlinedTextField(
                     value = description,

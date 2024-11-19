@@ -1,6 +1,7 @@
 package com.android.voyageur.ui.overview
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -65,7 +66,15 @@ fun OverviewScreen(
   val trips by tripsViewModel.trips.collectAsState()
   LaunchedEffect(trips) {
     userViewModel.getUsersByIds(
-        trips.map { it.participants }.flatten(), { userViewModel._allParticipants.value = it })
+        trips
+            .map { it.participants + (userViewModel._user.value?.contacts ?: listOf()) }
+            .flatten()
+            .toSet()
+            .toList(),
+        {
+          userViewModel._contacts.value = it
+          Log.d("USERSSS", userViewModel._contacts.value.size.toString())
+        })
   }
   Scaffold(
       floatingActionButton = {
@@ -240,7 +249,7 @@ fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
                               .background(
                                   Color.Gray, shape = RoundedCornerShape(50)), // Circular shape
                       contentAlignment = Alignment.Center) {
-                        userViewModel._allParticipants.value
+                        userViewModel.contacts.value
                             .find { it.id == participant }
                             ?.name
                             ?.first()
