@@ -244,7 +244,12 @@ class UserViewModelTest {
   @Test
   fun addContact_createsFriendRequest() {
     val userId = "contactUserId"
+    val generatedId = "testFriendRequestId"
 
+    // Mock getNewId to return a valid ID
+    `when`(friendRequestRepository.getNewId()).thenReturn(generatedId)
+
+    // Mock createRequest to simulate success
     doAnswer { invocation ->
           val onSuccess = invocation.arguments[1] as () -> Unit
           onSuccess()
@@ -252,13 +257,17 @@ class UserViewModelTest {
         .`when`(friendRequestRepository)
         .createRequest(any(), any(), any())
 
+    // Call the method under test
     userViewModel.addContact(userId)
 
+    // Verify that createRequest was called with the correct parameters
     verify(friendRequestRepository)
         .createRequest(
             eq(
                 FriendRequest(
-                    id = any(), from = FirebaseAuth.getInstance().uid.orEmpty(), to = userId)),
+                    id = generatedId,
+                    from = FirebaseAuth.getInstance().uid.orEmpty(),
+                    to = userId)),
             any(),
             any())
   }
