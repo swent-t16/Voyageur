@@ -15,7 +15,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,8 +29,6 @@ import androidx.compose.ui.unit.dp
 import com.android.voyageur.model.user.UserViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun BottomNavigationMenu(
@@ -44,15 +41,8 @@ fun BottomNavigationMenu(
   val coroutineScope = rememberCoroutineScope()
   var isPolling by remember { mutableStateOf(true) }
 
-  LaunchedEffect(Unit) {
-    coroutineScope.launch {
-      while (isPolling && userViewModel.shouldFetch) {
-        if (Firebase.auth.uid != null) {
-          userViewModel.getNotificationsCount {}
-          delay(10 * 1000L)
-        }
-      }
-    }
+  if (Firebase.auth.uid != null) {
+    userViewModel.getNotificationsCount {}
   }
   NavigationBar(
       modifier = Modifier.fillMaxWidth().height(60.dp).testTag("bottomNavigationMenu"),
