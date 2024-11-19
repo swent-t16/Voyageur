@@ -7,6 +7,11 @@ import com.google.firebase.firestore.SetOptions
 class FriendRequestRepositoryFirebase(private val db: FirebaseFirestore) : FriendRequestRepository {
   private val collectionPath = "friendRequests"
 
+  /**
+   * @param userId the user for who to fetch the friend requests (to field)
+   * @param onSuccess callback to execute after successful fetch
+   * @param onFailure exception handling callback
+   */
   override fun getFriendRequests(
       userId: String,
       onSuccess: (List<FriendRequest>) -> Unit,
@@ -22,7 +27,11 @@ class FriendRequestRepositoryFirebase(private val db: FirebaseFirestore) : Frien
             }
             .addOnFailureListener { exception -> onFailure(exception) }
   }
-
+  /**
+   * @param userId the user for who to fetch the notifications count
+   * @param onSuccess callback to execute after successful fetch
+   * @param onFailure exception handling callback
+   */
   override fun getNotificationCount(
       userId: String,
       onSuccess: (Long) -> Unit,
@@ -35,7 +44,11 @@ class FriendRequestRepositoryFirebase(private val db: FirebaseFirestore) : Frien
         .addOnSuccessListener { onSuccess(it.count) }
         .addOnFailureListener { exception -> onFailure(exception) }
   }
-
+  /**
+   * @param req friend request to be created
+   * @param onSuccess callback to execute after successful operation
+   * @param onFailure exception handling callback
+   */
   override fun createRequest(
       req: FriendRequest,
       onSuccess: () -> Unit,
