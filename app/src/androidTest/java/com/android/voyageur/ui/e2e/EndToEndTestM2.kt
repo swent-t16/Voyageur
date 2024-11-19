@@ -115,6 +115,20 @@ class E2ETestM2 {
         .`when`(userRepository)
         .getUserById(anyString(), anyOrNull(), anyOrNull())
 
+    doAnswer { invocation ->
+          val userIds = invocation.getArgument<List<String>>(0)
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+
+          val mockUsers =
+              userIds.map { userId ->
+                User(id = userId, name = "User $userId", email = "$userId@example.com")
+              }
+          onSuccess(mockUsers)
+          null
+        }
+        .`when`(userRepository)
+        .fetchUsersByIds(any(), any(), anyOrNull())
+
     whenever(tripsViewModel.getNewTripId()).thenReturn("mockTripId")
 
     `when`(navigationActions.currentRoute()).thenReturn(Route.OVERVIEW)
@@ -219,7 +233,6 @@ class E2ETestM2 {
     composeTestRule
         .onNodeWithText("You have no trips yet.")
         .assertIsNotDisplayed() // We have a trip so no trips text is not displayed
-
     composeTestRule
         .onNodeWithText("Trip with activities")
         .assertIsDisplayed() // check if trip name is displayed

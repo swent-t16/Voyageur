@@ -13,11 +13,20 @@ class DropDownTest {
 
   // Tests for UserIcon
   @Test
-  fun userIcon_displaysCorrectInitial() {
-    composeTestRule.setContent { UserIcon(text = "Alice") }
+  fun userIcon_displaysCorrectInitial_NoProfilePic() {
+    composeTestRule.setContent { UserIcon(User(name = "Alice")) }
     // Assert that the participant avatar exists and shows the correct initial
     composeTestRule.onNodeWithTag("participantAvatar").assertExists()
     composeTestRule.onNodeWithText("A").assertExists()
+  }
+
+  @Test
+  fun userIcon_displaysProfilePic() {
+    composeTestRule.setContent {
+      UserIcon(User(name = "Alice", profilePicture = "https://test.com/profile.jpg"))
+    }
+    // Assert that the participant profile picture is displayed
+    composeTestRule.onNodeWithTag("profilePic").assertExists()
   }
 
   // Tests for UserDropdown

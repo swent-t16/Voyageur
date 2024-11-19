@@ -93,6 +93,21 @@ class E2ETest {
         .`when`(userRepository)
         .getUserById(anyString(), anyOrNull(), anyOrNull())
 
+    // Mock userRepository.fetchUsersByIds to call onSuccess with the list of users
+    doAnswer { invocation ->
+          val userIds = invocation.getArgument<List<String>>(0)
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+
+          val mockUsers =
+              userIds.map { userId ->
+                User(id = userId, name = "User $userId", email = "$userId@example.com")
+              }
+          onSuccess(mockUsers)
+          null
+        }
+        .`when`(userRepository)
+        .fetchUsersByIds(any(), any(), anyOrNull())
+
     // Create the UserViewModel with the mocked userRepository and firebaseAuth
     userViewModel = UserViewModel(userRepository, firebaseAuth)
     mockUser = mock(FirebaseUser::class.java)

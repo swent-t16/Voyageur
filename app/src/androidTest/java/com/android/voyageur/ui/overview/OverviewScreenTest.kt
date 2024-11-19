@@ -226,4 +226,5 @@ class OverviewScreenTest {
     composeTestRule.onNodeWithTag("defaultTripImage", useUnmergedTree = true).assertExists()
     composeTestRule.onNodeWithTag("tripImage").assertDoesNotExist()
   }
+
 }
