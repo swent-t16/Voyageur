@@ -376,20 +376,22 @@ class E2ETestM2 {
     userViewModel._user.value = user
     userViewModel._isLoading.value = false
 
-//    composeTestRule.onNodeWithTag("userName").assertIsDisplayed()
-//    composeTestRule.onNodeWithTag("userEmail").assertIsDisplayed()
-//    composeTestRule.onNodeWithTag("interestsFlowRow").assertIsDisplayed()
-//    interests.forEach { interest -> composeTestRule.onNodeWithText(interest).assertIsDisplayed() }
-//
-//    composeTestRule.onNodeWithTag("signOutButton").assertIsDisplayed()
-//    composeTestRule.onNodeWithTag("editButton").assertIsDisplayed()
+    //    composeTestRule.onNodeWithTag("userName").assertIsDisplayed()
+    //    composeTestRule.onNodeWithTag("userEmail").assertIsDisplayed()
+    //    composeTestRule.onNodeWithTag("interestsFlowRow").assertIsDisplayed()
+    //    interests.forEach { interest ->
+    // composeTestRule.onNodeWithText(interest).assertIsDisplayed() }
+    //
+    //    composeTestRule.onNodeWithTag("signOutButton").assertIsDisplayed()
+    //    composeTestRule.onNodeWithTag("editButton").assertIsDisplayed()
 
     // go to edit profile and add an interest
-//    composeTestRule.onNodeWithTag("editButton").performClick()
-//    interests.forEach { interest -> composeTestRule.onNodeWithText(interest).assertIsDisplayed() }
-//    val newInterest = "Spells"
-//    composeTestRule.onNodeWithTag("newInterestField").performTextInput(newInterest)
-//    composeTestRule.onNodeWithText(newInterest).assertIsDisplayed()
-//    composeTestRule.onNodeWithTag("saveButton").performClick() // save and go back
+    //    composeTestRule.onNodeWithTag("editButton").performClick()
+    //    interests.forEach { interest ->
+    // composeTestRule.onNodeWithText(interest).assertIsDisplayed() }
+    //    val newInterest = "Spells"
+    //    composeTestRule.onNodeWithTag("newInterestField").performTextInput(newInterest)
+    //    composeTestRule.onNodeWithText(newInterest).assertIsDisplayed()
+    //    composeTestRule.onNodeWithTag("saveButton").performClick() // save and go back
   }
 }
