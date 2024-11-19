@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.user.User
@@ -30,7 +31,7 @@ class SearchScreenTest {
   private lateinit var placesViewModel: PlacesViewModel
   private lateinit var placesRepository: PlacesRepository
   private lateinit var navigationState: NavigationState
-
+  private lateinit var friendRequestRepository: FriendRequestRepository
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
@@ -38,7 +39,8 @@ class SearchScreenTest {
     navigationActions = mock(NavigationActions::class.java)
     userRepository = mock(UserRepository::class.java)
     placesRepository = mock(PlacesRepository::class.java)
-    userViewModel = UserViewModel(userRepository)
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
+    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
     placesViewModel = PlacesViewModel(placesRepository)
     navigationState = NavigationState()
     `when`(navigationActions.currentRoute()).thenReturn(Route.SEARCH)

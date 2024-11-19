@@ -61,4 +61,8 @@ class FriendRequestRepositoryFirebase(private val db: FirebaseFirestore) : Frien
       return FriendRequestRepositoryFirebase(db)
     }
   }
+
+  override fun getNewId(): String {
+    return db.collection(collectionPath).document().id
+  }
 }

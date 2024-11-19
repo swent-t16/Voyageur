@@ -1,9 +1,9 @@
 package com.android.voyageur.model.user
 
 import androidx.test.core.app.ApplicationProvider
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseUser
-import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -28,6 +28,7 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class UserViewModelTest {
   private lateinit var userRepository: UserRepository
+  private lateinit var friendRequestRepository: FriendRequestRepository
   private lateinit var userViewModel: UserViewModel
   private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -42,7 +43,8 @@ class UserViewModelTest {
       FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
     }
     userRepository = mock(UserRepository::class.java)
-    userViewModel = UserViewModel(userRepository)
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
+    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
   }
 
   @After
@@ -235,32 +237,5 @@ class UserViewModelTest {
 
     // Assert that loading is no longer in progress
     assert(!userViewModel.isLoading.value)
-  }
-
-  @Test
-  fun testAddContact() = runTest {
-    // Initial setup: mock an existing user with no contacts
-    val initialUser =
-        User(id = "123", name = "Test User", email = "test@example.com", contacts = emptyList())
-    userViewModel._user.value = initialUser
-
-    // Set up mock behavior for the repository updateUser method
-    `when`(userRepository.updateUser(any(), any(), any())).thenAnswer {
-      val onSuccess = it.getArgument<() -> Unit>(1)
-      onSuccess()
-    }
-
-    // Add a new contact
-    val newContactId = "456"
-    userViewModel.addContact(newContactId)
-
-    // Expected user after adding the contact
-    val expectedUser = initialUser.copy(contacts = listOf(newContactId))
-
-    // Verify that updateUser in the repository was called with the expected user data
-    verify(userRepository).updateUser(eq(expectedUser), any(), any())
-
-    // Assert that the ViewModel's user state is updated with the new contact
-    assertEquals(expectedUser, userViewModel.user.value)
   }
 }

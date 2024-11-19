@@ -3,6 +3,7 @@ package com.android.voyageur.ui.trip
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.NavHostController
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
@@ -23,7 +24,7 @@ class TopTabsTest {
   private lateinit var navHostController: NavHostController
   private lateinit var userViewModel: UserViewModel
   private lateinit var userRepository: UserRepository
-
+  private lateinit var friendRequestRepository: FriendRequestRepository
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
@@ -32,8 +33,9 @@ class TopTabsTest {
     navHostController = mock(NavHostController::class.java)
     navigationActions = NavigationActions(navHostController)
     tripsViewModel = TripsViewModel(tripRepository)
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
     userRepository = mock(UserRepository::class.java)
-    userViewModel = UserViewModel(userRepository)
+    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
   }
 
   @Test

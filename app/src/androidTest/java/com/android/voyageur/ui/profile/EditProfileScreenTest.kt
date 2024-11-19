@@ -13,6 +13,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.MainActivity
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
@@ -39,6 +40,7 @@ class EditProfileScreenTest {
   private lateinit var userViewModel: UserViewModel
   private lateinit var firebaseAuth: FirebaseAuth
   private lateinit var firebaseUser: FirebaseUser
+  private lateinit var friendRequestRepository: FriendRequestRepository
 
   @Before
   fun setUp() {
@@ -47,6 +49,7 @@ class EditProfileScreenTest {
     userRepository = mock(UserRepository::class.java)
     firebaseAuth = mock(FirebaseAuth::class.java)
     firebaseUser = mock(FirebaseUser::class.java)
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
 
     // Mock FirebaseAuth to return our mocked firebaseUser
     `when`(firebaseAuth.currentUser).thenReturn(firebaseUser)
@@ -74,7 +77,7 @@ class EditProfileScreenTest {
         .getUserById(anyString(), anyOrNull(), anyOrNull())
 
     // Create the UserViewModel with the mocked userRepository and firebaseAuth
-    userViewModel = UserViewModel(userRepository, firebaseAuth)
+    userViewModel = UserViewModel(userRepository, firebaseAuth, friendRequestRepository)
 
     // Mocking initial navigation state
     `when`(navigationActions.currentRoute()).thenReturn(Route.EDIT_PROFILE)
@@ -89,6 +92,7 @@ class EditProfileScreenTest {
   fun displayLoadingIndicatorWhenIsLoading() {
     // Arrange: Set isLoading to true
     userViewModel._isLoading.value = true
+
     userViewModel._user.value = null
 
     // Assert: Check that the loading indicator is displayed

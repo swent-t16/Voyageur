@@ -70,7 +70,8 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
-            selectedItem = navigationActions.currentRoute())
+            selectedItem = navigationActions.currentRoute(),
+            userViewModel)
       }) { paddingValues ->
         Box(
             modifier = Modifier.fillMaxSize().padding(paddingValues),

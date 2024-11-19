@@ -215,7 +215,8 @@ fun SearchScreen(
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
-            selectedItem = navigationActions.currentRoute())
+            selectedItem = navigationActions.currentRoute(),
+            userViewModel)
       },
       floatingActionButton = {
         if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {

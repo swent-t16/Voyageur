@@ -61,6 +61,7 @@ open class UserViewModel(
   val _friendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
   val friendRequests: StateFlow<List<FriendRequest>> = _friendRequests
   val isLoading: StateFlow<Boolean> = _isLoading
+  var shouldFetch = true
 
   // Job to manage debounce coroutine for search queries
   private var debounceJob: Job? = null
@@ -135,11 +136,19 @@ open class UserViewModel(
    * @param userId The ID of the user to add as a contact.
    */
   fun addContact(userId: String) {
-    val contacts = user.value?.contacts?.toMutableSet()
-    val newUser = user.value!!.copy()
-    contacts?.add(userId)
-    newUser.contacts = contacts?.toList().orEmpty()
-    if (user.value != null) updateUser(newUser)
+    //    val contacts = user.value?.contacts?.toMutableSet()
+    //    val newUser = user.value!!.copy()
+    //    contacts?.add(userId)
+    //    newUser.contacts = contacts?.toList().orEmpty()
+    //    if (user.value != null) updateUser(newUser)
+    friendRequestRepository.createRequest(
+        req =
+            FriendRequest(
+                id = friendRequestRepository.getNewId(),
+                from = Firebase.auth.uid.orEmpty(),
+                to = userId),
+        {},
+        {})
   }
 
   /**
@@ -263,12 +272,22 @@ open class UserViewModel(
 
   fun getNotificationsCount(onSuccess: (Long) -> Unit) {
     friendRequestRepository.getNotificationCount(
-        Firebase.auth.uid.orEmpty(), onSuccess, { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
+        Firebase.auth.uid.orEmpty(),
+        {
+          _notificationCount.value = it
+          onSuccess(it)
+        },
+        { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
   }
 
   fun getFriendRequests(onSuccess: (List<FriendRequest>) -> Unit) {
     friendRequestRepository.getFriendRequests(
-        Firebase.auth.uid.orEmpty(), onSuccess, { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
+        Firebase.auth.uid.orEmpty(),
+        {
+          _friendRequests.value = it
+          onSuccess(it)
+        },
+        { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
   }
 
   /**
