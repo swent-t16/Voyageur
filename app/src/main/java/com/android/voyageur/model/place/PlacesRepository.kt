@@ -9,4 +9,10 @@ interface PlacesRepository {
       onSuccess: (List<CustomPlace>) -> Unit,
       onFailure: (Exception) -> Unit
   )
+
+  fun fetchAdvancedDetails(
+      placeId: String,
+      onSuccess: (CustomPlace) -> Unit,
+      onFailure: (Exception) -> Unit
+  )
 }
