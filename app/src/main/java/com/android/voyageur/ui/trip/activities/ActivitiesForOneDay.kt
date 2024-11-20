@@ -74,7 +74,7 @@ fun ActivitiesForOneDayScreen(
           ) {
             activities.forEach { activity ->
               item {
-                ActivityItem(activity)
+                ActivityItem(activity, navigationActions, tripsViewModel)
                 Spacer(modifier = Modifier.height(10.dp))
               }
             }

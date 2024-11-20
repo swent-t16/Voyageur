@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.android.voyageur.model.activity.Activity
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
@@ -27,6 +28,9 @@ open class TripsViewModel(
   // useful for displaying the activities for one day:
   private val _selectedDay = MutableStateFlow<LocalDate?>(null)
   open val selectedDay: StateFlow<LocalDate?> = _selectedDay.asStateFlow()
+
+  private val _selectedActivity = MutableStateFlow<Activity?>(null)
+  open val selectedActivity: StateFlow<Activity?> = _selectedActivity.asStateFlow()
 
   init {
     tripsRepository.init {
@@ -57,6 +61,10 @@ open class TripsViewModel(
 
   fun selectDay(day: LocalDate) {
     _selectedDay.value = day
+  }
+
+  fun selectActivity(activity: Activity) {
+    _selectedActivity.value = activity
   }
 
   fun getNewTripId(): String = tripsRepository.getNewTripId()

@@ -25,6 +25,7 @@ import com.android.voyageur.ui.search.SearchUserProfileScreen
 import com.android.voyageur.ui.trip.AddActivityScreen
 import com.android.voyageur.ui.trip.TopTabs
 import com.android.voyageur.ui.trip.activities.ActivitiesForOneDayScreen
+import com.android.voyageur.ui.trip.activities.EditActivityScreen
 import com.google.android.libraries.places.api.net.PlacesClient
 
 @Composable
@@ -80,6 +81,7 @@ fun VoyageurApp(placesClient: PlacesClient) {
       composable(Screen.ACTIVITIES_FOR_ONE_DAY) {
         ActivitiesForOneDayScreen(tripsViewModel, navigationActions)
       }
+      composable(Screen.EDIT_ACTIVITY) { EditActivityScreen(navigationActions, tripsViewModel) }
     }
   }
 }
