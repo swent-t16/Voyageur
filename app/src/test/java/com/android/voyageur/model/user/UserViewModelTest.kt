@@ -1,9 +1,11 @@
 package com.android.voyageur.model.user
 
 import androidx.test.core.app.ApplicationProvider
+import com.android.voyageur.model.notifications.FriendRequest
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -28,6 +30,7 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class UserViewModelTest {
   private lateinit var userRepository: UserRepository
+  private lateinit var friendRequestRepository: FriendRequestRepository
   private lateinit var userViewModel: UserViewModel
   private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -42,7 +45,8 @@ class UserViewModelTest {
       FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
     }
     userRepository = mock(UserRepository::class.java)
-    userViewModel = UserViewModel(userRepository)
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
+    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
   }
 
   @After
@@ -238,29 +242,75 @@ class UserViewModelTest {
   }
 
   @Test
-  fun testAddContact() = runTest {
-    // Initial setup: mock an existing user with no contacts
-    val initialUser =
-        User(id = "123", name = "Test User", email = "test@example.com", contacts = emptyList())
-    userViewModel._user.value = initialUser
+  fun addContact_createsFriendRequest() {
+    val userId = "contactUserId"
+    val generatedId = "testFriendRequestId"
 
-    // Set up mock behavior for the repository updateUser method
-    `when`(userRepository.updateUser(any(), any(), any())).thenAnswer {
-      val onSuccess = it.getArgument<() -> Unit>(1)
-      onSuccess()
-    }
+    // Mock getNewId to return a valid ID
+    `when`(friendRequestRepository.getNewId()).thenReturn(generatedId)
 
-    // Add a new contact
-    val newContactId = "456"
-    userViewModel.addContact(newContactId)
+    // Mock createRequest to simulate success
+    doAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as () -> Unit
+          onSuccess()
+        }
+        .`when`(friendRequestRepository)
+        .createRequest(any(), any(), any())
 
-    // Expected user after adding the contact
-    val expectedUser = initialUser.copy(contacts = listOf(newContactId))
+    // Call the method under test
+    userViewModel.addContact(userId)
 
-    // Verify that updateUser in the repository was called with the expected user data
-    verify(userRepository).updateUser(eq(expectedUser), any(), any())
+    // Verify that createRequest was called with the correct parameters
+    verify(friendRequestRepository)
+        .createRequest(
+            eq(
+                FriendRequest(
+                    id = generatedId,
+                    from = FirebaseAuth.getInstance().uid.orEmpty(),
+                    to = userId)),
+            any(),
+            any())
+  }
 
-    // Assert that the ViewModel's user state is updated with the new contact
-    assertEquals(expectedUser, userViewModel.user.value)
+  // Test for fetching notification count successfully
+  @Test
+  fun getNotificationsCount_success() {
+    val notificationCount = 10L
+
+    `when`(
+            friendRequestRepository.getNotificationCount(
+                eq(FirebaseAuth.getInstance().uid.orEmpty()), any(), any()))
+        .thenAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as (Long) -> Unit
+          onSuccess(notificationCount)
+        }
+
+    userViewModel.getNotificationsCount { assert(it == notificationCount) }
+
+    verify(friendRequestRepository)
+        .getNotificationCount(eq(FirebaseAuth.getInstance().uid.orEmpty()), any(), any())
+    assert(userViewModel.notificationCount.value == notificationCount)
+  }
+
+  // Test for fetching friend requests successfully
+  @Test
+  fun getFriendRequests_success() {
+    val mockFriendRequests =
+        listOf(
+            FriendRequest(id = "1", from = "user1", to = FirebaseAuth.getInstance().uid.orEmpty()))
+
+    `when`(
+            friendRequestRepository.getFriendRequests(
+                eq(FirebaseAuth.getInstance().uid.orEmpty()), any(), any()))
+        .thenAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as (List<FriendRequest>) -> Unit
+          onSuccess(mockFriendRequests)
+        }
+
+    userViewModel.getFriendRequests { assert(it == mockFriendRequests) }
+
+    verify(friendRequestRepository)
+        .getFriendRequests(eq(FirebaseAuth.getInstance().uid.orEmpty()), any(), any())
+    assert(userViewModel.friendRequests.value == mockFriendRequests)
   }
 }

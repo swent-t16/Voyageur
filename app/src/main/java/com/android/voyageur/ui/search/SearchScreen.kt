@@ -215,7 +215,8 @@ fun SearchScreen(
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
-            selectedItem = navigationActions.currentRoute())
+            selectedItem = navigationActions.currentRoute(),
+            userViewModel)
       },
       floatingActionButton = {
         if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {
@@ -497,31 +498,10 @@ fun PlaceSearchResultItem(customPlace: CustomPlace, modifier: Modifier = Modifie
               color = MaterialTheme.colorScheme.onSurface)
 
           Spacer(modifier = Modifier.height(4.dp))
-          // Rating and review count
 
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            if (place.rating != null) {
-              Text(
-                  text = "${place.rating} ",
-                  fontSize = 14.sp,
-                  color = MaterialTheme.colorScheme.onSurface)
-              Text(
-                  text = "★".repeat(place.rating.toInt()),
-                  fontSize = 14.sp,
-                  color = Color(0xFFFFA000) // Keep stars orange for visibility in both themes
-                  )
-              Text(
-                  text = " (${place.userRatingsTotal})",
-                  fontSize = 14.sp,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-          }
-
-          Spacer(modifier = Modifier.height(4.dp))
-
-          // Price level, type, and address
+          // Address
           Text(
-              text = "${"$".repeat(place.priceLevel ?: 1)} · ${place.address ?: "No address"}",
+              text = "· ${place.address ?: "No address"} ·",
               fontSize = 14.sp,
               color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

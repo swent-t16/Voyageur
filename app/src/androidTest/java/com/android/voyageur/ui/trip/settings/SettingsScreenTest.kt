@@ -5,8 +5,11 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.UserRepository
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,24 +25,31 @@ class SettingsScreenTest {
   private val sampleTrip = Trip(name = "Sample Trip")
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
-
+  private lateinit var userViewModel: UserViewModel
+  private lateinit var userRepository: UserRepository
+  private lateinit var friendRequestRepository: FriendRequestRepository
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
   fun setUp() {
     navigationActions = mock(NavigationActions::class.java)
     tripsViewModel = mock(TripsViewModel::class.java)
-
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
     // Mock selectedTrip as StateFlow
     val tripStateFlow: StateFlow<Trip?> = MutableStateFlow(sampleTrip)
     `when`(tripsViewModel.selectedTrip).thenReturn(tripStateFlow)
+    userRepository = mock(UserRepository::class.java)
+    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
   }
 
   @Test
   fun hasRequiredComponents() {
     composeTestRule.setContent {
       SettingsScreen(
-          trip = sampleTrip, navigationActions = navigationActions, tripsViewModel = tripsViewModel)
+          trip = sampleTrip,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel,
+          userViewModel)
     }
 
     composeTestRule.onNodeWithTag("settingsScreen").assertIsDisplayed()
@@ -50,7 +60,10 @@ class SettingsScreenTest {
   fun displaysCorrectTripNameInEditMode() {
     composeTestRule.setContent {
       SettingsScreen(
-          trip = sampleTrip, navigationActions = navigationActions, tripsViewModel = tripsViewModel)
+          trip = sampleTrip,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel,
+          userViewModel)
     }
 
     // Check if the screen displays the trip name correctly in edit mode
@@ -61,7 +74,10 @@ class SettingsScreenTest {
   fun displaysBottomNavigationCorrectly() {
     composeTestRule.setContent {
       SettingsScreen(
-          trip = sampleTrip, navigationActions = navigationActions, tripsViewModel = tripsViewModel)
+          trip = sampleTrip,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel,
+          userViewModel)
     }
 
     // Check that the bottom navigation menu is displayed

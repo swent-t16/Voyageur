@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.voyageur.model.trip.Trip
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -36,6 +37,7 @@ import com.google.firebase.Timestamp
 fun ActivitiesScreen(
     trip: Trip,
     navigationActions: NavigationActions,
+    userViewModel: UserViewModel
 ) {
 
   val drafts =
@@ -61,7 +63,8 @@ fun ActivitiesScreen(
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
-            selectedItem = navigationActions.currentRoute())
+            selectedItem = navigationActions.currentRoute(),
+            userViewModel = userViewModel)
       },
       floatingActionButton = { AddActivityButton(navigationActions) },
       content = { pd ->

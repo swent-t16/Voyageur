@@ -46,7 +46,7 @@ class TripRepositoryFirebaseTest {
       Trip(
           "1",
           "creator",
-          emptyList(),
+          listOf("creator"),
           "description",
           "name",
           emptyList(),
@@ -70,6 +70,8 @@ class TripRepositoryFirebaseTest {
     `when`(mockFirestore.collection(any())).thenReturn(mockCollectionReference)
     `when`(mockCollectionReference.document(any())).thenReturn(mockDocumentReference)
     `when`(mockCollectionReference.whereEqualTo(eq("creator"), any())).thenReturn(mockQuery)
+    `when`(mockCollectionReference.whereArrayContains(eq("participants"), eq("creator")))
+        .thenReturn(mockQuery)
 
     `when`(mockCollectionReference.document()).thenReturn(mockDocumentReference)
     `when`(mockQuery.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
@@ -100,7 +102,7 @@ class TripRepositoryFirebaseTest {
         onFailure = { fail("Failure callback should not be called") },
     )
 
-    verify(mockCollectionReference).whereEqualTo("creator", "creator")
+    verify(mockCollectionReference).whereArrayContains("participants", "creator")
 
     // Verify that get() was called on the query
     verify(mockQuery).get()

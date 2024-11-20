@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.trip.activities.ActivitiesScreen
@@ -22,7 +23,11 @@ import com.android.voyageur.ui.trip.schedule.toDateWithoutYearString
 import com.android.voyageur.ui.trip.settings.SettingsScreen
 
 @Composable
-fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions) {
+fun TopTabs(
+    tripsViewModel: TripsViewModel,
+    navigationActions: NavigationActions,
+    userViewModel: UserViewModel
+) {
   // Define tab items
   val tabs = listOf("Schedule", "Activities", "Settings")
 
@@ -62,13 +67,14 @@ fun TopTabs(tripsViewModel: TripsViewModel, navigationActions: NavigationActions
 
     // Display content based on selected tab
     when (navigationActions.getNavigationState().currentTabIndexForTrip) {
-      0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions)
-      1 -> ActivitiesScreen(selectedTrip, navigationActions)
+      0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel)
+      1 -> ActivitiesScreen(selectedTrip, navigationActions, userViewModel)
       2 ->
           SettingsScreen(
               selectedTrip,
               navigationActions,
               tripsViewModel = tripsViewModel,
+              userViewModel = userViewModel,
               onUpdate = {
                 navigationActions.getNavigationState().currentTabIndexForTrip = 0
                 navigationActions.getNavigationState().currentTabIndexForTrip = 2

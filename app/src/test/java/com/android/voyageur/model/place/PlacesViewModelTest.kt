@@ -73,4 +73,13 @@ class PlacesViewModelTest {
     placesViewModel.deselectPlace()
     assert(placesViewModel.selectedPlace.value == null)
   }
+
+  @Test
+  fun testSelectPlaceFetchesDetails() {
+    val place = mock(Place::class.java)
+    `when`(place.id).thenReturn("test")
+    val customPlace = CustomPlace(place = place, photos = emptyList())
+    placesViewModel.selectPlace(customPlace)
+    verify(placesRepository).fetchAdvancedDetails(eq(place.id), any(), any())
+  }
 }
