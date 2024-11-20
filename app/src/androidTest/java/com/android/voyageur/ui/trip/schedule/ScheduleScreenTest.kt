@@ -22,10 +22,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
 
 class ScheduleScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
