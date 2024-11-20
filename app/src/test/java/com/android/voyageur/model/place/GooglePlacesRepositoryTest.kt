@@ -13,7 +13,6 @@ import com.google.android.libraries.places.api.net.FetchPlaceResponse
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
 import com.google.android.libraries.places.api.net.PlacesClient
 import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertTrue
 import junit.framework.TestCase.fail
 import org.junit.Before
 import org.junit.Test
@@ -118,36 +117,37 @@ class GooglePlacesRepositoryTest {
   }
 
   @Test
-  fun testFetchPhotoMetadataAndRequest() {
+  fun testFetchAdvancedDetails_success() {
     val placeId = "testPlaceId"
+
+    val mockFetchPlaceTask = mock(Task::class.java) as Task<FetchPlaceResponse>
     val mockFetchPhotoTask = mock(Task::class.java) as Task<FetchPhotoResponse>
 
-    `when`(mockPlace.photoMetadatas).thenReturn(listOf(mockPhotoMetadata))
+    `when`(mockPlacesClient.fetchPlace(any())).thenReturn(mockFetchPlaceTask)
+    `when`(mockFetchPlaceResponse.place).thenReturn(mockPlace)
+    `when`(mockPlace.id).thenReturn(placeId)
+    `when`(mockFetchPlaceTask.addOnSuccessListener(any())).thenAnswer { invocation ->
+        val listener = invocation.arguments[0] as OnSuccessListener<FetchPlaceResponse>
+        listener.onSuccess(mockFetchPlaceResponse)
+        mockFetchPlaceTask
+    }
 
     `when`(mockPlacesClient.fetchPhoto(any())).thenReturn(mockFetchPhotoTask)
     `when`(mockFetchPhotoTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.arguments[0] as OnSuccessListener<FetchPhotoResponse>
-      listener.onSuccess(mockFetchPhotoResponse) // Simulate successful photo fetch
-      mockFetchPhotoTask
+        val listener = invocation.arguments[0] as OnSuccessListener<FetchPhotoResponse>
+        listener.onSuccess(mockFetchPhotoResponse)
+        mockFetchPhotoTask
     }
-    `when`(mockFetchPhotoTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.arguments[0] as OnFailureListener
-      listener.onFailure(Exception("Photo API error")) // Simulate failure in photo fetch
-      mockFetchPhotoTask
-    }
+    `when`(mockPlace.photoMetadatas).thenReturn(listOf(mockPhotoMetadata))
 
     val mockBitmap = mock(Bitmap::class.java)
     `when`(mockFetchPhotoResponse.bitmap).thenReturn(mockBitmap)
 
-    val onSuccess: (List<CustomPlace>) -> Unit = { customPlaces ->
-      // Check if the bitmap list is not empty
-      assertTrue(customPlaces[0].photos.isNotEmpty())
-    }
+    val onSuccess: (CustomPlace) -> Unit = { place -> assertEquals(placeId, place.place.id) }
     val onFailure: (Exception) -> Unit = { fail("Failure callback should not be called") }
 
-    googlePlacesRepository.fetchPlaceDetails(listOf(placeId), onSuccess, onFailure)
+    googlePlacesRepository.fetchAdvancedDetails(placeId, onSuccess, onFailure)
 
-    verify(mockPlacesClient).fetchPhoto(any())
-    verify(mockFetchPhotoTask).addOnSuccessListener(any())
+    verify(mockPlacesClient).fetchPlace(any())
   }
 }
