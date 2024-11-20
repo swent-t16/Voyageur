@@ -49,12 +49,23 @@ fun AddActivityScreen(
   var location by remember { mutableStateOf(existingActivity?.location?.city ?: "") }
   var showModal by remember { mutableStateOf(false) }
   var activityDate by remember {
-    mutableStateOf<Long?>(existingActivity?.startTime?.toDate()?.time)
+    mutableStateOf<Long?>(existingActivity?.startTime?.toDate()?.time.takeIf { it != 0L })
   }
   var showTime by remember { mutableStateOf(false) }
   var selectedTimeField by remember { mutableStateOf<TimeField?>(null) }
-  var startTime by remember { mutableStateOf<Long?>(existingActivity?.startTime?.toDate()?.time) }
-  var endTime by remember { mutableStateOf<Long?>(existingActivity?.endTime?.toDate()?.time) }
+  var startTime by remember {
+    mutableStateOf<Long?>(
+        if (existingActivity?.startTime?.toDate()?.time != 0L && activityDate != null)
+            existingActivity?.startTime?.toDate()?.time
+        else null)
+  }
+  var endTime by remember {
+    mutableStateOf<Long?>(
+        if (existingActivity?.endTime?.toDate()?.time != 0L && activityDate != null)
+            existingActivity?.endTime?.toDate()?.time
+        else null)
+  }
+
   var priceInput by remember { mutableStateOf(existingActivity?.estimatedPrice?.toString() ?: "") }
   var estimatedPrice by remember {
     mutableStateOf<Double?>(existingActivity?.estimatedPrice ?: 0.0)
@@ -71,7 +82,8 @@ fun AddActivityScreen(
 
   val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
   var formattedStartTime = startTime?.let { timeFormat.format(Date(it)) } ?: ""
-  var formattedEndTime = endTime?.let { timeFormat.format(Date(it)) } ?: ""
+  var formattedEndTime =
+      if (endTime != null && activityDate != null) timeFormat.format(Date(endTime!!)) else ""
 
   val keyboardController = LocalSoftwareKeyboardController.current
 

@@ -103,16 +103,10 @@ fun ActivityItem(
                           onClick = {
                             navigationActions.navigateTo(Screen.EDIT_ACTIVITY)
                             tripsViewModel.selectActivity(activity)
-                            //                              Toast.makeText(
-                            //                                  context,
-                            //                                  "Edit activity not implemented yet",
-                            //                                  Toast.LENGTH_SHORT)
-                            //                                  .show()
                           }) {
                             Icon(
                                 imageVector = Icons.TwoTone.Edit,
-                                contentDescription = "Edit Activity",
-                                tint = Color.Green)
+                                contentDescription = "Edit Activity")
                           }
                       IconButton(
                           onClick = { /*TODO: delete activity*/
