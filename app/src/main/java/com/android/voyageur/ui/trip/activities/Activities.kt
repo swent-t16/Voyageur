@@ -92,7 +92,8 @@ fun ActivitiesScreen(
                         .show()
                   },
                   ButtonType.DELETE,
-                  navigationActions, tripsViewModel)
+                  navigationActions,
+                  tripsViewModel)
               Spacer(modifier = Modifier.height(10.dp))
             }
           }
@@ -112,7 +113,9 @@ fun ActivitiesScreen(
                             context, "Delete activity not implemented yet", Toast.LENGTH_SHORT)
                         .show()
                   },
-                  ButtonType.DELETE, navigationActions, tripsViewModel)
+                  ButtonType.DELETE,
+                  navigationActions,
+                  tripsViewModel)
               Spacer(modifier = Modifier.height(10.dp))
             }
           }

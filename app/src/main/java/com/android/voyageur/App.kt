@@ -25,8 +25,8 @@ import com.android.voyageur.ui.search.SearchUserProfileScreen
 import com.android.voyageur.ui.trip.AddActivityScreen
 import com.android.voyageur.ui.trip.TopTabs
 import com.android.voyageur.ui.trip.activities.ActivitiesForOneDayScreen
-import com.android.voyageur.ui.trip.assistant.AssistantScreen
 import com.android.voyageur.ui.trip.activities.EditActivityScreen
+import com.android.voyageur.ui.trip.assistant.AssistantScreen
 import com.google.android.libraries.places.api.net.PlacesClient
 
 @Composable

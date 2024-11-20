@@ -108,7 +108,9 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
                           // add this activity to the trip
                           tripsViewModel.addActivityToTrip(activity)
                         },
-                        buttonPurpose = ButtonType.ADD)
+                        buttonPurpose = ButtonType.ADD,
+                        navigationActions,
+                        tripsViewModel)
                     Spacer(modifier = Modifier.height(10.dp))
                   }
                 }

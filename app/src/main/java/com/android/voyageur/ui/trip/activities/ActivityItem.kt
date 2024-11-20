@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.twotone.Delete
-import androidx.compose.material3.Button
 import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -106,29 +106,29 @@ fun ActivityItem(
                                 imageVector = Icons.TwoTone.Edit,
                                 contentDescription = "Edit Activity")
                           }
-                    // Delete icon
-                    if (buttonPurpose == ButtonType.DELETE) {
-                      IconButton(
-                          onClick = onClickButton,
-                          modifier = Modifier.testTag("deleteIcon_${activity.title}"),
-                      ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Delete,
-                            contentDescription = "Delete Activity",
-                            tint = Color.Red)
-                      }
-                    } else {
-                      // Add icon
-                      if (buttonPurpose == ButtonType.ADD) {
-                        Button(
+                      // Delete icon
+                      if (buttonPurpose == ButtonType.DELETE) {
+                        IconButton(
                             onClick = onClickButton,
-                            modifier = Modifier.testTag("addIcon_${activity.title}")) {
-                              Text(text = "Add")
-                            }
-                          }
+                            modifier = Modifier.testTag("deleteIcon_${activity.title}"),
+                        ) {
+                          Icon(
+                              imageVector = Icons.TwoTone.Delete,
+                              contentDescription = "Delete Activity",
+                              tint = Color.Red)
+                        }
+                      } else {
+                        // Add icon
+                        if (buttonPurpose == ButtonType.ADD) {
+                          Button(
+                              onClick = onClickButton,
+                              modifier = Modifier.testTag("addIcon_${activity.title}")) {
+                                Text(text = "Add")
+                              }
+                        }
                       }
                     }
-                      }
+                  }
 
                   // Expand/collapse icon
                   IconButton(
