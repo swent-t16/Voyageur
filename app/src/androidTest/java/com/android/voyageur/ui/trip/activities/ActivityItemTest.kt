@@ -11,10 +11,13 @@ import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Screen
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.doNothing
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 class ActivityItemTest {
   private val sampleActivityWithoutDescription =
@@ -50,7 +53,10 @@ class ActivityItemTest {
   fun activityItem_expandAndCollapse() {
 
     composeTestRule.setContent {
-      ActivityItem(sampleActivityWithDescription, navigationActions, tripsViewModel)
+      ActivityItem(
+          activity = sampleActivityWithDescription,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel)
     }
 
     composeTestRule.onNodeWithText("Price").assertIsNotDisplayed()
@@ -72,7 +78,10 @@ class ActivityItemTest {
   @Test
   fun activityCard_displaysCorrectTitle() {
     composeTestRule.setContent {
-      ActivityItem(sampleActivityWithDescription, navigationActions, tripsViewModel)
+      ActivityItem(
+          activity = sampleActivityWithDescription,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel)
     }
 
     composeTestRule
@@ -85,7 +94,10 @@ class ActivityItemTest {
   fun activityCard_displaysCorrectDescription() {
 
     composeTestRule.setContent {
-      ActivityItem(sampleActivityWithDescription, navigationActions, tripsViewModel)
+      ActivityItem(
+          activity = sampleActivityWithDescription,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel)
     }
     composeTestRule
         .onNodeWithTag("expandIcon_${sampleActivityWithDescription.title}")
@@ -101,7 +113,10 @@ class ActivityItemTest {
   fun activityCard_doesNotDisplayDescription() {
 
     composeTestRule.setContent {
-      ActivityItem(sampleActivityWithoutDescription, navigationActions, tripsViewModel)
+      ActivityItem(
+          activity = sampleActivityWithoutDescription,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel)
     }
     composeTestRule
         .onNodeWithTag("expandIcon_${sampleActivityWithoutDescription.title}")
@@ -119,7 +134,10 @@ class ActivityItemTest {
   fun activityCard_displaysCorrectDateAndTime() {
 
     composeTestRule.setContent {
-      ActivityItem(sampleActivityWithDescription, navigationActions, tripsViewModel)
+      ActivityItem(
+          activity = sampleActivityWithDescription,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel)
     }
 
     composeTestRule
@@ -131,7 +149,11 @@ class ActivityItemTest {
   @Test
   fun activityCard_displaysDeleteButton() {
     composeTestRule.setContent {
-      ActivityItem(activity = sampleActivityWithDescription, buttonPurpose = ButtonType.DELETE)
+      ActivityItem(
+          activity = sampleActivityWithDescription,
+          buttonPurpose = ButtonType.DELETE,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel)
     }
     composeTestRule
         .onNodeWithTag("cardItem_${sampleActivityWithDescription.title}")
@@ -147,7 +169,11 @@ class ActivityItemTest {
   @Test
   fun activityCard_displaysAddButton() {
     composeTestRule.setContent {
-      ActivityItem(activity = sampleActivityWithDescription, buttonPurpose = ButtonType.ADD)
+      ActivityItem(
+          activity = sampleActivityWithDescription,
+          buttonPurpose = ButtonType.ADD,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel)
     }
     composeTestRule
         .onNodeWithTag("cardItem_${sampleActivityWithDescription.title}")
@@ -158,5 +184,66 @@ class ActivityItemTest {
     composeTestRule
         .onNodeWithTag("addIcon_${sampleActivityWithDescription.title}")
         .assertIsDisplayed()
+  }
+
+  @Test
+  fun activityCard_displaysEditButton() {
+    composeTestRule.setContent {
+      ActivityItem(
+          activity = sampleActivityWithDescription,
+          isEditable = true,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel)
+    }
+    composeTestRule
+        .onNodeWithTag("cardItem_${sampleActivityWithDescription.title}")
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag("expandIcon_${sampleActivityWithDescription.title}")
+        .performClick()
+    composeTestRule
+        .onNodeWithTag("editIcon_${sampleActivityWithDescription.title}")
+        .assertIsDisplayed()
+  }
+
+  @Test
+  fun activityCard_doesNotDisplayEditButton() {
+    composeTestRule.setContent {
+      ActivityItem(
+          activity = sampleActivityWithDescription,
+          isEditable = false,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel)
+    }
+    composeTestRule
+        .onNodeWithTag("cardItem_${sampleActivityWithDescription.title}")
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag("expandIcon_${sampleActivityWithDescription.title}")
+        .performClick()
+    composeTestRule
+        .onNodeWithTag("editIcon_${sampleActivityWithDescription.title}")
+        .assertIsNotDisplayed()
+  }
+
+  @Test
+  fun clickingOnEditButton_navigatesToEditActivityScreen() {
+    doNothing().`when`(navigationActions).navigateTo(Screen.EDIT_ACTIVITY)
+    composeTestRule.setContent {
+      ActivityItem(
+          activity = sampleActivityWithDescription,
+          isEditable = true,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel)
+    }
+    composeTestRule
+        .onNodeWithTag("cardItem_${sampleActivityWithDescription.title}")
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag("expandIcon_${sampleActivityWithDescription.title}")
+        .performClick()
+    composeTestRule.onNodeWithTag("editIcon_${sampleActivityWithDescription.title}").performClick()
+    verify(navigationActions).navigateTo(Screen.EDIT_ACTIVITY)
+    assert(tripsViewModel.selectedActivity.value == sampleActivityWithDescription)
   }
 }

@@ -86,6 +86,7 @@ fun ActivitiesScreen(
             item {
               ActivityItem(
                   activity,
+                  true,
                   onClickButton = {
                     Toast.makeText(
                             context, "Delete activity not implemented yet", Toast.LENGTH_SHORT)
@@ -108,6 +109,7 @@ fun ActivitiesScreen(
             item {
               ActivityItem(
                   activity,
+                  true,
                   onClickButton = {
                     Toast.makeText(
                             context, "Delete activity not implemented yet", Toast.LENGTH_SHORT)

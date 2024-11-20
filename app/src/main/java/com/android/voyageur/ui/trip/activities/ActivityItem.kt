@@ -50,6 +50,7 @@ import java.util.Locale
 @Composable
 fun ActivityItem(
     activity: Activity,
+    isEditable: Boolean = false,
     onClickButton: () -> Unit = {}, // Default do nothing
     buttonPurpose: ButtonType = ButtonType.NOTHING,
     navigationActions: NavigationActions,
@@ -97,15 +98,19 @@ fun ActivityItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                   AnimatedVisibility(visible = isExpanded) {
                     Row {
-                      IconButton(
-                          onClick = {
-                            navigationActions.navigateTo(Screen.EDIT_ACTIVITY)
-                            tripsViewModel.selectActivity(activity)
-                          }) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Edit,
-                                contentDescription = "Edit Activity")
-                          }
+                      if (isEditable) {
+                        // Edit icon
+                        IconButton(
+                            onClick = {
+                              navigationActions.navigateTo(Screen.EDIT_ACTIVITY)
+                              tripsViewModel.selectActivity(activity)
+                            },
+                            modifier = Modifier.testTag("editIcon_${activity.title}")) {
+                              Icon(
+                                  imageVector = Icons.TwoTone.Edit,
+                                  contentDescription = "Edit Activity")
+                            }
+                      }
                       // Delete icon
                       if (buttonPurpose == ButtonType.DELETE) {
                         IconButton(

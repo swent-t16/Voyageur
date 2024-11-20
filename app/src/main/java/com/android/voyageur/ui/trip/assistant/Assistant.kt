@@ -102,6 +102,7 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
                   item {
                     ActivityItem(
                         activity = activity,
+                        false,
                         onClickButton = {
                           // remove this activity from the list
                           activities = activities.filter { it != activity }

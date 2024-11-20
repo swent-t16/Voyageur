@@ -1,6 +1,5 @@
 package com.android.voyageur.model.activity
 
-import android.util.Log
 import com.android.voyageur.model.location.Location
 import com.google.firebase.Timestamp
 import com.google.gson.Gson
