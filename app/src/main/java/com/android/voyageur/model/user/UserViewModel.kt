@@ -292,8 +292,17 @@ open class UserViewModel(
    * @param onSuccess callback for the response
    */
   fun getUsersByIds(userIds: List<String>, onSuccess: (List<User>) -> Unit) {
+    _isLoading.value = true
     userRepository.fetchUsersByIds(
-        userIds, onSuccess, { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
+        userIds,
+        { users ->
+          _isLoading.value = false
+          onSuccess(users)
+        },
+        { error ->
+          _isLoading.value = false
+          Log.e("USER_VIEW_MODEL", error.message.orEmpty())
+        })
   }
   /**
    * Fetches all the contacts of the current user and returns them into a list

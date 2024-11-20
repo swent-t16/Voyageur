@@ -97,6 +97,21 @@ class E2ETest {
         .`when`(userRepository)
         .getUserById(anyString(), anyOrNull(), anyOrNull())
 
+    // Mock userRepository.fetchUsersByIds to call onSuccess with the list of users
+    doAnswer { invocation ->
+          val userIds = invocation.getArgument<List<String>>(0)
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+
+          val mockUsers =
+              userIds.map { userId ->
+                User(id = userId, name = "User $userId", email = "$userId@example.com")
+              }
+          onSuccess(mockUsers)
+          null
+        }
+        .`when`(userRepository)
+        .fetchUsersByIds(any(), any(), anyOrNull())
+
     // Create the UserViewModel with the mocked userRepository and firebaseAuth
     userViewModel = UserViewModel(userRepository, firebaseAuth, friendRequestRepository)
     mockUser = mock(FirebaseUser::class.java)
@@ -154,6 +169,7 @@ class E2ETest {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
     tripsViewModel.getTrips()
+    userViewModel._isLoading.value = false
 
     composeTestRule.onNodeWithTag("cardItem").assertIsDisplayed() // check view by day of the trip
     composeTestRule.onNodeWithTag("cardItem").performClick()

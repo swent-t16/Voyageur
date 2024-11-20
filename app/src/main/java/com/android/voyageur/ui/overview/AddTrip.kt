@@ -138,7 +138,6 @@ fun AddTripScreen(
       //      userList.clear()
     }
   }
-
   val _trip = tripsViewModel.selectedTrip.value
 
   fun createTripWithImage(imageUrl: String) {
