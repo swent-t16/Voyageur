@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
@@ -31,6 +32,7 @@ class OverviewScreenTest {
   private lateinit var tripViewModel: TripsViewModel
   private lateinit var userViewModel: UserViewModel
   private lateinit var userRepository: UserRepository
+  private lateinit var friendRequestRepository: FriendRequestRepository
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -39,7 +41,9 @@ class OverviewScreenTest {
     tripRepository = mock(TripRepository::class.java)
     navigationActions = mock(NavigationActions::class.java)
     userRepository = mock(UserRepository::class.java)
-    userViewModel = UserViewModel(userRepository)
+    friendRequestRepository =
+        mock(com.android.voyageur.model.notifications.FriendRequestRepository::class.java)
+    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
     tripViewModel = TripsViewModel(tripRepository)
     `when`(navigationActions.currentRoute()).thenReturn(Route.OVERVIEW)
     val mockUsers =

@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -46,6 +47,7 @@ fun WeeklyViewScreen(
     tripsViewModel: TripsViewModel,
     trip: Trip,
     navigationActions: NavigationActions,
+    userViewModel: UserViewModel
 ) {
   val weeks = generateWeeks(trip.startDate, trip.endDate)
 
@@ -56,7 +58,8 @@ fun WeeklyViewScreen(
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
-            selectedItem = navigationActions.currentRoute())
+            selectedItem = navigationActions.currentRoute(),
+            userViewModel = userViewModel)
       }) { pd ->
         Box(modifier = Modifier.fillMaxSize().padding(pd)) {
           LazyColumn(
