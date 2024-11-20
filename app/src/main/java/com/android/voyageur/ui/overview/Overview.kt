@@ -2,6 +2,7 @@ package com.android.voyageur.ui.overview
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,20 +18,28 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -148,6 +157,8 @@ fun TripItem(
 ) {
   val dateRange = trip.startDate.toDateString() + " - " + trip.endDate.toDateString()
   val themeColor = MaterialTheme.colorScheme.onSurface
+  var isExpanded by remember { mutableStateOf(false) }
+  var showDialog by remember { mutableStateOf(false) }
   Card(
       onClick = {
         // When opening a trip, navigate to the Schedule screen, with the daily view enabled
@@ -209,8 +220,46 @@ fun TripItem(
                             ))
                     DisplayParticipants(trip, userViewModel)
                   }
+              Box(modifier = Modifier.align(Alignment.Top)) {
+                IconButton(
+                    onClick = { isExpanded = !isExpanded },
+                    modifier = Modifier.testTag("expandIcon_${trip.name}")) {
+                      Icon(
+                          imageVector = Icons.Default.MoreVert,
+                          contentDescription = if (isExpanded) "Collapse" else "Expand")
+                    }
+                DropdownMenu(
+                    expanded = isExpanded,
+                    onDismissRequest = { isExpanded = false },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.secondaryContainer)) {
+                      DropdownMenuItem(
+                          onClick = {
+                            isExpanded = false
+                            showDialog = true
+                          },
+                          text = { Text("Delete") },
+                          modifier = Modifier.testTag("deleteMenuItem_${trip.name}"))
+                    }
+              }
             }
       })
+  // Confirmation Dialog
+  if (showDialog) {
+    AlertDialog(
+        onDismissRequest = { showDialog = false },
+        title = { Text(text = "Remove Trip") },
+        text = { Text("Are you sure you want to remove \"${trip.name}\" from your trips?") },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                tripsViewModel.deleteTripById(trip.id)
+                showDialog = false
+              }) {
+                Text("Remove")
+              }
+        },
+        dismissButton = { TextButton(onClick = { showDialog = false }) { Text("Cancel") } })
+  }
 }
 
 @SuppressLint("StateFlowValueCalledInComposition")

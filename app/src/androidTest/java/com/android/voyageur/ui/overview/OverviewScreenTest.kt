@@ -230,4 +230,27 @@ class OverviewScreenTest {
     composeTestRule.onNodeWithTag("defaultTripImage", useUnmergedTree = true).assertExists()
     composeTestRule.onNodeWithTag("tripImage").assertDoesNotExist()
   }
+
+  @Test
+  fun deleteTripMethodIsCalled() {
+    val mockTrip =
+        Trip(
+            id = "1",
+            creator = "Andreea",
+            participants = listOf("Alex"),
+            name = "Paris Trip",
+            imageUri = "",
+            startDate = Timestamp.now(),
+            endDate = Timestamp.now())
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(listOf(mockTrip))
+    }
+    tripViewModel.getTrips()
+
+    composeTestRule.onNodeWithTag("expandIcon_${mockTrip.name}").performClick()
+    composeTestRule.onNodeWithText("Delete").performClick()
+    composeTestRule.onNodeWithText("Remove").performClick()
+
+    verify(tripRepository).deleteTripById(eq(mockTrip.id), any(), any())
+  }
 }
