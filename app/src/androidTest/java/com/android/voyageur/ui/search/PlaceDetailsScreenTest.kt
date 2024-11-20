@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
@@ -28,7 +29,7 @@ class PlaceDetailsScreenTest {
   private lateinit var userRepository: UserRepository
   private lateinit var placesViewModel: PlacesViewModel
   private lateinit var placesRepository: PlacesRepository
-
+  private lateinit var friendRequestRepository: FriendRequestRepository
   @get:Rule val composeTestRule = createComposeRule()
 
   val place =
@@ -61,8 +62,9 @@ class PlaceDetailsScreenTest {
   fun setUp() {
     navigationActions = mock(NavigationActions::class.java)
     userRepository = mock(UserRepository::class.java)
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
     placesRepository = mock(PlacesRepository::class.java)
-    userViewModel = UserViewModel(userRepository)
+    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
     placesViewModel = PlacesViewModel(placesRepository)
     `when`(navigationActions.currentRoute()).thenReturn(Route.SEARCH)
     composeTestRule.setContent { PlaceDetailsScreen(navigationActions, placesViewModel) }

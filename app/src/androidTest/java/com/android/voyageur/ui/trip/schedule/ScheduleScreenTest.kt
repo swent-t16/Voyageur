@@ -6,8 +6,11 @@ import androidx.navigation.NavHostController
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.UserRepository
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.google.firebase.Timestamp
 import java.time.LocalDateTime
@@ -17,6 +20,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.Mockito.mock
 
 class ScheduleScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
@@ -25,12 +29,17 @@ class ScheduleScreenTest {
   private lateinit var mockTrip: Trip
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var navHostController: NavHostController
+  private lateinit var friendRequestRepository: FriendRequestRepository
+  private lateinit var userRepository: UserRepository
+  private lateinit var userViewModel: UserViewModel
 
   @Before
   fun setUp() {
     // Set default locale for consistent testing
     Locale.setDefault(Locale.US)
-
+    userRepository = mock(UserRepository::class.java)
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
+    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
     tripsViewModel = Mockito.mock(TripsViewModel::class.java)
 
     navHostController = Mockito.mock(NavHostController::class.java)
@@ -65,7 +74,10 @@ class ScheduleScreenTest {
 
     composeTestRule.setContent {
       ScheduleScreen(
-          tripsViewModel = tripsViewModel, trip = mockTrip, navigationActions = navigationActions)
+          tripsViewModel = tripsViewModel,
+          trip = mockTrip,
+          navigationActions = navigationActions,
+          userViewModel)
     }
   }
 

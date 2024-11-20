@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
@@ -56,7 +57,7 @@ class E2ETest {
   private lateinit var mockUser: FirebaseUser
   private lateinit var mockAuthResult: AuthResult
   private lateinit var mockAuthTask: Task<AuthResult>
-
+  private lateinit var friendRequestRepository: FriendRequestRepository
   private val mockMail = "test@gmail.com"
 
   @Before
@@ -66,10 +67,13 @@ class E2ETest {
     tripsViewModel = TripsViewModel(tripRepository)
 
     placesRepository = mock(PlacesRepository::class.java)
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
+
     placesViewModel = PlacesViewModel(placesRepository)
 
     userRepository = mock(UserRepository::class.java)
-    userViewModel = UserViewModel(userRepository)
+
+    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
     firebaseAuth = mock(FirebaseAuth::class.java)
     val firebaseUser = mock(FirebaseUser::class.java)
 
@@ -94,7 +98,7 @@ class E2ETest {
         .getUserById(anyString(), anyOrNull(), anyOrNull())
 
     // Create the UserViewModel with the mocked userRepository and firebaseAuth
-    userViewModel = UserViewModel(userRepository, firebaseAuth)
+    userViewModel = UserViewModel(userRepository, firebaseAuth, friendRequestRepository)
     mockUser = mock(FirebaseUser::class.java)
     mockAuthResult = mock(AuthResult::class.java)
     mockAuthTask = mock(Task::class.java) as Task<AuthResult>
