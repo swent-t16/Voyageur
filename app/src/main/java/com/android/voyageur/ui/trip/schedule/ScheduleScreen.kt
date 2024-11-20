@@ -34,7 +34,6 @@ fun ScheduleScreen(
           // "Ask Assistant" button on the left
           TextButton(
               onClick = {
-                //              tripsViewModel.sendActivityPrompt(trip)
                 tripsViewModel.setInitialUiState()
                 navigationActions.navigateTo(Screen.ASSISTANT)
               }) {

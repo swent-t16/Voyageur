@@ -1,6 +1,5 @@
 package com.android.voyageur.ui.trip.assistant
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -104,15 +103,10 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
                     ActivityItem(
                         activity = activity,
                         onClickButton = {
-                          Log.d("NewActivitiesScreen", "Adding activity: $activity")
-                          Log.d("NewActivitiesScreen", "Current activities: $activities")
+                            // remove this activity from the list
                           activities = activities.filter { it != activity }
                           // add this activity to the trip
                           tripsViewModel.addActivityToTrip(activity)
-                          Log.d("NewActivitiesScreen", trip.activities.toString())
-                          //                        activities = activities.toMutableList().apply {
-                          // remove(activity) }
-                          Log.d("NewActivitiesScreen", "After removing: $activities")
                         },
                         buttonPurpose = ButtonType.ADD)
                     Spacer(modifier = Modifier.height(10.dp))

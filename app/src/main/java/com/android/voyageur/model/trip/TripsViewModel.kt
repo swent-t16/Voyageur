@@ -180,16 +180,14 @@ open class TripsViewModel(
         val response =
             generativeModel.generateContent(
                 "List a few popular specific activities to do on a trip called ${trip.name} and with the following prompt: $prompt")
-        Log.d("testGemini", response.text ?: "")
         response.text?.let { outputContent -> _uiState.value = UiState.Success(outputContent) }
       } catch (e: Exception) {
-        Log.e("Error", e.localizedMessage ?: "")
         _uiState.value = UiState.Error(e.localizedMessage ?: "")
       }
     }
   }
 
-  fun setInitialUiState() {
+  open fun setInitialUiState() {
     _uiState.value = UiState.Initial
   }
 }
