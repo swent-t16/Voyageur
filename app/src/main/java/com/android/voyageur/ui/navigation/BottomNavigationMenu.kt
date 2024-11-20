@@ -42,7 +42,7 @@ fun BottomNavigationMenu(
   var isPolling by remember { mutableStateOf(true) }
 
   if (Firebase.auth.uid != null) {
-    userViewModel.getNotificationsCount {}
+    userViewModel.getNotificationsCount { if (it > 0) userViewModel.getFriendRequests {} }
   }
   NavigationBar(
       modifier = Modifier.fillMaxWidth().height(60.dp).testTag("bottomNavigationMenu"),

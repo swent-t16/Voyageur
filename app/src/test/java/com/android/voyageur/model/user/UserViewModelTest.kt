@@ -242,7 +242,7 @@ class UserViewModelTest {
   }
 
   @Test
-  fun addContact_createsFriendRequest() {
+  fun sendContact_Request_createsFriendRequest() {
     val userId = "contactUserId"
     val generatedId = "testFriendRequestId"
 
@@ -258,7 +258,7 @@ class UserViewModelTest {
         .createRequest(any(), any(), any())
 
     // Call the method under test
-    userViewModel.addContact(userId)
+    userViewModel.sendContactRequest(userId)
 
     // Verify that createRequest was called with the correct parameters
     verify(friendRequestRepository)

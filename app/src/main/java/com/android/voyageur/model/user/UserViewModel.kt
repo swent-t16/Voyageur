@@ -54,6 +54,10 @@ open class UserViewModel(
   /** Flow indicating if a loading process is active. */
   internal val _isLoading = MutableStateFlow(false)
 
+  /** Flow indicating the users from which the current user received a friend request. * */
+  internal val _notificationUsers = MutableStateFlow<List<User>>(emptyList())
+  val notificationUsers: StateFlow<List<User>> = _notificationUsers
+
   val _contacts = MutableStateFlow<List<User>>(emptyList())
   val contacts: StateFlow<List<User>> = _contacts
   val _notificationCount = MutableStateFlow<Long>(0)
@@ -131,11 +135,11 @@ open class UserViewModel(
   }
 
   /**
-   * Adds a contact to the current user's contact list.
+   * Sends a friend request to the specified user.
    *
    * @param userId The ID of the user to add as a contact.
    */
-  fun addContact(userId: String) {
+  fun sendContactRequest(userId: String) {
     friendRequestRepository.createRequest(
         req =
             FriendRequest(
@@ -144,6 +148,22 @@ open class UserViewModel(
                 to = userId),
         {},
         {})
+  }
+  /**
+   * Adds a contact to the current user's contact list.
+   *
+   * @param userId The ID of the user to add as a contact.
+   */
+  fun addContact(userId: String, friendRequestId: String) {
+    val contacts = user.value?.contacts?.toMutableSet()
+    val newUser = user.value!!.copy()
+    contacts?.add(userId)
+    newUser.contacts = contacts?.toList().orEmpty()
+    if (user.value != null) {
+      updateUser(newUser)
+      // Deletes Friend Request since the user has been added as a contact
+      deleteFriendRequest(friendRequestId)
+    }
   }
 
   /**
@@ -280,6 +300,7 @@ open class UserViewModel(
         Firebase.auth.uid.orEmpty(),
         {
           _friendRequests.value = it
+          getUsersByIds(it.map { x -> x.from }) { users -> _notificationUsers.value = users }
           onSuccess(it)
         },
         { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
@@ -313,5 +334,17 @@ open class UserViewModel(
     if (Firebase.auth.uid == null) return
     userRepository.getContacts(
         Firebase.auth.uid ?: "", onSuccess, { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
+  }
+
+  fun deleteFriendRequest(reqId: String) {
+    friendRequestRepository.deleteRequest(
+        reqId = reqId,
+        onSuccess = {
+          // Request the new friend requests, which will update the state flows
+          getFriendRequests {}
+        },
+        onFailure = { exception ->
+          Log.e("USER_VIEW_MODEL", "Failed to delete friend request: ${exception.message}")
+        })
   }
 }
