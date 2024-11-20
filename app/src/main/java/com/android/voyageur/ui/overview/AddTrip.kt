@@ -165,9 +165,15 @@ fun AddTripScreen(
     val startDateNormalized = normalizeToMidnight(Date(startDate!!))
     val endDateNormalized = normalizeToMidnight(Date(endDate!!))
 
-    if (startDateNormalized.before(today) || endDateNormalized.before(today)) {
+    if (!isEditMode && (startDateNormalized.before(today) || endDateNormalized.before(today))) {
       Toast.makeText(context, "Start and end dates cannot be in the past", Toast.LENGTH_SHORT)
           .show()
+      return
+    }
+    // if the trip is ongoing then the start date is in the past already so we check just for the
+    // end date
+    if (isEditMode && endDateNormalized.before(today)) {
+      Toast.makeText(context, "End date cannot be in the past", Toast.LENGTH_SHORT).show()
       return
     }
     if (startDateNormalized.after(endDateNormalized)) {
