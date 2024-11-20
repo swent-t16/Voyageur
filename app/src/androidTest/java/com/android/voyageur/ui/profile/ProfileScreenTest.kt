@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
@@ -29,7 +30,7 @@ class ProfileScreenTest {
   private lateinit var userViewModel: UserViewModel
   private lateinit var firebaseAuth: FirebaseAuth
   private lateinit var firebaseUser: FirebaseUser
-
+  private lateinit var friendRequestRepository: FriendRequestRepository
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
@@ -37,6 +38,7 @@ class ProfileScreenTest {
     // Mock dependencies
     navigationActions = mock(NavigationActions::class.java)
     userRepository = mock(UserRepository::class.java)
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
     firebaseAuth = mock(FirebaseAuth::class.java)
     firebaseUser = mock(FirebaseUser::class.java)
 
@@ -61,8 +63,8 @@ class ProfileScreenTest {
         .getUserById(anyString(), anyOrNull(), anyOrNull())
 
     // Create the UserViewModel with the mocked userRepository and firebaseAuth
-    userViewModel = UserViewModel(userRepository, firebaseAuth)
-
+    userViewModel = UserViewModel(userRepository, firebaseAuth, friendRequestRepository)
+    userViewModel.shouldFetch = false
     // Mocking initial navigation state
     `when`(navigationActions.currentRoute()).thenReturn(Route.PROFILE)
 

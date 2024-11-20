@@ -5,6 +5,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.android.voyageur.model.notifications.FriendRequest
+import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.notifications.FriendRequestRepositoryFirebase
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -25,7 +28,8 @@ import kotlinx.coroutines.launch
  */
 open class UserViewModel(
     private val userRepository: UserRepository,
-    private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance(),
+    private val friendRequestRepository: FriendRequestRepository
 ) : ViewModel() {
 
   /** Flow holding the current user data. */
@@ -52,8 +56,12 @@ open class UserViewModel(
 
   val _contacts = MutableStateFlow<List<User>>(emptyList())
   val contacts: StateFlow<List<User>> = _contacts
-
+  val _notificationCount = MutableStateFlow<Long>(0)
+  val notificationCount: StateFlow<Long> = _notificationCount
+  val _friendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
+  val friendRequests: StateFlow<List<FriendRequest>> = _friendRequests
   val isLoading: StateFlow<Boolean> = _isLoading
+  var shouldFetch = true
 
   // Job to manage debounce coroutine for search queries
   private var debounceJob: Job? = null
@@ -128,11 +136,14 @@ open class UserViewModel(
    * @param userId The ID of the user to add as a contact.
    */
   fun addContact(userId: String) {
-    val contacts = user.value?.contacts?.toMutableSet()
-    val newUser = user.value!!.copy()
-    contacts?.add(userId)
-    newUser.contacts = contacts?.toList().orEmpty()
-    if (user.value != null) updateUser(newUser)
+    friendRequestRepository.createRequest(
+        req =
+            FriendRequest(
+                id = friendRequestRepository.getNewId(),
+                from = Firebase.auth.uid.orEmpty(),
+                to = userId),
+        {},
+        {})
   }
 
   /**
@@ -246,9 +257,32 @@ open class UserViewModel(
         object : ViewModelProvider.Factory {
           @Suppress("UNCHECKED_CAST")
           override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return UserViewModel(UserRepositoryFirebase.create()) as T
+            return UserViewModel(
+                UserRepositoryFirebase.create(),
+                friendRequestRepository = FriendRequestRepositoryFirebase.create())
+                as T
           }
         }
+  }
+
+  fun getNotificationsCount(onSuccess: (Long) -> Unit) {
+    friendRequestRepository.getNotificationCount(
+        Firebase.auth.uid.orEmpty(),
+        {
+          _notificationCount.value = it
+          onSuccess(it)
+        },
+        { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
+  }
+
+  fun getFriendRequests(onSuccess: (List<FriendRequest>) -> Unit) {
+    friendRequestRepository.getFriendRequests(
+        Firebase.auth.uid.orEmpty(),
+        {
+          _friendRequests.value = it
+          onSuccess(it)
+        },
+        { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
   }
 
   /**

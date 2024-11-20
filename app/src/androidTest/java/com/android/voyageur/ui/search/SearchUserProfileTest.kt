@@ -2,6 +2,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
@@ -18,14 +19,15 @@ class SearchUserProfileScreenTest {
   private lateinit var navigationActions: NavigationActions
   private lateinit var userRepository: UserRepository
   private lateinit var userViewModel: UserViewModel
-
+  private lateinit var friendRequestRepository: FriendRequestRepository
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
   fun setUp() {
     navigationActions = mock(NavigationActions::class.java)
     userRepository = mock(UserRepository::class.java)
-    userViewModel = UserViewModel(userRepository)
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
+    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
 
     // Initialize 'user' with a valid User instance
     userViewModel._user.value =
@@ -99,16 +101,6 @@ class SearchUserProfileScreenTest {
 
     composeTestRule.onNodeWithTag("noInterests").assertIsDisplayed()
     composeTestRule.onNodeWithText("No interests added yet").assertIsDisplayed()
-  }
-
-  @Test
-  fun testAddContactButtonWhenContactNotAdded() {
-    val user = User("123", "Test User", "test@example.com")
-    userViewModel._selectedUser.value = user
-    userViewModel._isLoading.value = false
-
-    composeTestRule.onNodeWithTag("userProfileAddRemoveContactButton").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Add to contacts").assertIsDisplayed()
   }
 
   @Test

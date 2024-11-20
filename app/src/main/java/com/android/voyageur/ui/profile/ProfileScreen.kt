@@ -54,7 +54,8 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
         BottomNavigationMenu(
             onTabSelect = { navigationActions.navigateTo(it) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
-            selectedItem = navigationActions.currentRoute())
+            selectedItem = navigationActions.currentRoute(),
+            userViewModel)
       }) { padding ->
         Box(
             modifier =

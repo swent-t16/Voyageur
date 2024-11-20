@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserRepository
@@ -26,18 +27,19 @@ class SettingsScreenTest {
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var userViewModel: UserViewModel
   private lateinit var userRepository: UserRepository
+  private lateinit var friendRequestRepository: FriendRequestRepository
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
   fun setUp() {
     navigationActions = mock(NavigationActions::class.java)
     tripsViewModel = mock(TripsViewModel::class.java)
-
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
     // Mock selectedTrip as StateFlow
     val tripStateFlow: StateFlow<Trip?> = MutableStateFlow(sampleTrip)
     `when`(tripsViewModel.selectedTrip).thenReturn(tripStateFlow)
     userRepository = mock(UserRepository::class.java)
-    userViewModel = UserViewModel(userRepository)
+    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
   }
 
   @Test
