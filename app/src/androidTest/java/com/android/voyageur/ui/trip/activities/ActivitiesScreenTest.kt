@@ -76,7 +76,9 @@ class ActivitiesScreenTest {
 
   @Test
   fun hasRequiredComponents() {
-    composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions, userViewModel, tripsViewModel) }
+    composeTestRule.setContent {
+      ActivitiesScreen(sampleTrip, navigationActions, userViewModel, tripsViewModel)
+    }
     composeTestRule.onNodeWithTag("activitiesScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
     composeTestRule.onNodeWithTag("createActivityButton").assertIsDisplayed()
@@ -85,7 +87,9 @@ class ActivitiesScreenTest {
 
   @Test
   fun displaysBottomNavigationCorrectly() {
-    composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions, userViewModel, tripsViewModel) }
+    composeTestRule.setContent {
+      ActivitiesScreen(sampleTrip, navigationActions, userViewModel, tripsViewModel)
+    }
 
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
 
@@ -97,7 +101,8 @@ class ActivitiesScreenTest {
   @Test
   fun activitiesScreen_displaysDraftAndFinalSections() {
     composeTestRule.setContent {
-      ActivitiesScreen(trip = sampleTrip, navigationActions = navigationActions, userViewModel, tripsViewModel)
+      ActivitiesScreen(
+          trip = sampleTrip, navigationActions = navigationActions, userViewModel, tripsViewModel)
     }
 
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
@@ -107,7 +112,9 @@ class ActivitiesScreenTest {
 
   @Test
   fun clickingCreateActivityButton_navigatesToAddActivityScreen() {
-    composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions, userViewModel, tripsViewModel) }
+    composeTestRule.setContent {
+      ActivitiesScreen(sampleTrip, navigationActions, userViewModel, tripsViewModel)
+    }
 
     composeTestRule.onNodeWithTag("createActivityButton").performClick()
 
@@ -116,7 +123,9 @@ class ActivitiesScreenTest {
 
   @Test
   fun activitiesScreen_displaysActivityItems() {
-    composeTestRule.setContent { ActivitiesScreen(sampleTrip, navigationActions, userViewModel, tripsViewModel) }
+    composeTestRule.setContent {
+      ActivitiesScreen(sampleTrip, navigationActions, userViewModel, tripsViewModel)
+    }
 
     composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[0].title}").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[1].title}").assertIsDisplayed()
