@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.voyageur.model.trip.Trip
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
@@ -37,7 +38,8 @@ import com.google.firebase.Timestamp
 fun ActivitiesScreen(
     trip: Trip,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    tripsViewModel: TripsViewModel
 ) {
 
   val drafts =
@@ -89,7 +91,8 @@ fun ActivitiesScreen(
                             context, "Delete activity not implemented yet", Toast.LENGTH_SHORT)
                         .show()
                   },
-                  ButtonType.DELETE)
+                  ButtonType.DELETE,
+                  navigationActions, tripsViewModel)
               Spacer(modifier = Modifier.height(10.dp))
             }
           }
@@ -109,7 +112,7 @@ fun ActivitiesScreen(
                             context, "Delete activity not implemented yet", Toast.LENGTH_SHORT)
                         .show()
                   },
-                  ButtonType.DELETE)
+                  ButtonType.DELETE, navigationActions, tripsViewModel)
               Spacer(modifier = Modifier.height(10.dp))
             }
           }

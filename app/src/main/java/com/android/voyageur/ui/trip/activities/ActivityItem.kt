@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +35,9 @@ import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.hasDescription
 import com.android.voyageur.model.activity.hasEndDate
 import com.android.voyageur.model.activity.hasStartTime
+import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Screen
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -47,7 +51,9 @@ import java.util.Locale
 fun ActivityItem(
     activity: Activity,
     onClickButton: () -> Unit = {}, // Default do nothing
-    buttonPurpose: ButtonType = ButtonType.NOTHING
+    buttonPurpose: ButtonType = ButtonType.NOTHING,
+    navigationActions: NavigationActions,
+    tripsViewModel: TripsViewModel
 ) {
   var isExpanded by remember { mutableStateOf(false) }
 
@@ -90,6 +96,16 @@ fun ActivityItem(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                   AnimatedVisibility(visible = isExpanded) {
+                    Row {
+                      IconButton(
+                          onClick = {
+                            navigationActions.navigateTo(Screen.EDIT_ACTIVITY)
+                            tripsViewModel.selectActivity(activity)
+                          }) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Edit,
+                                contentDescription = "Edit Activity")
+                          }
                     // Delete icon
                     if (buttonPurpose == ButtonType.DELETE) {
                       IconButton(
@@ -109,9 +125,10 @@ fun ActivityItem(
                             modifier = Modifier.testTag("addIcon_${activity.title}")) {
                               Text(text = "Add")
                             }
+                          }
                       }
                     }
-                  }
+                      }
 
                   // Expand/collapse icon
                   IconButton(

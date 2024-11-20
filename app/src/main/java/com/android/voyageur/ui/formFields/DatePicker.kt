@@ -7,6 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,7 +26,8 @@ fun DatePickerModal(
             onClick = {
               onDateSelected(datePickerState.selectedDateMillis)
               onDismiss()
-            }) {
+            },
+            modifier = Modifier.testTag("datePickerModal")) {
               Text("OK")
             }
       },

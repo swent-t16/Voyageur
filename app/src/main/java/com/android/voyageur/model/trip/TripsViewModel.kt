@@ -41,6 +41,9 @@ open class TripsViewModel(
   private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Initial)
   open val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+  private val _selectedActivity = MutableStateFlow<Activity?>(null)
+  open val selectedActivity: StateFlow<Activity?> = _selectedActivity.asStateFlow()
+
   init {
     tripsRepository.init {
       tripsRepository.getTrips(
@@ -70,6 +73,10 @@ open class TripsViewModel(
 
   fun selectDay(day: LocalDate) {
     _selectedDay.value = day
+  }
+
+  fun selectActivity(activity: Activity) {
+    _selectedActivity.value = activity
   }
 
   fun getNewTripId(): String = tripsRepository.getNewTripId()
