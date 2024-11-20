@@ -21,11 +21,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.Mockito.mock
 
 class ScheduleScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
@@ -79,18 +79,17 @@ class ScheduleScreenTest {
                                         .toInstant(ZoneOffset.UTC))),
                         0.0,
                         ActivityType.MUSEUM)))
-
   }
 
   @Test
   fun scheduleScreen_initialStateIsDaily() {
-      composeTestRule.setContent {
-          ScheduleScreen(
-              tripsViewModel = tripsViewModel,
-              trip = mockTrip,
-              navigationActions = navigationActions,
-              userViewModel)
-      }
+    composeTestRule.setContent {
+      ScheduleScreen(
+          tripsViewModel = tripsViewModel,
+          trip = mockTrip,
+          navigationActions = navigationActions,
+          userViewModel)
+    }
     // Initially Daily view should be shown
     composeTestRule.onNodeWithText("Daily").assertIsEnabled()
     composeTestRule.onNodeWithText("Daily").assertIsDisplayed()
@@ -99,13 +98,13 @@ class ScheduleScreenTest {
 
   @Test
   fun scheduleScreen_toggleToWeeklyView() {
-      composeTestRule.setContent {
-          ScheduleScreen(
-              tripsViewModel = tripsViewModel,
-              trip = mockTrip,
-              navigationActions = navigationActions,
-              userViewModel)
-      }
+    composeTestRule.setContent {
+      ScheduleScreen(
+          tripsViewModel = tripsViewModel,
+          trip = mockTrip,
+          navigationActions = navigationActions,
+          userViewModel)
+    }
     // Click Weekly button
     composeTestRule.onNodeWithText("Weekly").performClick()
 
@@ -116,13 +115,13 @@ class ScheduleScreenTest {
 
   @Test
   fun scheduleScreen_toggleBetweenViews() {
-      composeTestRule.setContent {
-          ScheduleScreen(
-              tripsViewModel = tripsViewModel,
-              trip = mockTrip,
-              navigationActions = navigationActions,
-              userViewModel)
-      }
+    composeTestRule.setContent {
+      ScheduleScreen(
+          tripsViewModel = tripsViewModel,
+          trip = mockTrip,
+          navigationActions = navigationActions,
+          userViewModel)
+    }
     // Start with Daily view
     composeTestRule.onNodeWithTag("byDayScreen").assertExists()
 
@@ -139,13 +138,13 @@ class ScheduleScreenTest {
 
   @Test
   fun scheduleScreen_verifyViewToggleVisuals() {
-      composeTestRule.setContent {
-          ScheduleScreen(
-              tripsViewModel = tripsViewModel,
-              trip = mockTrip,
-              navigationActions = navigationActions,
-              userViewModel)
-      }
+    composeTestRule.setContent {
+      ScheduleScreen(
+          tripsViewModel = tripsViewModel,
+          trip = mockTrip,
+          navigationActions = navigationActions,
+          userViewModel)
+    }
     // Verify both buttons and separator exist
     composeTestRule.onNodeWithText("Daily").assertExists()
     composeTestRule.onNodeWithText("Weekly").assertExists()
@@ -154,13 +153,13 @@ class ScheduleScreenTest {
 
   @Test
   fun scheduleScreen_toggleButtonsAreClickable() {
-      composeTestRule.setContent {
-          ScheduleScreen(
-              tripsViewModel = tripsViewModel,
-              trip = mockTrip,
-              navigationActions = navigationActions,
-              userViewModel)
-      }
+    composeTestRule.setContent {
+      ScheduleScreen(
+          tripsViewModel = tripsViewModel,
+          trip = mockTrip,
+          navigationActions = navigationActions,
+          userViewModel)
+    }
     // Verify both buttons are enabled and can be clicked
     composeTestRule.onNodeWithText("Daily").assertHasClickAction()
     composeTestRule.onNodeWithText("Weekly").assertHasClickAction()
@@ -168,13 +167,13 @@ class ScheduleScreenTest {
 
   @Test
   fun scheduleScreen_verifyProperViewSwitching() {
-      composeTestRule.setContent {
-          ScheduleScreen(
-              tripsViewModel = tripsViewModel,
-              trip = mockTrip,
-              navigationActions = navigationActions,
-              userViewModel)
-      }
+    composeTestRule.setContent {
+      ScheduleScreen(
+          tripsViewModel = tripsViewModel,
+          trip = mockTrip,
+          navigationActions = navigationActions,
+          userViewModel)
+    }
     // Start with Daily view
     composeTestRule.onNodeWithTag("byDayScreen").assertExists()
 
@@ -191,13 +190,13 @@ class ScheduleScreenTest {
 
   @Test
   fun scheduleScreen_verifyWeeklyViewShowsCorrectData() {
-      composeTestRule.setContent {
-          ScheduleScreen(
-              tripsViewModel = tripsViewModel,
-              trip = mockTrip,
-              navigationActions = navigationActions,
-              userViewModel)
-      }
+    composeTestRule.setContent {
+      ScheduleScreen(
+          tripsViewModel = tripsViewModel,
+          trip = mockTrip,
+          navigationActions = navigationActions,
+          userViewModel)
+    }
     // Switch to Weekly view
     composeTestRule.onNodeWithText("Weekly").performClick()
 
@@ -210,13 +209,13 @@ class ScheduleScreenTest {
 
   @Test
   fun scheduleScreen_verifyToggleButtonsStayEnabled() {
-      composeTestRule.setContent {
-          ScheduleScreen(
-              tripsViewModel = tripsViewModel,
-              trip = mockTrip,
-              navigationActions = navigationActions,
-              userViewModel)
-      }
+    composeTestRule.setContent {
+      ScheduleScreen(
+          tripsViewModel = tripsViewModel,
+          trip = mockTrip,
+          navigationActions = navigationActions,
+          userViewModel)
+    }
     // Initially both should be enabled
     composeTestRule.onNodeWithText("Daily").assertIsEnabled()
     composeTestRule.onNodeWithText("Weekly").assertIsEnabled()
@@ -229,13 +228,13 @@ class ScheduleScreenTest {
 
   @Test
   fun checkIfIsDailyViewSelected_updatesProperly() {
-      composeTestRule.setContent {
-          ScheduleScreen(
-              tripsViewModel = tripsViewModel,
-              trip = mockTrip,
-              navigationActions = navigationActions,
-              userViewModel)
-      }
+    composeTestRule.setContent {
+      ScheduleScreen(
+          tripsViewModel = tripsViewModel,
+          trip = mockTrip,
+          navigationActions = navigationActions,
+          userViewModel)
+    }
     assert(navigationActions.getNavigationState().isDailyViewSelected)
     composeTestRule.onNodeWithText("Weekly").performClick()
 
@@ -248,13 +247,13 @@ class ScheduleScreenTest {
   fun checkNavigationToAssistantScreen() {
     doReturn(NavigationState()).`when`(mockNavigationActions).getNavigationState()
     doNothing().`when`(tripsViewModel).setInitialUiState()
-      composeTestRule.setContent {
-          ScheduleScreen(
-              tripsViewModel = tripsViewModel,
-              trip = mockTrip,
-              navigationActions = mockNavigationActions,
-              userViewModel)
-      }
+    composeTestRule.setContent {
+      ScheduleScreen(
+          tripsViewModel = tripsViewModel,
+          trip = mockTrip,
+          navigationActions = mockNavigationActions,
+          userViewModel)
+    }
     composeTestRule.onNodeWithText("Ask Assistant").performClick()
     Mockito.verify(tripsViewModel).setInitialUiState()
     Mockito.verify(mockNavigationActions).navigateTo("Assistant Screen")
