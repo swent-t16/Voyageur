@@ -53,14 +53,10 @@ fun UserIcon(user: User) {
               .testTag("participantAvatar")
               .background(Color.Gray, shape = RoundedCornerShape(50)), // Circular shape
       contentAlignment = Alignment.Center) {
-        if (profilePictureUri != "") {
-          Image(
-              painter = rememberAsyncImagePainter(profilePictureUri),
-              contentDescription = "Profile Picture",
-              modifier = Modifier.size(30.dp).clip(RoundedCornerShape(50)).testTag("profilePic"))
-        } else {
-          Text(text = user.name.first().uppercaseChar().toString(), color = Color.White)
-        }
+        Image(
+            painter = rememberAsyncImagePainter(profilePictureUri),
+            contentDescription = "Profile Picture",
+            modifier = Modifier.size(30.dp).clip(RoundedCornerShape(50)).testTag("profilePic"))
       }
 }
 

@@ -11,15 +11,6 @@ class DropDownTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  // Tests for UserIcon
-  @Test
-  fun userIcon_displaysCorrectInitial_NoProfilePic() {
-    composeTestRule.setContent { UserIcon(User(name = "Alice")) }
-    // Assert that the participant avatar exists and shows the correct initial
-    composeTestRule.onNodeWithTag("participantAvatar").assertExists()
-    composeTestRule.onNodeWithText("A").assertExists()
-  }
-
   @Test
   fun userIcon_displaysProfilePic() {
     composeTestRule.setContent {
@@ -33,16 +24,11 @@ class DropDownTest {
   @Test
   fun userDropdown_displaysParticipants() {
     val users =
-        listOf(
-            Pair(User(name = "Alice"), true),
-            Pair(User(name = "Bob"), false),
-            Pair(User(name = "Charlie"), true))
+        listOf(Pair(User(name = "Alice", profilePicture = "https://test.com/profile.jpg"), true))
 
     composeTestRule.setContent { UserDropdown(users = users, onUpdate = { _, _ -> }) }
-
-    // Verify the initially selected participants are displayed
-    composeTestRule.onNodeWithText("A").assertExists()
-    composeTestRule.onNodeWithText("C").assertExists()
+    // Assert that the participant profile picture is displayed
+    composeTestRule.onNodeWithTag("profilePic", useUnmergedTree = true).assertExists()
 
     // Verify the label "Participants" does not exist because participants are selected
     composeTestRule.onNodeWithText("Participants").assertDoesNotExist()
