@@ -136,11 +136,6 @@ open class UserViewModel(
    * @param userId The ID of the user to add as a contact.
    */
   fun addContact(userId: String) {
-    //    val contacts = user.value?.contacts?.toMutableSet()
-    //    val newUser = user.value!!.copy()
-    //    contacts?.add(userId)
-    //    newUser.contacts = contacts?.toList().orEmpty()
-    //    if (user.value != null) updateUser(newUser)
     friendRequestRepository.createRequest(
         req =
             FriendRequest(
