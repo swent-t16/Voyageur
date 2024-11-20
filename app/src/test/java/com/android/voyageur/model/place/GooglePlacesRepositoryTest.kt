@@ -127,16 +127,16 @@ class GooglePlacesRepositoryTest {
     `when`(mockFetchPlaceResponse.place).thenReturn(mockPlace)
     `when`(mockPlace.id).thenReturn(placeId)
     `when`(mockFetchPlaceTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-        val listener = invocation.arguments[0] as OnSuccessListener<FetchPlaceResponse>
-        listener.onSuccess(mockFetchPlaceResponse)
-        mockFetchPlaceTask
+      val listener = invocation.arguments[0] as OnSuccessListener<FetchPlaceResponse>
+      listener.onSuccess(mockFetchPlaceResponse)
+      mockFetchPlaceTask
     }
 
     `when`(mockPlacesClient.fetchPhoto(any())).thenReturn(mockFetchPhotoTask)
     `when`(mockFetchPhotoTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-        val listener = invocation.arguments[0] as OnSuccessListener<FetchPhotoResponse>
-        listener.onSuccess(mockFetchPhotoResponse)
-        mockFetchPhotoTask
+      val listener = invocation.arguments[0] as OnSuccessListener<FetchPhotoResponse>
+      listener.onSuccess(mockFetchPhotoResponse)
+      mockFetchPhotoTask
     }
     `when`(mockPlace.photoMetadatas).thenReturn(listOf(mockPhotoMetadata))
 
