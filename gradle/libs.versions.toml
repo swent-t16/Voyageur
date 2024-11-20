@@ -81,6 +81,7 @@ testng = "6.9.6"
 foundationAndroid = "1.7.5"
 core = "1.46.0"
 junitKtx = "1.2.1"
+runtimeLivedata = "1.7.5"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -147,6 +148,7 @@ testng = { group = "org.testng", name = "testng", version.ref = "testng" }
 androidx-foundation-android = { group = "androidx.compose.foundation", name = "foundation-android", version.ref = "foundationAndroid" }
 core = { group = "com.google.ar", name = "core", version.ref = "core" }
 androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
+androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 
 
 [plugins]

@@ -4,15 +4,24 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.android.voyageur.BuildConfig
+import com.android.voyageur.model.activity.Activity
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.FunctionType
+import com.google.ai.client.generativeai.type.Schema
+import com.google.ai.client.generativeai.type.generationConfig
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import java.time.LocalDate
 import java.util.UUID
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 open class TripsViewModel(
     private val tripsRepository: TripRepository,
@@ -27,6 +36,10 @@ open class TripsViewModel(
   // useful for displaying the activities for one day:
   private val _selectedDay = MutableStateFlow<LocalDate?>(null)
   open val selectedDay: StateFlow<LocalDate?> = _selectedDay.asStateFlow()
+
+  // used for the AI assistant
+  private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Initial)
+  open val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
   init {
     tripsRepository.init {
@@ -105,5 +118,78 @@ open class TripsViewModel(
               .addOnFailureListener { exception -> onFailure(exception) }
         }
         .addOnFailureListener { exception -> onFailure(exception) }
+  }
+
+  open fun addActivityToTrip(activity: Activity) {
+    if (selectedTrip.value != null) {
+      val trip = selectedTrip.value!!
+      val updatedTrip = trip.copy(activities = trip.activities + activity)
+      updateTrip(
+          updatedTrip,
+          onSuccess = {
+            /*
+                This is a trick to force a recompose, because the reference wouldn't
+                change and update the UI.
+            */
+            selectTrip(Trip())
+            selectTrip(updatedTrip)
+          })
+    }
+  }
+
+  // ****************************************************************************************************
+  // AI assistant
+  // ****************************************************************************************************
+  private val generativeModel =
+      GenerativeModel(
+          modelName = "gemini-1.5-flash",
+          apiKey = BuildConfig.GEMINI_API_KEY,
+          generationConfig =
+              generationConfig {
+                responseMimeType = "application/json"
+                responseSchema =
+                    Schema(
+                        name = "activities",
+                        description = "List of activities",
+                        type = FunctionType.ARRAY,
+                        items =
+                            Schema(
+                                name = "activity",
+                                description = "An activity",
+                                type = FunctionType.OBJECT,
+                                properties =
+                                    mapOf(
+                                        "title" to
+                                            Schema(
+                                                name = "title",
+                                                description = "Title of the activity",
+                                                type = FunctionType.STRING),
+                                        "description" to
+                                            Schema(
+                                                name = "description",
+                                                description = "Description of the activity",
+                                                type = FunctionType.STRING)),
+                                required = listOf("title", "description")))
+              })
+
+  fun sendActivitiesPrompt(trip: Trip, prompt: String) {
+    _uiState.value = UiState.Loading
+
+    viewModelScope.launch(Dispatchers.IO) {
+      try {
+        val response =
+            generativeModel.generateContent(
+                "List a few popular specific activities to do on a trip called ${trip.name} and with the following prompt: $prompt")
+        Log.d("testGemini", response.text ?: "")
+        response.text?.let { outputContent -> _uiState.value = UiState.Success(outputContent) }
+      } catch (e: Exception) {
+        Log.e("Error", e.localizedMessage ?: "")
+        _uiState.value = UiState.Error(e.localizedMessage ?: "")
+      }
+    }
+  }
+
+  fun setInitialUiState() {
+    _uiState.value = UiState.Initial
   }
 }

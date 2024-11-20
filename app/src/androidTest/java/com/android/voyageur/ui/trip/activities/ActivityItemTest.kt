@@ -101,4 +101,36 @@ class ActivityItemTest {
         .assertIsDisplayed()
     composeTestRule.onNodeWithText("01/01/2022 12:00 PM - 02:00 PM").assertIsDisplayed()
   }
+
+  @Test
+  fun activityCard_displaysDeleteButton() {
+    composeTestRule.setContent {
+      ActivityItem(activity = sampleActivityWithDescription, buttonPurpose = ButtonType.DELETE)
+    }
+    composeTestRule
+        .onNodeWithTag("cardItem_${sampleActivityWithDescription.title}")
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag("expandIcon_${sampleActivityWithDescription.title}")
+        .performClick()
+    composeTestRule
+        .onNodeWithTag("deleteIcon_${sampleActivityWithDescription.title}")
+        .assertIsDisplayed()
+  }
+
+  @Test
+  fun activityCard_displaysAddButton() {
+    composeTestRule.setContent {
+      ActivityItem(activity = sampleActivityWithDescription, buttonPurpose = ButtonType.ADD)
+    }
+    composeTestRule
+        .onNodeWithTag("cardItem_${sampleActivityWithDescription.title}")
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag("expandIcon_${sampleActivityWithDescription.title}")
+        .performClick()
+    composeTestRule
+        .onNodeWithTag("addIcon_${sampleActivityWithDescription.title}")
+        .assertIsDisplayed()
+  }
 }

@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,11 +51,9 @@ import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
-import com.google.ai.client.generativeai.GenerativeModel
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,10 +61,8 @@ fun OverviewScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
-    generativeModel: GenerativeModel
 ) {
   val trips by tripsViewModel.trips.collectAsState()
-  val coroutineScope = rememberCoroutineScope()
   LaunchedEffect(trips) {
     userViewModel.getUsersByIds(
         trips.map { it.participants }.flatten(), { userViewModel._allParticipants.value = it })
@@ -75,13 +70,7 @@ fun OverviewScreen(
   Scaffold(
       floatingActionButton = {
         FloatingActionButton(
-            onClick = {
-              coroutineScope.launch {
-                val prompt = "Write a two sentence story about a magic backpack."
-                val response = generativeModel.generateContent(prompt)
-              }
-              navigationActions.navigateTo(Screen.ADD_TRIP)
-            },
+            onClick = { navigationActions.navigateTo(Screen.ADD_TRIP) },
             modifier = Modifier.testTag("createTripButton")) {
               Icon(
                   Icons.Outlined.Add,

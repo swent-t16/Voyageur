@@ -23,11 +23,11 @@ import com.android.voyageur.ui.search.SearchUserProfileScreen
 import com.android.voyageur.ui.trip.AddActivityScreen
 import com.android.voyageur.ui.trip.TopTabs
 import com.android.voyageur.ui.trip.activities.ActivitiesForOneDayScreen
-import com.google.ai.client.generativeai.GenerativeModel
+import com.android.voyageur.ui.trip.assistant.AssistantScreen
 import com.google.android.libraries.places.api.net.PlacesClient
 
 @Composable
-fun VoyageurApp(placesClient: PlacesClient, generativeModel: GenerativeModel) {
+fun VoyageurApp(placesClient: PlacesClient) {
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory)
@@ -47,7 +47,7 @@ fun VoyageurApp(placesClient: PlacesClient, generativeModel: GenerativeModel) {
         route = Route.OVERVIEW,
     ) {
       composable(Screen.OVERVIEW) {
-        OverviewScreen(tripsViewModel, navigationActions, userViewModel, generativeModel)
+        OverviewScreen(tripsViewModel, navigationActions, userViewModel)
       }
       composable(Screen.ADD_TRIP) { AddTripScreen(tripsViewModel, navigationActions) }
     }
@@ -75,6 +75,7 @@ fun VoyageurApp(placesClient: PlacesClient, generativeModel: GenerativeModel) {
       composable(Screen.ACTIVITIES_FOR_ONE_DAY) {
         ActivitiesForOneDayScreen(tripsViewModel, navigationActions)
       }
+      composable(Screen.ASSISTANT) { AssistantScreen(tripsViewModel, navigationActions) }
     }
   }
 }
