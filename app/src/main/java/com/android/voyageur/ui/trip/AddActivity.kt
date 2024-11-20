@@ -39,19 +39,29 @@ import java.util.Locale
 @SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: NavigationActions) {
-  var title by remember { mutableStateOf("") }
-  var description by remember { mutableStateOf("") }
-  var location by remember { mutableStateOf("") }
+fun AddActivityScreen(
+    tripsViewModel: TripsViewModel,
+    navigationActions: NavigationActions,
+    existingActivity: Activity? = null
+) {
+  var title by remember { mutableStateOf(existingActivity?.title ?: "") }
+  var description by remember { mutableStateOf(existingActivity?.description ?: "") }
+  var location by remember { mutableStateOf(existingActivity?.location?.city ?: "") }
   var showModal by remember { mutableStateOf(false) }
-  var activityDate by remember { mutableStateOf<Long?>(null) }
+  var activityDate by remember {
+    mutableStateOf<Long?>(existingActivity?.startTime?.toDate()?.time)
+  }
   var showTime by remember { mutableStateOf(false) }
   var selectedTimeField by remember { mutableStateOf<TimeField?>(null) }
-  var startTime by remember { mutableStateOf<Long?>(null) }
-  var endTime by remember { mutableStateOf<Long?>(null) }
-  var priceInput by remember { mutableStateOf("") }
-  var estimatedPrice by remember { mutableStateOf<Double?>(null) }
-  var activityType by remember { mutableStateOf(ActivityType.WALK) }
+  var startTime by remember { mutableStateOf<Long?>(existingActivity?.startTime?.toDate()?.time) }
+  var endTime by remember { mutableStateOf<Long?>(existingActivity?.endTime?.toDate()?.time) }
+  var priceInput by remember { mutableStateOf(existingActivity?.estimatedPrice?.toString() ?: "") }
+  var estimatedPrice by remember {
+    mutableStateOf<Double?>(existingActivity?.estimatedPrice ?: 0.0)
+  }
+  var activityType by remember {
+    mutableStateOf(existingActivity?.activityType ?: ActivityType.WALK)
+  }
   var expanded by remember { mutableStateOf(false) }
 
   val context = LocalContext.current
@@ -192,7 +202,14 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
             estimatedPrice = estimatedPrice ?: 0.0,
             activityType = activityType)
 
-    val updatedTrip = selectedTrip.copy(activities = selectedTrip.activities + activity)
+    val updatedActivities =
+        if (existingActivity != null) {
+          selectedTrip.activities.map { if (it == existingActivity) activity else it }
+        } else {
+          selectedTrip.activities + activity
+        }
+
+    val updatedTrip = selectedTrip.copy(activities = updatedActivities)
     tripsViewModel.updateTrip(
         updatedTrip,
         onSuccess = {
@@ -210,7 +227,11 @@ fun AddActivityScreen(tripsViewModel: TripsViewModel, navigationActions: Navigat
       modifier = Modifier.testTag("addActivity"),
       topBar = {
         TopAppBar(
-            title = { Text("Create a New Activity", Modifier.testTag("addActivityTitle")) },
+            title = {
+              Text(
+                  if (existingActivity == null) "Create a New Activity" else "Edit activity",
+                  Modifier.testTag("addActivityTitle"))
+            },
             navigationIcon = {
               IconButton(
                   onClick = { navigationActions.goBack() }, Modifier.testTag("goBackButton")) {

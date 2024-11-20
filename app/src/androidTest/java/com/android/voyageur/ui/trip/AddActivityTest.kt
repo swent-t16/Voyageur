@@ -5,6 +5,8 @@ import android.widget.Toast
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.core.app.ApplicationProvider
+import com.android.voyageur.model.activity.Activity
+import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
@@ -12,8 +14,11 @@ import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.ui.trip.activities.EditActivityScreen
 import com.google.firebase.Timestamp
 import io.mockk.*
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.*
 import org.junit.Before
 import org.junit.Rule
@@ -30,6 +35,18 @@ class AddActivityScreenTest {
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var context: Context
+
+  private val mockActivity =
+      Activity(
+          title = "Hiking",
+          description = "Trail hiking in the mountains",
+          location = Location("Canada", "Toronto", null, null),
+          startTime =
+              Timestamp(Date.from(LocalDateTime.of(2024, 10, 3, 10, 0).toInstant(ZoneOffset.UTC))),
+          endTime =
+              Timestamp(Date.from(LocalDateTime.of(2024, 10, 3, 11, 0).toInstant(ZoneOffset.UTC))),
+          estimatedPrice = 100.0,
+          activityType = ActivityType.OUTDOORS)
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -132,5 +149,46 @@ class AddActivityScreenTest {
     composeTestRule.onNodeWithTag("activitySave").performClick()
 
     verify(tripRepository).updateTrip(any(), any(), any())
+  }
+
+  @Test
+  fun editActivityScreen_displaysExistingActivityDetails() {
+    tripsViewModel.selectActivity(mockActivity)
+    composeTestRule.setContent { EditActivityScreen(navigationActions, tripsViewModel) }
+
+    composeTestRule.onNodeWithTag("inputActivityTitle").assertTextContains("Hiking")
+    composeTestRule
+        .onNodeWithTag("inputActivityDescription")
+        .assertTextContains("Trail hiking in the mountains")
+    composeTestRule.onNodeWithTag("inputActivityLocation").assertTextContains("Toronto")
+    composeTestRule.onNodeWithTag("inputDate").assertTextContains("03 Oct 2024")
+  }
+
+  @Test
+  fun editActivityScreen_opensDatePicker() {
+    tripsViewModel.selectActivity(mockActivity)
+    composeTestRule.setContent { EditActivityScreen(navigationActions, tripsViewModel) }
+
+    composeTestRule.onNodeWithTag("inputDate").performClick()
+    composeTestRule.onNodeWithTag("datePickerModal").assertIsDisplayed()
+  }
+
+  @Test
+  fun editActivityScreen_opensStartTimePicker() {
+    tripsViewModel.selectActivity(mockActivity)
+    composeTestRule.setContent { EditActivityScreen(navigationActions, tripsViewModel) }
+
+    composeTestRule.onNodeWithTag("inputStartTime").performClick()
+    composeTestRule.onNodeWithTag("timePickerDialog").assertIsDisplayed()
+  }
+
+  @Test
+  fun editActivityScreen_showsErrorForEmptyTitle() {
+    tripsViewModel.selectActivity(mockActivity)
+    composeTestRule.setContent { EditActivityScreen(navigationActions, tripsViewModel) }
+
+    // Clear the title
+    composeTestRule.onNodeWithTag("inputActivityTitle").performTextClearance()
+    composeTestRule.onNodeWithTag("activitySave").assertIsNotEnabled()
   }
 }

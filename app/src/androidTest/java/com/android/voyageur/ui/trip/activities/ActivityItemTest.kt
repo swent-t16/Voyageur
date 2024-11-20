@@ -8,8 +8,13 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
+import com.android.voyageur.model.trip.TripRepository
+import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.ui.navigation.NavigationActions
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
 
 class ActivityItemTest {
   private val sampleActivityWithoutDescription =
@@ -28,12 +33,25 @@ class ActivityItemTest {
           estimatedPrice = 20.0,
           activityType = ActivityType.RESTAURANT)
 
+  private lateinit var tripRepository: TripRepository
+  private lateinit var navigationActions: NavigationActions
+  private lateinit var tripsViewModel: TripsViewModel
+
   @get:Rule val composeTestRule = createComposeRule()
+
+  @Before
+  fun setUp() {
+    tripRepository = mock(TripRepository::class.java)
+    navigationActions = mock(NavigationActions::class.java)
+    tripsViewModel = TripsViewModel(tripRepository)
+  }
 
   @Test
   fun activityItem_expandAndCollapse() {
 
-    composeTestRule.setContent { ActivityItem(sampleActivityWithDescription) }
+    composeTestRule.setContent {
+      ActivityItem(sampleActivityWithDescription, navigationActions, tripsViewModel)
+    }
 
     composeTestRule.onNodeWithText("Price").assertIsNotDisplayed()
     composeTestRule.onNodeWithText("Type").assertIsNotDisplayed()
@@ -53,7 +71,9 @@ class ActivityItemTest {
 
   @Test
   fun activityCard_displaysCorrectTitle() {
-    composeTestRule.setContent { ActivityItem(sampleActivityWithDescription) }
+    composeTestRule.setContent {
+      ActivityItem(sampleActivityWithDescription, navigationActions, tripsViewModel)
+    }
 
     composeTestRule
         .onNodeWithTag("cardItem_${sampleActivityWithDescription.title}")
@@ -64,7 +84,9 @@ class ActivityItemTest {
   @Test
   fun activityCard_displaysCorrectDescription() {
 
-    composeTestRule.setContent { ActivityItem(sampleActivityWithDescription) }
+    composeTestRule.setContent {
+      ActivityItem(sampleActivityWithDescription, navigationActions, tripsViewModel)
+    }
     composeTestRule
         .onNodeWithTag("expandIcon_${sampleActivityWithDescription.title}")
         .assertIsDisplayed()
@@ -78,7 +100,9 @@ class ActivityItemTest {
   @Test
   fun activityCard_doesNotDisplayDescription() {
 
-    composeTestRule.setContent { ActivityItem(sampleActivityWithoutDescription) }
+    composeTestRule.setContent {
+      ActivityItem(sampleActivityWithoutDescription, navigationActions, tripsViewModel)
+    }
     composeTestRule
         .onNodeWithTag("expandIcon_${sampleActivityWithoutDescription.title}")
         .assertIsDisplayed()
@@ -94,7 +118,9 @@ class ActivityItemTest {
   @Test
   fun activityCard_displaysCorrectDateAndTime() {
 
-    composeTestRule.setContent { ActivityItem(sampleActivityWithDescription) }
+    composeTestRule.setContent {
+      ActivityItem(sampleActivityWithDescription, navigationActions, tripsViewModel)
+    }
 
     composeTestRule
         .onNodeWithTag("cardItem_${sampleActivityWithDescription.title}")

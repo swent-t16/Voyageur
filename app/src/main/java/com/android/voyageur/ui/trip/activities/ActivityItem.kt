@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,6 +36,9 @@ import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.hasDescription
 import com.android.voyageur.model.activity.hasEndDate
 import com.android.voyageur.model.activity.hasStartTime
+import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Screen
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -47,6 +51,8 @@ import java.util.Locale
 @Composable
 fun ActivityItem(
     activity: Activity,
+    navigationActions: NavigationActions,
+    tripsViewModel: TripsViewModel
 ) {
   var isExpanded by remember { mutableStateOf(false) }
 
@@ -90,21 +96,38 @@ fun ActivityItem(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                  // Delete icon, visible only when expanded
+                  // Edit and Delete icons, visible only when expanded
                   AnimatedVisibility(visible = isExpanded) {
-                    IconButton(
-                        onClick = { /*TODO: delete activity*/
-                          Toast.makeText(
-                                  context,
-                                  "Delete activity not implemented yet",
-                                  Toast.LENGTH_SHORT)
-                              .show()
-                        }) {
-                          Icon(
-                              imageVector = Icons.TwoTone.Delete,
-                              contentDescription = "Delete Activity",
-                              tint = Color.Red)
-                        }
+                    Row {
+                      IconButton(
+                          onClick = {
+                            navigationActions.navigateTo(Screen.EDIT_ACTIVITY)
+                            tripsViewModel.selectActivity(activity)
+                            //                              Toast.makeText(
+                            //                                  context,
+                            //                                  "Edit activity not implemented yet",
+                            //                                  Toast.LENGTH_SHORT)
+                            //                                  .show()
+                          }) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Edit,
+                                contentDescription = "Edit Activity",
+                                tint = Color.Green)
+                          }
+                      IconButton(
+                          onClick = { /*TODO: delete activity*/
+                            Toast.makeText(
+                                    context,
+                                    "Delete activity not implemented yet",
+                                    Toast.LENGTH_SHORT)
+                                .show()
+                          }) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Delete,
+                                contentDescription = "Delete Activity",
+                                tint = Color.Red)
+                          }
+                    }
                   }
 
                   // Expand/collapse icon
