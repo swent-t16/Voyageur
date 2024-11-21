@@ -147,6 +147,23 @@ open class TripsViewModel(
     }
   }
 
+    open fun removeActivityFromTrip(activity: Activity) {
+        if (selectedTrip.value != null) {
+            val trip = selectedTrip.value!!
+            val updatedTrip = trip.copy(activities = trip.activities - activity)
+            updateTrip(
+                updatedTrip,
+                onSuccess = {
+                    /*
+                        This is a trick to force a recompose, because the reference wouldn't
+                        change and update the UI.
+                    */
+                    selectTrip(Trip())
+                    selectTrip(updatedTrip)
+                })
+        }
+    }
+
   // ****************************************************************************************************
   // AI assistant
   // ****************************************************************************************************
