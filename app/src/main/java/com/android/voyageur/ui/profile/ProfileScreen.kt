@@ -57,9 +57,6 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
   // Observe user and loading state from UserViewModel
   val user by userViewModel.user.collectAsState()
   val isLoading by userViewModel.isLoading.collectAsState()
-  // Collect the friend requests and the user corresponding to them
-  val friendRequests by userViewModel.friendRequests.collectAsState()
-  val notificationUsers by userViewModel.notificationUsers.collectAsState()
   var isSigningOut by remember { mutableStateOf(false) }
 
   // Navigate to AUTH if user is null and not loading
@@ -104,8 +101,6 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
                       userData = user!!,
                       signedInUserId = user!!.id,
                       onSignOut = { isSigningOut = true },
-                      friendRequests = friendRequests,
-                      notificationUsers = notificationUsers,
                       userViewModel = userViewModel,
                       onEdit = { navigationActions.navigateTo(Route.EDIT_PROFILE) })
                 }
@@ -122,11 +117,11 @@ fun ProfileContent(
     userData: User,
     signedInUserId: String,
     onSignOut: () -> Unit,
-    friendRequests: List<FriendRequest>,
-    notificationUsers: List<User>,
     userViewModel: UserViewModel,
     onEdit: () -> Unit
 ) {
+  val friendRequests by userViewModel.friendRequests.collectAsState()
+  val notificationUsers by userViewModel.notificationUsers.collectAsState()
   Column(
       modifier = Modifier.fillMaxSize().padding(top = 16.dp), // Space for profile content
       horizontalAlignment = Alignment.CenterHorizontally) {
@@ -146,10 +141,9 @@ fun ProfileContent(
 fun ExpandableFriendReqMenu(
     friendRequests: List<FriendRequest>,
     notificationUsers: List<User>,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
 ) {
   var expanded by remember { mutableStateOf(false) } // Toggle for expanded state
-
   // Collapsed Menu
   Card(
       shape = RoundedCornerShape(12.dp),
@@ -175,7 +169,7 @@ fun ExpandableFriendReqMenu(
 
   // Expanded Pop-Up Friend Request Menu as a Dialog
   if (expanded) {
-    Dialog(onDismissRequest = { expanded = false }) {
+    Dialog(onDismissRequest = { expanded = true }) {
       Card(
           shape = RoundedCornerShape(16.dp),
           modifier = Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(10.dp)) {
@@ -190,12 +184,14 @@ fun ExpandableFriendReqMenu(
                     )
 
                     // Collapses the menu
-                    IconButton(onClick = { expanded = false }) {
-                      Icon(
-                          imageVector = Icons.Default.Close,
-                          contentDescription = "Close",
-                      )
-                    }
+                    IconButton(
+                        onClick = { expanded = false },
+                        modifier = Modifier.testTag("closeButton")) {
+                          Icon(
+                              imageVector = Icons.Default.Close,
+                              contentDescription = "Close",
+                          )
+                        }
                   }
 
               // Scrollable List of FriendRequestItems
@@ -224,7 +220,8 @@ fun FriendRequestItem(friendRequest: FriendRequest, fromUser: User, userViewMode
         Image(
             painter = rememberAsyncImagePainter(fromUser.profilePicture),
             contentDescription = "Profile Picture",
-            modifier = Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)))
+            modifier =
+                Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).testTag("profilePicture"))
 
         Text(
             text = fromUser.name,
@@ -234,6 +231,7 @@ fun FriendRequestItem(friendRequest: FriendRequest, fromUser: User, userViewMode
         // Accept and Reject Icons
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           IconButton(
+              modifier = Modifier.testTag("acceptButton"),
               onClick = {
                 // Accept user's friend request and add to contacts
                 userViewModel.addContact(fromUser.id, friendRequest.id)
@@ -245,6 +243,7 @@ fun FriendRequestItem(friendRequest: FriendRequest, fromUser: User, userViewMode
               }
 
           IconButton(
+              modifier = Modifier.testTag("denyButton"),
               onClick = {
                 // Delete the user friend request
                 userViewModel.deleteFriendRequest(friendRequest.id)

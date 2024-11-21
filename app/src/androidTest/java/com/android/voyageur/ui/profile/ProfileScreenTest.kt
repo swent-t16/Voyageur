@@ -1,10 +1,13 @@
 package com.android.voyageur.ui.profile
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
@@ -71,8 +74,15 @@ class ProfileScreenTest {
     // Set the content for Compose rule
     composeTestRule.setContent {
       ProfileScreen(userViewModel = userViewModel, navigationActions = navigationActions)
+      ExpandableFriendReqMenu(
+          friendRequests = friendRequests.value,
+          notificationUsers = notificationUsers.value,
+          userViewModel = userViewModel)
     }
   }
+
+  val friendRequests = mutableStateOf(emptyList<FriendRequest>())
+  val notificationUsers = mutableStateOf(emptyList<User>())
 
   @Test
   fun displayLoadingIndicatorWhenIsLoading() {
@@ -194,5 +204,34 @@ class ProfileScreenTest {
 
     // Assert: Check that the "No interests added yet" message is displayed
     composeTestRule.onNodeWithTag("noInterests").assertIsDisplayed()
+  }
+
+  @Test
+  fun friendRequestItemsAreDisplayedInExpandedMenu() {
+    // Arrange: Update friend requests and notification users
+    composeTestRule.runOnUiThread {
+      friendRequests.value = listOf(FriendRequest("1", "user1"), FriendRequest("2", "user2"))
+      notificationUsers.value =
+          listOf(
+              User("user1", "Alice", "alice@example.com", ""),
+              User("user2", "Bob", "bob@example.com", ""))
+    }
+
+    // Act: Expand the menu
+    composeTestRule.onNodeWithContentDescription("Expand").performClick()
+
+    // Assert: Check that friend request items are displayed
+    composeTestRule.onNodeWithText("Alice").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Bob").assertIsDisplayed()
+  }
+
+  @Test
+  fun expandedMenuIsDisplayedOnIconButtonClick() {
+    // Arrange: Update friend requests
+    composeTestRule.runOnUiThread {
+      friendRequests.value = listOf(FriendRequest("1", "user1"), FriendRequest("2", "user2"))
+    }
+    composeTestRule.onNodeWithContentDescription("Expand").performClick()
+    composeTestRule.onNodeWithTag("closeButton").assertIsDisplayed()
   }
 }
