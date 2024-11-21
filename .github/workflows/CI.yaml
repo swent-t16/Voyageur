@@ -81,6 +81,12 @@ jobs:
           PLACES_API_KEY: ${{ secrets.PLACES_API_KEY }}
         run: echo "PLACES_API_KEY=\${{ secrets.PLACES_API_KEY }}" > ./local.properties
 
+      # Set the API key for the Gemini API
+      - name: Access GEMINI_API_KEY
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: echo "GEMINI_API_KEY=\${{ secrets.GEMINI_API_KEY }}" >> ./local.properties
+
       - name: Grant execute permission for gradlew
         run: |
           chmod +x ./gradlew

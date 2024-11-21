@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.trip.activities
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.android.voyageur.model.trip.TripsViewModel
@@ -50,7 +52,7 @@ fun ActivitiesForOneDayScreen(
                   { it.startTime }, // First, sort by startTime
                   { it.endTime } // If startTime is equal, sort by endTime
                   ))
-
+  val context = LocalContext.current
   Scaffold(
       modifier = Modifier.testTag("activitiesForOneDayScreen"),
       topBar = {
@@ -74,7 +76,17 @@ fun ActivitiesForOneDayScreen(
           ) {
             activities.forEach { activity ->
               item {
-                ActivityItem(activity, navigationActions, tripsViewModel)
+                ActivityItem(
+                    activity,
+                    true,
+                    onClickButton = {
+                      Toast.makeText(
+                              context, "Delete activity not implemented yet", Toast.LENGTH_SHORT)
+                          .show()
+                    },
+                    ButtonType.DELETE,
+                    navigationActions,
+                    tripsViewModel)
                 Spacer(modifier = Modifier.height(10.dp))
               }
             }

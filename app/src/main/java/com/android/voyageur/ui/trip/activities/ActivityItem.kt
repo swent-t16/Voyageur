@@ -1,6 +1,5 @@
 package com.android.voyageur.ui.trip.activities
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -13,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -51,6 +50,9 @@ import java.util.Locale
 @Composable
 fun ActivityItem(
     activity: Activity,
+    isEditable: Boolean = false,
+    onClickButton: () -> Unit = {}, // Default do nothing
+    buttonPurpose: ButtonType = ButtonType.NOTHING,
     navigationActions: NavigationActions,
     tripsViewModel: TripsViewModel
 ) {
@@ -69,8 +71,6 @@ fun ActivityItem(
   val dateFormatted = dateFormat.format(startLocalDateTime)
   val startTimeFormatted = timeFormat.format(startLocalDateTime)
   val endTimeFormatted = timeFormat.format(endLocalDateTime)
-
-  val context = LocalContext.current
 
   Card(
       shape = MaterialTheme.shapes.medium,
@@ -96,31 +96,42 @@ fun ActivityItem(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                  // Edit and Delete icons, visible only when expanded
                   AnimatedVisibility(visible = isExpanded) {
                     Row {
-                      IconButton(
-                          onClick = {
-                            navigationActions.navigateTo(Screen.EDIT_ACTIVITY)
-                            tripsViewModel.selectActivity(activity)
-                          }) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Edit,
-                                contentDescription = "Edit Activity")
-                          }
-                      IconButton(
-                          onClick = { /*TODO: delete activity*/
-                            Toast.makeText(
-                                    context,
-                                    "Delete activity not implemented yet",
-                                    Toast.LENGTH_SHORT)
-                                .show()
-                          }) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Delete,
-                                contentDescription = "Delete Activity",
-                                tint = Color.Red)
-                          }
+                      if (isEditable) {
+                        // Edit icon
+                        IconButton(
+                            onClick = {
+                              navigationActions.navigateTo(Screen.EDIT_ACTIVITY)
+                              tripsViewModel.selectActivity(activity)
+                            },
+                            modifier = Modifier.testTag("editIcon_${activity.title}")) {
+                              Icon(
+                                  imageVector = Icons.TwoTone.Edit,
+                                  contentDescription = "Edit Activity")
+                            }
+                      }
+                      // Delete icon
+                      if (buttonPurpose == ButtonType.DELETE) {
+                        IconButton(
+                            onClick = onClickButton,
+                            modifier = Modifier.testTag("deleteIcon_${activity.title}"),
+                        ) {
+                          Icon(
+                              imageVector = Icons.TwoTone.Delete,
+                              contentDescription = "Delete Activity",
+                              tint = Color.Red)
+                        }
+                      } else {
+                        // Add icon
+                        if (buttonPurpose == ButtonType.ADD) {
+                          Button(
+                              onClick = onClickButton,
+                              modifier = Modifier.testTag("addIcon_${activity.title}")) {
+                                Text(text = "Add")
+                              }
+                        }
+                      }
                     }
                   }
 
@@ -171,4 +182,14 @@ fun ActivityItem(
           }
         }
       })
+}
+
+/**
+ * Enum class for the types of buttons that can be displayed in the activity item. DELETE: deletes
+ * the activity from the trip ADD: adds the activity to the trip NOTHING: no button is displayed
+ */
+enum class ButtonType {
+  DELETE,
+  ADD,
+  NOTHING
 }

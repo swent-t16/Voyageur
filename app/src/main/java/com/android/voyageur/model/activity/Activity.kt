@@ -2,7 +2,11 @@ package com.android.voyageur.model.activity
 
 import com.android.voyageur.model.location.Location
 import com.google.firebase.Timestamp
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Activity(
     val title: String = "",
     val description: String = "",
@@ -30,3 +34,9 @@ fun Activity.hasStartTime() = startTime != Timestamp(0, 0)
 fun Activity.hasEndDate() = endTime != Timestamp(0, 0)
 
 fun Activity.isDraft() = !(hasStartTime() && hasEndDate())
+
+fun extractActivitiesFromJson(jsonString: String): MutableList<Activity> {
+  val gson = Gson()
+  val activityListType = object : TypeToken<List<Activity>>() {}.type
+  return gson.fromJson(jsonString, activityListType)
+}

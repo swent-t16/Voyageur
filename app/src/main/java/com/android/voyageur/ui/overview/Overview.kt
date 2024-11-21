@@ -73,7 +73,7 @@ import com.google.firebase.auth.auth
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
 ) {
   val trips by tripsViewModel.trips.collectAsState()
   val isLoading by userViewModel.isLoading.collectAsState()
