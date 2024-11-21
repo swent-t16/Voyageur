@@ -30,7 +30,6 @@ import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
-import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -42,7 +41,7 @@ fun ActivitiesScreen(
     tripsViewModel: TripsViewModel
 ) {
 
-  val drafts =
+  var drafts =
       trip.activities.filter { activity ->
         activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
       }
@@ -125,12 +124,3 @@ fun ActivitiesScreen(
       })
 }
 
-/** Composable that displays a button that navigates to the Add Activity screen. */
-@Composable
-fun AddActivityButton(navigationActions: NavigationActions) {
-  FloatingActionButton(
-      onClick = { navigationActions.navigateTo(Screen.ADD_ACTIVITY) },
-      modifier = Modifier.testTag("createActivityButton")) {
-        Icon(Icons.Outlined.Add, "Floating action button", modifier = Modifier.testTag("addIcon"))
-      }
-}
