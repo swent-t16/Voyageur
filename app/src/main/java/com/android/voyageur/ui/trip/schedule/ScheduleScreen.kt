@@ -10,8 +10,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -20,6 +18,7 @@ import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Screen
 
 @Composable
 fun ScheduleScreen(
@@ -30,42 +29,62 @@ fun ScheduleScreen(
 ) {
 
   Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
-    // Row for the "Daily" and "Weekly" buttons
     Row(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp, end = 16.dp),
-        horizontalArrangement = Arrangement.End,
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp, start = 16.dp, end = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically) {
+          // "Ask Assistant" button on the left
           TextButton(
-              onClick = { navigationActions.getNavigationState().isDailyViewSelected = true }) {
+              onClick = {
+                tripsViewModel.setInitialUiState()
+                navigationActions.navigateTo(Screen.ASSISTANT)
+              }) {
                 Text(
-                    text = "Daily",
+                    text = "Ask Assistant",
                     style = MaterialTheme.typography.bodyMedium,
-                    color =
-                        if (navigationActions.getNavigationState().isDailyViewSelected)
-                            MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    fontWeight =
-                        if (navigationActions.getNavigationState().isDailyViewSelected)
-                            FontWeight.Bold
-                        else FontWeight.Normal)
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold)
               }
-          Text(
-              text = " / ",
-              style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-          TextButton(
-              onClick = { navigationActions.getNavigationState().isDailyViewSelected = false }) {
+          Row(
+              modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp, end = 16.dp),
+              horizontalArrangement = Arrangement.End,
+              verticalAlignment = Alignment.CenterVertically) {
+                TextButton(
+                    onClick = {
+                      navigationActions.getNavigationState().isDailyViewSelected = true
+                    }) {
+                      Text(
+                          text = "Daily",
+                          style = MaterialTheme.typography.bodyMedium,
+                          color =
+                              if (navigationActions.getNavigationState().isDailyViewSelected)
+                                  MaterialTheme.colorScheme.primary
+                              else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                          fontWeight =
+                              if (navigationActions.getNavigationState().isDailyViewSelected)
+                                  FontWeight.Bold
+                              else FontWeight.Normal)
+                    }
                 Text(
-                    text = "Weekly",
+                    text = " / ",
                     style = MaterialTheme.typography.bodyMedium,
-                    color =
-                        if (!navigationActions.getNavigationState().isDailyViewSelected)
-                            MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    fontWeight =
-                        if (!navigationActions.getNavigationState().isDailyViewSelected)
-                            FontWeight.Bold
-                        else FontWeight.Normal)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                TextButton(
+                    onClick = {
+                      navigationActions.getNavigationState().isDailyViewSelected = false
+                    }) {
+                      Text(
+                          text = "Weekly",
+                          style = MaterialTheme.typography.bodyMedium,
+                          color =
+                              if (!navigationActions.getNavigationState().isDailyViewSelected)
+                                  MaterialTheme.colorScheme.primary
+                              else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                          fontWeight =
+                              if (!navigationActions.getNavigationState().isDailyViewSelected)
+                                  FontWeight.Bold
+                              else FontWeight.Normal)
+                    }
               }
         }
 

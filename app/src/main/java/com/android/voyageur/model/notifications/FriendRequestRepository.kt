@@ -17,5 +17,7 @@ interface FriendRequestRepository {
 
   fun createRequest(req: FriendRequest, onSuccess: () -> Unit, onFailure: (Exception) -> Unit)
 
+  fun deleteRequest(reqId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit)
+
   fun getNewId(): String
 }
