@@ -189,7 +189,7 @@ open class TripsViewModel(
                 "List a few popular specific activities to do on a trip called ${trip.name} and with the following prompt: $prompt")
         response.text?.let { outputContent -> _uiState.value = UiState.Success(outputContent) }
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.localizedMessage ?: "")
+        _uiState.value = UiState.Error(e.localizedMessage ?: "unknown error")
       }
     }
   }

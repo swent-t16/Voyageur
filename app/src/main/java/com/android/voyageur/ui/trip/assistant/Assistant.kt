@@ -1,6 +1,8 @@
 package com.android.voyageur.ui.trip.assistant
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -34,10 +37,12 @@ import com.android.voyageur.model.activity.extractActivitiesFromJson
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.trip.UiState
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Screen
 import com.android.voyageur.ui.trip.activities.ActivityItem
 import com.android.voyageur.ui.trip.activities.ButtonType
 import com.android.voyageur.ui.trip.schedule.TopBarWithImageAndText
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: NavigationActions) {
   var result by rememberSaveable { mutableStateOf("placeholderResult") }
@@ -45,8 +50,11 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
   var prompt by rememberSaveable { mutableStateOf("") }
   var activities by remember { mutableStateOf(emptyList<Activity>()) }
 
-  val trip =
-      tripsViewModel.selectedTrip.value ?: return Text(text = "No trip selected. Should not happen")
+  val trip = tripsViewModel.selectedTrip.value
+  if (trip == null) {
+    navigationActions.navigateTo(Screen.OVERVIEW)
+    return
+  }
 
   Scaffold(
       modifier = Modifier.testTag("assistantScreen"),
@@ -65,14 +73,16 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
                         .align(Alignment.CenterVertically))
             Button(
                 onClick = { tripsViewModel.sendActivitiesPrompt(trip, prompt) },
+                enabled = uiState !is UiState.Loading, // Disable the button during loading
                 modifier = Modifier.testTag("AIRequestButton").align(Alignment.CenterVertically)) {
                   Text(text = "go")
                 }
           }
 
           if (uiState is UiState.Loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.testTag("loadingIndicator").align(Alignment.CenterHorizontally))
+            Box(modifier = Modifier.fillMaxSize().testTag("loadingIndicator")) {
+              CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
           } else {
             val scrollState = rememberScrollState()
             if (uiState is UiState.Error) {
@@ -98,22 +108,20 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
                           .testTag("lazyColumn"),
                   verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
               ) {
-                activities.forEach { activity ->
-                  item {
-                    ActivityItem(
-                        activity = activity,
-                        false,
-                        onClickButton = {
-                          // remove this activity from the list
-                          activities = activities.filter { it != activity }
-                          // add this activity to the trip
-                          tripsViewModel.addActivityToTrip(activity)
-                        },
-                        buttonPurpose = ButtonType.ADD,
-                        navigationActions,
-                        tripsViewModel)
-                    Spacer(modifier = Modifier.height(10.dp))
-                  }
+                items(activities) { activity ->
+                  ActivityItem(
+                      activity = activity,
+                      false,
+                      onClickButton = {
+                        // remove this activity from the list
+                        activities = activities.filter { it != activity }
+                        // add this activity to the trip
+                        tripsViewModel.addActivityToTrip(activity)
+                      },
+                      buttonPurpose = ButtonType.ADD,
+                      navigationActions,
+                      tripsViewModel)
+                  Spacer(modifier = Modifier.height(10.dp))
                 }
               }
             }

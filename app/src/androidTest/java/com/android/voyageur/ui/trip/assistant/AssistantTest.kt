@@ -110,6 +110,16 @@ class AssistantScreenTest {
   }
 
   @Test
+  fun checkButtonIsDisabledWhenLoading() {
+    val uiStateFlow = MutableStateFlow(UiState.Loading)
+    val tripFlow = MutableStateFlow(sampleTrip)
+    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
+    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
+    composeTestRule.setContent { AssistantScreen(mockTripsViewModel, navigationActions) }
+    composeTestRule.onNodeWithTag("AIRequestButton").assertIsNotEnabled()
+  }
+
+  @Test
   fun checkJsonParsing() {
     val activities = extractActivitiesFromJson(sampleJson)
     assert(activities.size == 2)
