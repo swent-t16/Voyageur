@@ -8,6 +8,8 @@ import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.place.PlacesRepository
+import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripType
@@ -35,12 +37,14 @@ class AddActivityScreenTest {
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var context: Context
+  private lateinit var placesRepository: PlacesRepository
+  private lateinit var placesViewModel: PlacesViewModel
 
   private val mockActivity =
       Activity(
           title = "Hiking",
           description = "Trail hiking in the mountains",
-          location = Location("Canada", "Toronto", null, null),
+          location = Location("Toronto"),
           startTime =
               Timestamp(Date.from(LocalDateTime.of(2024, 10, 3, 10, 0).toInstant(ZoneOffset.UTC))),
           endTime =
@@ -57,6 +61,9 @@ class AddActivityScreenTest {
     tripsViewModel = TripsViewModel(tripRepository)
     context = ApplicationProvider.getApplicationContext()
 
+    placesRepository = mock(PlacesRepository::class.java)
+    placesViewModel = PlacesViewModel(placesRepository)
+
     `when`(navigationActions.currentRoute()).thenReturn(Screen.ADD_ACTIVITY)
     whenever(tripsViewModel.getNewTripId()).thenReturn("mockTripId")
     doNothing().`when`(tripRepository).updateTrip(any(), any(), any())
@@ -68,12 +75,14 @@ class AddActivityScreenTest {
 
   @Test
   fun addActivityScreen_initialState() {
-    composeTestRule.setContent { AddActivityScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("addActivityTitle").assertTextEquals("Create a New Activity")
     composeTestRule.onNodeWithTag("inputActivityTitle").assertIsDisplayed()
     composeTestRule.onNodeWithTag("inputActivityDescription").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("inputActivityLocation").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("searchTextField").assertIsDisplayed()
     composeTestRule.onNodeWithTag("inputDate").assertIsDisplayed()
     composeTestRule.onNodeWithTag("inputStartTime").assertIsDisplayed()
     composeTestRule.onNodeWithTag("inputEndTime").assertIsDisplayed()
@@ -84,7 +93,9 @@ class AddActivityScreenTest {
 
   @Test
   fun addActivityScreen_datePickerSelectsDate() {
-    composeTestRule.setContent { AddActivityScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputDate").performClick()
     composeTestRule.onNodeWithText("OK").performClick()
@@ -93,7 +104,9 @@ class AddActivityScreenTest {
 
   @Test
   fun addActivityScreen_timePickerSelectsTime() {
-    composeTestRule.setContent { AddActivityScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputStartTime").performClick()
     composeTestRule.onNodeWithText("OK").performClick()
@@ -103,7 +116,9 @@ class AddActivityScreenTest {
 
   @Test
   fun addActivityScreen_selectActivityType() {
-    composeTestRule.setContent { AddActivityScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputActivityType").assertHasClickAction()
     composeTestRule.onNodeWithTag("inputActivityType").performClick()
@@ -111,14 +126,18 @@ class AddActivityScreenTest {
 
   @Test
   fun addActivityScreen_saveButtonDisabledIfTitleEmpty() {
-    composeTestRule.setContent { AddActivityScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("activitySave").assertIsNotEnabled()
   }
 
   @Test
   fun addActivityScreen_saveButtonEnabledIfTitleNonEmpty() {
-    composeTestRule.setContent { AddActivityScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputActivityTitle").performTextInput("Hiking")
     composeTestRule.onNodeWithTag("activitySave").assertIsEnabled()
@@ -126,7 +145,9 @@ class AddActivityScreenTest {
 
   @Test
   fun addActivityScreen_validActivityCreated() {
-    composeTestRule.setContent { AddActivityScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+    }
 
     val trip =
         Trip(
@@ -134,7 +155,7 @@ class AddActivityScreenTest {
             creator = "mockUserId",
             description = "Existing trip",
             name = "Existing Trip",
-            locations = listOf(Location(country = "France", city = "Paris")),
+            locations = listOf(Location("Paris")),
             startDate = Timestamp(Date()),
             endDate = Timestamp(Date()),
             activities = listOf(),
@@ -154,20 +175,24 @@ class AddActivityScreenTest {
   @Test
   fun editActivityScreen_displaysExistingActivityDetails() {
     tripsViewModel.selectActivity(mockActivity)
-    composeTestRule.setContent { EditActivityScreen(navigationActions, tripsViewModel) }
+    composeTestRule.setContent {
+      EditActivityScreen(navigationActions, tripsViewModel, placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputActivityTitle").assertTextContains("Hiking")
     composeTestRule
         .onNodeWithTag("inputActivityDescription")
         .assertTextContains("Trail hiking in the mountains")
-    composeTestRule.onNodeWithTag("inputActivityLocation").assertTextContains("Toronto")
+    composeTestRule.onNodeWithTag("searchTextField").assertTextContains("Toronto")
     composeTestRule.onNodeWithTag("inputDate").assertTextContains("03 Oct 2024")
   }
 
   @Test
   fun editActivityScreen_opensDatePicker() {
     tripsViewModel.selectActivity(mockActivity)
-    composeTestRule.setContent { EditActivityScreen(navigationActions, tripsViewModel) }
+    composeTestRule.setContent {
+      EditActivityScreen(navigationActions, tripsViewModel, placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputDate").performClick()
     composeTestRule.onNodeWithTag("datePickerModal").assertIsDisplayed()
@@ -176,7 +201,9 @@ class AddActivityScreenTest {
   @Test
   fun editActivityScreen_opensStartTimePicker() {
     tripsViewModel.selectActivity(mockActivity)
-    composeTestRule.setContent { EditActivityScreen(navigationActions, tripsViewModel) }
+    composeTestRule.setContent {
+      EditActivityScreen(navigationActions, tripsViewModel, placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputStartTime").performClick()
     composeTestRule.onNodeWithTag("timePickerDialog").assertIsDisplayed()
@@ -185,7 +212,9 @@ class AddActivityScreenTest {
   @Test
   fun editActivityScreen_showsErrorForEmptyTitle() {
     tripsViewModel.selectActivity(mockActivity)
-    composeTestRule.setContent { EditActivityScreen(navigationActions, tripsViewModel) }
+    composeTestRule.setContent {
+      EditActivityScreen(navigationActions, tripsViewModel, placesViewModel)
+    }
 
     // Clear the title
     composeTestRule.onNodeWithTag("inputActivityTitle").performTextClearance()

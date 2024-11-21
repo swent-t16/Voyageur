@@ -66,7 +66,7 @@ class WeeklyViewScreenTest {
                     Activity(
                         "1",
                         "",
-                        Location("", "", "", ""),
+                        Location(""),
                         startTime =
                             Timestamp(
                                 Date.from(
@@ -82,7 +82,7 @@ class WeeklyViewScreenTest {
                     Activity(
                         "2",
                         "",
-                        Location("", "", "", ""),
+                        Location(""),
                         startTime =
                             Timestamp(
                                 Date.from(

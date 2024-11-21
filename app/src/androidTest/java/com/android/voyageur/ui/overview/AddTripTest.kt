@@ -15,6 +15,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.place.PlacesRepository
+import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripType
@@ -39,6 +41,8 @@ class AddTripScreenTest {
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var firebaseAuth: FirebaseAuth
+  private lateinit var placesRepository: PlacesRepository
+  private lateinit var placesViewModel: PlacesViewModel
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -48,6 +52,8 @@ class AddTripScreenTest {
     navigationActions = mock(NavigationActions::class.java)
     firebaseAuth = mock(FirebaseAuth::class.java)
     tripsViewModel = TripsViewModel(tripRepository)
+    placesRepository = mock(PlacesRepository::class.java)
+    placesViewModel = PlacesViewModel(placesRepository)
 
     `when`(navigationActions.currentRoute()).thenReturn(Screen.ADD_TRIP)
     whenever(tripsViewModel.getNewTripId()).thenReturn("mockTripId")
@@ -56,11 +62,13 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_initialState() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputTripTitle").assertExists()
     composeTestRule.onNodeWithTag("inputTripDescription").assertExists()
-    composeTestRule.onNodeWithTag("inputTripLocations").assertExists()
+    composeTestRule.onNodeWithTag("searchTextField").assertExists()
     composeTestRule.onNodeWithTag("inputStartDate").assertExists()
     composeTestRule.onNodeWithTag("inputEndDate").assertExists()
     composeTestRule.onNodeWithTag("tripSave").assertExists()
@@ -71,7 +79,9 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_inputsUpdateState() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("London")
     composeTestRule.onNodeWithTag("inputTripDescription").performTextInput("4 days in London")
@@ -82,7 +92,9 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_saveButtonDisabledWithInvalidInput() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("")
     composeTestRule.onNodeWithText("Start Date *").performClick()
@@ -95,7 +107,9 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_saveButtonEnabledWithValidInput() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Valid Trip")
     composeTestRule.onNodeWithText("Start Date *").performClick()
@@ -108,7 +122,9 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_tripTypeSelection() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
+    }
 
     // Check initial state
     composeTestRule.onNodeWithTag("tripTypeBusiness").assertIsSelected()
@@ -123,11 +139,13 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_saveTrip() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("London Trip")
     composeTestRule.onNodeWithTag("inputTripDescription").performTextInput("4 days in London")
-    composeTestRule.onNodeWithTag("inputTripLocations").performTextInput("UK, London")
+    composeTestRule.onNodeWithTag("searchTextField").performTextInput("London")
     composeTestRule.onNodeWithText("Start Date *").performClick()
     composeTestRule.onNodeWithText("OK").performClick()
     composeTestRule.onNodeWithText("End Date *").performClick()
@@ -148,7 +166,7 @@ class AddTripScreenTest {
             creator = "mockUserId",
             description = "4 days in London",
             name = "London Trip",
-            locations = listOf(Location(country = "UK", city = "London")),
+            locations = listOf(Location(address = "Big Ben Cafe")),
             startDate = todayTimestamp,
             endDate = todayTimestamp,
             activities = listOf(),
@@ -162,13 +180,15 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_unknownLocation() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
+    }
 
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Trip with Unknown Location")
     composeTestRule
         .onNodeWithTag("inputTripDescription")
         .performTextInput("Description for trip with unknown location")
-    composeTestRule.onNodeWithTag("inputTripLocations").performTextInput("InvalidLocation")
+    composeTestRule.onNodeWithTag("searchTextField").performTextInput("InvalidLocation")
     composeTestRule.onNodeWithText("Start Date *").performClick()
     composeTestRule.onNodeWithText("OK").performClick()
     composeTestRule.onNodeWithText("End Date *").performClick()
@@ -189,7 +209,7 @@ class AddTripScreenTest {
             creator = "mockUserId",
             description = "Description for trip with unknown location",
             name = "Trip with Unknown Location",
-            locations = listOf(Location(country = "Unknown", city = "Unknown")),
+            locations = listOf(Location(address = "Big Ben Cafe")),
             startDate = todayTimestamp,
             endDate = todayTimestamp,
             activities = listOf(),
@@ -202,7 +222,9 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_imageSelection() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
+    }
     composeTestRule.onNodeWithText("Select Image from Gallery").performClick()
     // Assuming gallery selection simulated
     // Add verification that the imageUri state is updated
@@ -210,7 +232,9 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_invalidStartDate() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
+    }
     // Simulate setting a past start date
     composeTestRule.onNodeWithTag("inputStartDate").performClick()
     composeTestRule.onNodeWithText("OK").performClick()
@@ -225,7 +249,7 @@ class AddTripScreenTest {
             creator = "mockUserId",
             description = "Existing trip",
             name = "Existing Trip",
-            locations = listOf(Location(country = "France", city = "Paris")),
+            locations = listOf(Location(address = "Big Ben Cafe")),
             startDate = Timestamp(Date()),
             endDate = Timestamp(Date()),
             activities = listOf(),
@@ -233,7 +257,8 @@ class AddTripScreenTest {
             imageUri = "someUri")
     tripsViewModel.selectTrip(trip)
     composeTestRule.setContent {
-      AddTripScreen(tripsViewModel, navigationActions, isEditMode = true)
+      AddTripScreen(
+          tripsViewModel, navigationActions, isEditMode = true, placesViewModel = placesViewModel)
     }
 
     composeTestRule.onNodeWithTag("inputTripTitle").assertTextContains("Existing Trip")
@@ -250,7 +275,7 @@ class AddTripScreenTest {
             creator = "mockUserId",
             description = "Existing trip",
             name = "Existing Trip",
-            locations = listOf(Location(country = "France", city = "Paris")),
+            locations = listOf(Location(address = "Big Ben Cafe")),
             startDate = Timestamp(Date()),
             endDate = Timestamp(Date()),
             activities = listOf(),
@@ -263,7 +288,10 @@ class AddTripScreenTest {
     // Set up the test content
     composeTestRule.setContent {
       AddTripScreen(
-          tripsViewModel = tripsViewModel, navigationActions = navigationActions, isEditMode = true)
+          tripsViewModel = tripsViewModel,
+          navigationActions = navigationActions,
+          isEditMode = true,
+          placesViewModel = placesViewModel)
     }
 
     // Modify some fields to simulate an edit
@@ -276,7 +304,9 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_displayDatePickerModal() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
+    }
     composeTestRule.onNodeWithTag("inputStartDate").performClick()
     composeTestRule.onNodeWithText("OK").assertExists() // Checks if date picker dialog appears
   }
@@ -318,7 +348,9 @@ class AddTripScreenTest {
 
   @Test
   fun addTripScreen_imageContainer_hasCorrectAspectRatio() {
-    composeTestRule.setContent { AddTripScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
+    }
 
     // Verify the image container has correct aspect ratio modifier
     composeTestRule.onNodeWithTag("imageContainer").assertExists()
@@ -327,7 +359,10 @@ class AddTripScreenTest {
   @Test
   fun addTripScreen_imageCropper_error() {
     composeTestRule.setContent {
-      AddTripScreen(tripsViewModel = tripsViewModel, navigationActions = navigationActions)
+      AddTripScreen(
+          tripsViewModel = tripsViewModel,
+          navigationActions = navigationActions,
+          placesViewModel = placesViewModel)
     }
 
     // Simulate failed image cropping

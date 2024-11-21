@@ -55,15 +55,19 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.place.CustomPlace
+import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.components.PlaceSearchWidget
 import com.android.voyageur.ui.formFields.DatePickerModal
 import com.android.voyageur.ui.formFields.UserDropdown
 import com.android.voyageur.ui.gallery.PermissionButtonForGallery
@@ -84,11 +88,13 @@ fun AddTripScreen(
     navigationActions: NavigationActions,
     isEditMode: Boolean = false,
     onUpdate: () -> Unit = {},
-    userViewModel: UserViewModel = viewModel(factory = UserViewModel.Factory)
+    userViewModel: UserViewModel = viewModel(factory = UserViewModel.Factory),
+    placesViewModel: PlacesViewModel
 ) {
   var name by remember { mutableStateOf("") }
   var description by remember { mutableStateOf("") }
-  var locations by remember { mutableStateOf("") }
+  var query by remember { mutableStateOf(TextFieldValue("")) }
+  var selectedPlace by remember { mutableStateOf<CustomPlace?>(null) }
   var showModal by remember { mutableStateOf(false) }
   var selectedDateField by remember { mutableStateOf<DateField?>(null) }
   var startDate by remember { mutableStateOf<Long?>(null) }
@@ -131,6 +137,7 @@ fun AddTripScreen(
         description = trip.description
         tripType = trip.type
         imageUri = trip.imageUri
+        query = TextFieldValue(trip.locations.firstOrNull()?.address ?: "")
         startDate = trip.startDate.toDate().time
         endDate = trip.endDate.toDate().time
       }
@@ -187,18 +194,8 @@ fun AddTripScreen(
                     .toSet()
                     .toList(),
             locations =
-                locations.split(";").map { locationString ->
-                  val parts = locationString.split(",").map { it.trim() }
-                  if (parts.size >= 2) {
-                    Location(
-                        country = parts[0],
-                        city = parts[1],
-                        county = parts.getOrNull(2),
-                        zip = parts.getOrNull(3))
-                  } else {
-                    Location(country = "Unknown", city = "Unknown", county = null, zip = null)
-                  }
-                },
+                selectedPlace?.let { listOf(Location(address = it.place.displayName ?: "")) }
+                    ?: emptyList(),
             startDate = startTimestamp,
             endDate = endTimestamp,
             activities =
@@ -301,12 +298,19 @@ fun AddTripScreen(
                     placeholder = { Text("Describe the trip") },
                     modifier = Modifier.fillMaxWidth().testTag("inputTripDescription"))
 
-                OutlinedTextField(
-                    value = locations,
-                    onValueChange = { locations = it },
-                    label = { Text("Locations") },
-                    placeholder = { Text("Name the locations, comma-separated") },
-                    modifier = Modifier.fillMaxWidth().testTag("inputTripLocations"))
+                Spacer(modifier = Modifier.height(2.dp))
+
+                PlaceSearchWidget(
+                    placesViewModel = placesViewModel,
+                    onSelect = { place ->
+                      selectedPlace = place
+                      query = TextFieldValue(place.place.displayName ?: "Unknown Place")
+                    },
+                    query = query,
+                    onQueryChange = {
+                      placesViewModel.setQuery(it.text, null)
+                      query = it
+                    })
 
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),

@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.text.input.TextFieldValue
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
@@ -36,7 +37,11 @@ class PlaceSearchWidgetTest {
       onSuccess(emptyList())
     }
     composeTestRule.setContent {
-      PlaceSearchWidget(placesViewModel = placesViewModel, onSelect = {})
+      PlaceSearchWidget(
+          placesViewModel = placesViewModel,
+          onSelect = {},
+          query = TextFieldValue(),
+          onQueryChange = {})
     }
 
     composeTestRule.onNodeWithTag("searchTextField").assertIsDisplayed()
@@ -51,7 +56,11 @@ class PlaceSearchWidgetTest {
       onSuccess(searchedPlaces.value)
     }
     composeTestRule.setContent {
-      PlaceSearchWidget(placesViewModel = placesViewModel, onSelect = {})
+      PlaceSearchWidget(
+          placesViewModel = placesViewModel,
+          onSelect = {},
+          query = TextFieldValue(),
+          onQueryChange = {})
     }
 
     composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test")

@@ -64,7 +64,7 @@ class ScheduleScreenTest {
                     Activity(
                         "1",
                         "Museum Visit",
-                        Location("", "", "", ""),
+                        Location(""),
                         startTime =
                             Timestamp(
                                 Date.from(

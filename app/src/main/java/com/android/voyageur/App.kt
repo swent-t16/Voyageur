@@ -53,7 +53,11 @@ fun VoyageurApp(placesClient: PlacesClient) {
         OverviewScreen(tripsViewModel, navigationActions, userViewModel)
       }
       composable(Screen.ADD_TRIP) {
-        AddTripScreen(tripsViewModel, navigationActions, userViewModel = userViewModel)
+        AddTripScreen(
+            tripsViewModel,
+            navigationActions,
+            userViewModel = userViewModel,
+            placesViewModel = placesViewModel)
       }
     }
     navigation(
@@ -76,14 +80,22 @@ fun VoyageurApp(placesClient: PlacesClient) {
 
     navigation(startDestination = Screen.TOP_TABS, route = Route.TOP_TABS) {
       composable(Screen.TOP_TABS) {
-        TopTabs(tripsViewModel, navigationActions, userViewModel = userViewModel)
+        TopTabs(
+            tripsViewModel,
+            navigationActions,
+            userViewModel = userViewModel,
+            placesViewModel = placesViewModel)
       }
-      composable(Screen.ADD_ACTIVITY) { AddActivityScreen(tripsViewModel, navigationActions) }
+      composable(Screen.ADD_ACTIVITY) {
+        AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+      }
       composable(Screen.ACTIVITIES_FOR_ONE_DAY) {
         ActivitiesForOneDayScreen(tripsViewModel, navigationActions)
       }
       composable(Screen.ASSISTANT) { AssistantScreen(tripsViewModel, navigationActions) }
-      composable(Screen.EDIT_ACTIVITY) { EditActivityScreen(navigationActions, tripsViewModel) }
+      composable(Screen.EDIT_ACTIVITY) {
+        EditActivityScreen(navigationActions, tripsViewModel, placesViewModel)
+      }
     }
   }
 }

@@ -4,6 +4,8 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.NavHostController
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.place.PlacesRepository
+import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
@@ -25,6 +27,8 @@ class TopTabsTest {
   private lateinit var userViewModel: UserViewModel
   private lateinit var userRepository: UserRepository
   private lateinit var friendRequestRepository: FriendRequestRepository
+  private lateinit var placesRepository: PlacesRepository
+  private lateinit var placesViewModel: PlacesViewModel
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
@@ -36,12 +40,16 @@ class TopTabsTest {
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     userRepository = mock(UserRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
+    placesRepository = mock(PlacesRepository::class.java)
+    placesViewModel = PlacesViewModel(placesRepository)
   }
 
   @Test
   fun topAppBar_DisplaysTripName() {
     tripsViewModel.selectTrip(sampleTrip)
-    composeTestRule.setContent { TopTabs(tripsViewModel, navigationActions, userViewModel) }
+    composeTestRule.setContent {
+      TopTabs(tripsViewModel, navigationActions, userViewModel, placesViewModel)
+    }
 
     // Verify that the TopAppBar displays the trip name
     composeTestRule.onNodeWithTag("topBar").assertIsDisplayed()
@@ -51,7 +59,9 @@ class TopTabsTest {
   @Test
   fun tabRow_DisplaysTabsCorrectly() {
     tripsViewModel.selectTrip(sampleTrip)
-    composeTestRule.setContent { TopTabs(tripsViewModel, navigationActions, userViewModel) }
+    composeTestRule.setContent {
+      TopTabs(tripsViewModel, navigationActions, userViewModel, placesViewModel)
+    }
 
     // Verify that each tab is displayed with the correct title
     composeTestRule.onNodeWithTag("tabRow").assertIsDisplayed()
@@ -63,7 +73,9 @@ class TopTabsTest {
   @Test
   fun tabRow_SwitchesContentOnTabClick() {
     tripsViewModel.selectTrip(sampleTrip)
-    composeTestRule.setContent { TopTabs(tripsViewModel, navigationActions, userViewModel) }
+    composeTestRule.setContent {
+      TopTabs(tripsViewModel, navigationActions, userViewModel, placesViewModel)
+    }
 
     // Initially, the first tab (Schedule) should be selected
     composeTestRule.onNodeWithText("Schedule").assertIsSelected()
@@ -88,7 +100,9 @@ class TopTabsTest {
     tripsViewModel.selectTrip(sampleTrip)
 
     // Set the content to launch the composable
-    composeTestRule.setContent { TopTabs(tripsViewModel, navigationActions, userViewModel) }
+    composeTestRule.setContent {
+      TopTabs(tripsViewModel, navigationActions, userViewModel, placesViewModel)
+    }
 
     // Verify that each tab is displayed with the correct title
     composeTestRule.onNodeWithText("Schedule").assertExists()
