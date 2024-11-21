@@ -137,6 +137,16 @@ fun ProfileContent(
       }
 }
 
+/**
+ * A composable function that displays a menu for handling pending friend requests. The menu can be
+ * toggled between a collapsed view and an expanded dialog view for reviewing and managing friend
+ * requests.
+ *
+ * @param friendRequests A list of [FriendRequest] objects representing the pending friend requests.
+ * @param notificationUsers A list of [User] objects of users who sent the friend requests.
+ * @param userViewModel An instance of [UserViewModel] for managing user-related actions such as
+ *   accepting or rejecting friend requests.
+ */
 @Composable
 fun ExpandableFriendReqMenu(
     friendRequests: List<FriendRequest>,
@@ -209,7 +219,15 @@ fun ExpandableFriendReqMenu(
     }
   }
 }
-
+/**
+ * A composable function that displays a single friend request item. The item shows the user's
+ * profile picture, name, and buttons to accept or reject the friend request.
+ *
+ * @param friendRequest Represents a pending friend request.
+ * @param fromUser The [User] object representing the sender of the friend request.
+ * @param userViewModel The [UserViewModel] used to handle actions like accepting or rejecting the
+ *   friend request.
+ */
 @Composable
 fun FriendRequestItem(friendRequest: FriendRequest, fromUser: User, userViewModel: UserViewModel) {
   Row(
