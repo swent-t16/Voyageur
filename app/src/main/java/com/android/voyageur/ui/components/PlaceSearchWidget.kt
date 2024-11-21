@@ -49,7 +49,7 @@ fun PlaceSearchWidget(
                   onSelect(place)
                   expanded = false
                 },
-               modifier = Modifier.testTag("item-${place.place.id}"))
+                modifier = Modifier.testTag("item-${place.place.id}"))
           }
         }
   }

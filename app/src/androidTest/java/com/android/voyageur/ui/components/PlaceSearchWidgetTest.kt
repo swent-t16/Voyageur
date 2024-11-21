@@ -18,52 +18,43 @@ import org.mockito.kotlin.any
 
 class PlaceSearchWidgetTest {
 
-    @get:Rule
-    val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createComposeRule()
 
-    private lateinit var placesViewModel: PlacesViewModel
-    private lateinit var placesRepository: PlacesRepository
+  private lateinit var placesViewModel: PlacesViewModel
+  private lateinit var placesRepository: PlacesRepository
 
+  @Before
+  fun setUp() {
+    placesRepository = Mockito.mock(PlacesRepository::class.java)
+    placesViewModel = PlacesViewModel(placesRepository)
+  }
 
-    @Before
-    fun setUp() {
-        placesRepository = Mockito.mock(PlacesRepository::class.java)
-        placesViewModel = PlacesViewModel(placesRepository)
+  @Test
+  fun testInitialState() {
+    `when`(placesRepository.searchPlaces(any(), any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (List<Place>) -> Unit
+      onSuccess(emptyList())
+    }
+    composeTestRule.setContent {
+      PlaceSearchWidget(placesViewModel = placesViewModel, onSelect = {})
     }
 
-    @Test
-    fun testInitialState() {
-        `when`(placesRepository.searchPlaces(any(), any(), any(), any())).thenAnswer {
-            val onSuccess = it.arguments[1] as (List<Place>) -> Unit
-            onSuccess(emptyList())
-        }
-        composeTestRule.setContent {
-            PlaceSearchWidget(
-                placesViewModel = placesViewModel,
-                onSelect = {}
-            )
-        }
+    composeTestRule.onNodeWithTag("searchTextField").assertIsDisplayed()
+  }
 
-        composeTestRule.onNodeWithTag("searchTextField").assertIsDisplayed()
+  @Test
+  fun testSearch() {
+    val place = CustomPlace(Place.builder().setName("Test Place").build(), emptyList())
+    val searchedPlaces = MutableStateFlow(listOf(place))
+    `when`(placesRepository.searchPlaces(any(), any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (List<CustomPlace>) -> Unit
+      onSuccess(searchedPlaces.value)
+    }
+    composeTestRule.setContent {
+      PlaceSearchWidget(placesViewModel = placesViewModel, onSelect = {})
     }
 
-    @Test
-    fun testSearch() {
-        val place = CustomPlace(Place.builder().setName("Test Place").build(), emptyList())
-        val searchedPlaces = MutableStateFlow(listOf(place))
-        `when`(placesRepository.searchPlaces(any(), any(), any(), any())).thenAnswer {
-            val onSuccess = it.arguments[1] as (List<CustomPlace>) -> Unit
-            onSuccess(searchedPlaces.value)
-        }
-        composeTestRule.setContent {
-            PlaceSearchWidget(
-                placesViewModel = placesViewModel,
-                onSelect = {}
-            )
-        }
-
-        composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test")
-        composeTestRule.onNodeWithTag("searchDropdown").assertIsDisplayed()
-    }
-
+    composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test")
+    composeTestRule.onNodeWithTag("searchDropdown").assertIsDisplayed()
+  }
 }
