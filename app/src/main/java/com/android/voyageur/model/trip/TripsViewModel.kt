@@ -1,6 +1,7 @@
 package com.android.voyageur.model.trip
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.android.voyageur.model.activity.Activity
@@ -10,7 +11,6 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import java.time.LocalDate
 import java.util.UUID
-import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -91,7 +91,10 @@ open class TripsViewModel(
   }
 
   fun deleteTripById(id: String, onSuccess: () -> Unit = {}) {
-    tripsRepository.deleteTripById(id = id, onSuccess = { getTrips(onSuccess) }, onFailure = {})
+    tripsRepository.deleteTripById(
+        id = id,
+        onSuccess = { getTrips(onSuccess) },
+        onFailure = { exception -> Log.e("TripsViewModel", "Failed to delete trip", exception) })
   }
 
   fun updateTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
