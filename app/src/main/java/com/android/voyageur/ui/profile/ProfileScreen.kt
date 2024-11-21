@@ -27,6 +27,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -165,13 +166,15 @@ fun ExpandableFriendReqMenu(
           modifier = Modifier.fillMaxWidth(),
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = "${friendRequests.size} Pending Friend Requests", color = Color.DarkGray)
+            Text(
+                text = "${friendRequests.size} Pending Friend Requests",
+                color = MaterialTheme.colorScheme.onSurface)
 
             IconButton(onClick = { expanded = true }) {
               Icon(
                   imageVector = Icons.Default.KeyboardArrowDown,
                   contentDescription = "Expand",
-                  tint = Color.Gray)
+                  tint = MaterialTheme.colorScheme.onSurface)
             }
           }
     }
@@ -183,38 +186,44 @@ fun ExpandableFriendReqMenu(
       Card(
           shape = RoundedCornerShape(16.dp),
           modifier = Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(10.dp)) {
-            Column(modifier = Modifier.fillMaxSize().background(Color.White).padding(12.dp)) {
-              // Header and close button
-              Row(
-                  modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(
-                        text = "${friendRequests.size} Pending Friend Requests",
-                    )
+            Column(
+                modifier =
+                    Modifier.fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .padding(12.dp)) {
+                  // Header and close button
+                  Row(
+                      modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                      verticalAlignment = Alignment.CenterVertically,
+                      horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(
+                            text = "${friendRequests.size} Pending Friend Requests",
+                        )
 
-                    // Collapses the menu
-                    IconButton(
-                        onClick = { expanded = false },
-                        modifier = Modifier.testTag("closeButton")) {
-                          Icon(
-                              imageVector = Icons.Default.Close,
-                              contentDescription = "Close",
-                          )
-                        }
-                  }
+                        // Collapses the menu
+                        IconButton(
+                            onClick = { expanded = false },
+                            modifier = Modifier.testTag("closeButton")) {
+                              Icon(
+                                  imageVector = Icons.Default.Close,
+                                  contentDescription = "Close",
+                              )
+                            }
+                      }
 
-              // Scrollable List of FriendRequestItems
-              LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
-                items(friendRequests) { request ->
-                  val fromUser = notificationUsers.find { it.id == request.from }
-                  fromUser?.let {
-                    FriendRequestItem(
-                        friendRequest = request, fromUser = fromUser, userViewModel = userViewModel)
+                  // Scrollable List of FriendRequestItems
+                  LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
+                    items(friendRequests) { request ->
+                      val fromUser = notificationUsers.find { it.id == request.from }
+                      fromUser?.let {
+                        FriendRequestItem(
+                            friendRequest = request,
+                            fromUser = fromUser,
+                            userViewModel = userViewModel)
+                      }
+                    }
                   }
                 }
-              }
-            }
           }
     }
   }

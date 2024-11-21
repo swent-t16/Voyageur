@@ -261,7 +261,8 @@ fun SearchScreen(
                     textStyle =
                         LocalTextStyle.current.copy(
                             fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done))
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    singleLine = true)
               }
 
           // Tabs
