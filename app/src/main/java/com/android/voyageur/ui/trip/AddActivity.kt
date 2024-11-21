@@ -303,7 +303,7 @@ fun AddActivityScreen(
                         showModal = false
                       },
                       onDismiss = { showModal = false },
-                      selectedDate = System.currentTimeMillis())
+                      selectedDate = activityDate ?: System.currentTimeMillis())
                 }
 
                 FlowRow(
