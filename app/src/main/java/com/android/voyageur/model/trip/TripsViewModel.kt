@@ -97,8 +97,9 @@ open class TripsViewModel(
         onFailure = {})
   }
 
-  fun createTrip(trip: Trip, onSuccess: () -> Unit = {}) {
-    tripsRepository.createTrip(trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = {})
+  fun createTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
+    tripsRepository.createTrip(
+        trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = { onFailure(it) })
   }
 
   fun deleteTripById(id: String, onSuccess: () -> Unit = {}) {
@@ -108,11 +109,9 @@ open class TripsViewModel(
         onFailure = { exception -> Log.e("TripsViewModel", "Failed to delete trip", exception) })
   }
 
-  fun updateTrip(trip: Trip, onSuccess: () -> Unit = {}) {
+  fun updateTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
     tripsRepository.updateTrip(
-        trip = trip,
-        onSuccess = { getTrips(onSuccess) },
-        onFailure = { Log.e("Fail", it.message ?: "") })
+        trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = { onFailure(it) })
   }
 
   fun uploadImageToFirebase(uri: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {

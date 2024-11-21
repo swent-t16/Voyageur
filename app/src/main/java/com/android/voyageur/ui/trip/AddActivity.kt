@@ -1,6 +1,7 @@
 package com.android.voyageur.ui.trip
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -85,9 +86,13 @@ fun AddActivityScreen(
   var formattedEndTime =
       if (endTime != null && activityDate != null) timeFormat.format(Date(endTime!!)) else ""
 
+  var isSaving by remember { mutableStateOf(false) }
+
   val keyboardController = LocalSoftwareKeyboardController.current
 
   fun createActivity() {
+    if (isSaving) return // Prevent duplicate saves
+
     fun normalizeToMidnight(date: Date): Date {
       val calendar =
           Calendar.getInstance().apply {
@@ -222,9 +227,11 @@ fun AddActivityScreen(
         }
 
     val updatedTrip = selectedTrip.copy(activities = updatedActivities)
+    isSaving = true
     tripsViewModel.updateTrip(
         updatedTrip,
         onSuccess = {
+          isSaving = false
           /*
               This is a trick to force a recompose, because the reference wouldn't
               change and update the UI.
@@ -232,6 +239,13 @@ fun AddActivityScreen(
           tripsViewModel.selectTrip(Trip())
           tripsViewModel.selectTrip(updatedTrip)
           navigationActions.goBack()
+        },
+        onFailure = { error ->
+          isSaving = false
+          Toast.makeText(
+                  context, "Failed to add/edit activity: ${error.message}", Toast.LENGTH_SHORT)
+              .show()
+          Log.e("AddActivityScreen", "Error adding/editing activity: ${error.message}", error)
         })
   }
 
@@ -443,7 +457,7 @@ fun AddActivityScreen(
 
           Button(
               onClick = { createActivity() },
-              enabled = title.isNotBlank(),
+              enabled = title.isNotBlank() && !isSaving,
               modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("activitySave")) {
                 Text("Save")
               }
