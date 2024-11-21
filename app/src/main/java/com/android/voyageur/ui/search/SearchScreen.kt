@@ -30,7 +30,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.input.InputTransformation.Companion.keyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Place
@@ -446,7 +445,7 @@ fun UserSearchResultItem(
             }
 
         Button(
-            onClick = { userViewModel.addContact(user.id) },
+            onClick = { userViewModel.sendContactRequest(user.id) },
             enabled = !isContactAdded,
             shape = RoundedCornerShape(20.dp),
             colors =

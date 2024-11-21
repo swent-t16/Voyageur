@@ -23,6 +23,7 @@ android {
     }
 
     val placesApiKey = localProperties.getProperty("PLACES_API_KEY") ?: ""
+    val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: ""
 
     defaultConfig {
         applicationId = "com.android.voyageur"
@@ -31,6 +32,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         buildConfigField ("String", "PLACES_API_KEY", "\"${placesApiKey}\"")
+        buildConfigField("String", "GEMINI_API_KEY", "\"${geminiApiKey}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -191,6 +193,7 @@ dependencies {
     implementation(libs.firebase.storage.ktx)
     implementation(libs.androidx.foundation.android)
     implementation(libs.core)
+    implementation(libs.androidx.runtime.livedata)
 
     // Testing Unit
     testImplementation(libs.junit) {
@@ -240,6 +243,19 @@ dependencies {
 
     // For image cropping
     implementation("com.vanniktech:android-image-cropper:4.5.0")
+
+    // for the Google AI client SDK for Android
+    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
+
+    // for calling the Gemini API
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+
+    // for JSON serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+
+
+
+
 }
 
 tasks.withType<Test> {

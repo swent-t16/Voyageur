@@ -97,7 +97,7 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
         if (isContactAdded) {
           userViewModel.removeContact(userData.id)
         } else {
-          userViewModel.addContact(userData.id)
+          userViewModel.sendContactRequest(userData.id)
         }
       })
 }
