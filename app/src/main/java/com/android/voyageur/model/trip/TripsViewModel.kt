@@ -85,7 +85,7 @@ open class TripsViewModel(
         onFailure = {})
   }
 
-  fun createTrip(trip: Trip, onSuccess: () -> Unit = {}) {
+  fun createTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit) {
     tripsRepository.createTrip(trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = {})
   }
 
@@ -93,7 +93,7 @@ open class TripsViewModel(
     tripsRepository.deleteTripById(id = id, onSuccess = { getTrips(onSuccess) }, onFailure = {})
   }
 
-  fun updateTrip(trip: Trip, onSuccess: () -> Unit = {}) {
+  fun updateTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit) {
     tripsRepository.updateTrip(
         trip = trip,
         onSuccess = { getTrips(onSuccess) },

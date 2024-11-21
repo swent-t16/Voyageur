@@ -1,6 +1,7 @@
 package com.android.voyageur.ui.trip
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -238,6 +239,13 @@ fun AddActivityScreen(
           tripsViewModel.selectTrip(Trip())
           tripsViewModel.selectTrip(updatedTrip)
           navigationActions.goBack()
+        },
+        onFailure = { error ->
+          isSaving = false
+          Toast.makeText(
+                  context, "Failed to add/edit activity: ${error.message}", Toast.LENGTH_SHORT)
+              .show()
+          Log.e("AddActivityScreen", "Error adding/editing activity: ${error.message}", error)
         })
   }
 

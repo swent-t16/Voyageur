@@ -217,6 +217,12 @@ fun AddTripScreen(
           onSuccess = {
             isSaving = false
             Toast.makeText(context, "Trip created successfully!", Toast.LENGTH_SHORT).show()
+          },
+          onFailure = { error ->
+            isSaving = false
+            Toast.makeText(context, "Failed to create trip: ${error.message}", Toast.LENGTH_SHORT)
+                .show()
+            Log.e("AddTripScreen", "Error creating trip: ${error.message}", error)
           })
       navigationActions.goBack()
     } else {
@@ -233,6 +239,12 @@ fun AddTripScreen(
             tripsViewModel.selectTrip(Trip())
             tripsViewModel.selectTrip(trip)
             onUpdate()
+          },
+          onFailure = { error ->
+            isSaving = false
+            Toast.makeText(context, "Failed to update trip: ${error.message}", Toast.LENGTH_SHORT)
+                .show()
+            Log.e("AddTripScreen", "Error updating trip: ${error.message}", error)
           })
     }
   }
