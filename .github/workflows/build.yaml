@@ -62,7 +62,7 @@ jobs:
       - name: Access GEMINI_API_KEY
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: echo "GEMINI_API_KEY=\${{ secrets.GEMINI_API_KEY }}" > ./local.properties
+        run: echo "GEMINI_API_KEY=\${{ secrets.GEMINI_API_KEY }}" >> ./local.properties
 
       - name: Build APK
         run: |
