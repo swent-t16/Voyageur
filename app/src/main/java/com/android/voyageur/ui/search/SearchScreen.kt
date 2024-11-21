@@ -445,31 +445,34 @@ fun UserSearchResultItem(
                   modifier = Modifier.testTag("userUsername_${user.id}"))
             }
 
-        Button(
-            onClick = { userViewModel.addContact(user.id) },
-            enabled = !isContactAdded,
-            shape = RoundedCornerShape(20.dp),
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor =
-                        if (isContactAdded) MaterialTheme.colorScheme.surfaceVariant
-                        else MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant),
-            modifier =
-                Modifier.width(100.dp) // Fixed width for the button
-                    .height(40.dp)
-                    .testTag("addContactButton")) {
-              Text(
-                  text = if (isContactAdded) "Added" else "Add",
-                  color =
-                      if (isContactAdded) MaterialTheme.colorScheme.onSurfaceVariant
-                      else MaterialTheme.colorScheme.onPrimary,
-                  fontSize = 14.sp,
-                  maxLines = 1,
-                  textAlign = TextAlign.Center,
-                  modifier = Modifier.fillMaxWidth())
-            }
+      Button(
+          onClick = {
+              if (isContactAdded) {
+                  userViewModel.removeContact(user.id) // Remove the contact if already added
+              } else {
+                  userViewModel.addContact(user.id) // Add the contact if not added
+              }
+          },
+          colors = ButtonDefaults.buttonColors(
+              containerColor = if (isContactAdded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+          ),
+          shape = RoundedCornerShape(20.dp),
+          modifier = Modifier
+              .width(100.dp) // Fixed width for the button
+              .height(40.dp)
+              .testTag("addRemoveContactButton")
+      ) {
+          Text(
+              text = if (isContactAdded) "Remove" else "Add",
+              color = MaterialTheme.colorScheme.onPrimary,
+              fontSize = 14.sp,
+              maxLines = 1,
+              textAlign = TextAlign.Center,
+              modifier = Modifier.fillMaxWidth()
+          )
       }
+
+  }
 }
 
 /**

@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +28,7 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.profile.interests.InterestChipEditable
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
   val user by userViewModel.user.collectAsState()
@@ -66,6 +67,19 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
   }
 
   Scaffold(
+      topBar = {
+          TopAppBar(
+              title = { Text("Edit Profile") },
+              navigationIcon = {
+                  IconButton(onClick = { navigationActions.navigateTo(Route.PROFILE) }) {
+                      Icon(
+                          imageVector = Icons.Default.ArrowBack,
+                          contentDescription = "Back"
+                      )
+                  }
+              }
+          )
+      },
       bottomBar = {
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
