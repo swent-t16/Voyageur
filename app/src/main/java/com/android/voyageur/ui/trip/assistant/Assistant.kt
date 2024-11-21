@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,7 +31,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.android.voyageur.model.activity.Activity
@@ -49,6 +53,8 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
   val uiState by tripsViewModel.uiState.collectAsState()
   var prompt by rememberSaveable { mutableStateOf("") }
   var activities by remember { mutableStateOf(emptyList<Activity>()) }
+
+  val keyboardController = LocalSoftwareKeyboardController.current
 
   val trip = tripsViewModel.selectedTrip.value
   if (trip == null) {
@@ -70,7 +76,17 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
                     Modifier.testTag("AIRequestTextField")
                         .weight(0.8f)
                         .padding(end = 16.dp)
-                        .align(Alignment.CenterVertically))
+                        .align(Alignment.CenterVertically),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                keyboardActions =
+                    KeyboardActions(
+                        onDone = {
+                          keyboardController?.hide()
+                          if (uiState !is UiState.Loading) {
+                            tripsViewModel.sendActivitiesPrompt(trip, prompt)
+                          }
+                        }),
+                singleLine = true)
             Button(
                 onClick = { tripsViewModel.sendActivitiesPrompt(trip, prompt) },
                 enabled = uiState !is UiState.Loading, // Disable the button during loading
