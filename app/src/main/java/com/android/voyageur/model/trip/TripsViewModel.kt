@@ -1,7 +1,6 @@
 package com.android.voyageur.model.trip
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.android.voyageur.model.activity.Activity
@@ -86,7 +85,8 @@ open class TripsViewModel(
   }
 
   fun createTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit) {
-    tripsRepository.createTrip(trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = {})
+    tripsRepository.createTrip(
+        trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = { onFailure(it) })
   }
 
   fun deleteTripById(id: String, onSuccess: () -> Unit = {}) {
@@ -95,9 +95,7 @@ open class TripsViewModel(
 
   fun updateTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit) {
     tripsRepository.updateTrip(
-        trip = trip,
-        onSuccess = { getTrips(onSuccess) },
-        onFailure = { Log.e("Fail", it.message ?: "") })
+        trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = { onFailure(it) })
   }
 
   fun uploadImageToFirebase(uri: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
