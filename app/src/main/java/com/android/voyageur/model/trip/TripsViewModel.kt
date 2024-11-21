@@ -90,7 +90,10 @@ open class TripsViewModel(
   }
 
   fun deleteTripById(id: String, onSuccess: () -> Unit = {}) {
-    tripsRepository.deleteTripById(id = id, onSuccess = { getTrips(onSuccess) }, onFailure = {})
+    tripsRepository.deleteTripById(
+        id = id,
+        onSuccess = { getTrips(onSuccess) },
+        onFailure = { exception -> Log.e("TripsViewModel", "Failed to delete trip", exception) })
   }
 
   fun updateTrip(trip: Trip, onSuccess: () -> Unit = {}) {
