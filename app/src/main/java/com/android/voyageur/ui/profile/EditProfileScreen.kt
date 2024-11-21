@@ -68,17 +68,13 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
 
   Scaffold(
       topBar = {
-          TopAppBar(
-              title = { Text("Edit Profile") },
-              navigationIcon = {
-                  IconButton(onClick = { navigationActions.navigateTo(Route.PROFILE) }) {
-                      Icon(
-                          imageVector = Icons.Default.ArrowBack,
-                          contentDescription = "Back"
-                      )
-                  }
+        TopAppBar(
+            title = { Text("Edit Profile") },
+            navigationIcon = {
+              IconButton(onClick = { navigationActions.navigateTo(Route.PROFILE) }) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
               }
-          )
+            })
       },
       bottomBar = {
         BottomNavigationMenu(
