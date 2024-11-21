@@ -85,9 +85,13 @@ fun AddActivityScreen(
   var formattedEndTime =
       if (endTime != null && activityDate != null) timeFormat.format(Date(endTime!!)) else ""
 
+  var isSaving by remember { mutableStateOf(false) }
+
   val keyboardController = LocalSoftwareKeyboardController.current
 
   fun createActivity() {
+    if (isSaving) return // Prevent duplicate saves
+
     fun normalizeToMidnight(date: Date): Date {
       val calendar =
           Calendar.getInstance().apply {
@@ -222,9 +226,11 @@ fun AddActivityScreen(
         }
 
     val updatedTrip = selectedTrip.copy(activities = updatedActivities)
+    isSaving = true
     tripsViewModel.updateTrip(
         updatedTrip,
         onSuccess = {
+          isSaving = false
           /*
               This is a trick to force a recompose, because the reference wouldn't
               change and update the UI.
@@ -443,7 +449,7 @@ fun AddActivityScreen(
 
           Button(
               onClick = { createActivity() },
-              enabled = title.isNotBlank(),
+              enabled = title.isNotBlank() && !isSaving,
               modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("activitySave")) {
                 Text("Save")
               }
