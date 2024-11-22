@@ -31,6 +31,23 @@ class FriendRequestRepositoryFirebase(private val db: FirebaseFirestore) : Frien
             }
             .addOnFailureListener { exception -> onFailure(exception) }
   }
+
+  override fun getSentFriendRequests(
+      userId: String,
+      onSuccess: (List<FriendRequest>) -> Unit,
+      onFailure: (Exception) -> Unit
+  ) {
+    if (userId.isEmpty()) onSuccess(emptyList())
+    else
+        db.collection(collectionPath)
+            .whereEqualTo("from", userId)
+            .get()
+            .addOnSuccessListener { documents ->
+              onSuccess(documents.toObjects(FriendRequest::class.java))
+            }
+            .addOnFailureListener { exception -> onFailure(exception) }
+  }
+
   /**
    * @param userId the user for who to fetch the notifications count
    * @param onSuccess callback to execute after successful fetch

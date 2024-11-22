@@ -393,8 +393,14 @@ fun UserSearchResultItem(
     fieldColor: Color,
     navigationActions: NavigationActions
 ) {
-  val isContactAdded =
-      userViewModel.user.collectAsState().value?.contacts?.contains(user.id) ?: false
+  val currentUser by userViewModel.user.collectAsState()
+  val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
+
+  // Determine if the user is already in contacts
+  val isContactAdded = currentUser?.contacts?.contains(user.id) ?: false
+
+  // Determine if there is a pending friend request sent to this user
+  val isRequestPending = sentFriendRequests.any { it.to == user.id }
 
   Row(
       modifier =
@@ -420,51 +426,53 @@ fun UserSearchResultItem(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        Column(
-            modifier =
-                Modifier.weight(1f) // Use weight to allocate remaining space for this column
-                    .padding(end = 8.dp) // Add padding to avoid overlap with the button
-            ) {
-              Text(
-                  text = user.name,
-                  fontSize = 16.sp,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.onSurface,
-                  maxLines = 1,
-                  overflow = TextOverflow.Ellipsis,
-                  modifier = Modifier.testTag("userName_${user.id}"))
+        Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+          Text(
+              text = user.name,
+              fontSize = 16.sp,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onSurface,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+              modifier = Modifier.testTag("userName_${user.id}"))
 
-              Spacer(modifier = Modifier.height(4.dp))
+          Spacer(modifier = Modifier.height(4.dp))
 
-              Text(
-                  text = "@${user.username}",
-                  fontSize = 14.sp,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  maxLines = 1,
-                  overflow = TextOverflow.Ellipsis,
-                  modifier = Modifier.testTag("userUsername_${user.id}"))
-            }
+          Text(
+              text = "@${user.username}",
+              fontSize = 14.sp,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+              modifier = Modifier.testTag("userUsername_${user.id}"))
+        }
 
         Button(
             onClick = {
-              if (isContactAdded) {
-                userViewModel.removeContact(user.id) // Remove the contact if already added
-              } else {
-                userViewModel.addContact(user.id) // Add the contact if not added
+              when {
+                isContactAdded -> userViewModel.removeContact(user.id)
+                !isRequestPending -> userViewModel.addContact(user.id)
+              // Do nothing if request is pending
               }
             },
+            enabled = isContactAdded || !isRequestPending,
             colors =
                 ButtonDefaults.buttonColors(
                     containerColor =
-                        if (isContactAdded) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.primary),
+                        when {
+                          isContactAdded -> MaterialTheme.colorScheme.error
+                          isRequestPending -> MaterialTheme.colorScheme.secondary
+                          else -> MaterialTheme.colorScheme.primary
+                        }),
             shape = RoundedCornerShape(20.dp),
-            modifier =
-                Modifier.width(100.dp) // Fixed width for the button
-                    .height(40.dp)
-                    .testTag("addRemoveContactButton")) {
+            modifier = Modifier.width(100.dp).height(40.dp).testTag("addRemoveContactButton")) {
               Text(
-                  text = if (isContactAdded) "Remove" else "Add",
+                  text =
+                      when {
+                        isContactAdded -> "Remove"
+                        isRequestPending -> "Requested"
+                        else -> "Add"
+                      },
                   color = MaterialTheme.colorScheme.onPrimary,
                   fontSize = 14.sp,
                   maxLines = 1,

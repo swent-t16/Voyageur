@@ -53,9 +53,11 @@ fun UserProfileContent(
     signedInUserId: String,
     showEditAndSignOutButtons: Boolean = false,
     isContactAdded: Boolean = false,
+    isRequestPending: Boolean = false,
     onSignOut: (() -> Unit)? = null,
     onEdit: (() -> Unit)? = null,
-    onAddOrRemoveContact: (() -> Unit)? = null
+    onAddContact: (() -> Unit)? = null,
+    onRemoveContact: (() -> Unit)? = null
 ) {
   Column(
       modifier = Modifier.fillMaxSize().padding(16.dp).testTag("userProfileContent"),
@@ -122,16 +124,31 @@ fun UserProfileContent(
             Button(onClick = onSignOut, modifier = Modifier.testTag("signOutButton")) {
               Text(text = "Sign Out")
             }
-          } else if (userData.id != signedInUserId && onAddOrRemoveContact != null) {
+          } else if (userData.id != signedInUserId) {
             Button(
-                onClick = onAddOrRemoveContact,
+                onClick = {
+                  when {
+                    isContactAdded -> onRemoveContact?.invoke()
+                    !isRequestPending -> onAddContact?.invoke()
+                  }
+                },
+                enabled = isContactAdded || !isRequestPending,
                 colors =
                     ButtonDefaults.buttonColors(
                         containerColor =
-                            if (isContactAdded) MaterialTheme.colorScheme.error
-                            else MaterialTheme.colorScheme.primary),
+                            when {
+                              isContactAdded -> MaterialTheme.colorScheme.error
+                              isRequestPending -> MaterialTheme.colorScheme.secondary
+                              else -> MaterialTheme.colorScheme.primary
+                            }),
                 modifier = Modifier.testTag("userProfileAddRemoveContactButton")) {
-                  Text(text = if (isContactAdded) "Remove from contacts" else "Add to contacts")
+                  Text(
+                      text =
+                          when {
+                            isContactAdded -> "Remove from contacts"
+                            isRequestPending -> "Requested"
+                            else -> "Add to contacts"
+                          })
                 }
           }
         }

@@ -60,6 +60,10 @@ open class UserViewModel(
   val notificationCount: StateFlow<Long> = _notificationCount
   val _friendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
   val friendRequests: StateFlow<List<FriendRequest>> = _friendRequests
+
+  private val _sentFriendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
+  val sentFriendRequests: StateFlow<List<FriendRequest>> = _sentFriendRequests
+
   val isLoading: StateFlow<Boolean> = _isLoading
   var shouldFetch = true
 
@@ -72,6 +76,8 @@ open class UserViewModel(
         val firebaseUser = auth.currentUser
         if (firebaseUser != null) {
           loadUser(firebaseUser.uid, firebaseUser)
+          // Fetch sent friend requests
+          getSentFriendRequests()
         } else {
           _user.value = null
           _isLoading.value = false
@@ -142,8 +148,8 @@ open class UserViewModel(
                 id = friendRequestRepository.getNewId(),
                 from = Firebase.auth.uid.orEmpty(),
                 to = userId),
-        {},
-        {})
+        onSuccess = { getSentFriendRequests() },
+        onFailure = {})
   }
 
   /**
@@ -156,6 +162,8 @@ open class UserViewModel(
     if (contacts.remove(userId)) {
       val updatedUser = user.value!!.copy(contacts = contacts.toList())
       updateUser(updatedUser)
+      // Reload the user to update the state
+      loadUser(updatedUser.id)
     }
   }
 
@@ -283,6 +291,17 @@ open class UserViewModel(
           onSuccess(it)
         },
         { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
+  }
+
+  fun getSentFriendRequests(onSuccess: (List<FriendRequest>) -> Unit = {}) {
+    val userId = Firebase.auth.uid.orEmpty()
+    friendRequestRepository.getSentFriendRequests(
+        userId,
+        onSuccess = { requests ->
+          _sentFriendRequests.value = requests
+          onSuccess(requests)
+        },
+        onFailure = { exception -> Log.e("USER_VIEW_MODEL", exception.message.orEmpty()) })
   }
 
   /**
