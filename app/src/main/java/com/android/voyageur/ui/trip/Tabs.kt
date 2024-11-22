@@ -8,7 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.android.voyageur.model.trip.TripsViewModel
@@ -68,7 +67,7 @@ fun TopTabs(
     // Display content based on selected tab
     when (navigationActions.getNavigationState().currentTabIndexForTrip) {
       0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel)
-      1 -> ActivitiesScreen(selectedTrip, navigationActions, userViewModel, tripsViewModel)
+      1 -> ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
       2 ->
           SettingsScreen(
               selectedTrip,

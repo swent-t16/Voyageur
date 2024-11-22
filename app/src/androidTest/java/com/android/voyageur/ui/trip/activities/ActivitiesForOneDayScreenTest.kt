@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.Trip
@@ -16,6 +17,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 
 class ActivitiesForOneDayScreenTest {
@@ -56,8 +58,8 @@ class ActivitiesForOneDayScreenTest {
     val selectedTripFlow = MutableStateFlow(sampleTrip)
     `when`(tripsViewModel.selectedTrip).thenReturn(selectedTripFlow)
     val selectedDayFlow = MutableStateFlow<LocalDate?>(LocalDate.of(2022, 1, 1))
-
     `when`(tripsViewModel.selectedDay).thenReturn(selectedDayFlow)
+    `when`(tripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
   }
 
   @Test
@@ -83,5 +85,29 @@ class ActivitiesForOneDayScreenTest {
 
     composeTestRule.setContent { ActivitiesForOneDayScreen(tripsViewModel, navigationActions) }
     composeTestRule.onNodeWithText("You have no activities yet.").assertIsDisplayed()
+  }
+
+  @Test
+  fun clickingDeleteButton_displaysDeleteActivityAlertDialog() {
+    composeTestRule.setContent { ActivitiesForOneDayScreen(tripsViewModel, navigationActions) }
+
+    composeTestRule.onNodeWithTag("expandIcon_${sampleTrip.activities[1].title}").performClick()
+    composeTestRule.onNodeWithTag("deleteIcon_${sampleTrip.activities[1].title}").performClick()
+    composeTestRule.onNodeWithTag("deleteActivityAlertDialog").assertIsDisplayed()
+  }
+
+  @Test
+  fun clickingDeleteButton_removesActivityFromTrip() {
+    composeTestRule.setContent { ActivitiesForOneDayScreen(tripsViewModel, navigationActions) }
+
+    // test with final activity
+    composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[1].title}").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("expandIcon_${sampleTrip.activities[1].title}").performClick()
+    composeTestRule.onNodeWithTag("deleteIcon_${sampleTrip.activities[1].title}").performClick()
+    composeTestRule.onNodeWithTag("confirmDeleteButton").performClick()
+    composeTestRule
+        .onNodeWithTag("cardItem_${sampleTrip.activities[1].title}")
+        .assertIsNotDisplayed()
+    verify(tripsViewModel).removeActivityFromTrip(sampleTrip.activities[1])
   }
 }

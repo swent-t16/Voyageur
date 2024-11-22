@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.trip.schedule
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +43,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun ByDayScreen(
     tripsViewModel: TripsViewModel,
@@ -60,7 +62,7 @@ fun ByDayScreen(
             userViewModel = userViewModel)
       },
       content = { pd ->
-        val tripActivities = trip.activities
+        val tripActivities = tripsViewModel.getActivitiesForSelectedTrip()
         val groupedActivities =
             groupActivitiesByDate(tripActivities)
                 .mapValues { (_, activities) ->
