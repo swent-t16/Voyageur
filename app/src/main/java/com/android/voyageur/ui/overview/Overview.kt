@@ -65,11 +65,14 @@ import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.utils.ConnectionState
+import com.android.voyageur.utils.connectivityState
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
@@ -78,6 +81,9 @@ fun OverviewScreen(
 ) {
   val trips by tripsViewModel.trips.collectAsState()
   val isLoading by userViewModel.isLoading.collectAsState()
+  val status by connectivityState()
+  val isConnected = status === ConnectionState.Available
+
   Log.e("RECOMPOSE", "OverviewScreen recomposed")
 
   LaunchedEffect(trips) {
@@ -115,6 +121,8 @@ fun OverviewScreen(
             userViewModel)
       },
       content = { pd ->
+        // if the device is not conencted to internet show a text
+
         if (isLoading) {
           CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
         } else {
