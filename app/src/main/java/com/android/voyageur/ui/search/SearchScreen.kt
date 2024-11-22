@@ -451,7 +451,7 @@ fun UserSearchResultItem(
             onClick = {
               when {
                 isContactAdded -> userViewModel.removeContact(user.id)
-                !isRequestPending -> userViewModel.addContact(user.id)
+                !isRequestPending -> userViewModel.sendContactRequest(user.id)
               // Do nothing if request is pending
               }
             },

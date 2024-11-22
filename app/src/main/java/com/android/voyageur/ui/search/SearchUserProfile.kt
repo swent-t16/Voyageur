@@ -97,6 +97,6 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
       signedInUserId = signedInUserId,
       isContactAdded = isContactAdded,
       isRequestPending = isRequestPending,
-      onAddContact = { userViewModel.addContact(userData.id) },
+      onAddContact = { userViewModel.sendContactRequest(userData.id) },
       onRemoveContact = { userViewModel.removeContact(userData.id) })
 }

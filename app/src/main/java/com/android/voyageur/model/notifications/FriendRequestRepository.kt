@@ -22,7 +22,7 @@ interface FriendRequestRepository {
       onSuccess: (List<FriendRequest>) -> Unit,
       onFailure: (Exception) -> Unit
   )
-  
+
   fun deleteRequest(reqId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit)
 
   fun getNewId(): String
