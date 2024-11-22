@@ -15,6 +15,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,9 +41,13 @@ fun BottomNavigationMenu(
   val notifications by userViewModel._notificationCount.collectAsState()
   val coroutineScope = rememberCoroutineScope()
   var isPolling by remember { mutableStateOf(true) }
-
-  if (Firebase.auth.uid != null) {
-    userViewModel.getNotificationsCount { if (it > 0) userViewModel.getFriendRequests {} }
+  LaunchedEffect(Unit) {
+    if (Firebase.auth.uid != null) {
+      userViewModel.getNotificationsCount {
+        if (it > 0 || it != userViewModel.friendRequests.value.size.toLong())
+            userViewModel.getFriendRequests {}
+      }
+    }
   }
   NavigationBar(
       modifier = Modifier.fillMaxWidth().height(60.dp).testTag("bottomNavigationMenu"),

@@ -1,6 +1,7 @@
 package com.android.voyageur.ui.overview
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -77,6 +78,8 @@ fun OverviewScreen(
 ) {
   val trips by tripsViewModel.trips.collectAsState()
   val isLoading by userViewModel.isLoading.collectAsState()
+  Log.e("RECOMPOSE", "OverviewScreen recomposed")
+
   LaunchedEffect(trips) {
     if (trips.isNotEmpty()) {
       userViewModel.getUsersByIds(
