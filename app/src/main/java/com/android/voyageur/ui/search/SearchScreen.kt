@@ -105,276 +105,276 @@ fun SearchScreen(
     navigationActions: NavigationActions,
     requirePermission: Boolean = true
 ) {
-  var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
-  var isMapView by remember { mutableStateOf(false) }
-  var userLocation by remember { mutableStateOf<LatLng?>(null) }
-  val searchedUsers by userViewModel.searchedUsers.collectAsState()
-  val searchedPlaces by placesViewModel.searchedPlaces.collectAsState()
-  var locationCallback: LocationCallback? = null
-  var fusedLocationClient: FusedLocationProviderClient? = null
-  userViewModel.searchUsers(searchQuery.text)
-  placesViewModel.searchPlaces(searchQuery.text, userLocation)
-  val context = LocalContext.current
-  var denied by remember { mutableStateOf(false) }
-  var showLocationDialog by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    var isMapView by remember { mutableStateOf(false) }
+    var userLocation by remember { mutableStateOf<LatLng?>(null) }
+    val searchedUsers by userViewModel.searchedUsers.collectAsState()
+    val searchedPlaces by placesViewModel.searchedPlaces.collectAsState()
+    var locationCallback: LocationCallback? = null
+    var fusedLocationClient: FusedLocationProviderClient? = null
+    userViewModel.searchUsers(searchQuery.text)
+    placesViewModel.searchPlaces(searchQuery.text, userLocation)
+    val context = LocalContext.current
+    var denied by remember { mutableStateOf(false) }
+    var showLocationDialog by remember { mutableStateOf(false) }
 
-  fusedLocationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
+    fusedLocationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
 
-  fun isLocationEnabled(context: Context): Boolean {
-    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-        locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-  }
-
-  locationCallback =
-      object : LocationCallback() {
-        override fun onLocationResult(p0: LocationResult) {
-          for (lo in p0.locations) {
-            if (userLocation == null) userLocation = LatLng(lo.latitude, lo.longitude)
-          }
-        }
-      }
-
-  fun startLocationUpdates() {
-    locationCallback?.let {
-      val locationRequest =
-          LocationRequest.create().apply {
-            interval = 1000
-            fastestInterval = 500
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-          }
-      fusedLocationClient?.requestLocationUpdates(locationRequest, it, Looper.getMainLooper())
+    fun isLocationEnabled(context: Context): Boolean {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
-  }
 
-  val launcherMultiplePermissions =
-      rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-          permissionsMap ->
-        val areGranted = permissionsMap.values.reduce { acc, next -> acc && next }
-        if (areGranted) {
-          startLocationUpdates()
-          Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
-        } else {
-          denied = true
-          Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+    locationCallback =
+        object : LocationCallback() {
+            override fun onLocationResult(p0: LocationResult) {
+                for (lo in p0.locations) {
+                    if (userLocation == null) userLocation = LatLng(lo.latitude, lo.longitude)
+                }
+            }
         }
-      }
 
-  val permissions =
-      arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
+    fun startLocationUpdates() {
+        locationCallback?.let {
+            val locationRequest =
+                LocationRequest.create().apply {
+                    interval = 1000
+                    fastestInterval = 500
+                    priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+                }
+            fusedLocationClient?.requestLocationUpdates(locationRequest, it, Looper.getMainLooper())
+        }
+    }
 
-  if (!isLocationEnabled(LocalContext.current) && !denied) {
-    showLocationDialog = true
-  }
-
-  if (showLocationDialog && !denied) {
-    AlertDialog(
-        onDismissRequest = { showLocationDialog = false },
-        title = { Text(text = "Enable Location Services") },
-        text = {
-          Text(
-              text =
-                  "Location services are required for this feature. Please enable them in your device settings.")
-        },
-        confirmButton = {
-          TextButton(
-              onClick = {
-                showLocationDialog = false
-                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-              }) {
-                Text(text = "Open Settings")
-              }
-        },
-        dismissButton = {
-          TextButton(
-              onClick = {
-                showLocationDialog = false
+    val launcherMultiplePermissions =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+                permissionsMap ->
+            val areGranted = permissionsMap.values.reduce { acc, next -> acc && next }
+            if (areGranted) {
+                startLocationUpdates()
+                Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
+            } else {
                 denied = true
-              }) {
-                Text(text = "Cancel")
-              }
-        })
-  }
-  LaunchedEffect(navigationActions.getNavigationState().currentTabForSearch) {
-    if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES &&
-        requirePermission) {
-      if (permissions.all {
-        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
-      }) {
-        startLocationUpdates()
-      } else {
-        launcherMultiplePermissions.launch(permissions)
-      }
-    }
-  }
-
-  Scaffold(
-      modifier = Modifier.testTag("searchScreen"),
-      bottomBar = {
-        BottomNavigationMenu(
-            onTabSelect = { route -> navigationActions.navigateTo(route) },
-            tabList = LIST_TOP_LEVEL_DESTINATION,
-            selectedItem = navigationActions.currentRoute(),
-            userViewModel)
-      },
-      floatingActionButton = {
-        if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {
-          FloatingActionButton(
-              modifier = Modifier.testTag("toggleMapViewButton"),
-              onClick = { isMapView = !isMapView }) {
-                Icon(
-                    imageVector = if (isMapView) Icons.Default.List else Icons.Default.Place,
-                    contentDescription = if (isMapView) "Show List" else "Show Map")
-              }
+                Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+            }
         }
-      },
-      floatingActionButtonPosition = FabPosition.Start) { pd ->
+
+    val permissions =
+        arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
+
+    if (!isLocationEnabled(LocalContext.current) && !denied) {
+        showLocationDialog = true
+    }
+
+    if (showLocationDialog && !denied) {
+        AlertDialog(
+            onDismissRequest = { showLocationDialog = false },
+            title = { Text(text = "Enable Location Services") },
+            text = {
+                Text(
+                    text =
+                    "Location services are required for this feature. Please enable them in your device settings.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLocationDialog = false
+                        context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    }) {
+                    Text(text = "Open Settings")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showLocationDialog = false
+                        denied = true
+                    }) {
+                    Text(text = "Cancel")
+                }
+            })
+    }
+    LaunchedEffect(navigationActions.getNavigationState().currentTabForSearch) {
+        if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES &&
+            requirePermission) {
+            if (permissions.all {
+                    ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+                }) {
+                startLocationUpdates()
+            } else {
+                launcherMultiplePermissions.launch(permissions)
+            }
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.testTag("searchScreen"),
+        bottomBar = {
+            BottomNavigationMenu(
+                onTabSelect = { route -> navigationActions.navigateTo(route) },
+                tabList = LIST_TOP_LEVEL_DESTINATION,
+                selectedItem = navigationActions.currentRoute(),
+                userViewModel)
+        },
+        floatingActionButton = {
+            if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {
+                FloatingActionButton(
+                    modifier = Modifier.testTag("toggleMapViewButton"),
+                    onClick = { isMapView = !isMapView }) {
+                    Icon(
+                        imageVector = if (isMapView) Icons.Default.List else Icons.Default.Place,
+                        contentDescription = if (isMapView) "Show List" else "Show Map")
+                }
+            }
+        },
+        floatingActionButtonPosition = FabPosition.Start) { pd ->
         val textFieldsColours = MaterialTheme.colorScheme.surfaceVariant
 
         Column(modifier = Modifier.padding(pd).fillMaxSize().testTag("searchScreenContent")) {
-          Spacer(modifier = Modifier.height(24.dp))
-          Text(
-              text = "Search",
-              style = MaterialTheme.typography.bodyLarge,
-              fontSize = 24.sp,
-              modifier = Modifier.padding(start = 16.dp, bottom = 8.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Search",
+                style = MaterialTheme.typography.bodyLarge,
+                fontSize = 24.sp,
+                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp))
 
-          // Search bar
-          Row(
-              modifier =
-                  Modifier.padding(horizontal = 16.dp)
-                      .fillMaxWidth()
-                      .background(color = textFieldsColours, shape = MaterialTheme.shapes.medium)
-                      .padding(8.dp)
-                      .testTag("searchBar"),
-              verticalAlignment = Alignment.CenterVertically) {
+            // Search bar
+            Row(
+                modifier =
+                Modifier.padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+                    .background(color = textFieldsColours, shape = MaterialTheme.shapes.medium)
+                    .padding(8.dp)
+                    .testTag("searchBar"),
+                verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Search, contentDescription = "Search Icon")
                 Spacer(modifier = Modifier.width(8.dp))
                 BasicTextField(
                     value = searchQuery,
                     onValueChange = {
-                      searchQuery = it
-                      userViewModel.setQuery(searchQuery.text)
-                      placesViewModel.setQuery(searchQuery.text, userLocation)
+                        searchQuery = it
+                        userViewModel.setQuery(searchQuery.text)
+                        placesViewModel.setQuery(searchQuery.text, userLocation)
                     },
                     modifier = Modifier.weight(1f).padding(8.dp).testTag("searchTextField"),
                     textStyle =
-                        LocalTextStyle.current.copy(
-                            fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface),
+                    LocalTextStyle.current.copy(
+                        fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     singleLine = true)
-              }
-
-          // Tabs
-          TabRow(
-              modifier = Modifier.testTag("tabRow"),
-              selectedTabIndex =
-                  navigationActions.getNavigationState().currentTabForSearch.ordinal) {
-                FilterType.values().forEachIndexed { index, filterType ->
-                  Tab(
-                      modifier = Modifier.testTag("filterButton_${filterType.name}"),
-                      selected =
-                          navigationActions.getNavigationState().currentTabForSearch == filterType,
-                      onClick = {
-                        navigationActions.getNavigationState().currentTabForSearch = filterType
-                      },
-                      text = { Text(filterType.name) })
-                }
-              }
-
-          Spacer(modifier = Modifier.height(16.dp))
-
-          Text(
-              text = "Search results",
-              fontSize = 18.sp,
-              modifier = Modifier.padding(horizontal = 16.dp))
-
-          // Search results based on the selected tab
-          if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {
-            if (isMapView) {
-              var cameraPositionState = rememberCameraPositionState {
-                position =
-                    com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
-                        userLocation ?: LatLng(37.7749, -122.4194), // Default to SF
-                        12f)
-              }
-              LaunchedEffect(userLocation) {
-                cameraPositionState.position =
-                    com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
-                        userLocation ?: LatLng(37.7749, -122.4194), // Default to SF
-                        12f)
-                if (userLocation != null)
-                    fusedLocationClient?.removeLocationUpdates(locationCallback)
-              }
-              if (userLocation != null || !requirePermission || denied)
-                  GoogleMap(
-                      properties = MapProperties(isMyLocationEnabled = userLocation != null),
-                      modifier =
-                          Modifier.padding(16.dp)
-                              .clip(RoundedCornerShape(16.dp))
-                              .testTag("googleMap"),
-                      cameraPositionState = cameraPositionState) {
-                        searchedPlaces.forEach { customPlace ->
-                          customPlace.place.latLng?.let {
-                            Marker(
-                                state = MarkerState(position = it),
-                                title = customPlace.place.displayName ?: "Unknown Place",
-                                snippet = customPlace.place.address ?: "No address")
-                          }
-                        }
-                      }
-              else
-                  Column(
-                      modifier = Modifier.fillMaxSize(),
-                      verticalArrangement = Arrangement.SpaceEvenly,
-                      horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(
-                            strokeWidth = 3.dp, modifier = Modifier.size(40.dp))
-                      }
-            } else {
-              LazyColumn(
-                  modifier =
-                      Modifier.fillMaxSize()
-                          .padding(16.dp)
-                          .background(textFieldsColours, shape = MaterialTheme.shapes.large)
-                          .testTag("searchResultsPlaces")) {
-                    if (searchedPlaces.isEmpty()) {
-                      item { NoResultsFound() }
-                    } else {
-                      items(searchedPlaces) { place ->
-                        PlaceSearchResultItem(
-                            place,
-                            Modifier.clickable {
-                              placesViewModel.selectPlace(place)
-                              navigationActions.navigateTo(Screen.PLACE_DETAILS)
-                            })
-                      }
-                    }
-                  }
             }
-          } else {
-            LazyColumn(
-                modifier =
+
+            // Tabs
+            TabRow(
+                modifier = Modifier.testTag("tabRow"),
+                selectedTabIndex =
+                navigationActions.getNavigationState().currentTabForSearch.ordinal) {
+                FilterType.values().forEachIndexed { index, filterType ->
+                    Tab(
+                        modifier = Modifier.testTag("filterButton_${filterType.name}"),
+                        selected =
+                        navigationActions.getNavigationState().currentTabForSearch == filterType,
+                        onClick = {
+                            navigationActions.getNavigationState().currentTabForSearch = filterType
+                        },
+                        text = { Text(filterType.name) })
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Search results",
+                fontSize = 18.sp,
+                modifier = Modifier.padding(horizontal = 16.dp))
+
+            // Search results based on the selected tab
+            if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {
+                if (isMapView) {
+                    var cameraPositionState = rememberCameraPositionState {
+                        position =
+                            com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
+                                userLocation ?: LatLng(37.7749, -122.4194), // Default to SF
+                                12f)
+                    }
+                    LaunchedEffect(userLocation) {
+                        cameraPositionState.position =
+                            com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
+                                userLocation ?: LatLng(37.7749, -122.4194), // Default to SF
+                                12f)
+                        if (userLocation != null)
+                            fusedLocationClient?.removeLocationUpdates(locationCallback)
+                    }
+                    if (userLocation != null || !requirePermission || denied)
+                        GoogleMap(
+                            properties = MapProperties(isMyLocationEnabled = userLocation != null),
+                            modifier =
+                            Modifier.padding(16.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .testTag("googleMap"),
+                            cameraPositionState = cameraPositionState) {
+                            searchedPlaces.forEach { customPlace ->
+                                customPlace.place.latLng?.let {
+                                    Marker(
+                                        state = MarkerState(position = it),
+                                        title = customPlace.place.displayName ?: "Unknown Place",
+                                        snippet = customPlace.place.address ?: "No address")
+                                }
+                            }
+                        }
+                    else
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.SpaceEvenly,
+                            horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(
+                                strokeWidth = 3.dp, modifier = Modifier.size(40.dp))
+                        }
+                } else {
+                    LazyColumn(
+                        modifier =
+                        Modifier.fillMaxSize()
+                            .padding(16.dp)
+                            .background(textFieldsColours, shape = MaterialTheme.shapes.large)
+                            .testTag("searchResultsPlaces")) {
+                        if (searchedPlaces.isEmpty()) {
+                            item { NoResultsFound() }
+                        } else {
+                            items(searchedPlaces) { place ->
+                                PlaceSearchResultItem(
+                                    place,
+                                    Modifier.clickable {
+                                        placesViewModel.selectPlace(place)
+                                        navigationActions.navigateTo(Screen.PLACE_DETAILS)
+                                    })
+                            }
+                        }
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier =
                     Modifier.fillMaxSize()
                         .padding(16.dp)
                         .background(textFieldsColours, shape = MaterialTheme.shapes.large)
                         .testTag("searchResultsUsers")) {
-                  if (searchedUsers.isEmpty()) {
-                    item { NoResultsFound() }
-                  } else {
-                    items(searchedUsers) { user ->
-                      UserSearchResultItem(
-                          user,
-                          userViewModel = userViewModel,
-                          fieldColor = MaterialTheme.colorScheme.surfaceVariant,
-                          modifier = Modifier.testTag("userItem_${user.id}"),
-                          navigationActions = navigationActions)
+                    if (searchedUsers.isEmpty()) {
+                        item { NoResultsFound() }
+                    } else {
+                        items(searchedUsers) { user ->
+                            UserSearchResultItem(
+                                user,
+                                userViewModel = userViewModel,
+                                fieldColor = MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.testTag("userItem_${user.id}"),
+                                navigationActions = navigationActions)
+                        }
                     }
-                  }
                 }
-          }
+            }
         }
-      }
+    }
 }
 
 /**
@@ -393,99 +393,111 @@ fun UserSearchResultItem(
     fieldColor: Color,
     navigationActions: NavigationActions
 ) {
-  val currentUser by userViewModel.user.collectAsState()
-  val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
+    val currentUser by userViewModel.user.collectAsState()
+    val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
+    // Determine if the user is the currently logged-in user
+    val isCurrentUser = currentUser?.id == user.id
 
-  // Determine if the user is already in contacts
-  var isContactAdded = currentUser?.contacts?.contains(user.id) ?: false
+    // Determine if the user is already in contacts
+    var isContactAdded = currentUser?.contacts?.contains(user.id) ?: false
 
-  // Determine if there is a pending friend request sent to this user
-  var isRequestPending = sentFriendRequests.any { it.to == user.id }
+    // Determine if there is a pending friend request sent to this user
+    var isRequestPending = sentFriendRequests.any { it.to == user.id }
 
-  Row(
-      modifier =
-          modifier
-              .fillMaxWidth()
-              .padding(vertical = 12.dp, horizontal = 16.dp)
-              .clickable {
+    Row(
+        modifier =
+        modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp, horizontal = 16.dp)
+            .clickable {
                 // Navigate to the user profile screen with userId
                 userViewModel.selectUser(user)
                 navigationActions.navigateTo(Screen.SEARCH_USER_PROFILE)
-              } // Make the Row clickable
-              .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp))
-              .padding(16.dp),
-      verticalAlignment = Alignment.CenterVertically) {
+            } // Make the Row clickable
+            .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp))
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically) {
         Image(
             painter = rememberAsyncImagePainter(model = user.profilePicture),
             contentDescription = "${user.name}'s profile picture",
             modifier =
-                Modifier.size(60.dp)
-                    .clip(CircleShape)
-                    .background(fieldColor, shape = CircleShape)
-                    .testTag("userProfilePicture_${user.id}"))
+            Modifier.size(60.dp)
+                .clip(CircleShape)
+                .background(fieldColor, shape = CircleShape)
+                .testTag("userProfilePicture_${user.id}")
+        )
 
         Spacer(modifier = Modifier.width(16.dp))
 
         Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-          Text(
-              text = user.name,
-              fontSize = 16.sp,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onSurface,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-              modifier = Modifier.testTag("userName_${user.id}"))
+            Text(
+                text = user.name,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.testTag("userName_${user.id}")
+            )
 
-          Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-          Text(
-              text = "@${user.username}",
-              fontSize = 14.sp,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-              modifier = Modifier.testTag("userUsername_${user.id}"))
+            Text(
+                text = "@${user.username}",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.testTag("userUsername_${user.id}")
+            )
         }
 
-        Button(
-            onClick = {
-              when {
-                isContactAdded -> userViewModel.removeContact(user.id)
-                isRequestPending -> {
-                  // Remove the friend request
-                  val requestId = userViewModel.getSentRequestId(user.id)
-                  if (requestId != null) {
-                    userViewModel.deleteFriendRequest(requestId)
-                  }
-                }
-                else -> userViewModel.sendContactRequest(user.id)
-              }
-            },
-            enabled = true, // Allow the button to be clickable in all states
-            colors =
+        // Only show the button if the user is not the current user
+        if (!isCurrentUser) {
+            Button(
+                onClick = {
+                    when {
+                        isContactAdded -> userViewModel.removeContact(user.id)
+                        isRequestPending -> {
+                            // Remove the friend request
+                            val requestId = userViewModel.getSentRequestId(user.id)
+                            if (requestId != null) {
+                                userViewModel.deleteFriendRequest(requestId)
+                            }
+                        }
+
+                        else -> userViewModel.sendContactRequest(user.id)
+                    }
+                },
+                enabled = true, // Allow the button to be clickable in all states
+                colors =
                 ButtonDefaults.buttonColors(
                     containerColor =
-                        when {
-                          isContactAdded -> MaterialTheme.colorScheme.error
-                          isRequestPending -> MaterialTheme.colorScheme.secondary
-                          else -> MaterialTheme.colorScheme.primary
-                        }),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.width(100.dp).height(40.dp).testTag("addRemoveContactButton")) {
-              Text(
-                  text =
-                      when {
+                    when {
+                        isContactAdded -> MaterialTheme.colorScheme.error
+                        isRequestPending -> MaterialTheme.colorScheme.secondary
+                        else -> MaterialTheme.colorScheme.primary
+                    }
+                ),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.width(100.dp).height(40.dp).testTag("addRemoveContactButton")
+            ) {
+                Text(
+                    text =
+                    when {
                         isContactAdded -> "Remove"
                         isRequestPending -> "Cancel"
                         else -> "Add"
-                      },
-                  color = MaterialTheme.colorScheme.onPrimary,
-                  fontSize = 14.sp,
-                  maxLines = 1,
-                  textAlign = TextAlign.Center,
-                  modifier = Modifier.fillMaxWidth())
+                    },
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontSize = 14.sp,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-      }
+        }
+    }
 }
 
 /**
@@ -496,80 +508,80 @@ fun UserSearchResultItem(
  */
 @Composable
 fun PlaceSearchResultItem(customPlace: CustomPlace, modifier: Modifier = Modifier) {
-  val place = customPlace.place
-  Row(
-      modifier =
-          modifier
-              .fillMaxWidth()
-              .padding(vertical = 8.dp, horizontal = 16.dp)
-              .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp))
-              .padding(16.dp),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically) {
+    val place = customPlace.place
+    Row(
+        modifier =
+        modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp))
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
-          Text(
-              text = place.displayName ?: "Unknown Place",
-              fontSize = 18.sp,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onSurface)
+            Text(
+                text = place.displayName ?: "Unknown Place",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface)
 
-          Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-          // Address
-          Text(
-              text = "· ${place.address ?: "No address"} ·",
-              fontSize = 14.sp,
-              color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Address
+            Text(
+                text = "· ${place.address ?: "No address"} ·",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-      }
+    }
 }
 
 @Composable
 fun NoResultsFound() {
-  Row(
-      modifier =
-          Modifier.fillMaxWidth()
-              .padding(vertical = 16.dp, horizontal = 16.dp)
-              .background(
-                  MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(12.dp))
-              .padding(24.dp)
-              .testTag("noResults"), // Additional padding for spacing
-      horizontalArrangement = Arrangement.Center,
-      verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier =
+        Modifier.fillMaxWidth()
+            .padding(vertical = 16.dp, horizontal = 16.dp)
+            .background(
+                MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(12.dp))
+            .padding(24.dp)
+            .testTag("noResults"), // Additional padding for spacing
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()) {
-              // Icon for visual appeal
-              Icon(
-                  imageVector = Icons.Default.Search,
-                  contentDescription = "No results found",
-                  tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                  modifier = Modifier.size(48.dp))
+            // Icon for visual appeal
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "No results found",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(48.dp))
 
-              Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-              // Main message text
-              Text(
-                  text = "No results found",
-                  fontSize = 18.sp,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.onSurface)
+            // Main message text
+            Text(
+                text = "No results found",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface)
 
-              Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-              // Additional guidance text
-              Text(
-                  text = "Try adjusting your search or check for typos.",
-                  fontSize = 14.sp,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  textAlign = TextAlign.Center)
-            }
-      }
+            // Additional guidance text
+            Text(
+                text = "Try adjusting your search or check for typos.",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center)
+        }
+    }
 }
 
 /** Enum class representing the filter types for the search screen. */
 enum class FilterType {
-  USERS,
-  PLACES
+    USERS,
+    PLACES
 }
