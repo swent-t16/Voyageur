@@ -242,7 +242,7 @@ class UserViewModelTest {
   }
 
   @Test
-  fun addContact_createsFriendRequest() {
+  fun sendContact_Request_createsFriendRequest() {
     val userId = "contactUserId"
     val generatedId = "testFriendRequestId"
 
@@ -258,7 +258,7 @@ class UserViewModelTest {
         .createRequest(any(), any(), any())
 
     // Call the method under test
-    userViewModel.addContact(userId)
+    userViewModel.sendContactRequest(userId)
 
     // Verify that createRequest was called with the correct parameters
     verify(friendRequestRepository)
@@ -312,5 +312,72 @@ class UserViewModelTest {
     verify(friendRequestRepository)
         .getFriendRequests(eq(FirebaseAuth.getInstance().uid.orEmpty()), any(), any())
     assert(userViewModel.friendRequests.value == mockFriendRequests)
+  }
+
+  // Test for deleting friend requests successfully
+  @Test
+  fun deleteFriendRequest_success() = runTest {
+    val requestId = "testRequestId"
+    val mockFriendRequests =
+        listOf(
+            FriendRequest(id = "2", from = "user2", to = FirebaseAuth.getInstance().uid.orEmpty()))
+    `when`(friendRequestRepository.deleteRequest(eq(requestId), any(), any())).thenAnswer {
+        invocation ->
+      val onSuccess = invocation.arguments[1] as () -> Unit
+      onSuccess()
+    }
+
+    `when`(
+            friendRequestRepository.getFriendRequests(
+                eq(FirebaseAuth.getInstance().uid.orEmpty()), any(), any()))
+        .thenAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as (List<FriendRequest>) -> Unit
+          onSuccess(mockFriendRequests)
+        }
+
+    userViewModel.deleteFriendRequest(requestId)
+
+    verify(friendRequestRepository).deleteRequest(eq(requestId), any(), any())
+
+    verify(friendRequestRepository)
+        .getFriendRequests(eq(FirebaseAuth.getInstance().uid.orEmpty()), any(), any())
+
+    assert(userViewModel.friendRequests.value == mockFriendRequests)
+  }
+
+  @Test
+  fun addContact_CallsUpdateUserAndDeleteFriendRequest() = runTest {
+    // Mock initial user
+    val userId = "123"
+    val userId2 = "1234"
+    val newUser =
+        User(
+            id = userId2,
+            name = "Firebase User",
+            email = "firebase@example.com",
+            profilePicture = "",
+            bio = "",
+            contacts = listOf(),
+            username = "firebase")
+    val curUser =
+        User(
+            id = userId,
+            name = "Firebase User",
+            email = "firebase@example.com",
+            profilePicture = "",
+            bio = "",
+            contacts = listOf(),
+            username = "firebase")
+    userViewModel._user.value = curUser
+
+    val friendRequestId = "req_789"
+
+    userViewModel.addContact(newUser.id, friendRequestId)
+
+    // Verify updateUser was called
+    verify(userRepository).updateUser(any(), any(), any())
+
+    // Verify deleteFriendRequest was called
+    verify(friendRequestRepository).deleteRequest(eq(friendRequestId), any(), any())
   }
 }

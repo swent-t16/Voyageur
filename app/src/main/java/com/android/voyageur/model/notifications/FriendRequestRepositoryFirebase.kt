@@ -81,6 +81,18 @@ class FriendRequestRepositoryFirebase(private val db: FirebaseFirestore) : Frien
         .addOnSuccessListener { onSuccess() }
         .addOnFailureListener { exception -> onFailure(exception) }
   }
+  /**
+   * @param reqId the ID of the friend request to delete
+   * @param onSuccess callback to execute after successful deletion
+   * @param onFailure exception handling callback
+   */
+  override fun deleteRequest(reqId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    db.collection(collectionPath)
+        .document(reqId)
+        .delete()
+        .addOnSuccessListener { onSuccess() }
+        .addOnFailureListener { exception -> onFailure(exception) }
+  }
 
   override fun init(onSuccess: () -> Unit) {
     db.collection(collectionPath)

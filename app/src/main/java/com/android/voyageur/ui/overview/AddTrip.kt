@@ -121,6 +121,8 @@ fun AddTripScreen(
   val formattedStartDate = startDate?.let { dateFormat.format(Date(it)) } ?: ""
   val formattedEndDate = endDate?.let { dateFormat.format(Date(it)) } ?: ""
 
+  var isSaving by remember { mutableStateOf(false) }
+
   val keyboardController = LocalSoftwareKeyboardController.current
   Log.d("USERLIST", contactsAndUsers.size.toString())
 
@@ -138,9 +140,10 @@ fun AddTripScreen(
       //      userList.clear()
     }
   }
-  val _trip = tripsViewModel.selectedTrip.value
 
   fun createTripWithImage(imageUrl: String) {
+    if (isSaving) return // Prevent duplicate saves
+
     if (startDate == null || endDate == null) {
       Toast.makeText(context, "Please select both start and end dates", Toast.LENGTH_SHORT).show()
       return
@@ -164,9 +167,15 @@ fun AddTripScreen(
     val startDateNormalized = normalizeToMidnight(Date(startDate!!))
     val endDateNormalized = normalizeToMidnight(Date(endDate!!))
 
-    if (startDateNormalized.before(today) || endDateNormalized.before(today)) {
+    if (!isEditMode && (startDateNormalized.before(today) || endDateNormalized.before(today))) {
       Toast.makeText(context, "Start and end dates cannot be in the past", Toast.LENGTH_SHORT)
           .show()
+      return
+    }
+    // if the trip is ongoing then the start date is in the past already so we check just for the
+    // end date
+    if (isEditMode && endDateNormalized.before(today)) {
+      Toast.makeText(context, "End date cannot be in the past", Toast.LENGTH_SHORT).show()
       return
     }
     if (startDateNormalized.after(endDateNormalized)) {
@@ -208,12 +217,26 @@ fun AddTripScreen(
             imageUri = imageUrl)
 
     if (!isEditMode) {
-      tripsViewModel.createTrip(trip)
+      isSaving = true
+      tripsViewModel.createTrip(
+          trip,
+          onSuccess = {
+            isSaving = false
+            Toast.makeText(context, "Trip created successfully!", Toast.LENGTH_SHORT).show()
+          },
+          onFailure = { error ->
+            isSaving = false
+            Toast.makeText(context, "Failed to create trip: ${error.message}", Toast.LENGTH_SHORT)
+                .show()
+            Log.e("AddTripScreen", "Error creating trip: ${error.message}", error)
+          })
       navigationActions.goBack()
     } else {
+      isSaving = true
       tripsViewModel.updateTrip(
           trip,
           onSuccess = {
+            isSaving = false
             Toast.makeText(context, "Trip updated successfully!", Toast.LENGTH_SHORT).show()
             /*
                 This is a trick to force a recompose, because the reference wouldn't
@@ -222,6 +245,12 @@ fun AddTripScreen(
             tripsViewModel.selectTrip(Trip())
             tripsViewModel.selectTrip(trip)
             onUpdate()
+          },
+          onFailure = { error ->
+            isSaving = false
+            Toast.makeText(context, "Failed to update trip: ${error.message}", Toast.LENGTH_SHORT)
+                .show()
+            Log.e("AddTripScreen", "Error updating trip: ${error.message}", error)
           })
     }
   }
@@ -415,7 +444,8 @@ fun AddTripScreen(
               enabled =
                   name.isNotBlank() &&
                       formattedStartDate.isNotBlank() &&
-                      formattedEndDate.isNotBlank(),
+                      formattedEndDate.isNotBlank() &&
+                      !isSaving,
               modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("tripSave")) {
                 Text("Save Trip")
               }
