@@ -23,10 +23,12 @@ import com.android.voyageur.utils.connectivityState
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.firebase.FirebaseApp
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class MainActivity : ComponentActivity() {
   private lateinit var placesClient: PlacesClient
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     try {
