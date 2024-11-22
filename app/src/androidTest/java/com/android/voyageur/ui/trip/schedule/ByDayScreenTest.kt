@@ -20,11 +20,14 @@ import com.android.voyageur.ui.trip.activities.createTimestamp
 import java.time.LocalDate
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.doNothing
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 
 class ByDayScreenTest {
   // Create one activity trip to check for activity box and Day card
@@ -93,10 +96,14 @@ class ByDayScreenTest {
   fun setUp() {
     navigationActions = mock(NavigationActions::class.java)
     tripsRepository = mock(TripRepository::class.java)
-    tripsViewModel = TripsViewModel(tripsRepository)
+    tripsViewModel = mock(TripsViewModel::class.java)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     userRepository = mock(UserRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
+    val selectedTripFlow = MutableStateFlow(oneActivityTrip)
+
+    `when`(tripsViewModel.selectedTrip).thenReturn(selectedTripFlow)
+    `when`(tripsViewModel.getActivitiesForSelectedTrip()).thenReturn(oneActivityTrip.activities)
   }
 
   @Test
@@ -139,6 +146,7 @@ class ByDayScreenTest {
   fun displaysEmptyPromptWhenNoActivities() {
     // Create a trip with no activities
     val emptyTrip = Trip(name = "Empty Trip", activities = emptyList())
+    `when`(tripsViewModel.getActivitiesForSelectedTrip()).thenReturn(emptyTrip.activities)
 
     composeTestRule.setContent {
       ByDayScreen(tripsViewModel, emptyTrip, navigationActions, userViewModel)
@@ -163,6 +171,10 @@ class ByDayScreenTest {
                       endTime = createTimestamp(2022, 1, 1, 11 + index, 0),
                       activityType = ActivityType.OTHER)
                 })
+    val selectedTripFlow = MutableStateFlow(tripWithManyActivities)
+    `when`(tripsViewModel.selectedTrip).thenReturn(selectedTripFlow)
+    `when`(tripsViewModel.getActivitiesForSelectedTrip())
+        .thenReturn(tripWithManyActivities.activities)
     composeTestRule.setContent {
       ByDayScreen(tripsViewModel, tripWithManyActivities, navigationActions, userViewModel)
     }
@@ -268,10 +280,15 @@ class ByDayScreenTest {
                         estimatedPrice = 20.0,
                         activityType = ActivityType.RESTAURANT),
                 ))
+    val selectedTripFlow = MutableStateFlow(tripWithDraftActivities)
+    `when`(tripsViewModel.selectedTrip).thenReturn(selectedTripFlow)
+    `when`(tripsViewModel.getActivitiesForSelectedTrip())
+        .thenReturn(tripWithDraftActivities.activities)
 
     composeTestRule.setContent {
       ByDayScreen(tripsViewModel, tripWithDraftActivities, navigationActions, userViewModel)
     }
+    Thread.sleep(10000)
 
     // Check that the non-draft activity is displayed
     composeTestRule.onNodeWithText("Activity").assertIsDisplayed()
@@ -292,11 +309,16 @@ class ByDayScreenTest {
 
   @Test
   fun clickingOnDayCardNavigatesToActivitiesForOneDayScreen() {
+    val selectedDayFlow = MutableStateFlow(LocalDate.of(2022, 1, 1))
+    `when`(tripsViewModel.selectedDay).thenReturn(selectedDayFlow)
+    val date = LocalDate.of(2022, 1, 1)
+    doNothing().`when`(tripsViewModel).selectDay(date)
     composeTestRule.setContent {
       ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions, userViewModel)
     }
+
     composeTestRule.onNodeWithTag("cardItem").performClick()
     verify(navigationActions).navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
-    assert(tripsViewModel.selectedDay.value == LocalDate.of(2022, 1, 1))
+    verify(tripsViewModel).selectDay(LocalDate.of(2022, 1, 1))
   }
 }
