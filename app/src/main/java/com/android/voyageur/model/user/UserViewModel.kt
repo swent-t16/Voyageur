@@ -65,7 +65,7 @@ open class UserViewModel(
   val _friendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
   val friendRequests: StateFlow<List<FriendRequest>> = _friendRequests
 
-  private val _sentFriendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
+  internal val _sentFriendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
   val sentFriendRequests: StateFlow<List<FriendRequest>> = _sentFriendRequests
 
   val isLoading: StateFlow<Boolean> = _isLoading
@@ -314,6 +314,10 @@ open class UserViewModel(
         { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
   }
 
+  fun getSentRequestId(toUserId: String): String? {
+    return sentFriendRequests.value.firstOrNull { it.to == toUserId }?.id
+  }
+
   fun getSentFriendRequests(onSuccess: (List<FriendRequest>) -> Unit = {}) {
     val userId = Firebase.auth.uid.orEmpty()
     friendRequestRepository.getSentFriendRequests(
@@ -361,6 +365,7 @@ open class UserViewModel(
         onSuccess = {
           // Request the new friend requests, which will update the state flows
           getFriendRequests {}
+          getSentFriendRequests()
         },
         onFailure = { exception ->
           Log.e("USER_VIEW_MODEL", "Failed to delete friend request: ${exception.message}")

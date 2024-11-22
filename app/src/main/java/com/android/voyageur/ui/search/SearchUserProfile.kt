@@ -85,8 +85,11 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
   val currentUser by userViewModel.user.collectAsState()
   val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
 
-  // Fetch sent friend requests when the composable is first displayed
-  LaunchedEffect(Unit) { userViewModel.getSentFriendRequests() }
+  // Fetch sent friend requests and contacts when the composable is first displayed
+  LaunchedEffect(Unit) {
+    userViewModel.getSentFriendRequests()
+    userViewModel.getMyContacts {}
+  }
 
   val isContactAdded = currentUser?.contacts?.contains(userData.id) ?: false
   val isRequestPending = sentFriendRequests.any { it.to == userData.id }
@@ -98,5 +101,11 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
       isContactAdded = isContactAdded,
       isRequestPending = isRequestPending,
       onAddContact = { userViewModel.sendContactRequest(userData.id) },
-      onRemoveContact = { userViewModel.removeContact(userData.id) })
+      onRemoveContact = { userViewModel.removeContact(userData.id) },
+      onCancelRequest = {
+        val requestId = userViewModel.getSentRequestId(userData.id)
+        if (requestId != null) {
+          userViewModel.deleteFriendRequest(requestId)
+        }
+      })
 }

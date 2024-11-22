@@ -397,10 +397,10 @@ fun UserSearchResultItem(
   val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
 
   // Determine if the user is already in contacts
-  val isContactAdded = currentUser?.contacts?.contains(user.id) ?: false
+  var isContactAdded = currentUser?.contacts?.contains(user.id) ?: false
 
   // Determine if there is a pending friend request sent to this user
-  val isRequestPending = sentFriendRequests.any { it.to == user.id }
+  var isRequestPending = sentFriendRequests.any { it.to == user.id }
 
   Row(
       modifier =
@@ -451,11 +451,17 @@ fun UserSearchResultItem(
             onClick = {
               when {
                 isContactAdded -> userViewModel.removeContact(user.id)
-                !isRequestPending -> userViewModel.sendContactRequest(user.id)
-              // Do nothing if request is pending
+                isRequestPending -> {
+                  // Remove the friend request
+                  val requestId = userViewModel.getSentRequestId(user.id)
+                  if (requestId != null) {
+                    userViewModel.deleteFriendRequest(requestId)
+                  }
+                }
+                else -> userViewModel.sendContactRequest(user.id)
               }
             },
-            enabled = isContactAdded || !isRequestPending,
+            enabled = true, // Allow the button to be clickable in all states
             colors =
                 ButtonDefaults.buttonColors(
                     containerColor =
@@ -470,7 +476,7 @@ fun UserSearchResultItem(
                   text =
                       when {
                         isContactAdded -> "Remove"
-                        isRequestPending -> "Requested"
+                        isRequestPending -> "Cancel"
                         else -> "Add"
                       },
                   color = MaterialTheme.colorScheme.onPrimary,

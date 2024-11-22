@@ -25,7 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role.Companion.Image
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.user.User
 import com.android.voyageur.ui.profile.interests.InterestChip
@@ -57,7 +59,8 @@ fun UserProfileContent(
     onSignOut: (() -> Unit)? = null,
     onEdit: (() -> Unit)? = null,
     onAddContact: (() -> Unit)? = null,
-    onRemoveContact: (() -> Unit)? = null
+    onRemoveContact: (() -> Unit)? = null,
+    onCancelRequest: (() -> Unit)? = null // Add this line
 ) {
   Column(
       modifier = Modifier.fillMaxSize().padding(16.dp).testTag("userProfileContent"),
@@ -129,10 +132,11 @@ fun UserProfileContent(
                 onClick = {
                   when {
                     isContactAdded -> onRemoveContact?.invoke()
-                    !isRequestPending -> onAddContact?.invoke()
+                    isRequestPending -> onCancelRequest?.invoke()
+                    else -> onAddContact?.invoke()
                   }
                 },
-                enabled = isContactAdded || !isRequestPending,
+                enabled = true, // Allow the button to be clickable in all states
                 colors =
                     ButtonDefaults.buttonColors(
                         containerColor =
@@ -145,10 +149,15 @@ fun UserProfileContent(
                   Text(
                       text =
                           when {
-                            isContactAdded -> "Remove from contacts"
-                            isRequestPending -> "Requested"
-                            else -> "Add to contacts"
-                          })
+                            isContactAdded -> "Remove"
+                            isRequestPending -> "Cancel"
+                            else -> "Add"
+                          },
+                      color = MaterialTheme.colorScheme.onPrimary,
+                      fontSize = 14.sp,
+                      maxLines = 1,
+                      textAlign = TextAlign.Center,
+                      modifier = Modifier.fillMaxWidth())
                 }
           }
         }
