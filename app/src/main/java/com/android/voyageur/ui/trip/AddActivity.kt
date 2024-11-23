@@ -171,11 +171,6 @@ fun AddActivityScreen(
         Toast.makeText(context, "Please select an activity date first", Toast.LENGTH_SHORT).show()
         return
       }
-      activityDate != null && dateNormalized.before(today) -> {
-        Toast.makeText(context, "The activity date cannot be in the past", Toast.LENGTH_SHORT)
-            .show()
-        return
-      }
       activityDate != null &&
           (dateNormalized.after(endDateNormalized) ||
               dateNormalized.before(startDateNormalized)) -> {
