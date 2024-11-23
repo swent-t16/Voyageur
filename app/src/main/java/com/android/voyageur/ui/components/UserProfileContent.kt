@@ -156,8 +156,7 @@ fun UserProfileContent(
                       color = MaterialTheme.colorScheme.onPrimary,
                       fontSize = 14.sp,
                       maxLines = 1,
-                      textAlign = TextAlign.Center,
-                      modifier = Modifier.fillMaxWidth())
+                      textAlign = TextAlign.Center)
                 }
           }
         }
