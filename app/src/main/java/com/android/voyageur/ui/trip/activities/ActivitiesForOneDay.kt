@@ -1,6 +1,5 @@
 package com.android.voyageur.ui.trip.activities
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -12,12 +11,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.trip.schedule.TopBarWithImageAndText
@@ -42,17 +45,22 @@ fun ActivitiesForOneDayScreen(
       tripsViewModel.selectedDay.value
           ?: return Text(text = "No day selected. Should not happen", color = Color.Red)
 
-  val activities =
-      trip.activities
-          .filter {
-            it.startTime.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() == day
-          }
-          .sortedWith(
-              compareBy(
-                  { it.startTime }, // First, sort by startTime
-                  { it.endTime } // If startTime is equal, sort by endTime
-                  ))
-  val context = LocalContext.current
+  var activities by remember {
+    mutableStateOf(
+        tripsViewModel
+            .getActivitiesForSelectedTrip()
+            .filter {
+              it.startTime.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() == day
+            }
+            .sortedWith(
+                compareBy(
+                    { it.startTime }, // First, sort by startTime
+                    { it.endTime } // If startTime is equal, sort by endTime
+                    )))
+  }
+  var showDialog by remember { mutableStateOf(false) }
+  var activityToDelete by remember { mutableStateOf<Activity?>(null) }
+
   Scaffold(
       modifier = Modifier.testTag("activitiesForOneDayScreen"),
       topBar = {
@@ -80,9 +88,8 @@ fun ActivitiesForOneDayScreen(
                     activity,
                     true,
                     onClickButton = {
-                      Toast.makeText(
-                              context, "Delete activity not implemented yet", Toast.LENGTH_SHORT)
-                          .show()
+                      activityToDelete = activity
+                      showDialog = true
                     },
                     ButtonType.DELETE,
                     navigationActions,
@@ -90,6 +97,16 @@ fun ActivitiesForOneDayScreen(
                 Spacer(modifier = Modifier.height(10.dp))
               }
             }
+          }
+          if (showDialog) {
+            DeleteActivityAlertDialog(
+                onDismissRequest = { showDialog = false },
+                activityToDelete = activityToDelete,
+                tripsViewModel = tripsViewModel,
+                confirmButtonOnClick = {
+                  showDialog = false
+                  activities = activities.filter { it != activityToDelete }
+                })
           }
         }
       })

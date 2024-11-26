@@ -71,7 +71,7 @@ open class TripsViewModel(
     _selectedTrip.value = trip
   }
 
-  fun selectDay(day: LocalDate) {
+  open fun selectDay(day: LocalDate) {
     _selectedDay.value = day
   }
 
@@ -129,10 +129,31 @@ open class TripsViewModel(
         .addOnFailureListener { exception -> onFailure(exception) }
   }
 
+  open fun getActivitiesForSelectedTrip(): List<Activity> {
+    return selectedTrip.value?.activities ?: emptyList()
+  }
+
   open fun addActivityToTrip(activity: Activity) {
     if (selectedTrip.value != null) {
       val trip = selectedTrip.value!!
       val updatedTrip = trip.copy(activities = trip.activities + activity)
+      updateTrip(
+          updatedTrip,
+          onSuccess = {
+            /*
+                This is a trick to force a recompose, because the reference wouldn't
+                change and update the UI.
+            */
+            selectTrip(Trip())
+            selectTrip(updatedTrip)
+          })
+    }
+  }
+
+  open fun removeActivityFromTrip(activity: Activity) {
+    if (selectedTrip.value != null) {
+      val trip = selectedTrip.value!!
+      val updatedTrip = trip.copy(activities = trip.activities - activity)
       updateTrip(
           updatedTrip,
           onSuccess = {

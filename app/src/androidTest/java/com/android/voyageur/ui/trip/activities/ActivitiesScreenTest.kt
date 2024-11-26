@@ -1,6 +1,7 @@
 package com.android.voyageur.ui.trip.activities
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -22,6 +23,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 
 fun createTimestamp(year: Int, month: Int, day: Int, hour: Int, minute: Int): Timestamp {
   val calendar = java.util.Calendar.getInstance()
@@ -58,6 +60,7 @@ class ActivitiesScreenTest {
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var tripRepository: TripRepository
+  private lateinit var mockTripsViewModel: TripsViewModel
 
   private lateinit var friendRequestRepository: FriendRequestRepository
   private lateinit var userRepository: UserRepository
@@ -72,12 +75,13 @@ class ActivitiesScreenTest {
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     userRepository = mock(UserRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
+    mockTripsViewModel = mock(TripsViewModel::class.java)
   }
 
   @Test
   fun hasRequiredComponents() {
     composeTestRule.setContent {
-      ActivitiesScreen(sampleTrip, navigationActions, userViewModel, tripsViewModel)
+      ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
     }
     composeTestRule.onNodeWithTag("activitiesScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
@@ -88,7 +92,7 @@ class ActivitiesScreenTest {
   @Test
   fun displaysBottomNavigationCorrectly() {
     composeTestRule.setContent {
-      ActivitiesScreen(sampleTrip, navigationActions, userViewModel, tripsViewModel)
+      ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
     }
 
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
@@ -101,8 +105,7 @@ class ActivitiesScreenTest {
   @Test
   fun activitiesScreen_displaysDraftAndFinalSections() {
     composeTestRule.setContent {
-      ActivitiesScreen(
-          trip = sampleTrip, navigationActions = navigationActions, userViewModel, tripsViewModel)
+      ActivitiesScreen(navigationActions = navigationActions, userViewModel, tripsViewModel)
     }
 
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
@@ -113,7 +116,7 @@ class ActivitiesScreenTest {
   @Test
   fun clickingCreateActivityButton_navigatesToAddActivityScreen() {
     composeTestRule.setContent {
-      ActivitiesScreen(sampleTrip, navigationActions, userViewModel, tripsViewModel)
+      ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
     }
 
     composeTestRule.onNodeWithTag("createActivityButton").performClick()
@@ -123,12 +126,54 @@ class ActivitiesScreenTest {
 
   @Test
   fun activitiesScreen_displaysActivityItems() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
     composeTestRule.setContent {
-      ActivitiesScreen(sampleTrip, navigationActions, userViewModel, tripsViewModel)
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
     }
 
     composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[0].title}").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[1].title}").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[2].title}").assertIsDisplayed()
+  }
+
+  @Test
+  fun clickingDeleteButton_displaysDeleteActivityAlertDialog() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    composeTestRule.onNodeWithTag("expandIcon_${sampleTrip.activities[0].title}").performClick()
+    composeTestRule.onNodeWithTag("deleteIcon_${sampleTrip.activities[0].title}").performClick()
+    composeTestRule.onNodeWithTag("deleteActivityAlertDialog").assertIsDisplayed()
+  }
+
+  @Test
+  fun clickingDeleteButton_removesActivityFromTrip() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // test with draft activity
+    composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[0].title}").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("expandIcon_${sampleTrip.activities[0].title}").performClick()
+    composeTestRule.onNodeWithTag("deleteIcon_${sampleTrip.activities[0].title}").performClick()
+    composeTestRule.onNodeWithTag("confirmDeleteButton").performClick()
+    composeTestRule
+        .onNodeWithTag("cardItem_${sampleTrip.activities[0].title}")
+        .assertIsNotDisplayed()
+    verify(mockTripsViewModel).removeActivityFromTrip(sampleTrip.activities[0])
+
+    // test with final activity
+    composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[1].title}").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("expandIcon_${sampleTrip.activities[1].title}").performClick()
+    composeTestRule.onNodeWithTag("deleteIcon_${sampleTrip.activities[1].title}").performClick()
+    composeTestRule.onNodeWithTag("confirmDeleteButton").performClick()
+    composeTestRule
+        .onNodeWithTag("cardItem_${sampleTrip.activities[1].title}")
+        .assertIsNotDisplayed()
+    verify(mockTripsViewModel).removeActivityFromTrip(sampleTrip.activities[1])
   }
 }

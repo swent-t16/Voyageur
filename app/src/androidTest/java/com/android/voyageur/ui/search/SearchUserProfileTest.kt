@@ -1,7 +1,6 @@
-import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
+import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
@@ -13,6 +12,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.*
+import org.mockito.kotlin.anyOrNull
 
 class SearchUserProfileScreenTest {
 
@@ -20,6 +20,7 @@ class SearchUserProfileScreenTest {
   private lateinit var userRepository: UserRepository
   private lateinit var userViewModel: UserViewModel
   private lateinit var friendRequestRepository: FriendRequestRepository
+
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
@@ -28,12 +29,32 @@ class SearchUserProfileScreenTest {
     userRepository = mock(UserRepository::class.java)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
+    doAnswer { invocation ->
+          val userId = invocation.arguments[0] as String
+          val onSuccess = invocation.arguments[1] as (List<User>) -> Unit
+          val onFailure = invocation.arguments[2] as (Exception) -> Unit
+
+          // Return a list containing the selected user as a contact
+          onSuccess(listOf(User(id = "selectedUserId")))
+          null
+        }
+        .`when`(userRepository)
+        .getContacts(anyString(), anyOrNull(), anyOrNull())
 
     // Initialize 'user' with a valid User instance
     userViewModel._user.value =
-        User(id = "123", name = "Test User", email = "test@example.com", contacts = mutableListOf())
+        User(
+            id = "currentUserId",
+            name = "Current User",
+            email = "current@example.com",
+            contacts = mutableListOf())
+
     val selectedUser =
-        User("123", "Test User", "test@example.com", interests = listOf("Reading", "Travel"))
+        User(
+            id = "selectedUserId",
+            name = "Selected User",
+            email = "selected@example.com",
+            interests = listOf("Reading", "Travel"))
     userViewModel._selectedUser.value = selectedUser
 
     composeTestRule.setContent {
@@ -60,7 +81,8 @@ class SearchUserProfileScreenTest {
 
   @Test
   fun testDefaultProfilePictureDisplaysWhenNoPicture() {
-    val userWithoutPicture = User("123", "Test User", "test@example.com", profilePicture = "")
+    val userWithoutPicture =
+        User("selectedUserId", "Test User", "test@example.com", profilePicture = "")
     userViewModel._selectedUser.value = userWithoutPicture
     userViewModel._isLoading.value = false
 
@@ -71,7 +93,7 @@ class SearchUserProfileScreenTest {
   fun testProfilePictureDisplaysWhenUserHasPicture() {
     val userWithPicture =
         User(
-            "123",
+            "selectedUserId",
             "Test User",
             "test@example.com",
             profilePicture = "http://example.com/profile.jpg")
@@ -83,7 +105,7 @@ class SearchUserProfileScreenTest {
 
   @Test
   fun testDisplaysNoNameAndNoEmailWhenEmptyFields() {
-    val userWithEmptyFields = User("123", "", "", interests = emptyList())
+    val userWithEmptyFields = User("selectedUserId", "", "", interests = emptyList())
     userViewModel._selectedUser.value = userWithEmptyFields
     userViewModel._isLoading.value = false
 
@@ -95,7 +117,8 @@ class SearchUserProfileScreenTest {
 
   @Test
   fun testNoInterestsMessageDisplaysWhenUserHasNoInterests() {
-    val userWithNoInterests = User("123", "Test User", "test@example.com", interests = emptyList())
+    val userWithNoInterests =
+        User("selectedUserId", "Test User", "test@example.com", interests = emptyList())
     userViewModel._selectedUser.value = userWithNoInterests
     userViewModel._isLoading.value = false
 
@@ -110,5 +133,23 @@ class SearchUserProfileScreenTest {
 
     composeTestRule.onNodeWithTag("userProfileScreen").assertDoesNotExist()
     verify(navigationActions).navigateTo(Route.SEARCH)
+  }
+
+  @Test
+  fun testButtonDisplaysCancelWhenRequestPending() {
+    // Set up a pending friend request
+    val pendingRequest =
+        FriendRequest(id = "requestId", from = "currentUserId", to = "selectedUserId")
+    userViewModel._sentFriendRequests.value = listOf(pendingRequest)
+
+    composeTestRule.waitForIdle()
+
+    composeTestRule
+        .onNodeWithTag("userProfileAddRemoveContactButton")
+        .assertIsDisplayed()
+        .assert(hasText("Cancel"))
+
+    // Simulate button click
+    composeTestRule.onNodeWithTag("userProfileAddRemoveContactButton").performClick()
   }
 }
