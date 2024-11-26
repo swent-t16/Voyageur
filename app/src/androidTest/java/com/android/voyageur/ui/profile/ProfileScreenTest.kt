@@ -1,8 +1,11 @@
 package com.android.voyageur.ui.profile
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -74,7 +77,7 @@ class ProfileScreenTest {
     // Set the content for Compose rule
     composeTestRule.setContent {
       ProfileScreen(userViewModel = userViewModel, navigationActions = navigationActions)
-      ExpandableFriendReqMenu(
+      FriendReqMenu(
           friendRequests = friendRequests.value,
           notificationUsers = notificationUsers.value,
           userViewModel = userViewModel)
@@ -205,33 +208,44 @@ class ProfileScreenTest {
     // Assert: Check that the "No interests added yet" message is displayed
     composeTestRule.onNodeWithTag("noInterests").assertIsDisplayed()
   }
-
   @Test
-  fun friendRequestItemsAreDisplayedInExpandedMenu() {
-    // Arrange: Update friend requests and notification users
-    composeTestRule.runOnUiThread {
-      friendRequests.value = listOf(FriendRequest("1", "user1"), FriendRequest("2", "user2"))
-      notificationUsers.value =
-          listOf(
-              User("user1", "Alice", "alice@example.com", ""),
-              User("user2", "Bob", "bob@example.com", ""))
-    }
+  fun displaysNoRequestsTextWhenFriendRequestsAreEmpty() {
+    // Arrange: Set empty friendRequests
+    friendRequests.value = emptyList()
 
-    // Act: Expand the menu
-    composeTestRule.onNodeWithContentDescription("Expand").performClick()
+    // Assert: Check for empty state elements
+    composeTestRule.onNodeWithTag("noRequestsBox").assertIsDisplayed()
+    composeTestRule.onNodeWithText("You're all caught up! No pending requests.").assertIsDisplayed()
+  }
+  @Test
+  fun displaysFriendRequestWhenListIsNotEmpty() {
+    // Arrange: Set friendRequests with some data
+    val mockFriendRequests = listOf(
+      FriendRequest(from = "user1", to = "user2")
+    )
+    friendRequests.value = mockFriendRequests
+    notificationUsers.value = listOf(
+      User(id = "user1", name = "User One", profilePicture = "http://example.com/pic.jpg")
+    )
+    composeTestRule.waitForIdle()
 
-    // Assert: Check that friend request items are displayed
-    composeTestRule.onNodeWithText("Alice").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Bob").assertIsDisplayed()
+    // Assert: Check that the LazyColumn is displayed
+    composeTestRule.onNodeWithTag("friendRequestLazyColumn").assertIsDisplayed()
+
+    // Assert: Check that the specific friend request item is displayed
+    composeTestRule.onAllNodesWithTag("friendRequest", useUnmergedTree = true)
+      .assertCountEquals(1)
+    // Assert: Check the profile picture is displayed
+    composeTestRule.onNodeWithTag("profilePicture", useUnmergedTree = true).assertIsDisplayed()
+
+    // Assert: Check the name is displayed
+    composeTestRule.onNodeWithText("User One", useUnmergedTree = true).assertIsDisplayed()
+
+    // Assert: Check the accept icon is displayed
+    composeTestRule.onNodeWithTag("acceptButton", useUnmergedTree = true).assertIsDisplayed()
+
+    // Assert: Check the deny icon is displayed
+    composeTestRule.onNodeWithTag("denyButton", useUnmergedTree = true).assertIsDisplayed()
   }
 
-  @Test
-  fun expandedMenuIsDisplayedOnIconButtonClick() {
-    // Arrange: Update friend requests
-    composeTestRule.runOnUiThread {
-      friendRequests.value = listOf(FriendRequest("1", "user1"), FriendRequest("2", "user2"))
-    }
-    composeTestRule.onNodeWithContentDescription("Expand").performClick()
-    composeTestRule.onNodeWithTag("closeButton").assertIsDisplayed()
-  }
 }

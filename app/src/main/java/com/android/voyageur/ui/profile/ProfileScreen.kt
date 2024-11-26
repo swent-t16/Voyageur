@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -23,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -43,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.notifications.FriendRequest
@@ -85,10 +89,11 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
       }) { padding ->
         Box(
             modifier =
-                Modifier.fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState())
-                    .testTag("profileScreenContent"),
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .testTag("profileScreenContent"),
             contentAlignment = Alignment.Center) {
               when {
                 isSigningOut -> {
@@ -124,7 +129,9 @@ fun ProfileContent(
   val friendRequests by userViewModel.friendRequests.collectAsState()
   val notificationUsers by userViewModel.notificationUsers.collectAsState()
   Column(
-      modifier = Modifier.fillMaxSize().padding(top = 16.dp), // Space for profile content
+      modifier = Modifier
+          .fillMaxSize()
+          .padding(top = 16.dp), // Space for profile content
       horizontalAlignment = Alignment.CenterHorizontally) {
         UserProfileContent(
             userData = userData,
@@ -134,7 +141,7 @@ fun ProfileContent(
             onEdit = onEdit)
         Spacer(modifier = Modifier.height(20.dp))
         // Expandable Friend Requests Menu
-        ExpandableFriendReqMenu(friendRequests, notificationUsers, userViewModel)
+        FriendReqMenu(friendRequests, notificationUsers, userViewModel)
       }
 }
 
@@ -149,84 +156,69 @@ fun ProfileContent(
  *   accepting or rejecting friend requests.
  */
 @Composable
-fun ExpandableFriendReqMenu(
+fun FriendReqMenu(
     friendRequests: List<FriendRequest>,
     notificationUsers: List<User>,
     userViewModel: UserViewModel,
 ) {
-  var expanded by remember { mutableStateOf(false) } // Toggle for expanded state
-  // Collapsed Menu
-  Card(
-      shape = RoundedCornerShape(12.dp),
-      modifier = Modifier.fillMaxWidth(0.80f).padding(horizontal = 10.dp, vertical = 8.dp),
-  ) {
-    Column(modifier = Modifier.padding(12.dp)) {
-      // Header row with title and expand/collapse button
-      Row(
-          modifier = Modifier.fillMaxWidth(),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.SpaceBetween) {
+    // Parent Card containing the scrollable box
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .fillMaxWidth(0.80f)
+            .padding(horizontal = 10.dp, vertical = 8.dp)
+            .testTag("friendRequestCard")
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
             Text(
                 text = "${friendRequests.size} Pending Friend Requests",
-                color = MaterialTheme.colorScheme.onSurface)
+                color = MaterialTheme.colorScheme.onSurface,
+            )
 
-            IconButton(onClick = { expanded = true }) {
-              Icon(
-                  imageVector = Icons.Default.KeyboardArrowDown,
-                  contentDescription = "Expand",
-                  tint = MaterialTheme.colorScheme.onSurface)
-            }
-          }
-    }
-  }
-
-  // Expanded Pop-Up Friend Request Menu as a Dialog
-  if (expanded) {
-    Dialog(onDismissRequest = { expanded = true }) {
-      Card(
-          shape = RoundedCornerShape(16.dp),
-          modifier = Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(10.dp)) {
-            Column(
-                modifier =
-                    Modifier.fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(12.dp)) {
-                  // Header and close button
-                  Row(
-                      modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                      verticalAlignment = Alignment.CenterVertically,
-                      horizontalArrangement = Arrangement.SpaceBetween) {
+            // Scrollable List inside a fixed-height box
+            Card(
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 180.dp)// Set the height to restrict the scrollable area
+                    .padding(top = 8.dp)
+                    .testTag("friendRequestBox")
+            ) {
+                if (friendRequests.isEmpty()) {
+                    // Display message if no friend requests
+                    Box(
+                        modifier = Modifier.fillMaxSize().testTag("noRequestsBox"),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
-                            text = "${friendRequests.size} Pending Friend Requests",
+                            text = "You're all caught up! No pending requests.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-
-                        // Collapses the menu
-                        IconButton(
-                            onClick = { expanded = false },
-                            modifier = Modifier.testTag("closeButton")) {
-                              Icon(
-                                  imageVector = Icons.Default.Close,
-                                  contentDescription = "Close",
-                              )
-                            }
-                      }
-
-                  // Scrollable List of FriendRequestItems
-                  LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
-                    items(friendRequests) { request ->
-                      val fromUser = notificationUsers.find { it.id == request.from }
-                      fromUser?.let {
-                        FriendRequestItem(
-                            friendRequest = request,
-                            fromUser = fromUser,
-                            userViewModel = userViewModel)
-                      }
                     }
-                  }
+                } else {
+                    // Display Lazy Column with the friend requests
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp)
+                            .testTag("friendRequestLazyColumn")
+                    ) {
+                        items(friendRequests) { request ->
+                            val fromUser = notificationUsers.find { it.id == request.from }
+                            fromUser?.let {
+                                FriendRequestItem(
+                                    friendRequest = request,
+                                    fromUser = fromUser,
+                                    userViewModel = userViewModel
+                                )
+                            }
+                        }
+                    }
                 }
-          }
+            }
+        }
     }
-  }
 }
 /**
  * A composable function that displays a single friend request item. The item shows the user's
@@ -240,7 +232,10 @@ fun ExpandableFriendReqMenu(
 @Composable
 fun FriendRequestItem(friendRequest: FriendRequest, fromUser: User, userViewModel: UserViewModel) {
   Row(
-      modifier = Modifier.fillMaxWidth().padding(8.dp),
+      modifier = Modifier
+          .fillMaxWidth()
+          .padding(8.dp)
+          .testTag("friendRequest"),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.SpaceBetween) {
         // Display the Profile Picture of the user from which you have a request
@@ -248,11 +243,16 @@ fun FriendRequestItem(friendRequest: FriendRequest, fromUser: User, userViewMode
             painter = rememberAsyncImagePainter(fromUser.profilePicture),
             contentDescription = "Profile Picture",
             modifier =
-                Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).testTag("profilePicture"))
+            Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .testTag("profilePicture"))
 
         Text(
             text = fromUser.name,
-            modifier = Modifier.padding(start = 8.dp).weight(1f) // Take remaining space
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .weight(1f) // Take remaining space
             )
 
         // Accept and Reject Icons

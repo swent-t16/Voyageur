@@ -335,7 +335,11 @@ open class UserViewModel(
     userRepository.getContacts(
         Firebase.auth.uid ?: "", onSuccess, { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
   }
-
+    /**
+     * Deletes friend request with the corresponding request ID
+     *
+     * @param reqId the request ID of the friend request to delete
+     */
   fun deleteFriendRequest(reqId: String) {
     friendRequestRepository.deleteRequest(
         reqId = reqId,
