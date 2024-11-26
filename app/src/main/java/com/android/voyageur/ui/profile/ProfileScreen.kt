@@ -2,20 +2,17 @@ package com.android.voyageur.ui.profile
 
 import UserProfileContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -24,8 +21,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -45,10 +40,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import coil.compose.rememberAsyncImagePainter
+import com.android.voyageur.R
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
@@ -57,6 +53,13 @@ import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 
+/**
+ * Composable function that represents the profile screen. Displays user information, handles
+ * navigation, and manages sign-out logic.
+ *
+ * @param userViewModel The [UserViewModel] instance used to observe user state and actions.
+ * @param navigationActions The [NavigationActions] instance for navigating between screens.
+ */
 @Composable
 fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
   // Observe user and loading state from UserViewModel
@@ -89,11 +92,10 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
       }) { padding ->
         Box(
             modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .testTag("profileScreenContent"),
+                Modifier.fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .testTag("profileScreenContent"),
             contentAlignment = Alignment.Center) {
               when {
                 isSigningOut -> {
@@ -111,13 +113,24 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
                       onEdit = { navigationActions.navigateTo(Route.EDIT_PROFILE) })
                 }
                 else -> {
-                  Text("No user data available", modifier = Modifier.testTag("noUserData"))
+                  Text(
+                      stringResource(R.string.no_user_data),
+                      modifier = Modifier.testTag("noUserData"))
                 }
               }
             }
       }
 }
-
+/**
+ * Composable function that displays detailed user profile information and interaction options.
+ * Includes profile editing and friend request management.
+ *
+ * @param userData The [User] object representing the signed-in user's data.
+ * @param signedInUserId The ID of the currently signed-in user.
+ * @param onSignOut A lambda function triggered when the user chooses to sign out.
+ * @param userViewModel The [UserViewModel] instance for managing user-related actions.
+ * @param onEdit A lambda function triggered to navigate to the edit profile screen.
+ */
 @Composable
 fun ProfileContent(
     userData: User,
@@ -129,9 +142,7 @@ fun ProfileContent(
   val friendRequests by userViewModel.friendRequests.collectAsState()
   val notificationUsers by userViewModel.notificationUsers.collectAsState()
   Column(
-      modifier = Modifier
-          .fillMaxSize()
-          .padding(top = 16.dp), // Space for profile content
+      modifier = Modifier.fillMaxSize().padding(top = 16.dp), // Space for profile content
       horizontalAlignment = Alignment.CenterHorizontally) {
         UserProfileContent(
             userData = userData,
@@ -161,64 +172,56 @@ fun FriendReqMenu(
     notificationUsers: List<User>,
     userViewModel: UserViewModel,
 ) {
-    // Parent Card containing the scrollable box
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
-            .fillMaxWidth(0.80f)
-            .padding(horizontal = 10.dp, vertical = 8.dp)
-            .testTag("friendRequestCard")
-    ) {
+  // Parent Card containing the scrollable box
+  Card(
+      shape = RoundedCornerShape(12.dp),
+      modifier =
+          Modifier.fillMaxWidth(0.80f)
+              .padding(horizontal = 10.dp, vertical = 8.dp)
+              .testTag("friendRequestCard")) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = "${friendRequests.size} Pending Friend Requests",
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+          Text(
+              text = stringResource(R.string.pending_friend_requests, friendRequests.size),
+              color = MaterialTheme.colorScheme.onSurface,
+          )
 
-            // Scrollable List inside a fixed-height box
-            Card(
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 180.dp)// Set the height to restrict the scrollable area
-                    .padding(top = 8.dp)
-                    .testTag("friendRequestBox")
-            ) {
+          // Scrollable List inside a fixed-height box
+          Card(
+              shape = RoundedCornerShape(8.dp),
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .heightIn(max = 180.dp) // Set the height to restrict the scrollable area
+                      .padding(top = 8.dp)
+                      .testTag("friendRequestBox")) {
                 if (friendRequests.isEmpty()) {
-                    // Display message if no friend requests
-                    Box(
-                        modifier = Modifier.fillMaxSize().testTag("noRequestsBox"),
-                        contentAlignment = Alignment.Center
-                    ) {
+                  // Display message if no friend requests
+                  Box(
+                      modifier = Modifier.fillMaxSize().testTag("noRequestsBox"),
+                      contentAlignment = Alignment.Center) {
                         Text(
-                            text = "You're all caught up! No pending requests.",
+                            text = stringResource(R.string.no_pending_requests),
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                      }
                 } else {
-                    // Display Lazy Column with the friend requests
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp)
-                            .testTag("friendRequestLazyColumn")
-                    ) {
+                  // Display Lazy Column with the friend requests
+                  LazyColumn(
+                      modifier =
+                          Modifier.fillMaxSize().padding(8.dp).testTag("friendRequestLazyColumn")) {
                         items(friendRequests) { request ->
-                            val fromUser = notificationUsers.find { it.id == request.from }
-                            fromUser?.let {
-                                FriendRequestItem(
-                                    friendRequest = request,
-                                    fromUser = fromUser,
-                                    userViewModel = userViewModel
-                                )
-                            }
+                          val fromUser = notificationUsers.find { it.id == request.from }
+                          fromUser?.let {
+                            FriendRequestItem(
+                                friendRequest = request,
+                                fromUser = fromUser,
+                                userViewModel = userViewModel)
+                          }
                         }
-                    }
+                      }
                 }
-            }
+              }
         }
-    }
+      }
 }
 /**
  * A composable function that displays a single friend request item. The item shows the user's
@@ -232,27 +235,19 @@ fun FriendReqMenu(
 @Composable
 fun FriendRequestItem(friendRequest: FriendRequest, fromUser: User, userViewModel: UserViewModel) {
   Row(
-      modifier = Modifier
-          .fillMaxWidth()
-          .padding(8.dp)
-          .testTag("friendRequest"),
+      modifier = Modifier.fillMaxWidth().padding(8.dp).testTag("friendRequest"),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.SpaceBetween) {
         // Display the Profile Picture of the user from which you have a request
         Image(
             painter = rememberAsyncImagePainter(fromUser.profilePicture),
-            contentDescription = "Profile Picture",
+            contentDescription = stringResource(R.string.profile_picture),
             modifier =
-            Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .testTag("profilePicture"))
+                Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).testTag("profilePicture"))
 
         Text(
             text = fromUser.name,
-            modifier = Modifier
-                .padding(start = 8.dp)
-                .weight(1f) // Take remaining space
+            modifier = Modifier.padding(start = 8.dp).weight(1f) // Take remaining space
             )
 
         // Accept and Reject Icons
@@ -265,7 +260,7 @@ fun FriendRequestItem(friendRequest: FriendRequest, fromUser: User, userViewMode
               }) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Accept",
+                    contentDescription = stringResource(R.string.accept),
                     tint = Color.Green)
               }
 
@@ -277,7 +272,7 @@ fun FriendRequestItem(friendRequest: FriendRequest, fromUser: User, userViewMode
               }) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Reject",
+                    contentDescription = stringResource(R.string.reject),
                     tint = Color.Red)
               }
         }

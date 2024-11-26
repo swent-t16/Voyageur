@@ -3,10 +3,8 @@ package com.android.voyageur.ui.profile
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -70,6 +68,7 @@ class ProfileScreenTest {
 
     // Create the UserViewModel with the mocked userRepository and firebaseAuth
     userViewModel = UserViewModel(userRepository, firebaseAuth, friendRequestRepository)
+
     userViewModel.shouldFetch = false
     // Mocking initial navigation state
     `when`(navigationActions.currentRoute()).thenReturn(Route.PROFILE)
@@ -208,6 +207,7 @@ class ProfileScreenTest {
     // Assert: Check that the "No interests added yet" message is displayed
     composeTestRule.onNodeWithTag("noInterests").assertIsDisplayed()
   }
+
   @Test
   fun displaysNoRequestsTextWhenFriendRequestsAreEmpty() {
     // Arrange: Set empty friendRequests
@@ -217,35 +217,28 @@ class ProfileScreenTest {
     composeTestRule.onNodeWithTag("noRequestsBox").assertIsDisplayed()
     composeTestRule.onNodeWithText("You're all caught up! No pending requests.").assertIsDisplayed()
   }
+
   @Test
   fun displaysFriendRequestWhenListIsNotEmpty() {
     // Arrange: Set friendRequests with some data
-    val mockFriendRequests = listOf(
-      FriendRequest(from = "user1", to = "user2")
-    )
+    val mockFriendRequests = listOf(FriendRequest(from = "user1", to = "user2"))
     friendRequests.value = mockFriendRequests
-    notificationUsers.value = listOf(
-      User(id = "user1", name = "User One", profilePicture = "http://example.com/pic.jpg")
-    )
+    notificationUsers.value =
+        listOf(User(id = "user1", name = "User One", profilePicture = "http://example.com/pic.jpg"))
     composeTestRule.waitForIdle()
 
     // Assert: Check that the LazyColumn is displayed
     composeTestRule.onNodeWithTag("friendRequestLazyColumn").assertIsDisplayed()
 
-    // Assert: Check that the specific friend request item is displayed
-    composeTestRule.onAllNodesWithTag("friendRequest", useUnmergedTree = true)
-      .assertCountEquals(1)
-    // Assert: Check the profile picture is displayed
-    composeTestRule.onNodeWithTag("profilePicture", useUnmergedTree = true).assertIsDisplayed()
+    // Assert: Check that the specific friend request item has count one
+    composeTestRule.onAllNodesWithTag("friendRequest", useUnmergedTree = true).assertCountEquals(1)
 
-    // Assert: Check the name is displayed
+    // Assert: Check the profile picture and name are displayed
+    composeTestRule.onNodeWithTag("profilePicture", useUnmergedTree = true).assertIsDisplayed()
     composeTestRule.onNodeWithText("User One", useUnmergedTree = true).assertIsDisplayed()
 
-    // Assert: Check the accept icon is displayed
+    // Assert: Check the accept and deny buttons are displayed
     composeTestRule.onNodeWithTag("acceptButton", useUnmergedTree = true).assertIsDisplayed()
-
-    // Assert: Check the deny icon is displayed
     composeTestRule.onNodeWithTag("denyButton", useUnmergedTree = true).assertIsDisplayed()
   }
-
 }
