@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -345,8 +346,9 @@ fun SearchScreen(
                         PlaceSearchResultItem(
                             place,
                             Modifier.clickable {
-                              placesViewModel.selectPlace(place)
-                              navigationActions.navigateTo(Screen.PLACE_DETAILS)
+                              placesViewModel.selectPlace(place, {
+                                navigationActions.navigateTo(Screen.PLACE_DETAILS)
+                              })
                             })
                       }
                     }

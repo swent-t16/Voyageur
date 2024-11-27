@@ -67,13 +67,17 @@ open class PlacesViewModel(private val placesRepository: PlacesRepository) : Vie
    *
    * @param place The place to select.
    */
-  fun selectPlace(place: CustomPlace) {
+  fun selectPlace(place: CustomPlace, onSuccess: () -> Unit) {
     _selectedPlace.value = place
     selectedPlace.value?.let {
       place.place.id?.let { it1 ->
         placesRepository.fetchAdvancedDetails(
             it1,
-            onSuccess = { place -> _selectedPlace.value = place },
+            onSuccess = {
+                place ->
+                _selectedPlace.value = place
+                onSuccess()
+            },
             onFailure = { exception ->
               Log.e("PlacesViewModel", "Failed to fetch place details", exception)
             })
