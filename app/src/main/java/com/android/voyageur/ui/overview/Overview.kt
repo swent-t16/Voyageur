@@ -80,12 +80,17 @@ fun OverviewScreen(
     userViewModel: UserViewModel,
 ) {
   val trips by tripsViewModel.trips.collectAsState()
-  val isLoading by userViewModel.isLoading.collectAsState()
+  val isLoadingUser by userViewModel.isLoading.collectAsState()
+  val isLoadingTrip by tripsViewModel.isLoading.collectAsState()
+  var isLoading = false
   val status by connectivityState()
+
   val isConnected = status === ConnectionState.Available
 
   Log.e("RECOMPOSE", "OverviewScreen recomposed")
-
+  LaunchedEffect(isLoadingUser,isLoadingTrip) {
+    isLoading = isLoadingUser || isLoadingTrip
+  }
   LaunchedEffect(trips) {
     if (trips.isNotEmpty()) {
       userViewModel.getUsersByIds(

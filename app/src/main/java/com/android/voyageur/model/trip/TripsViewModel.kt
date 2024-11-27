@@ -44,10 +44,17 @@ open class TripsViewModel(
   private val _selectedActivity = MutableStateFlow<Activity?>(null)
   open val selectedActivity: StateFlow<Activity?> = _selectedActivity.asStateFlow()
 
+  private val _isLoading = MutableStateFlow(false)
+  val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
   init {
     tripsRepository.init {
+        _isLoading.value = true
       tripsRepository.getTrips(
-          Firebase?.auth?.uid.orEmpty(), onSuccess = { _trips.value = it }, onFailure = {})
+          Firebase?.auth?.uid.orEmpty(), onSuccess = { _trips.value = it
+                                                     _isLoading.value = false}, onFailure = {
+                                                         _isLoading.value = false
+          })
     }
   }
 
@@ -82,6 +89,7 @@ open class TripsViewModel(
   fun getNewTripId(): String = tripsRepository.getNewTripId()
 
   fun getTrips(onSuccess: () -> Unit = {}) {
+    _isLoading.value = true
     tripsRepository.getTrips(
         creator = Firebase.auth.uid.orEmpty(),
         onSuccess = { trips ->
@@ -92,9 +100,13 @@ open class TripsViewModel(
           */
           _trips.value = ArrayList()
           _trips.value = trips
+            _isLoading.value = false
           onSuccess()
         },
-        onFailure = {})
+        onFailure = {
+            _isLoading.value = false
+            Log.e("TripsViewModel", "Failed to get trips", it)
+        })
   }
 
   fun createTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
