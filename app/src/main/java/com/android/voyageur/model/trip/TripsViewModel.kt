@@ -5,12 +5,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.voyageur.BuildConfig
 import com.android.voyageur.model.activity.Activity
-import com.google.ai.client.generativeai.GenerativeModel
-import com.google.ai.client.generativeai.type.FunctionType
-import com.google.ai.client.generativeai.type.Schema
-import com.google.ai.client.generativeai.type.generationConfig
+import com.android.voyageur.model.activity.getYearMonthDay
+import com.android.voyageur.model.assistant.generatePrompt
+import com.android.voyageur.model.assistant.generativeModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
@@ -170,46 +168,14 @@ open class TripsViewModel(
   // ****************************************************************************************************
   // AI assistant
   // ****************************************************************************************************
-  private val generativeModel =
-      GenerativeModel(
-          modelName = "gemini-1.5-flash",
-          apiKey = BuildConfig.GEMINI_API_KEY,
-          generationConfig =
-              generationConfig {
-                responseMimeType = "application/json"
-                responseSchema =
-                    Schema(
-                        name = "activities",
-                        description = "List of activities",
-                        type = FunctionType.ARRAY,
-                        items =
-                            Schema(
-                                name = "activity",
-                                description = "An activity",
-                                type = FunctionType.OBJECT,
-                                properties =
-                                    mapOf(
-                                        "title" to
-                                            Schema(
-                                                name = "title",
-                                                description = "Title of the activity",
-                                                type = FunctionType.STRING),
-                                        "description" to
-                                            Schema(
-                                                name = "description",
-                                                description = "Description of the activity",
-                                                type = FunctionType.STRING)),
-                                required = listOf("title", "description")))
-              })
 
-  fun sendActivitiesPrompt(trip: Trip, prompt: String) {
+  fun sendActivitiesPrompt(trip: Trip, userPrompt: String) {
     _uiState.value = UiState.Loading
 
     viewModelScope.launch(Dispatchers.IO) {
       try {
-        val response =
-            generativeModel.generateContent(
-                "List a few popular specific activities to do on a trip called ${trip.name} and with the following prompt: $prompt")
+        val response = generativeModel.generateContent(generatePrompt(trip, userPrompt))
+        Log.d("GeminiTest", "response: ${response.text}")
         response.text?.let { outputContent -> _uiState.value = UiState.Success(outputContent) }
       } catch (e: Exception) {
         _uiState.value = UiState.Error(e.localizedMessage ?: "unknown error")

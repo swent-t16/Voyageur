@@ -37,7 +37,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.android.voyageur.model.activity.Activity
-import com.android.voyageur.model.activity.extractActivitiesFromJson
+import com.android.voyageur.model.activity.convertActivityForAssistantToActivity
+import com.android.voyageur.model.activity.extractActivitiesForAssistantFromJson
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.trip.UiState
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -115,7 +116,8 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
                           .verticalScroll(scrollState))
             } else if (uiState is UiState.Success) {
               result = (uiState as UiState.Success).outputText
-              activities = extractActivitiesFromJson(result)
+              val activitiesForAssistant = extractActivitiesForAssistantFromJson(result)
+              activities = activitiesForAssistant.map { convertActivityForAssistantToActivity(it) }
               LazyColumn(
                   modifier =
                       Modifier.padding(pd)
