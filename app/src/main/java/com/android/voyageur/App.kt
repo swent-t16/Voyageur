@@ -43,7 +43,7 @@ fun VoyageurApp(placesClient: PlacesClient) {
   NavHost(
       navController = navController,
       startDestination =
-          if (Firebase.auth.uid.orEmpty().isEmpty()) Route.AUTH else Route.OVERVIEW) {
+          Route.AUTH ) {
         navigation(
             startDestination = Screen.AUTH,
             route = Route.AUTH,

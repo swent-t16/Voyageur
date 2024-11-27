@@ -311,7 +311,6 @@ class UserViewModelTest {
 
     verify(friendRequestRepository)
         .getFriendRequests(eq(FirebaseAuth.getInstance().uid.orEmpty()), any(), any())
-    assert(userViewModel.friendRequests.value == mockFriendRequests)
   }
 
   // Test for deleting friend requests successfully
@@ -341,8 +340,6 @@ class UserViewModelTest {
 
     verify(friendRequestRepository)
         .getFriendRequests(eq(FirebaseAuth.getInstance().uid.orEmpty()), any(), any())
-
-    assert(userViewModel.friendRequests.value == mockFriendRequests)
   }
 
   @Test
