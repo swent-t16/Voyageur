@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +32,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.user.User
 import com.android.voyageur.ui.profile.interests.InterestChip
+import com.android.voyageur.utils.ConnectionState
+import com.android.voyageur.utils.connectivityState
 
 /**
  * Composable function to display a user's profile information, including their profile picture,
@@ -62,7 +65,10 @@ fun UserProfileContent(
     onRemoveContact: (() -> Unit)? = null,
     onCancelRequest: (() -> Unit)? = null // Add this line
 ) {
-  Column(
+    val connectionStatus by connectivityState()
+    val isConnected = connectionStatus == ConnectionState.Available
+
+    Column(
       modifier = Modifier.fillMaxSize().padding(16.dp).testTag("userProfileContent"),
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally) {
@@ -120,7 +126,7 @@ fun UserProfileContent(
         // Display buttons conditionally
         Row {
           if (showEditAndSignOutButtons && onEdit != null && onSignOut != null) {
-            Button(onClick = onEdit, modifier = Modifier.testTag("editButton")) {
+            Button(onClick = onEdit, enabled=isConnected, modifier = Modifier.testTag("editButton")) {
               Text(text = "Edit")
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -136,7 +142,7 @@ fun UserProfileContent(
                     else -> onAddContact?.invoke()
                   }
                 },
-                enabled = true, // Allow the button to be clickable in all states
+                enabled = isConnected, // Allow the button to be clickable in all states
                 colors =
                     ButtonDefaults.buttonColors(
                         containerColor =

@@ -494,7 +494,7 @@ fun UserSearchResultItem(
                   else -> userViewModel.sendContactRequest(user.id)
                 }
               },
-              enabled = true, // Allow the button to be clickable in all states
+              enabled = isConnected, // Allow the button to be clickable in all states
               colors =
                   ButtonDefaults.buttonColors(
                       containerColor =

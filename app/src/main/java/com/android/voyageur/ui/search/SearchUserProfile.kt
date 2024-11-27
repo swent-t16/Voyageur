@@ -13,6 +13,8 @@ import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
+import com.android.voyageur.utils.ConnectionState
+import com.android.voyageur.utils.connectivityState
 
 /**
  * Composable function for displaying a detailed profile of a selected user. Displays a loading
@@ -29,7 +31,7 @@ fun SearchUserProfileScreen(userViewModel: UserViewModel, navigationActions: Nav
   val user by userViewModel.selectedUser.collectAsState()
   val isLoading by userViewModel.isLoading.collectAsState()
 
-  // Navigate back to search if no user data is available and loading is complete
+    // Navigate back to search if no user data is available and loading is complete
   if (user == null && !isLoading) {
     LaunchedEffect(Unit) { navigationActions.navigateTo(Route.SEARCH) }
     return
