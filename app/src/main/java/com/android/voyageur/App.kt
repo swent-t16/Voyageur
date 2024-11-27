@@ -28,8 +28,6 @@ import com.android.voyageur.ui.trip.activities.ActivitiesForOneDayScreen
 import com.android.voyageur.ui.trip.activities.EditActivityScreen
 import com.android.voyageur.ui.trip.assistant.AssistantScreen
 import com.google.android.libraries.places.api.net.PlacesClient
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 
 @Composable
 fun VoyageurApp(placesClient: PlacesClient) {
@@ -40,59 +38,52 @@ fun VoyageurApp(placesClient: PlacesClient) {
   val placesViewModel: PlacesViewModel =
       viewModel(factory = PlacesViewModel.provideFactory(placesClient))
 
-  NavHost(
-      navController = navController,
-      startDestination =
-          Route.AUTH ) {
-        navigation(
-            startDestination = Screen.AUTH,
-            route = Route.AUTH,
-        ) {
-          composable(Screen.AUTH) { SignInScreen(navigationActions) }
-        }
-        navigation(
-            startDestination = Screen.OVERVIEW,
-            route = Route.OVERVIEW,
-        ) {
-          composable(Screen.OVERVIEW) {
-            OverviewScreen(tripsViewModel, navigationActions, userViewModel)
-          }
-          composable(Screen.ADD_TRIP) {
-            AddTripScreen(tripsViewModel, navigationActions, userViewModel = userViewModel)
-          }
-        }
-        navigation(
-            startDestination = Screen.SEARCH,
-            route = Route.SEARCH,
-        ) {
-          composable(Screen.SEARCH) {
-            SearchScreen(userViewModel, placesViewModel, navigationActions)
-          }
-          composable(Screen.SEARCH_USER_PROFILE) {
-            SearchUserProfileScreen(userViewModel, navigationActions)
-          }
-          composable(Screen.PLACE_DETAILS) {
-            PlaceDetailsScreen(navigationActions, placesViewModel)
-          }
-        }
-        navigation(
-            startDestination = Screen.PROFILE,
-            route = Route.PROFILE,
-        ) {
-          composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigationActions) }
-          composable(Screen.EDIT_PROFILE) { EditProfileScreen(userViewModel, navigationActions) }
-        }
-
-        navigation(startDestination = Screen.TOP_TABS, route = Route.TOP_TABS) {
-          composable(Screen.TOP_TABS) {
-            TopTabs(tripsViewModel, navigationActions, userViewModel = userViewModel)
-          }
-          composable(Screen.ADD_ACTIVITY) { AddActivityScreen(tripsViewModel, navigationActions) }
-          composable(Screen.ACTIVITIES_FOR_ONE_DAY) {
-            ActivitiesForOneDayScreen(tripsViewModel, navigationActions)
-          }
-          composable(Screen.ASSISTANT) { AssistantScreen(tripsViewModel, navigationActions) }
-          composable(Screen.EDIT_ACTIVITY) { EditActivityScreen(navigationActions, tripsViewModel) }
-        }
+  NavHost(navController = navController, startDestination = Route.AUTH) {
+    navigation(
+        startDestination = Screen.AUTH,
+        route = Route.AUTH,
+    ) {
+      composable(Screen.AUTH) { SignInScreen(navigationActions) }
+    }
+    navigation(
+        startDestination = Screen.OVERVIEW,
+        route = Route.OVERVIEW,
+    ) {
+      composable(Screen.OVERVIEW) {
+        OverviewScreen(tripsViewModel, navigationActions, userViewModel)
       }
+      composable(Screen.ADD_TRIP) {
+        AddTripScreen(tripsViewModel, navigationActions, userViewModel = userViewModel)
+      }
+    }
+    navigation(
+        startDestination = Screen.SEARCH,
+        route = Route.SEARCH,
+    ) {
+      composable(Screen.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigationActions) }
+      composable(Screen.SEARCH_USER_PROFILE) {
+        SearchUserProfileScreen(userViewModel, navigationActions)
+      }
+      composable(Screen.PLACE_DETAILS) { PlaceDetailsScreen(navigationActions, placesViewModel) }
+    }
+    navigation(
+        startDestination = Screen.PROFILE,
+        route = Route.PROFILE,
+    ) {
+      composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigationActions) }
+      composable(Screen.EDIT_PROFILE) { EditProfileScreen(userViewModel, navigationActions) }
+    }
+
+    navigation(startDestination = Screen.TOP_TABS, route = Route.TOP_TABS) {
+      composable(Screen.TOP_TABS) {
+        TopTabs(tripsViewModel, navigationActions, userViewModel = userViewModel)
+      }
+      composable(Screen.ADD_ACTIVITY) { AddActivityScreen(tripsViewModel, navigationActions) }
+      composable(Screen.ACTIVITIES_FOR_ONE_DAY) {
+        ActivitiesForOneDayScreen(tripsViewModel, navigationActions)
+      }
+      composable(Screen.ASSISTANT) { AssistantScreen(tripsViewModel, navigationActions) }
+      composable(Screen.EDIT_ACTIVITY) { EditActivityScreen(navigationActions, tripsViewModel) }
+    }
+  }
 }
