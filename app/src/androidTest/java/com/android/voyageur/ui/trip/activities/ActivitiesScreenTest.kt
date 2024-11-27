@@ -176,4 +176,65 @@ class ActivitiesScreenTest {
         .assertIsNotDisplayed()
     verify(mockTripsViewModel).removeActivityFromTrip(sampleTrip.activities[1])
   }
+
+  @Test
+  fun clickingFilterButton_displaysFilterDialog() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+    // Click the filter button
+    composeTestRule.onNodeWithTag("filterButton").performClick()
+    composeTestRule.onNodeWithTag("filterActivityAlertDialog").assertIsDisplayed()
+  }
+
+  @Test
+  fun selectingFilter_updatesDisplayedActivities() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    composeTestRule.onNodeWithTag("filterButton").performClick()
+    // Select the "WALK" filter
+    composeTestRule.onNodeWithTag("typeCheckBox_WALK").performClick()
+    composeTestRule.onNodeWithTag("confirmButtonDialog").performClick()
+
+    // Verify that only WALK activities are displayed
+    composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[0].title}").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[1].title}").assertDoesNotExist()
+    composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[2].title}").assertDoesNotExist()
+  }
+
+  @Test
+  fun clearingFilter_displaysAllActivities() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    composeTestRule.onNodeWithTag("filterButton").performClick()
+    // Select the "RESTAURANT" filter using the updated test tag
+    composeTestRule.onNodeWithTag("typeCheckBox_RESTAURANT").performClick()
+    composeTestRule.onNodeWithTag("confirmButtonDialog").performClick()
+
+    // Verify that only RESTAURANT activities are displayed
+    composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertDoesNotExist()
+    composeTestRule
+        .onNodeWithTag("cardItem_Final Activity Without Description")
+        .assertDoesNotExist()
+
+    // Open the filter dialog again
+    composeTestRule.onNodeWithTag("filterButton").performClick()
+
+    // Deselect the "RESTAURANT" filter using the updated test tag
+    composeTestRule.onNodeWithTag("typeCheckBox_RESTAURANT").performClick()
+    composeTestRule.onNodeWithTag("confirmButtonDialog").performClick()
+
+    // Verify all activities are displayed
+    composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("cardItem_Final Activity Without Description").assertIsDisplayed()
+  }
 }
