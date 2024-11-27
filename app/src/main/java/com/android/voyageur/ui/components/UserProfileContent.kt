@@ -65,10 +65,10 @@ fun UserProfileContent(
     onRemoveContact: (() -> Unit)? = null,
     onCancelRequest: (() -> Unit)? = null // Add this line
 ) {
-    val connectionStatus by connectivityState()
-    val isConnected = connectionStatus == ConnectionState.Available
+  val connectionStatus by connectivityState()
+  val isConnected = connectionStatus == ConnectionState.Available
 
-    Column(
+  Column(
       modifier = Modifier.fillMaxSize().padding(16.dp).testTag("userProfileContent"),
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally) {
@@ -126,9 +126,12 @@ fun UserProfileContent(
         // Display buttons conditionally
         Row {
           if (showEditAndSignOutButtons && onEdit != null && onSignOut != null) {
-            Button(onClick = onEdit, enabled=isConnected, modifier = Modifier.testTag("editButton")) {
-              Text(text = "Edit")
-            }
+            Button(
+                onClick = onEdit,
+                enabled = isConnected,
+                modifier = Modifier.testTag("editButton")) {
+                  Text(text = "Edit")
+                }
             Spacer(modifier = Modifier.width(16.dp))
             Button(onClick = onSignOut, modifier = Modifier.testTag("signOutButton")) {
               Text(text = "Sign Out")

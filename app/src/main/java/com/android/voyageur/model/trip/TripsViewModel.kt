@@ -49,12 +49,14 @@ open class TripsViewModel(
 
   init {
     tripsRepository.init {
-        _isLoading.value = true
+      _isLoading.value = true
       tripsRepository.getTrips(
-          Firebase?.auth?.uid.orEmpty(), onSuccess = { _trips.value = it
-                                                     _isLoading.value = false}, onFailure = {
-                                                         _isLoading.value = false
-          })
+          Firebase?.auth?.uid.orEmpty(),
+          onSuccess = {
+            _trips.value = it
+            _isLoading.value = false
+          },
+          onFailure = { _isLoading.value = false })
     }
   }
 
@@ -100,12 +102,12 @@ open class TripsViewModel(
           */
           _trips.value = ArrayList()
           _trips.value = trips
-            _isLoading.value = false
+          _isLoading.value = false
           onSuccess()
         },
         onFailure = {
-            _isLoading.value = false
-            Log.e("TripsViewModel", "Failed to get trips", it)
+          _isLoading.value = false
+          Log.e("TripsViewModel", "Failed to get trips", it)
         })
   }
 

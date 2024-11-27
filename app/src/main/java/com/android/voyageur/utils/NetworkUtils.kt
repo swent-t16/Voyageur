@@ -5,7 +5,6 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -16,8 +15,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 
 /**
- * Represents the current state of the network connection.
- * [Available] when the device is connected to the internet, [Unavailable] otherwise.
+ * Represents the current state of the network connection. [Available] when the device is connected
+ * to the internet, [Unavailable] otherwise.
  */
 sealed class ConnectionState {
   object Available : ConnectionState()
@@ -26,10 +25,11 @@ sealed class ConnectionState {
 }
 
 /**
- * Returns the current connectivity state of the device.
- * [ConnectionState.Available] when the device is connected to the internet, [ConnectionState.Unavailable] otherwise.
- * @receiver Context The context to get the connectivity state from.
+ * Returns the current connectivity state of the device. [ConnectionState.Available] when the device
+ * is connected to the internet, [ConnectionState.Unavailable] otherwise.
+ *
  * @return ConnectionState The current connectivity state.
+ * @receiver Context The context to get the connectivity state from.
  */
 val Context.currentConnectivityState: ConnectionState
   get() {
@@ -38,8 +38,9 @@ val Context.currentConnectivityState: ConnectionState
   }
 
 /**
- * Returns the current connectivity state of the device.
- * [ConnectionState.Available] when the device is connected to the internet, [ConnectionState.Unavailable] otherwise.
+ * Returns the current connectivity state of the device. [ConnectionState.Available] when the device
+ * is connected to the internet, [ConnectionState.Unavailable] otherwise.
+ *
  * @param connectivityManager The connectivity manager to get the connectivity state from.
  * @return ConnectionState The current connectivity state.
  */
@@ -56,8 +57,9 @@ private fun getCurrentConnectivityState(connectivityManager: ConnectivityManager
 
 /**
  * Observes the connectivity state of the device as a flow.
- * @receiver Context The context to observe the connectivity state from.
+ *
  * @return Flow<ConnectionState> A flow that emits the current connectivity state of the device.
+ * @receiver Context The context to observe the connectivity state from.
  * @sample observeConnectivityAsFlow
  * @see ConnectionState
  */
@@ -85,6 +87,7 @@ fun Context.observeConnectivityAsFlow() = callbackFlow {
 
 /**
  * A callback that listens to network changes and emits the current connectivity state.
+ *
  * @param callback The callback to be invoked when the network state changes.
  * @return NetworkCallback The network callback.
  */
@@ -101,8 +104,8 @@ fun NetworkCallback(callback: (ConnectionState) -> Unit): ConnectivityManager.Ne
 }
 
 /**
- * Returns the current connectivity state of the device.
- * [ConnectionState.Available] when the device is connected to the internet, [ConnectionState.Unavailable] otherwise.
+ * Returns the current connectivity state of the device. [ConnectionState.Available] when the device
+ * is connected to the internet, [ConnectionState.Unavailable] otherwise.
  */
 @ExperimentalCoroutinesApi
 @Composable

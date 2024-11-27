@@ -88,9 +88,7 @@ fun OverviewScreen(
   val isConnected = status === ConnectionState.Available
 
   Log.e("RECOMPOSE", "OverviewScreen recomposed")
-  LaunchedEffect(isLoadingUser,isLoadingTrip) {
-    isLoading = isLoadingUser || isLoadingTrip
-  }
+  LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
   LaunchedEffect(trips) {
     if (trips.isNotEmpty()) {
       userViewModel.getUsersByIds(
@@ -105,27 +103,18 @@ fun OverviewScreen(
   }
   Scaffold(
       floatingActionButton = {
-
-              FloatingActionButton(
-                  onClick = {
-                      if (isConnected)
-                        navigationActions.navigateTo(Screen.ADD_TRIP)
-                      else
-                        Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
-                  },
-
-                  modifier = Modifier.testTag("createTripButton")
-              ) {
-                  Icon(
-
-                      Icons.Outlined.Add,
-                      "Floating action button",
-                      modifier = Modifier.testTag("addIcon")
-                  )
-              }
-
+        FloatingActionButton(
+            onClick = {
+              if (isConnected) navigationActions.navigateTo(Screen.ADD_TRIP)
+              else Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            },
+            modifier = Modifier.testTag("createTripButton")) {
+              Icon(
+                  Icons.Outlined.Add,
+                  "Floating action button",
+                  modifier = Modifier.testTag("addIcon"))
+            }
       },
-
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
         TopAppBar(title = { Text(text = "Your trips") }, modifier = Modifier.testTag("topBarTitle"))
@@ -190,8 +179,8 @@ fun TripItem(
   var isExpanded by remember { mutableStateOf(false) }
   var showDialog by remember { mutableStateOf(false) }
   val context = LocalContext.current
-    val status by connectivityState()
-    val isConnected = status === ConnectionState.Available
+  val status by connectivityState()
+  val isConnected = status === ConnectionState.Available
   Card(
       onClick = {
         // When opening a trip, navigate to the Schedule screen, with the daily view enabled

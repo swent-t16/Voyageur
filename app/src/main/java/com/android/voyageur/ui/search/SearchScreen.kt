@@ -80,7 +80,6 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
 import com.android.voyageur.utils.ConnectionState
 import com.android.voyageur.utils.connectivityState
-import com.android.voyageur.utils.currentConnectivityState
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -124,16 +123,15 @@ fun SearchScreen(
   var showLocationDialog by remember { mutableStateOf(false) }
   val isLoading by userViewModel.isLoading.collectAsState()
   fusedLocationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
-    val status by connectivityState()
+  val status by connectivityState()
 
-    val isConnected = status === ConnectionState.Available
-    if(isConnected){
-        placesViewModel.searchPlaces(searchQuery.text, userLocation)
-    }else
-        if(navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES){
-            Toast.makeText(context, "No internet connection, places search is disabled", Toast.LENGTH_SHORT).show()
-
-    }
+  val isConnected = status === ConnectionState.Available
+  if (isConnected) {
+    placesViewModel.searchPlaces(searchQuery.text, userLocation)
+  } else if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {
+    Toast.makeText(context, "No internet connection, places search is disabled", Toast.LENGTH_SHORT)
+        .show()
+  }
   fun isLocationEnabled(context: Context): Boolean {
     val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
@@ -262,7 +260,6 @@ fun SearchScreen(
                       .padding(8.dp)
                       .testTag("searchBar"),
               verticalAlignment = Alignment.CenterVertically) {
-
                 Icon(Icons.Default.Search, contentDescription = "Search Icon")
                 Spacer(modifier = Modifier.width(8.dp))
                 BasicTextField(
@@ -298,16 +295,14 @@ fun SearchScreen(
               }
 
           Spacer(modifier = Modifier.height(16.dp))
-            if(isLoading){
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator(
-                        strokeWidth = 3.dp, modifier = Modifier.size(40.dp)
-                    )
+          if (isLoading) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                  CircularProgressIndicator(strokeWidth = 3.dp, modifier = Modifier.size(40.dp))
                 }
-            }
+          }
           Text(
               text = "Search results",
               fontSize = 18.sp,
@@ -362,10 +357,7 @@ fun SearchScreen(
                           .padding(16.dp)
                           .background(textFieldsColours, shape = MaterialTheme.shapes.large)
                           .testTag("searchResultsPlaces")) {
-
-
-
-                  if (searchedPlaces.isEmpty()) {
+                    if (searchedPlaces.isEmpty()) {
                       item { NoResultsFound() }
                     } else {
                       items(searchedPlaces) { place ->
