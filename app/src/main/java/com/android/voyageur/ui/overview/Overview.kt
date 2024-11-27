@@ -84,7 +84,7 @@ fun OverviewScreen(
   val isLoadingTrip by tripsViewModel.isLoading.collectAsState()
   var isLoading = false
   val status by connectivityState()
-
+  val context = LocalContext.current
   val isConnected = status === ConnectionState.Available
 
   Log.e("RECOMPOSE", "OverviewScreen recomposed")
@@ -105,15 +105,27 @@ fun OverviewScreen(
   }
   Scaffold(
       floatingActionButton = {
-        FloatingActionButton(
-            onClick = { navigationActions.navigateTo(Screen.ADD_TRIP) },
-            modifier = Modifier.testTag("createTripButton")) {
-              Icon(
-                  Icons.Outlined.Add,
-                  "Floating action button",
-                  modifier = Modifier.testTag("addIcon"))
-            }
+
+              FloatingActionButton(
+                  onClick = {
+                      if (isConnected)
+                        navigationActions.navigateTo(Screen.ADD_TRIP)
+                      else
+                        Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+                  },
+
+                  modifier = Modifier.testTag("createTripButton")
+              ) {
+                  Icon(
+
+                      Icons.Outlined.Add,
+                      "Floating action button",
+                      modifier = Modifier.testTag("addIcon")
+                  )
+              }
+
       },
+
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
         TopAppBar(title = { Text(text = "Your trips") }, modifier = Modifier.testTag("topBarTitle"))
@@ -178,6 +190,8 @@ fun TripItem(
   var isExpanded by remember { mutableStateOf(false) }
   var showDialog by remember { mutableStateOf(false) }
   val context = LocalContext.current
+    val status by connectivityState()
+    val isConnected = status === ConnectionState.Available
   Card(
       onClick = {
         // When opening a trip, navigate to the Schedule screen, with the daily view enabled
@@ -241,6 +255,7 @@ fun TripItem(
                   }
               Box(modifier = Modifier.align(Alignment.Top)) {
                 IconButton(
+                    enabled = isConnected,
                     onClick = { isExpanded = !isExpanded },
                     modifier = Modifier.testTag("expandIcon_${trip.name}")) {
                       Icon(
