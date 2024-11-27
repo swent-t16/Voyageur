@@ -295,7 +295,7 @@ fun SearchScreen(
               }
 
           Spacer(modifier = Modifier.height(16.dp))
-          if (isLoading) {
+          if (isLoading && !isConnected) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
