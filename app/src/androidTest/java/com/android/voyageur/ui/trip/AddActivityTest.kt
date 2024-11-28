@@ -22,6 +22,7 @@ import io.mockk.*
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -142,6 +143,157 @@ class AddActivityScreenTest {
 
     composeTestRule.onNodeWithTag("inputActivityTitle").performTextInput("Hiking")
     composeTestRule.onNodeWithTag("activitySave").assertIsEnabled()
+  }
+
+  @Test
+  fun addActivityScreen_validPrice() {
+    composeTestRule.setContent {
+      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+    }
+
+    composeTestRule.onNodeWithTag("inputActivityPrice").performTextInput("60.0")
+    composeTestRule.onNodeWithTag("inputActivityPrice").assertTextContains("60.0")
+  }
+
+  @Test
+  fun addActivityScreen_invalidPrice() {
+    composeTestRule.setContent {
+      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+    }
+
+    composeTestRule.onNodeWithTag("inputActivityPrice").performTextInput("60.2435")
+    composeTestRule.onNodeWithTag("activitySave").assertIsNotEnabled()
+  }
+
+  @Test
+  fun addActivityScreen_activityTypeDropdown() {
+    composeTestRule.setContent {
+      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+    }
+
+    composeTestRule.onNodeWithTag("activityTypeDropdown").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("activityTypeDropdown").performClick()
+    composeTestRule.onNodeWithTag("expandedDropdown").assertIsDisplayed()
+  }
+
+  @Test
+  fun test_endTimestamp_initialization_with_endTime_provided() {
+    val calendar = Calendar.getInstance()
+    calendar.set(2024, Calendar.NOVEMBER, 21, 0, 0, 0) // Activity date at midnight
+    val activityDate = calendar.timeInMillis
+
+    calendar.set(Calendar.HOUR_OF_DAY, 15) // Set endTime to 3:30 PM
+    calendar.set(Calendar.MINUTE, 30)
+    val endTime = calendar.timeInMillis
+
+    val selectedTripStartDate = Timestamp(Date(activityDate))
+    val selectedTripEndDate = Timestamp(Date(activityDate + (24 * 60 * 60 * 1000))) // Next day
+
+    val trip =
+        Trip(
+            startDate = selectedTripStartDate,
+            endDate = selectedTripEndDate,
+            activities = emptyList())
+
+    val tripsViewModel = mock(TripsViewModel::class.java)
+    val mutableStateFlow = MutableStateFlow(trip)
+    whenever(tripsViewModel.selectedTrip).thenReturn(mutableStateFlow)
+
+    val normalizedDate =
+        Calendar.getInstance()
+            .apply {
+              timeInMillis = activityDate
+              set(Calendar.HOUR_OF_DAY, 0)
+              set(Calendar.MINUTE, 0)
+              set(Calendar.SECOND, 0)
+              set(Calendar.MILLISECOND, 0)
+            }
+            .time
+
+    val endTimestamp =
+        Timestamp(
+            Calendar.getInstance()
+                .apply {
+                  time = normalizedDate
+                  set(
+                      Calendar.HOUR_OF_DAY,
+                      Calendar.getInstance()
+                          .apply { timeInMillis = endTime }
+                          .get(Calendar.HOUR_OF_DAY))
+                  set(
+                      Calendar.MINUTE,
+                      Calendar.getInstance().apply { timeInMillis = endTime }.get(Calendar.MINUTE))
+                }
+                .time)
+
+    // Assert
+    val expectedCalendar = Calendar.getInstance()
+    expectedCalendar.time = normalizedDate
+    expectedCalendar.set(Calendar.HOUR_OF_DAY, 15)
+    expectedCalendar.set(Calendar.MINUTE, 30)
+
+    assertEquals(expectedCalendar.time, endTimestamp.toDate())
+  }
+
+  @Test
+  fun test_startTimestamp_initialization_with_startTime_provided() {
+    val calendar = Calendar.getInstance()
+    calendar.set(2024, Calendar.NOVEMBER, 21, 0, 0, 0) // Activity date at midnight
+    val activityDate = calendar.timeInMillis
+
+    calendar.set(Calendar.HOUR_OF_DAY, 17) // Set endTime to 5:45 PM
+    calendar.set(Calendar.MINUTE, 45)
+    val startTime = calendar.timeInMillis
+
+    val selectedTripStartDate = Timestamp(Date(activityDate))
+    val selectedTripEndDate = Timestamp(Date(activityDate + (24 * 60 * 60 * 1000))) // Next day
+
+    val trip =
+        Trip(
+            startDate = selectedTripStartDate,
+            endDate = selectedTripEndDate,
+            activities = emptyList())
+
+    val tripsViewModel = mock(TripsViewModel::class.java)
+    val mutableStateFlow = MutableStateFlow(trip)
+    whenever(tripsViewModel.selectedTrip).thenReturn(mutableStateFlow)
+
+    val normalizedDate =
+        Calendar.getInstance()
+            .apply {
+              timeInMillis = activityDate
+              set(Calendar.HOUR_OF_DAY, 0)
+              set(Calendar.MINUTE, 0)
+              set(Calendar.SECOND, 0)
+              set(Calendar.MILLISECOND, 0)
+            }
+            .time
+
+    val startTimestamp =
+        Timestamp(
+            Calendar.getInstance()
+                .apply {
+                  time = normalizedDate
+                  set(
+                      Calendar.HOUR_OF_DAY,
+                      Calendar.getInstance()
+                          .apply { timeInMillis = startTime }
+                          .get(Calendar.HOUR_OF_DAY))
+                  set(
+                      Calendar.MINUTE,
+                      Calendar.getInstance()
+                          .apply { timeInMillis = startTime }
+                          .get(Calendar.MINUTE))
+                }
+                .time)
+
+    // Assert
+    val expectedCalendar = Calendar.getInstance()
+    expectedCalendar.time = normalizedDate
+    expectedCalendar.set(Calendar.HOUR_OF_DAY, 17)
+    expectedCalendar.set(Calendar.MINUTE, 45)
+
+    assertEquals(expectedCalendar.time, startTimestamp.toDate())
   }
 
   @Test

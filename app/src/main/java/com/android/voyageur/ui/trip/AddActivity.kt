@@ -434,7 +434,9 @@ fun AddActivityScreen(
                 Spacer(modifier = Modifier.height(2.dp))
 
                 ExposedDropdownMenuBox(
-                    expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded },
+                    modifier = Modifier.testTag("activityTypeDropdown")) {
                       TextField(
                           value = activityType.name,
                           onValueChange = {},
@@ -446,7 +448,9 @@ fun AddActivityScreen(
                           modifier =
                               Modifier.fillMaxWidth().menuAnchor().testTag("inputActivityType"))
                       ExposedDropdownMenu(
-                          expanded = expanded, onDismissRequest = { expanded = false }) {
+                          expanded = expanded,
+                          onDismissRequest = { expanded = false },
+                          modifier = Modifier.testTag("expandedDropdown")) {
                             ActivityType.entries.forEach { type ->
                               DropdownMenuItem(
                                   text = { Text(text = type.name) },
