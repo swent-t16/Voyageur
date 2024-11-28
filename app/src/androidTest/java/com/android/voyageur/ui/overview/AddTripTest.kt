@@ -26,10 +26,12 @@ import com.android.voyageur.ui.navigation.Screen
 import com.android.voyageur.ui.trip.AddActivityScreen
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import io.mockk.verify
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.Date
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -395,7 +397,7 @@ class AddTripScreenTest {
 
     tripsViewModel.selectTrip(mockTrip)
     composeTestRule.setContent {
-      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+      AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
     }
 
     assertEquals("mockID", mockTrip.location.id)
@@ -404,4 +406,24 @@ class AddTripScreenTest {
     assertEquals(19.9, mockTrip.location.lat, 0.10)
     assertEquals(65.0, mockTrip.location.lng, 0.10)
   }
+
+    @Test
+    fun testDoubleClickSaveTrip_createsOnlyOneTrip() {
+        composeTestRule.setContent {
+            AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
+        }
+
+        composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Test Trip")
+        composeTestRule.onNodeWithText("Start Date *").performClick()
+        composeTestRule.onNodeWithText("OK").performClick()
+        composeTestRule.onNodeWithText("End Date *").performClick()
+        composeTestRule.onNodeWithText("OK").performClick()
+
+        //press quickly twice on the save button
+        composeTestRule.onNodeWithTag("tripSave").performClick()
+        composeTestRule.onNodeWithTag("tripSave").performClick()
+
+        verify(tripRepository).createTrip(any(), any(), any())
+    }
+
 }
