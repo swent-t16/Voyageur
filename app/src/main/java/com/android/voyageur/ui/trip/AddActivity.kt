@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
+import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
@@ -34,7 +35,6 @@ import com.android.voyageur.ui.components.PlaceSearchWidget
 import com.android.voyageur.ui.formFields.DatePickerModal
 import com.android.voyageur.ui.formFields.TimePickerInput
 import com.android.voyageur.ui.navigation.NavigationActions
-import com.google.android.libraries.places.api.model.Place
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -53,7 +53,7 @@ fun AddActivityScreen(
   var title by remember { mutableStateOf(existingActivity?.title ?: "") }
   var description by remember { mutableStateOf(existingActivity?.description ?: "") }
   var query by remember {
-    mutableStateOf(TextFieldValue(existingActivity?.location?.displayName ?: ""))
+    mutableStateOf(TextFieldValue(existingActivity?.location?.address ?: ""))
   }
   var selectedPlace by remember { mutableStateOf<CustomPlace?>(null) }
   var showModal by remember { mutableStateOf(false) }
@@ -216,7 +216,9 @@ fun AddActivityScreen(
         Activity(
             title = title,
             description = description,
-            location = selectedPlace?.place ?: Place.builder().build(),
+            location =
+                selectedPlace?.let { Location(address = it.place.displayName ?: "") }
+                    ?: Location(""),
             startTime = startTimestamp,
             endTime = endTimestamp,
             estimatedPrice = estimatedPrice ?: 0.0,

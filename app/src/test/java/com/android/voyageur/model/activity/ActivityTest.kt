@@ -1,6 +1,6 @@
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
-import com.google.android.libraries.places.api.model.Place
+import com.android.voyageur.model.location.Location
 import com.google.firebase.Timestamp
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -8,14 +8,14 @@ import org.junit.Test
 
 class ActivityTest {
 
-  private lateinit var location: Place
+  private lateinit var location: Location
   private lateinit var startTime: Timestamp
   private lateinit var endTime: Timestamp
 
   @Before
   fun setUp() {
     // Assuming Location has a constructor that takes latitude and longitude for simplicity
-    location = Place.builder().build()
+    location = Location()
     startTime = Timestamp.now()
     endTime = Timestamp.now()
   }

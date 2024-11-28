@@ -4,6 +4,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
+import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
@@ -13,7 +14,6 @@ import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
-import com.google.android.libraries.places.api.model.Place
 import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -66,7 +66,7 @@ class WeeklyViewScreenTest {
                     Activity(
                         "1",
                         "",
-                        Place.builder().build(),
+                        Location(""),
                         startTime =
                             Timestamp(
                                 Date.from(
@@ -82,7 +82,7 @@ class WeeklyViewScreenTest {
                     Activity(
                         "2",
                         "",
-                        Place.builder().build(),
+                        Location(""),
                         startTime =
                             Timestamp(
                                 Date.from(

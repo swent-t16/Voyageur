@@ -1,7 +1,7 @@
 package com.android.voyageur.model.trip
 
 import com.android.voyageur.model.activity.Activity
-import com.google.android.libraries.places.api.model.Place
+import com.android.voyageur.model.location.Location
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 
@@ -11,7 +11,7 @@ data class Trip(
     val participants: List<String> = emptyList(),
     val description: String = "",
     val name: String = "",
-    val location: Place = Place.builder().build(),
+    val locations: List<Location> = emptyList(),
     val startDate: Timestamp = Timestamp.now(),
     val endDate: Timestamp = Timestamp.now(),
     var activities: List<Activity> = emptyList(),

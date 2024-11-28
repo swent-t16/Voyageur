@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
+import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
@@ -16,7 +17,6 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
 import com.android.voyageur.ui.trip.activities.EditActivityScreen
-import com.google.android.libraries.places.api.model.Place
 import com.google.firebase.Timestamp
 import io.mockk.*
 import java.time.LocalDateTime
@@ -44,7 +44,7 @@ class AddActivityScreenTest {
       Activity(
           title = "Hiking",
           description = "Trail hiking in the mountains",
-          location = Place.builder().setName("London").setAddress("London, UK").build(),
+          location = Location("Toronto"),
           startTime =
               Timestamp(Date.from(LocalDateTime.of(2024, 10, 3, 10, 0).toInstant(ZoneOffset.UTC))),
           endTime =
@@ -155,7 +155,7 @@ class AddActivityScreenTest {
             creator = "mockUserId",
             description = "Existing trip",
             name = "Existing Trip",
-            location = Place.builder().setName("London").setAddress("London, UK").build(),
+            locations = listOf(Location("Paris")),
             startDate = Timestamp(Date()),
             endDate = Timestamp(Date()),
             activities = listOf(),
@@ -183,6 +183,7 @@ class AddActivityScreenTest {
     composeTestRule
         .onNodeWithTag("inputActivityDescription")
         .assertTextContains("Trail hiking in the mountains")
+    composeTestRule.onNodeWithTag("searchTextField").assertTextContains("Toronto")
     composeTestRule.onNodeWithTag("inputDate").assertTextContains("03 Oct 2024")
   }
 
