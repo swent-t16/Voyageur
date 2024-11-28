@@ -122,9 +122,9 @@ class UserRepositoryFirebaseTest {
     `when`(mockDocumentSnapshot.toObject(User::class.java)).thenReturn(testUser)
 
     userRepository.getUserById(
-      "1",
-      onSuccess = { user -> assertEquals(testUser, user) },
-      onFailure = { fail("Failure callback should not be called") })
+        "1",
+        onSuccess = { user -> assertEquals(testUser, user) },
+        onFailure = { fail("Failure callback should not be called") })
 
     verify(mockDocumentReference).get()
   }
@@ -136,19 +136,19 @@ class UserRepositoryFirebaseTest {
     `when`(mockDocumentReference.get()).thenReturn(Tasks.forException(exception))
 
     userRepository.getUserById(
-      "1",
-      onSuccess = { fail("Success callback should not be called") },
-      onFailure = { assertEquals("Test exception", it.message) })
+        "1",
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { assertEquals("Test exception", it.message) })
   }
 
   // Test for creating a user
   @Test
   fun createUser_shouldCallSet() {
     `when`(mockDocumentReference.set(any(User::class.java), any<SetOptions>()))
-      .thenReturn(Tasks.forResult(null))
+        .thenReturn(Tasks.forResult(null))
 
     userRepository.createUser(
-      testUser, onSuccess = {}, onFailure = { fail("Failure callback should not be called") })
+        testUser, onSuccess = {}, onFailure = { fail("Failure callback should not be called") })
 
     shadowOf(Looper.getMainLooper()).idle()
     verify(mockDocumentReference).set(any(User::class.java), any<SetOptions>())
@@ -159,22 +159,22 @@ class UserRepositoryFirebaseTest {
   fun IF_createUser_fails_THEN_callOnFailure() {
     val exception = Exception("Test exception")
     `when`(mockDocumentReference.set(any(User::class.java), any<SetOptions>()))
-      .thenReturn(Tasks.forException(exception))
+        .thenReturn(Tasks.forException(exception))
 
     userRepository.createUser(
-      testUser,
-      onSuccess = { fail("Success callback should not be called") },
-      onFailure = { assertEquals("Test exception", it.message) })
+        testUser,
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { assertEquals("Test exception", it.message) })
   }
 
   // Test for updating a user
   @Test
   fun updateUser_shouldCallSet() {
     `when`(mockDocumentReference.set(any(User::class.java), any<SetOptions>()))
-      .thenReturn(Tasks.forResult(null))
+        .thenReturn(Tasks.forResult(null))
 
     userRepository.updateUser(
-      testUser, onSuccess = {}, onFailure = { fail("Failure callback should not be called") })
+        testUser, onSuccess = {}, onFailure = { fail("Failure callback should not be called") })
 
     shadowOf(Looper.getMainLooper()).idle()
     verify(mockDocumentReference).set(any(User::class.java), any<SetOptions>())
@@ -185,12 +185,12 @@ class UserRepositoryFirebaseTest {
   fun IF_updateUser_fails_THEN_callOnFailure() {
     val exception = Exception("Test exception")
     `when`(mockDocumentReference.set(any(User::class.java), any<SetOptions>()))
-      .thenReturn(Tasks.forException(exception))
+        .thenReturn(Tasks.forException(exception))
 
     userRepository.updateUser(
-      testUser,
-      onSuccess = { fail("Success callback should not be called") },
-      onFailure = { assertEquals("Test exception", it.message) })
+        testUser,
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { assertEquals("Test exception", it.message) })
   }
 
   // Test for deleting a user by ID
@@ -199,7 +199,7 @@ class UserRepositoryFirebaseTest {
     `when`(mockDocumentReference.delete()).thenReturn(Tasks.forResult(null))
 
     userRepository.deleteUserById(
-      "1", onSuccess = {}, onFailure = { fail("Failure callback should not be called") })
+        "1", onSuccess = {}, onFailure = { fail("Failure callback should not be called") })
 
     shadowOf(Looper.getMainLooper()).idle()
     verify(mockDocumentReference).delete()
@@ -212,9 +212,9 @@ class UserRepositoryFirebaseTest {
     `when`(mockDocumentReference.delete()).thenReturn(Tasks.forException(exception))
 
     userRepository.deleteUserById(
-      "1",
-      onSuccess = { fail("Success callback should not be called") },
-      onFailure = { assertEquals("Test exception", it.message) })
+        "1",
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { assertEquals("Test exception", it.message) })
   }
 
   // Test for initializing user repository (success)
@@ -245,9 +245,9 @@ class UserRepositoryFirebaseTest {
     val userIds = listOf("1", "2")
     val mockTask = mock(Task::class.java) as Task<QuerySnapshot>
     val testUserList =
-      listOf(
-        User("1", "John Doe", "john@example.com", "password123", "555-1234"),
-        User("2", "Jane Doe", "jane@example.com", "password456", "555-5678"))
+        listOf(
+            User("1", "John Doe", "john@example.com", "password123", "555-1234"),
+            User("2", "Jane Doe", "jane@example.com", "password456", "555-5678"))
 
     `when`(mockCollectionReference.whereIn(FieldPath.documentId(), userIds)).thenReturn(mockQuery)
     `when`(mockQuery.get()).thenReturn(mockTask)
@@ -310,7 +310,7 @@ class UserRepositoryFirebaseTest {
     `when`(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
       val listener = invocation.arguments[0] as OnSuccessListener<DocumentSnapshot>
       `when`(mockDocumentSnapshot.toObject(User::class.java))
-        .thenReturn(null) // Simulate user not found
+          .thenReturn(null) // Simulate user not found
       listener.onSuccess(mockDocumentSnapshot)
       mockTask
     }
@@ -327,6 +327,7 @@ class UserRepositoryFirebaseTest {
 
     verify(mockDocumentReference).get()
   }
+
   @Test
   fun testListenToUser_success() {
     // Arrange
@@ -337,15 +338,16 @@ class UserRepositoryFirebaseTest {
 
     `when`(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
     `when`(mockCollectionReference.document(userId)).thenReturn(mockDocumentReference)
-    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>())).thenAnswer { invocation ->
-      val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
-      // Simulate snapshot
-      `when`(mockDocumentSnapshot.exists()).thenReturn(true)
-      `when`(mockDocumentSnapshot.toObject(User::class.java)).thenReturn(testUser)
-      // Call listener
-      listener.onEvent(mockDocumentSnapshot, null)
-      mockListenerRegistration
-    }
+    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>()))
+        .thenAnswer { invocation ->
+          val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
+          // Simulate snapshot
+          `when`(mockDocumentSnapshot.exists()).thenReturn(true)
+          `when`(mockDocumentSnapshot.toObject(User::class.java)).thenReturn(testUser)
+          // Call listener
+          listener.onEvent(mockDocumentSnapshot, null)
+          mockListenerRegistration
+        }
 
     // Act
     var onSuccessCalled = false
@@ -366,17 +368,19 @@ class UserRepositoryFirebaseTest {
   fun testListenToUser_failure_exception() {
     // Arrange
     val userId = "1"
-    val exception = FirebaseFirestoreException("Test exception", FirebaseFirestoreException.Code.UNKNOWN)
+    val exception =
+        FirebaseFirestoreException("Test exception", FirebaseFirestoreException.Code.UNKNOWN)
     val mockListenerRegistration = mock(ListenerRegistration::class.java)
 
     `when`(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
     `when`(mockCollectionReference.document(userId)).thenReturn(mockDocumentReference)
-    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>())).thenAnswer { invocation ->
-      val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
-      // Call listener with exception
-      listener.onEvent(null, exception)
-      mockListenerRegistration
-    }
+    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>()))
+        .thenAnswer { invocation ->
+          val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
+          // Call listener with exception
+          listener.onEvent(null, exception)
+          mockListenerRegistration
+        }
 
     // Act
     var onFailureCalled = false
@@ -401,12 +405,13 @@ class UserRepositoryFirebaseTest {
 
     `when`(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
     `when`(mockCollectionReference.document(userId)).thenReturn(mockDocumentReference)
-    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>())).thenAnswer { invocation ->
-      val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
-      // Call listener with null snapshot and no exception
-      listener.onEvent(null, null)
-      mockListenerRegistration
-    }
+    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>()))
+        .thenAnswer { invocation ->
+          val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
+          // Call listener with null snapshot and no exception
+          listener.onEvent(null, null)
+          mockListenerRegistration
+        }
 
     // Act
     var onFailureCalled = false
@@ -432,13 +437,14 @@ class UserRepositoryFirebaseTest {
 
     `when`(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
     `when`(mockCollectionReference.document(userId)).thenReturn(mockDocumentReference)
-    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>())).thenAnswer { invocation ->
-      val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
-      `when`(mockDocumentSnapshot.exists()).thenReturn(false)
-      // Call listener with snapshot that does not exist
-      listener.onEvent(mockDocumentSnapshot, null)
-      mockListenerRegistration
-    }
+    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>()))
+        .thenAnswer { invocation ->
+          val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
+          `when`(mockDocumentSnapshot.exists()).thenReturn(false)
+          // Call listener with snapshot that does not exist
+          listener.onEvent(mockDocumentSnapshot, null)
+          mockListenerRegistration
+        }
 
     // Act
     var onFailureCalled = false
@@ -464,14 +470,15 @@ class UserRepositoryFirebaseTest {
 
     `when`(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
     `when`(mockCollectionReference.document(userId)).thenReturn(mockDocumentReference)
-    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>())).thenAnswer { invocation ->
-      val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
-      `when`(mockDocumentSnapshot.exists()).thenReturn(true)
-      `when`(mockDocumentSnapshot.toObject(User::class.java)).thenReturn(null)
-      // Call listener with snapshot where user data is null
-      listener.onEvent(mockDocumentSnapshot, null)
-      mockListenerRegistration
-    }
+    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>()))
+        .thenAnswer { invocation ->
+          val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
+          `when`(mockDocumentSnapshot.exists()).thenReturn(true)
+          `when`(mockDocumentSnapshot.toObject(User::class.java)).thenReturn(null)
+          // Call listener with snapshot where user data is null
+          listener.onEvent(mockDocumentSnapshot, null)
+          mockListenerRegistration
+        }
 
     // Act
     var onFailureCalled = false
@@ -487,5 +494,4 @@ class UserRepositoryFirebaseTest {
     assertNotNull(registration)
     assertTrue(onFailureCalled)
   }
-
 }
