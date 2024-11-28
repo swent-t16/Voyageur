@@ -98,7 +98,7 @@ fun FilterDialog(
       },
       text = {
         Column(
-            modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(3.dp)) {
               ActivityType.entries.forEach { type ->
                 // A row represents the activity type and a checkbox to validate the filter
                 Row(
@@ -106,7 +106,7 @@ fun FilterDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween) {
                       Text(
-                          text = type.name,
+                          text = type.name.lowercase().replaceFirstChar { it.uppercase() },
                       )
                       Checkbox(
                           modifier = Modifier.testTag("typeCheckBox_${type.name}"),

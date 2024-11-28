@@ -99,7 +99,7 @@ fun ActivitiesScreen(
             actions = {
               IconButton(
                   modifier = Modifier.testTag("filterButton"),
-                  onClick = { showFilterMenu = !showFilterMenu },
+                  onClick = { showFilterMenu = true },
                   content = {
                     Icon(
                         imageVector = Icons.Outlined.FilterAlt,

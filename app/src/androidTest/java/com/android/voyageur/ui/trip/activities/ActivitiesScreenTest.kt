@@ -2,6 +2,7 @@ package com.android.voyageur.ui.trip.activities
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -186,6 +187,9 @@ class ActivitiesScreenTest {
     // Click the filter button
     composeTestRule.onNodeWithTag("filterButton").performClick()
     composeTestRule.onNodeWithTag("filterActivityAlertDialog").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("typeCheckBox_WALK").assertExists()
+    composeTestRule.onNodeWithTag("confirmButtonDialog").performClick()
+    composeTestRule.onNodeWithTag("filterActivityAlertDialog").assertDoesNotExist()
   }
 
   @Test
@@ -198,6 +202,9 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("filterButton").performClick()
     // Select the "WALK" filter
     composeTestRule.onNodeWithTag("typeCheckBox_WALK").performClick()
+    composeTestRule
+        .onNodeWithTag("typeCheckBox_WALK")
+        .assertIsOn() // Verify the checkbox is checked
     composeTestRule.onNodeWithTag("confirmButtonDialog").performClick()
 
     // Verify that only WALK activities are displayed
@@ -216,6 +223,7 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("filterButton").performClick()
     // Select the "RESTAURANT" filter using the updated test tag
     composeTestRule.onNodeWithTag("typeCheckBox_RESTAURANT").performClick()
+
     composeTestRule.onNodeWithTag("confirmButtonDialog").performClick()
 
     // Verify that only RESTAURANT activities are displayed
