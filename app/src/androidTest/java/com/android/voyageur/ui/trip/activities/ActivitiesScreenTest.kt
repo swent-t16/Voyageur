@@ -88,6 +88,7 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
     composeTestRule.onNodeWithTag("createActivityButton").assertIsDisplayed()
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("totalEstimatedPriceBox").assertIsDisplayed()
   }
 
   @Test
