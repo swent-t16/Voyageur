@@ -14,7 +14,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.PopupProperties
 import com.android.voyageur.model.location.Location
-import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesViewModel
 
 /**
@@ -70,14 +69,4 @@ fun PlaceSearchWidget(
           }
         }
   }
-}
-
-/** function to convert a CustomPlace object to a Location object with only the fields we need */
-fun CustomPlace.toLocation(): Location {
-  return Location(
-      id = this.place.id ?: "",
-      name = this.place.displayName ?: "",
-      address = this.place.formattedAddress ?: "",
-      lat = this.place.latLng?.latitude ?: 0.0,
-      lng = this.place.latLng?.longitude ?: 0.0)
 }
