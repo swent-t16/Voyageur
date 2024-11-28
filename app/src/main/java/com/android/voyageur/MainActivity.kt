@@ -13,6 +13,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.style.TextAlign
@@ -50,7 +51,7 @@ class MainActivity : ComponentActivity() {
                   if (!isConnected) {
                     // display a red banner at the top of the screen
                     Text(
-                        "No internet connection",
+                        stringResource(R.string.no_internet_connection),
                         modifier =
                             Modifier.fillMaxWidth()
                                 .background(color = MaterialTheme.colorScheme.error),

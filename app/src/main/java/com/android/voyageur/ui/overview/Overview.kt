@@ -127,8 +127,6 @@ fun OverviewScreen(
             userViewModel)
       },
       content = { pd ->
-        // if the device is not conencted to internet show a text
-
         if (isLoading) {
           CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
         } else {

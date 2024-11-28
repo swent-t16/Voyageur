@@ -311,7 +311,6 @@ open class UserViewModel(
         {
           if (!_friendRequests.value.map { x -> x.id }.containsAll(it.map { x -> x.id }) ||
               it.size != _friendRequests.value.size) {
-            Log.d("HELLO", "HELLO COX" + "${_notificationCount.value}")
             getUsersByIds(it.map { x -> x.from }) { users ->
               _friendRequests.value = it
               _notificationUsers.value = users
