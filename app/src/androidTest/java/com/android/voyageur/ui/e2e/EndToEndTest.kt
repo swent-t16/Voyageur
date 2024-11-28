@@ -66,9 +66,9 @@ class E2ETest {
     navigationActions = mock(NavigationActions::class.java)
     tripsViewModel = TripsViewModel(tripRepository)
 
-    placesRepository = mock(PlacesRepository::class.java)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
 
+    placesRepository = mock(PlacesRepository::class.java)
     placesViewModel = PlacesViewModel(placesRepository)
 
     userRepository = mock(UserRepository::class.java)
@@ -141,12 +141,18 @@ class E2ETest {
         composable(Route.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
         composable(Route.PROFILE) { ProfileScreen(userViewModel, navigation) }
         composable(Route.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigation) }
-        composable(Route.TOP_TABS) { TopTabs(tripsViewModel, navigation, userViewModel) }
-        composable(Screen.ADD_TRIP) { AddTripScreen(tripsViewModel, navigation) }
+        composable(Route.TOP_TABS) {
+          TopTabs(tripsViewModel, navigation, userViewModel, placesViewModel)
+        }
+        composable(Screen.ADD_TRIP) {
+          AddTripScreen(tripsViewModel, navigation, placesViewModel = placesViewModel)
+        }
         composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
         composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigation) }
         composable(Screen.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigation) }
-        composable(Screen.TOP_TABS) { TopTabs(tripsViewModel, navigation, userViewModel) }
+        composable(Screen.TOP_TABS) {
+          TopTabs(tripsViewModel, navigation, userViewModel, placesViewModel)
+        }
       }
     }
     composeTestRule.onNodeWithTag("overviewScreen").assertIsDisplayed()

@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -25,7 +26,8 @@ import com.android.voyageur.ui.trip.settings.SettingsScreen
 fun TopTabs(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    placesViewModel: PlacesViewModel
 ) {
   // Define tab items
   val tabs = listOf("Schedule", "Activities", "Settings")
@@ -74,6 +76,7 @@ fun TopTabs(
               navigationActions,
               tripsViewModel = tripsViewModel,
               userViewModel = userViewModel,
+              placesViewModel = placesViewModel,
               onUpdate = {
                 navigationActions.getNavigationState().currentTabIndexForTrip = 0
                 navigationActions.getNavigationState().currentTabIndexForTrip = 2

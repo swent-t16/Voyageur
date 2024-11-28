@@ -6,6 +6,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.place.PlacesRepository
+import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserRepository
@@ -28,6 +30,8 @@ class SettingsScreenTest {
   private lateinit var userViewModel: UserViewModel
   private lateinit var userRepository: UserRepository
   private lateinit var friendRequestRepository: FriendRequestRepository
+  private lateinit var placesRepository: PlacesRepository
+  private lateinit var placesViewModel: PlacesViewModel
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
@@ -40,6 +44,8 @@ class SettingsScreenTest {
     `when`(tripsViewModel.selectedTrip).thenReturn(tripStateFlow)
     userRepository = mock(UserRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
+    placesRepository = mock(PlacesRepository::class.java)
+    placesViewModel = PlacesViewModel(placesRepository)
   }
 
   @Test
@@ -49,7 +55,8 @@ class SettingsScreenTest {
           trip = sampleTrip,
           navigationActions = navigationActions,
           tripsViewModel = tripsViewModel,
-          userViewModel)
+          userViewModel,
+          placesViewModel)
     }
 
     composeTestRule.onNodeWithTag("settingsScreen").assertIsDisplayed()
@@ -63,7 +70,8 @@ class SettingsScreenTest {
           trip = sampleTrip,
           navigationActions = navigationActions,
           tripsViewModel = tripsViewModel,
-          userViewModel)
+          userViewModel,
+          placesViewModel)
     }
 
     // Check if the screen displays the trip name correctly in edit mode
@@ -77,7 +85,8 @@ class SettingsScreenTest {
           trip = sampleTrip,
           navigationActions = navigationActions,
           tripsViewModel = tripsViewModel,
-          userViewModel)
+          userViewModel,
+          placesViewModel)
     }
 
     // Check that the bottom navigation menu is displayed

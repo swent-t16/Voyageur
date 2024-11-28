@@ -9,6 +9,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.trip.AddActivityScreen
@@ -18,6 +19,7 @@ import com.android.voyageur.ui.trip.AddActivityScreen
 fun EditActivityScreen(
     navigationActions: NavigationActions,
     tripsViewModel: TripsViewModel,
+    placesViewModel: PlacesViewModel
 ) {
   val activity by tripsViewModel.selectedActivity.collectAsState()
   val selectedActivity = activity!!
@@ -26,7 +28,11 @@ fun EditActivityScreen(
       modifier = Modifier.testTag("editActivityScreen"),
       content = { pd ->
         Box(modifier = Modifier.padding(pd)) {
-          AddActivityScreen(tripsViewModel, navigationActions, existingActivity = selectedActivity)
+          AddActivityScreen(
+              tripsViewModel,
+              navigationActions,
+              placesViewModel,
+              existingActivity = selectedActivity)
         }
       })
 }
