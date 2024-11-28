@@ -97,6 +97,16 @@ class PlaceDetailsScreenTest {
   }
 
   @Test
+  fun testLoadingState() {
+    `when`(placesRepository.fetchAdvancedDetails(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (CustomPlace) -> Unit
+      println() //
+    }
+    placesViewModel.selectPlace(customPlace)
+    composeTestRule.onNodeWithTag("LoadingIndicator").assertIsDisplayed()
+  }
+
+  @Test
   fun testNoRatingsAvailable() {
     placesViewModel.deselectPlace()
     val noRatingPlace =
