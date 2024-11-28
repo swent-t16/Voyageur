@@ -21,13 +21,7 @@ class TripTest {
             participants = participants,
             description = "Trip Description",
             name = "Trip Name",
-            locations =
-                listOf(
-                    Location(
-                        "",
-                        "",
-                        "",
-                    )),
+            location = Location("", "", ""),
             startDate = Timestamp(0, 0),
             endDate = Timestamp(0, 0),
             activities = activities,
@@ -41,13 +35,7 @@ class TripTest {
             participants = participants,
             description = "Trip Description",
             name = "Trip Name",
-            locations =
-                listOf(
-                    Location(
-                        "",
-                        "",
-                        "",
-                    )),
+            location = Location("", "", ""),
             startDate = Timestamp(0, 0),
             endDate = Timestamp(0, 0),
             activities = activities,
@@ -103,7 +91,7 @@ class TripTest {
     assert(trip.participants.isEmpty())
     assert(trip.description.isEmpty())
     assert(trip.name.isEmpty())
-    assert(trip.locations.isEmpty())
+    assert(trip.location == Location("", "", "", 0.0, 0.0))
     assert(trip.activities.isEmpty())
     assert(trip.type == TripType.TOURISM)
     assert(trip.imageUri.isEmpty())

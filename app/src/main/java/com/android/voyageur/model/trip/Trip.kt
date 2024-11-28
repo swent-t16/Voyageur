@@ -32,7 +32,7 @@ data class Trip(
         participants == other.participants &&
         description == other.description &&
         name == other.name &&
-        locations == other.locations &&
+        location == other.location &&
         startDate == other.startDate &&
         endDate == other.endDate &&
         activities == other.activities &&
@@ -46,7 +46,7 @@ data class Trip(
     result = 31 * result + participants.hashCode()
     result = 31 * result + description.hashCode()
     result = 31 * result + name.hashCode()
-    result = 31 * result + locations.hashCode()
+    result = 31 * result + location.hashCode()
     result = 31 * result + startDate.hashCode()
     result = 31 * result + endDate.hashCode()
     result = 31 * result + activities.hashCode()
