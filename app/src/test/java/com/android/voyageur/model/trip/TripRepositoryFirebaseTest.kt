@@ -2,6 +2,7 @@ package com.android.voyageur.model.trip
 
 import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
+import com.android.voyageur.model.location.Location
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Task
@@ -49,7 +50,7 @@ class TripRepositoryFirebaseTest {
           listOf("creator"),
           "description",
           "name",
-          emptyList(),
+          Location("", "", "", 0.0, 0.0),
           Timestamp.now(),
           Timestamp.now(),
           emptyList(),
