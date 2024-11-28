@@ -6,7 +6,7 @@ data class User(
     var email: String = "",
     var profilePicture: String = "",
     var bio: String = "",
-    var contacts: List<String> = mutableListOf(),
+    var contacts: List<String> = emptyList(),
     var interests: List<String> = mutableListOf(),
     var username: String = ""
 ) {

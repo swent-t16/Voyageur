@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -51,6 +52,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -393,16 +395,21 @@ fun UserSearchResultItem(
     fieldColor: Color,
     navigationActions: NavigationActions
 ) {
-  val currentUser by userViewModel.user.collectAsState()
-  val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
-  // Determine if the user is the currently logged-in user
+    val currentUser by userViewModel.user.collectAsState()
+    val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
+    // Determine if the user is the currently logged-in user
   val isCurrentUser = currentUser?.id == user.id
 
-  // Determine if the user is already in contacts
-  var isContactAdded = currentUser?.contacts?.contains(user.id) ?: false
+    val isContactAdded by remember(currentUser, user) {
+        derivedStateOf { currentUser?.contacts?.contains(user.id) ?: false }
+    }
 
-  // Determine if there is a pending friend request sent to this user
-  var isRequestPending = sentFriendRequests.any { it.to == user.id }
+    val isRequestPending by remember(sentFriendRequests, user) {
+        derivedStateOf { sentFriendRequests.any { it.to == user.id } }
+    }
+    LaunchedEffect(isContactAdded, isRequestPending) {
+        Log.d("UserSearchResultItem", "Recomposition triggered")
+    }
 
   Row(
       modifier =
