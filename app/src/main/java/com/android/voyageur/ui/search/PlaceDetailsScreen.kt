@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -62,6 +64,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PlaceDetailsScreen(navigationActions: NavigationActions, placesViewModel: PlacesViewModel) {
   val customPlace by placesViewModel.selectedPlace.collectAsState()
+  val isLoading by placesViewModel.isLoading.collectAsState()
   Scaffold(
       topBar = {
         TopAppBar(
@@ -83,11 +86,17 @@ fun PlaceDetailsScreen(navigationActions: NavigationActions, placesViewModel: Pl
         Box(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
             contentAlignment = Alignment.TopCenter) {
-              Column(
-                  modifier = Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
-                  horizontalAlignment = Alignment.CenterHorizontally) {
-                    customPlace?.let { PlaceDetailsContent(customPlace = it) }
-                  }
+              if (isLoading) {
+                // Display a loading indicator while fetching place details
+                CircularProgressIndicator(
+                    modifier =
+                        Modifier.size(48.dp).testTag("LoadingIndicator").align(Alignment.Center))
+              } else
+                  Column(
+                      modifier = Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
+                      horizontalAlignment = Alignment.CenterHorizontally) {
+                        customPlace?.let { PlaceDetailsContent(customPlace = it) }
+                      }
             }
       })
 }

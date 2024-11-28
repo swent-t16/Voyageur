@@ -140,6 +140,8 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
       onFailure: (Exception) -> Unit
   ) {
     val request = FetchPlaceRequest.builder(placeId, advancedPlaceFields).build()
+    // keep track of the number of photos fetched
+    var num = 0
     placesClient
         .fetchPlace(request)
         .addOnSuccessListener { response ->
@@ -154,12 +156,17 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
                 .addOnSuccessListener { fetchPhotoResponse ->
                   val bitmap = fetchPhotoResponse.bitmap.asImageBitmap()
                   bitmaps.add(bitmap)
+                  num++
+                  // if all photos are fetched, call onSuccess
+                  if (num == photosMetadata.size || num == 5) onSuccess(CustomPlace(place, bitmaps))
                 }
                 .addOnFailureListener { exception ->
+                  num++
+                  // if all photos are fetched, call onSuccess
+                  if (num == photosMetadata.size || num == 5) onSuccess(CustomPlace(place, bitmaps))
                   Log.e("PlacesRepository", "Failed to fetch photo for $placeId", exception)
                 }
           }
-          onSuccess(CustomPlace(place, bitmaps))
         }
         .addOnFailureListener { exception -> onFailure(exception) }
   }

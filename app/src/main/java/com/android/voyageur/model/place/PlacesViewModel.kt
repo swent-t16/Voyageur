@@ -27,6 +27,9 @@ open class PlacesViewModel(private val placesRepository: PlacesRepository) : Vie
   private val _selectedPlace = MutableStateFlow<CustomPlace?>(null)
   val selectedPlace: StateFlow<CustomPlace?> = _selectedPlace
 
+  private val _isLoading = MutableStateFlow(false)
+  val isLoading: StateFlow<Boolean> = _isLoading
+
   // Job to manage debounce coroutine
   private var debounceJob: Job? = null
 
@@ -69,13 +72,18 @@ open class PlacesViewModel(private val placesRepository: PlacesRepository) : Vie
    */
   fun selectPlace(place: CustomPlace) {
     _selectedPlace.value = place
+    _isLoading.value = true
     selectedPlace.value?.let {
       place.place.id?.let { it1 ->
         placesRepository.fetchAdvancedDetails(
             it1,
-            onSuccess = { place -> _selectedPlace.value = place },
+            onSuccess = { place ->
+              _selectedPlace.value = place
+              _isLoading.value = false
+            },
             onFailure = { exception ->
               Log.e("PlacesViewModel", "Failed to fetch place details", exception)
+              _isLoading.value = false
             })
       }
     }
