@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
@@ -23,6 +24,7 @@ fun SettingsScreen(
     navigationActions: NavigationActions,
     tripsViewModel: TripsViewModel,
     userViewModel: UserViewModel,
+    placesViewModel: PlacesViewModel,
     onUpdate: () -> Unit = {}
 ) {
 
@@ -43,7 +45,8 @@ fun SettingsScreen(
               navigationActions,
               isEditMode = true,
               onUpdate = onUpdate,
-              userViewModel = userViewModel)
+              userViewModel = userViewModel,
+              placesViewModel = placesViewModel)
         }
       })
 }

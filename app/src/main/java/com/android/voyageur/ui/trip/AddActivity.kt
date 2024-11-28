@@ -21,13 +21,16 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.ui.components.PlaceSearchWidget
 import com.android.voyageur.ui.formFields.DatePickerModal
 import com.android.voyageur.ui.formFields.TimePickerInput
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -43,11 +46,13 @@ import java.util.Locale
 fun AddActivityScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
+    placesViewModel: PlacesViewModel,
     existingActivity: Activity? = null
 ) {
   var title by remember { mutableStateOf(existingActivity?.title ?: "") }
   var description by remember { mutableStateOf(existingActivity?.description ?: "") }
-  var location by remember { mutableStateOf(existingActivity?.location?.city ?: "") }
+  var query by remember { mutableStateOf(TextFieldValue(existingActivity?.location?.name ?: "")) }
+  var selectedLocation by remember { mutableStateOf<Location>(Location("", "", "", 0.0, 0.0)) }
   var showModal by remember { mutableStateOf(false) }
   var activityDate by remember {
     mutableStateOf<Long?>(existingActivity?.startTime?.toDate()?.time.takeIf { it != 0L })
@@ -105,7 +110,6 @@ fun AddActivityScreen(
       return calendar.time
     }
 
-    val today = normalizeToMidnight(Date())
     val dateNormalized = activityDate?.let { normalizeToMidnight(Date(it)) } ?: Date(0)
 
     val selectedTrip = tripsViewModel.selectedTrip.value!!
@@ -208,7 +212,7 @@ fun AddActivityScreen(
         Activity(
             title = title,
             description = description,
-            location = Location(country = "Unknown", city = "Unknown", county = null, zip = null),
+            location = selectedLocation,
             startTime = startTimestamp,
             endTime = endTimestamp,
             estimatedPrice = estimatedPrice ?: 0.0,
@@ -285,12 +289,19 @@ fun AddActivityScreen(
                     placeholder = { Text("Describe the activity") },
                     modifier = Modifier.fillMaxWidth().testTag("inputActivityDescription"))
 
-                OutlinedTextField(
-                    value = location,
-                    onValueChange = { location = it },
-                    label = { Text("Location") },
-                    placeholder = { Text("Enter the location of the activity") },
-                    modifier = Modifier.fillMaxWidth().testTag("inputActivityLocation"))
+                Spacer(modifier = Modifier.height(2.dp))
+
+                PlaceSearchWidget(
+                    placesViewModel = placesViewModel,
+                    onSelect = { place ->
+                      selectedLocation = place
+                      query = TextFieldValue(place.name)
+                    },
+                    query = query,
+                    onQueryChange = {
+                      placesViewModel.setQuery(it.text, null)
+                      query = it
+                    })
 
                 OutlinedTextField(
                     value = formattedDate,
@@ -423,7 +434,9 @@ fun AddActivityScreen(
                 Spacer(modifier = Modifier.height(2.dp))
 
                 ExposedDropdownMenuBox(
-                    expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded },
+                    modifier = Modifier.testTag("activityTypeDropdown")) {
                       TextField(
                           value = activityType.name,
                           onValueChange = {},
@@ -435,7 +448,9 @@ fun AddActivityScreen(
                           modifier =
                               Modifier.fillMaxWidth().menuAnchor().testTag("inputActivityType"))
                       ExposedDropdownMenu(
-                          expanded = expanded, onDismissRequest = { expanded = false }) {
+                          expanded = expanded,
+                          onDismissRequest = { expanded = false },
+                          modifier = Modifier.testTag("expandedDropdown")) {
                             ActivityType.entries.forEach { type ->
                               DropdownMenuItem(
                                   text = { Text(text = type.name) },

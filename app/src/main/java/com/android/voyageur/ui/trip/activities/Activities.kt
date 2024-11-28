@@ -1,6 +1,7 @@
 package com.android.voyageur.ui.trip.activities
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -81,6 +82,8 @@ fun ActivitiesScreen(
 
   var showDialog by remember { mutableStateOf(false) }
   var activityToDelete by remember { mutableStateOf<Activity?>(null) }
+
+  val totalEstimatedPrice = final.sumOf { it.estimatedPrice }
 
   Scaffold(
       modifier = Modifier.testTag("activitiesScreen"),
@@ -163,6 +166,25 @@ fun ActivitiesScreen(
                 Spacer(modifier = Modifier.height(10.dp))
               }
             }
+          }
+          item {
+            androidx.compose.foundation.layout.Box(
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .padding(16.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                        .padding(16.dp) // Inner padding for content within the box
+                        .testTag("totalEstimatedPriceBox"),
+                contentAlignment = Alignment.Center) {
+                  Text(
+                      text = stringResource(R.string.total_price, totalEstimatedPrice),
+                      fontSize = 20.sp,
+                      fontWeight = FontWeight.Medium,
+                      color = MaterialTheme.colorScheme.primary,
+                      modifier = Modifier.align(Alignment.Center))
+                }
           }
         }
 

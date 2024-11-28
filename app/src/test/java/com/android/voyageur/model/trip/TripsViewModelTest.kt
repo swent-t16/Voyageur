@@ -1,5 +1,6 @@
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
+import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripType
@@ -39,7 +40,7 @@ class TripsViewModelTest {
           emptyList(),
           "description",
           "name",
-          emptyList(),
+          Location("", "", "", 0.0, 0.0),
           Timestamp.now(),
           Timestamp.now(),
           emptyList(),
@@ -79,7 +80,7 @@ class TripsViewModelTest {
                 emptyList(),
                 "description",
                 "name",
-                emptyList(),
+                Location("", "", "", 0.0, 0.0),
                 Timestamp.now(),
                 Timestamp.now(),
                 emptyList(),

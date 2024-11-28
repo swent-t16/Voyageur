@@ -327,4 +327,171 @@ class UserRepositoryFirebaseTest {
 
     verify(mockDocumentReference).get()
   }
+
+  @Test
+  fun testListenToUser_success() {
+    // Arrange
+    val userId = "1"
+    val testUser = User(userId, "Test User", "test@example.com", "password", "555-1234")
+    val mockListenerRegistration = mock(ListenerRegistration::class.java)
+    val mockDocumentSnapshot = mock(DocumentSnapshot::class.java)
+
+    `when`(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
+    `when`(mockCollectionReference.document(userId)).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>()))
+        .thenAnswer { invocation ->
+          val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
+          // Simulate snapshot
+          `when`(mockDocumentSnapshot.exists()).thenReturn(true)
+          `when`(mockDocumentSnapshot.toObject(User::class.java)).thenReturn(testUser)
+          // Call listener
+          listener.onEvent(mockDocumentSnapshot, null)
+          mockListenerRegistration
+        }
+
+    // Act
+    var onSuccessCalled = false
+    val onSuccess: (User) -> Unit = { user ->
+      onSuccessCalled = true
+      assertEquals(testUser, user)
+    }
+    val onFailure: (Exception) -> Unit = { fail("Failure callback should not be called") }
+
+    val registration = userRepository.listenToUser(userId, onSuccess, onFailure)
+
+    // Assert
+    assertNotNull(registration)
+    assertTrue(onSuccessCalled)
+  }
+
+  @Test
+  fun testListenToUser_failure_exception() {
+    // Arrange
+    val userId = "1"
+    val exception =
+        FirebaseFirestoreException("Test exception", FirebaseFirestoreException.Code.UNKNOWN)
+    val mockListenerRegistration = mock(ListenerRegistration::class.java)
+
+    `when`(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
+    `when`(mockCollectionReference.document(userId)).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>()))
+        .thenAnswer { invocation ->
+          val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
+          // Call listener with exception
+          listener.onEvent(null, exception)
+          mockListenerRegistration
+        }
+
+    // Act
+    var onFailureCalled = false
+    val onSuccess: (User) -> Unit = { fail("Success callback should not be called") }
+    val onFailure: (Exception) -> Unit = { e ->
+      onFailureCalled = true
+      assertEquals("Test exception", e.message)
+    }
+
+    val registration = userRepository.listenToUser(userId, onSuccess, onFailure)
+
+    // Assert
+    assertNotNull(registration)
+    assertTrue(onFailureCalled)
+  }
+
+  @Test
+  fun testListenToUser_failure_snapshotNull() {
+    // Arrange
+    val userId = "1"
+    val mockListenerRegistration = mock(ListenerRegistration::class.java)
+
+    `when`(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
+    `when`(mockCollectionReference.document(userId)).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>()))
+        .thenAnswer { invocation ->
+          val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
+          // Call listener with null snapshot and no exception
+          listener.onEvent(null, null)
+          mockListenerRegistration
+        }
+
+    // Act
+    var onFailureCalled = false
+    val onSuccess: (User) -> Unit = { fail("Success callback should not be called") }
+    val onFailure: (Exception) -> Unit = { e ->
+      onFailureCalled = true
+      assertEquals("Snapshot is null or does not exist", e.message)
+    }
+
+    val registration = userRepository.listenToUser(userId, onSuccess, onFailure)
+
+    // Assert
+    assertNotNull(registration)
+    assertTrue(onFailureCalled)
+  }
+
+  @Test
+  fun testListenToUser_failure_snapshotDoesNotExist() {
+    // Arrange
+    val userId = "1"
+    val mockDocumentSnapshot = mock(DocumentSnapshot::class.java)
+    val mockListenerRegistration = mock(ListenerRegistration::class.java)
+
+    `when`(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
+    `when`(mockCollectionReference.document(userId)).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>()))
+        .thenAnswer { invocation ->
+          val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
+          `when`(mockDocumentSnapshot.exists()).thenReturn(false)
+          // Call listener with snapshot that does not exist
+          listener.onEvent(mockDocumentSnapshot, null)
+          mockListenerRegistration
+        }
+
+    // Act
+    var onFailureCalled = false
+    val onSuccess: (User) -> Unit = { fail("Success callback should not be called") }
+    val onFailure: (Exception) -> Unit = { e ->
+      onFailureCalled = true
+      assertEquals("Snapshot is null or does not exist", e.message)
+    }
+
+    val registration = userRepository.listenToUser(userId, onSuccess, onFailure)
+
+    // Assert
+    assertNotNull(registration)
+    assertTrue(onFailureCalled)
+  }
+
+  @Test
+  fun testListenToUser_failure_userDataNull() {
+    // Arrange
+    val userId = "1"
+    val mockDocumentSnapshot = mock(DocumentSnapshot::class.java)
+    val mockListenerRegistration = mock(ListenerRegistration::class.java)
+
+    `when`(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
+    `when`(mockCollectionReference.document(userId)).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.addSnapshotListener(any<EventListener<DocumentSnapshot>>()))
+        .thenAnswer { invocation ->
+          val listener = invocation.arguments[0] as EventListener<DocumentSnapshot>
+          `when`(mockDocumentSnapshot.exists()).thenReturn(true)
+          `when`(mockDocumentSnapshot.toObject(User::class.java)).thenReturn(null)
+          // Call listener with snapshot where user data is null
+          listener.onEvent(mockDocumentSnapshot, null)
+          mockListenerRegistration
+        }
+
+    // Act
+    var onFailureCalled = false
+    val onSuccess: (User) -> Unit = { fail("Success callback should not be called") }
+    val onFailure: (Exception) -> Unit = { e ->
+      onFailureCalled = true
+      assertEquals("User data is null", e.message)
+    }
+
+    val registration = userRepository.listenToUser(userId, onSuccess, onFailure)
+
+    // Assert
+    assertNotNull(registration)
+    assertTrue(onFailureCalled)
+  }
 }

@@ -11,7 +11,7 @@ data class Trip(
     val participants: List<String> = emptyList(),
     val description: String = "",
     val name: String = "",
-    val locations: List<Location> = emptyList(),
+    val location: Location = Location("", "", "", 0.0, 0.0),
     val startDate: Timestamp = Timestamp.now(),
     val endDate: Timestamp = Timestamp.now(),
     var activities: List<Activity> = emptyList(),

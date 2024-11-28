@@ -66,10 +66,56 @@ class ProfileScreenTest {
         .`when`(userRepository)
         .getUserById(anyString(), anyOrNull(), anyOrNull())
 
-    // Create the UserViewModel with the mocked userRepository and firebaseAuth
-    userViewModel = UserViewModel(userRepository, firebaseAuth, friendRequestRepository)
+    // Mock userRepository.listenToUser to call onSuccess with a User
+    doAnswer { invocation ->
+          val userId = invocation.getArgument<String>(0)
+          val onSuccess = invocation.getArgument<(User) -> Unit>(1)
+          val user = User(userId, "Test User", "test@example.com", interests = emptyList())
+          onSuccess(user)
+          null
+        }
+        .`when`(userRepository)
+        .listenToUser(anyString(), anyOrNull(), anyOrNull())
 
+    // Mock userRepository.fetchUsersByIds to return an empty list
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+          onSuccess(emptyList())
+          null
+        }
+        .`when`(userRepository)
+        .fetchUsersByIds(anyOrNull(), anyOrNull(), anyOrNull())
+
+    // Mock friendRequestRepository.getFriendRequests to return an empty list
+    doAnswer { invocation ->
+          val userId = invocation.getArgument<String>(0)
+          val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
+          onSuccess(emptyList()) // Return empty list or desired data
+          null
+        }
+        .`when`(friendRequestRepository)
+        .getFriendRequests(anyString(), anyOrNull(), anyOrNull())
+
+    // Mock friendRequestRepository.getNotificationCount to return zero
+    doAnswer { invocation ->
+          val userId = invocation.getArgument<String>(0)
+          val onSuccess = invocation.getArgument<(Long) -> Unit>(1)
+          onSuccess(0L) // Return zero notifications
+          null
+        }
+        .`when`(friendRequestRepository)
+        .getNotificationCount(anyString(), anyOrNull(), anyOrNull())
+
+    // Create the UserViewModel with the mocked userRepository and firebaseAuth
+    userViewModel =
+        UserViewModel(
+            userRepository,
+            firebaseAuth,
+            friendRequestRepository,
+            addAuthStateListener = false // Prevent adding the AuthStateListener during tests
+            )
     userViewModel.shouldFetch = false
+
     // Mocking initial navigation state
     `when`(navigationActions.currentRoute()).thenReturn(Route.PROFILE)
 

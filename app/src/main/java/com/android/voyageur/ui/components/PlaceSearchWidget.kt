@@ -2,13 +2,18 @@ package com.android.voyageur.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.PopupProperties
-import com.android.voyageur.model.place.CustomPlace
+import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.place.PlacesViewModel
 
 /**
@@ -19,10 +24,11 @@ import com.android.voyageur.model.place.PlacesViewModel
 @Composable
 fun PlaceSearchWidget(
     placesViewModel: PlacesViewModel,
-    onSelect: (CustomPlace) -> Unit,
-    modifier: Modifier = Modifier
+    onSelect: (Location) -> Unit,
+    modifier: Modifier = Modifier,
+    query: TextFieldValue,
+    onQueryChange: (TextFieldValue) -> Unit
 ) {
-  var query by remember { mutableStateOf(TextFieldValue("")) }
   var expanded by remember { mutableStateOf(false) }
   val searchedPlaces by placesViewModel.searchedPlaces.collectAsState()
 
@@ -30,12 +36,21 @@ fun PlaceSearchWidget(
     OutlinedTextField(
         value = query,
         onValueChange = {
-          placesViewModel.setQuery(it.text, null)
+          onQueryChange(it)
           expanded = it.text.isNotEmpty() && it.text != query.text
-          query = it
         },
         modifier = modifier.fillMaxWidth().testTag("searchTextField"),
-        placeholder = { Text("Search places...") })
+        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { expanded = false }),
+        singleLine = true,
+        placeholder = { Text("Search places...") },
+        trailingIcon = {
+          if (query.text.isNotEmpty()) {
+            IconButton(onClick = { onQueryChange(TextFieldValue("")) }) {
+              Icon(imageVector = Icons.Default.Close, contentDescription = "Clear text")
+            }
+          }
+        })
 
     DropdownMenu(
         expanded = expanded,
@@ -46,7 +61,8 @@ fun PlaceSearchWidget(
             DropdownMenuItem(
                 text = { Text(place.place.displayName ?: "Unknown Place") },
                 onClick = {
-                  onSelect(place)
+                  val location = place.toLocation()
+                  onSelect(location)
                   expanded = false
                 },
                 modifier = Modifier.testTag("item-${place.place.id}"))

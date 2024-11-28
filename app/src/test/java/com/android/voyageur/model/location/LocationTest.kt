@@ -7,21 +7,12 @@ class LocationTest {
   @Test
   fun testLocationCreationWithAllFields() {
     val location =
-        Location(country = "France", city = "Paris", county = "Île-de-France", zip = "75001")
+        Location(id = "1", name = "Big Ben Cafe", address = "London street", lat = 12.5, lng = 10.8)
 
-    assertEquals("France", location.country)
-    assertEquals("Paris", location.city)
-    assertEquals("Île-de-France", location.county)
-    assertEquals("75001", location.zip)
-  }
-
-  @Test
-  fun testLocationCreationWithOnlyRequiredFields() {
-    val location = Location(country = "United States", city = "New York")
-
-    assertEquals("United States", location.country)
-    assertEquals("New York", location.city)
-    assertEquals("", location.county)
-    assertEquals("", location.zip)
+    assertEquals("1", location.id)
+    assertEquals("Big Ben Cafe", location.name)
+    assertEquals("London street", location.address)
+    assertEquals(12.5, location.lat, 0.10)
+    assertEquals(10.8, location.lng, 0.10)
   }
 }
