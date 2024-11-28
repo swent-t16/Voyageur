@@ -1,6 +1,7 @@
 package com.android.voyageur.ui.overview
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -64,11 +65,14 @@ import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.utils.ConnectionState
+import com.android.voyageur.utils.connectivityState
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
@@ -76,7 +80,15 @@ fun OverviewScreen(
     userViewModel: UserViewModel,
 ) {
   val trips by tripsViewModel.trips.collectAsState()
-  val isLoading by userViewModel.isLoading.collectAsState()
+  val isLoadingUser by userViewModel.isLoading.collectAsState()
+  val isLoadingTrip by tripsViewModel.isLoading.collectAsState()
+  var isLoading = false
+  val status by connectivityState()
+  val context = LocalContext.current
+  val isConnected = status === ConnectionState.Available
+
+  Log.e("RECOMPOSE", "OverviewScreen recomposed")
+  LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
   LaunchedEffect(trips) {
     if (trips.isNotEmpty()) {
       userViewModel.getUsersByIds(
@@ -92,7 +104,10 @@ fun OverviewScreen(
   Scaffold(
       floatingActionButton = {
         FloatingActionButton(
-            onClick = { navigationActions.navigateTo(Screen.ADD_TRIP) },
+            onClick = {
+              if (isConnected) navigationActions.navigateTo(Screen.ADD_TRIP)
+              else Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            },
             modifier = Modifier.testTag("createTripButton")) {
               Icon(
                   Icons.Outlined.Add,
@@ -162,6 +177,8 @@ fun TripItem(
   var isExpanded by remember { mutableStateOf(false) }
   var showDialog by remember { mutableStateOf(false) }
   val context = LocalContext.current
+  val status by connectivityState()
+  val isConnected = status === ConnectionState.Available
   Card(
       onClick = {
         // When opening a trip, navigate to the Schedule screen, with the daily view enabled
@@ -225,6 +242,7 @@ fun TripItem(
                   }
               Box(modifier = Modifier.align(Alignment.Top)) {
                 IconButton(
+                    enabled = isConnected,
                     onClick = { isExpanded = !isExpanded },
                     modifier = Modifier.testTag("expandIcon_${trip.name}")) {
                       Icon(

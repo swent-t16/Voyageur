@@ -3,6 +3,7 @@
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_second">SecondActivity</string>
     <string name="default_web_client_id">386260395468-2n5ilio1go0tnvq1pddj087e0gekcmei.apps.googleusercontent.com</string>
+    <string name="no_internet_connection">No internet connection</string>
     <string name="confirm_text">Confirm</string>
     <string name="filter_activities">Filter Activities</string>
     <string name="drafts">Drafts</string>

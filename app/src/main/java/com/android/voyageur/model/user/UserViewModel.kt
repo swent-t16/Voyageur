@@ -297,7 +297,9 @@ open class UserViewModel(
     friendRequestRepository.getNotificationCount(
         Firebase.auth.uid.orEmpty(),
         {
-          _notificationCount.value = it
+          if (_notificationCount.value != it) {
+            _notificationCount.value = it
+          }
           onSuccess(it)
         },
         { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
@@ -307,8 +309,13 @@ open class UserViewModel(
     friendRequestRepository.getFriendRequests(
         Firebase.auth.uid.orEmpty(),
         {
-          _friendRequests.value = it
-          getUsersByIds(it.map { x -> x.from }) { users -> _notificationUsers.value = users }
+          if (!_friendRequests.value.map { x -> x.id }.containsAll(it.map { x -> x.id }) ||
+              it.size != _friendRequests.value.size) {
+            getUsersByIds(it.map { x -> x.from }) { users ->
+              _friendRequests.value = it
+              _notificationUsers.value = users
+            }
+          }
           onSuccess(it)
         },
         { Log.e("USER_VIEW_MODEL", it.message.orEmpty()) })
