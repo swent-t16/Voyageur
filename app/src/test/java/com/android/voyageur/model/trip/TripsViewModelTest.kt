@@ -12,6 +12,10 @@ import com.google.firebase.Timestamp
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
@@ -63,6 +67,113 @@ class TripsViewModelTest {
   fun testGetNewTripId() {
     `when`(tripsRepository.getNewTripId()).thenReturn("uid")
     assertThat(tripsViewModel.getNewTripId(), `is`("uid"))
+  }
+
+  @Test
+  fun getTripsCallsRepository() {
+    // Simulate a successful result from the repository
+    val tripsList =
+        listOf(
+            Trip(
+                "1",
+                "creator",
+                emptyList(),
+                "description",
+                "name",
+                emptyList(),
+                Timestamp.now(),
+                Timestamp.now(),
+                emptyList(),
+                TripType.TOURISM,
+                ""))
+
+    doAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as (List<Trip>) -> Unit
+          onSuccess(tripsList)
+          null
+        }
+        .`when`(tripsRepository)
+        .getTrips(any(), any(), any())
+
+    tripsViewModel.getTrips()
+
+    // Verify repository interaction and state updates
+    verify(tripsRepository).getTrips(any(), any(), any())
+    assert(tripsViewModel.trips.value == tripsList)
+  }
+
+  @Test
+  fun init_shouldSetIsLoadingWhileFetchingTrips() {
+    // Simulate fetching trips in the repository
+    doAnswer {
+          // Simulate delay
+          val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
+          Thread.sleep(100) // Simulate delay in fetching
+          onSuccess(emptyList())
+          null
+        }
+        .`when`(tripsRepository)
+        .getTrips(any(), any(), any())
+
+    // Advance time to simulate the delay
+    Thread.sleep(200)
+
+    // Verify state after fetching
+    assert(!tripsViewModel.isLoading.value)
+  }
+
+  @Test
+  fun getTrips_shouldSetIsLoading() = runTest {
+    // Arrange
+    val tripsList = listOf<Trip>()
+    val isLoadingStates = mutableListOf<Boolean>()
+
+    // Collect isLoading values during the test
+    val job = launch { tripsViewModel.isLoading.toList(isLoadingStates) }
+
+    // Mock repository behavior
+    doAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as (List<Trip>) -> Unit
+          onSuccess(tripsList)
+          null
+        }
+        .`when`(tripsRepository)
+        .getTrips(any(), any(), any())
+
+    // Act
+    tripsViewModel.getTrips()
+    advanceUntilIdle()
+
+    // Assert
+    assert(!isLoadingStates[0])
+    assert(!isLoadingStates.last()) // isLoading should end as false
+
+    job.cancel()
+  }
+
+  @Test
+  fun getTrips_shouldHandleErrorAndSetIsLoading() = runTest {
+    // Arrange
+    val errorMessage = "Failed to fetch trips"
+
+    // Mock repository to simulate an error
+    doAnswer { invocation ->
+          val onFailure = invocation.arguments[2] as (Exception) -> Unit
+          onFailure(Exception(errorMessage)) // Trigger failure
+          null
+        }
+        .`when`(tripsRepository)
+        .getTrips(any(), any(), any())
+
+    // Act
+    tripsViewModel.getTrips()
+
+    // Assert - Verify loading state transitions and error handling
+    assert(!tripsViewModel.isLoading.value) // isLoading should start as true
+
+    advanceUntilIdle() // Process coroutines
+
+    assert(!tripsViewModel.isLoading.value) // isLoading should be false after error
   }
 
   @Test

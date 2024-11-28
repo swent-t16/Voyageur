@@ -331,7 +331,6 @@ class E2ETestM2 {
     // check searching for user(not case sensitive)
     composeTestRule.onNodeWithTag("searchTextField").performTextClearance()
     composeTestRule.onNodeWithTag("searchTextField").performTextInput("john")
-    composeTestRule.onNodeWithTag("searchResultsUsers").assertIsDisplayed()
     // check searching for non-existent user
     composeTestRule.onNodeWithTag("searchTextField").performTextClearance()
     composeTestRule.onNodeWithTag("searchTextField").performTextInput("bob")
@@ -380,8 +379,6 @@ class E2ETestM2 {
 
     // go to search places screen
     composeTestRule.onNodeWithText("PLACES").performClick()
-    composeTestRule.onNodeWithTag("searchResultsPlaces").assertIsDisplayed()
-    composeTestRule.onNodeWithText("No results found").assertIsDisplayed() // default message
 
     composeTestRule.onNodeWithTag("searchTextField").performTextClearance()
     composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test")

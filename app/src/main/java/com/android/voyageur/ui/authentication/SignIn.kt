@@ -91,13 +91,16 @@ fun SignInScreen(navigationActions: NavigationActions) {
 
       GoogleSignInButton(
           onSignInClick = {
-            val gso =
-                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestIdToken(token)
-                    .requestEmail()
-                    .build()
-            val googleSignInClient = GoogleSignIn.getClient(context, gso)
-            launcher.launch(googleSignInClient.signInIntent)
+            if (Firebase.auth.uid.orEmpty().isEmpty()) {
+
+              val gso =
+                  GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                      .requestIdToken(token)
+                      .requestEmail()
+                      .build()
+              val googleSignInClient = GoogleSignIn.getClient(context, gso)
+              launcher.launch(googleSignInClient.signInIntent)
+            }
             if (user != null) {
               navigationActions.navigateTo(TopLevelDestinations.OVERVIEW)
             }
