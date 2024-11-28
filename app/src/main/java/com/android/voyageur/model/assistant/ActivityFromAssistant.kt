@@ -5,6 +5,7 @@ import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.google.firebase.Timestamp
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import java.time.ZoneId
 
@@ -36,7 +37,15 @@ data class ActivityFromAssistant(
 fun extractActivitiesFromAssistantFromJson(jsonString: String): MutableList<ActivityFromAssistant> {
   val gson = Gson()
   val activityListType = object : TypeToken<List<ActivityFromAssistant>>() {}.type
-  return gson.fromJson(jsonString, activityListType)
+    return try {
+        gson.fromJson(jsonString, activityListType)
+    } catch (e: JsonSyntaxException) {
+        Log.e("ActivityFromAssistant", "Error parsing JSON: ${e.message}")
+        mutableListOf() // Return an empty list if parsing fails
+    } catch (e: Exception) {
+        Log.e("ActivityFromAssistant", "Unexpected error: ${e.message}")
+        mutableListOf() // Handle any other unexpected exceptions
+    }
 }
 
 /**

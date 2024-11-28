@@ -185,7 +185,6 @@ open class TripsViewModel(
         val response =
             generativeModel.generateContent(
                 generatePrompt(trip, userPrompt, provideFinalActivities))
-        Log.d("GeminiTest", "response: ${response.text}")
         response.text?.let { outputContent -> _uiState.value = UiState.Success(outputContent) }
       } catch (e: Exception) {
         _uiState.value = UiState.Error(e.localizedMessage ?: "unknown error")
