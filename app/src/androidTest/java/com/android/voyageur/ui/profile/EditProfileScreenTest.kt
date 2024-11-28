@@ -76,6 +76,15 @@ class EditProfileScreenTest {
         .`when`(userRepository)
         .getUserById(anyString(), anyOrNull(), anyOrNull())
 
+    // Mock userRepository.fetchUsersByIds to return an empty list
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+          onSuccess(emptyList())
+          null
+        }
+        .`when`(userRepository)
+        .fetchUsersByIds(anyOrNull(), anyOrNull(), anyOrNull())
+
     // Create the UserViewModel with the mocked userRepository and firebaseAuth
     userViewModel = UserViewModel(userRepository, firebaseAuth, friendRequestRepository)
 

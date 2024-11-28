@@ -8,6 +8,8 @@ import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.search.SearchUserProfileScreen
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -20,6 +22,8 @@ class SearchUserProfileScreenTest {
   private lateinit var userRepository: UserRepository
   private lateinit var userViewModel: UserViewModel
   private lateinit var friendRequestRepository: FriendRequestRepository
+  private lateinit var firebaseAuth: FirebaseAuth
+  private lateinit var firebaseUser: FirebaseUser
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -28,18 +32,51 @@ class SearchUserProfileScreenTest {
     navigationActions = mock(NavigationActions::class.java)
     userRepository = mock(UserRepository::class.java)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
-    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
-    doAnswer { invocation ->
-          val userId = invocation.arguments[0] as String
-          val onSuccess = invocation.arguments[1] as (List<User>) -> Unit
-          val onFailure = invocation.arguments[2] as (Exception) -> Unit
+    firebaseAuth = mock(FirebaseAuth::class.java)
+    firebaseUser = mock(FirebaseUser::class.java)
 
-          // Return a list containing the selected user as a contact
-          onSuccess(listOf(User(id = "selectedUserId")))
+    // Mock FirebaseAuth to return our mocked firebaseUser
+    `when`(firebaseAuth.currentUser).thenReturn(firebaseUser)
+
+    // Mock methods of FirebaseUser to return non-null values
+    `when`(firebaseUser.uid).thenReturn("currentUserId")
+
+    // Mock userRepository.listenToUser to immediately return a user
+    doAnswer { invocation ->
+          val userId = invocation.getArgument<String>(0)
+          val onSuccess = invocation.getArgument<(User) -> Unit>(1)
+          val user =
+              User(
+                  id = userId,
+                  name = "Test User",
+                  email = "test@example.com",
+                  contacts = mutableListOf())
+          onSuccess(user)
           null
         }
         .`when`(userRepository)
-        .getContacts(anyString(), anyOrNull(), anyOrNull())
+        .listenToUser(anyString(), anyOrNull(), anyOrNull())
+
+    // Mock userRepository.fetchUsersByIds to return an empty list
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+          onSuccess(emptyList())
+          null
+        }
+        .`when`(userRepository)
+        .fetchUsersByIds(anyOrNull(), anyOrNull(), anyOrNull())
+
+    // Mock friendRequestRepository methods if needed
+    // For example, mock getFriendRequests or getNotificationCount if they are called
+
+    // Create the UserViewModel with the mocked userRepository and firebaseAuth
+    // Disable the AuthStateListener during tests to prevent unexpected calls
+    userViewModel =
+        UserViewModel(
+            userRepository,
+            firebaseAuth,
+            friendRequestRepository = friendRequestRepository,
+            addAuthStateListener = false)
 
     // Initialize 'user' with a valid User instance
     userViewModel._user.value =

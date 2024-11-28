@@ -1,6 +1,7 @@
 package com.android.voyageur.model.user
 
 import android.net.Uri
+import com.google.firebase.firestore.ListenerRegistration
 
 interface UserRepository {
   fun init(onSuccess: () -> Unit)
@@ -29,4 +30,10 @@ interface UserRepository {
       onSuccess: (String) -> Unit,
       onFailure: (Exception) -> Unit
   )
+
+  fun listenToUser(
+      userId: String,
+      onSuccess: (User) -> Unit,
+      onFailure: (Exception) -> Unit
+  ): ListenerRegistration?
 }
