@@ -179,7 +179,7 @@ fun ActivitiesScreen(
                         .testTag("totalEstimatedPriceBox"),
                 contentAlignment = Alignment.Center) {
                   Text(
-                      text = "Total estimated price: $totalEstimatedPrice CHF",
+                      text = stringResource(R.string.total_price, totalEstimatedPrice),
                       fontSize = 20.sp,
                       fontWeight = FontWeight.Medium,
                       color = MaterialTheme.colorScheme.primary,
