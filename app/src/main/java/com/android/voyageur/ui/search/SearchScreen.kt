@@ -80,6 +80,8 @@ import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.utils.ConnectionState
+import com.android.voyageur.utils.connectivityState
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -91,6 +93,7 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /**
  * Composable function for the search screen.
@@ -99,6 +102,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
  * @param placesViewModel ViewModel for place-related data.
  * @param navigationActions Navigation actions for bottom navigation.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @SuppressLint("MissingPermission")
 @Composable
 fun SearchScreen(
@@ -115,13 +119,21 @@ fun SearchScreen(
   var locationCallback: LocationCallback? = null
   var fusedLocationClient: FusedLocationProviderClient? = null
   userViewModel.searchUsers(searchQuery.text)
-  placesViewModel.searchPlaces(searchQuery.text, userLocation)
+
   val context = LocalContext.current
   var denied by remember { mutableStateOf(false) }
   var showLocationDialog by remember { mutableStateOf(false) }
-
+  val isLoading by userViewModel.isLoading.collectAsState()
   fusedLocationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
+  val status by connectivityState()
 
+  val isConnected = status === ConnectionState.Available
+  if (isConnected) {
+    placesViewModel.searchPlaces(searchQuery.text, userLocation)
+  } else if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {
+    Toast.makeText(context, "No internet connection, places search is disabled", Toast.LENGTH_SHORT)
+        .show()
+  }
   fun isLocationEnabled(context: Context): Boolean {
     val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
@@ -285,7 +297,14 @@ fun SearchScreen(
               }
 
           Spacer(modifier = Modifier.height(16.dp))
-
+          if (isLoading && !isConnected) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                  CircularProgressIndicator(strokeWidth = 3.dp, modifier = Modifier.size(40.dp))
+                }
+          }
           Text(
               text = "Search results",
               fontSize = 18.sp,
@@ -395,6 +414,8 @@ fun UserSearchResultItem(
     fieldColor: Color,
     navigationActions: NavigationActions
 ) {
+  val connectionStatus by connectivityState()
+  val isConnected = connectionStatus == ConnectionState.Available
   val currentUser by userViewModel.user.collectAsState()
   val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
   // Determine if the user is the currently logged-in user
@@ -474,7 +495,7 @@ fun UserSearchResultItem(
                   else -> userViewModel.sendContactRequest(user.id)
                 }
               },
-              enabled = true, // Allow the button to be clickable in all states
+              enabled = isConnected,
               colors =
                   ButtonDefaults.buttonColors(
                       containerColor =
