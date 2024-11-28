@@ -4,4 +4,15 @@
     <string name="title_activity_second">SecondActivity</string>
     <string name="default_web_client_id">386260395468-2n5ilio1go0tnvq1pddj087e0gekcmei.apps.googleusercontent.com</string>
     <string name="no_internet_connection">No internet connection</string>
+    <string name="confirm_text">Confirm</string>
+    <string name="filter_activities">Filter Activities</string>
+    <string name="drafts">Drafts</string>
+    <string name="final_activities">Final</string>
+    <string name="filter_activity_type">Filter activities by type</string>
+    <string name="no_user_data">No user data available</string>
+    <string name="no_pending_requests">You\'re all caught up! No pending requests.</string>
+    <string name="pending_friend_requests">%1$d Pending Friend Requests</string>
+    <string name="profile_picture">Profile Picture</string>
+    <string name="accept">Accept</string>
+    <string name="reject">Reject</string>
 </resources>
