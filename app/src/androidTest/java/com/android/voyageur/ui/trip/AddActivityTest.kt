@@ -22,6 +22,7 @@ import io.mockk.*
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -219,5 +220,38 @@ class AddActivityScreenTest {
     // Clear the title
     composeTestRule.onNodeWithTag("inputActivityTitle").performTextClearance()
     composeTestRule.onNodeWithTag("activitySave").assertIsNotEnabled()
+  }
+
+  @Test
+  fun checkActivityLocation() {
+    val mockAct =
+        Activity(
+            title = "Test Location",
+            location =
+                Location(
+                    id = "mockID",
+                    name = "Greek Project",
+                    address = "Rue de EPFL",
+                    lat = 19.9,
+                    lng = 65.0),
+            startTime =
+                Timestamp(
+                    Date.from(LocalDateTime.of(2024, 10, 3, 10, 0).toInstant(ZoneOffset.UTC))),
+            endTime =
+                Timestamp(
+                    Date.from(LocalDateTime.of(2024, 10, 3, 11, 0).toInstant(ZoneOffset.UTC))),
+            estimatedPrice = 100.0,
+            activityType = ActivityType.OUTDOORS)
+
+    tripsViewModel.selectActivity(mockAct)
+    composeTestRule.setContent {
+      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+    }
+
+    assertEquals("mockID", mockAct.location.id)
+    assertEquals("Greek Project", mockAct.location.name)
+    assertEquals("Rue de EPFL", mockAct.location.address)
+    assertEquals(19.9, mockAct.location.lat, 0.10)
+    assertEquals(65.0, mockAct.location.lng, 0.10)
   }
 }

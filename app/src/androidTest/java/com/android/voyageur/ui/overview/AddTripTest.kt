@@ -23,9 +23,13 @@ import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.ui.trip.AddActivityScreen
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.Date
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -367,5 +371,37 @@ class AddTripScreenTest {
 
     // Simulate failed image cropping
     composeTestRule.onNodeWithText("Select Image from Gallery").performClick()
+  }
+
+  @Test
+  fun checkTripLocation() {
+    val mockTrip =
+        Trip(
+            name = "Test Location",
+            location =
+                Location(
+                    id = "mockID",
+                    name = "Greek Project",
+                    address = "Rue de EPFL",
+                    lat = 19.9,
+                    lng = 65.0),
+            startDate =
+                Timestamp(
+                    Date.from(LocalDateTime.of(2024, 10, 3, 10, 0).toInstant(ZoneOffset.UTC))),
+            endDate =
+                Timestamp(
+                    Date.from(LocalDateTime.of(2024, 10, 3, 11, 0).toInstant(ZoneOffset.UTC))),
+        )
+
+    tripsViewModel.selectTrip(mockTrip)
+    composeTestRule.setContent {
+      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
+    }
+
+    assertEquals("mockID", mockTrip.location.id)
+    assertEquals("Greek Project", mockTrip.location.name)
+    assertEquals("Rue de EPFL", mockTrip.location.address)
+    assertEquals(19.9, mockTrip.location.lat, 0.10)
+    assertEquals(65.0, mockTrip.location.lng, 0.10)
   }
 }
