@@ -11,7 +11,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
-import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesRepository
@@ -221,7 +220,7 @@ class E2ETestM2 {
                     Activity(
                         "Activity 1",
                         "Museum Visit",
-                        Location(""),
+                        Place.builder().build(),
                         startTime =
                             Timestamp(
                                 Date.from(

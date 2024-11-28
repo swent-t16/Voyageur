@@ -41,16 +41,7 @@ fun PlaceSearchWidget(
         },
         modifier = modifier.fillMaxWidth().testTag("searchTextField"),
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-        keyboardActions =
-            KeyboardActions(
-                onSearch = {
-                  val matchingPlace =
-                      searchedPlaces.firstOrNull { it.place.displayName == query.text }
-                  if (matchingPlace != null) {
-                    onSelect(matchingPlace)
-                    expanded = false
-                  }
-                }),
+        keyboardActions = KeyboardActions(onSearch = { expanded = false }),
         singleLine = true,
         placeholder = { Text("Search places...") },
         trailingIcon = {

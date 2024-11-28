@@ -6,6 +6,7 @@ import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.libraries.places.api.model.Place
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import com.google.firebase.storage.FirebaseStorage
@@ -35,7 +36,7 @@ class TripsViewModelTest {
           emptyList(),
           "description",
           "name",
-          emptyList(),
+          Place.builder().build(),
           Timestamp.now(),
           Timestamp.now(),
           emptyList(),

@@ -5,7 +5,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.NavHostController
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
-import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
@@ -13,6 +12,7 @@ import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.NavigationState
+import com.google.android.libraries.places.api.model.Place
 import com.google.firebase.Timestamp
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -64,7 +64,7 @@ class ScheduleScreenTest {
                     Activity(
                         "1",
                         "Museum Visit",
-                        Location(""),
+                        Place.builder().build(),
                         startTime =
                             Timestamp(
                                 Date.from(

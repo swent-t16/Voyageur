@@ -60,7 +60,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
-import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
@@ -72,6 +71,7 @@ import com.android.voyageur.ui.formFields.DatePickerModal
 import com.android.voyageur.ui.formFields.UserDropdown
 import com.android.voyageur.ui.gallery.PermissionButtonForGallery
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.google.android.libraries.places.api.model.Place
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
@@ -139,7 +139,7 @@ fun AddTripScreen(
         description = trip.description
         tripType = trip.type
         imageUri = trip.imageUri
-        query = TextFieldValue(trip.locations.firstOrNull()?.address ?: "")
+        query = TextFieldValue(trip.location.displayName ?: "")
         startDate = trip.startDate.toDate().time
         endDate = trip.endDate.toDate().time
       }
@@ -202,9 +202,7 @@ fun AddTripScreen(
                 (userList.filter { it.second }.map { it.first.id } + Firebase.auth.uid.orEmpty())
                     .toSet()
                     .toList(),
-            locations =
-                selectedPlace?.let { listOf(Location(address = it.place.displayName ?: "")) }
-                    ?: emptyList(),
+            location = selectedPlace?.place ?: Place.builder().build(),
             startDate = startTimestamp,
             endDate = endTimestamp,
             activities =

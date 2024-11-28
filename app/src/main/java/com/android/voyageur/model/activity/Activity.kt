@@ -1,6 +1,6 @@
 package com.android.voyageur.model.activity
 
-import com.android.voyageur.model.location.Location
+import com.google.android.libraries.places.api.model.Place
 import com.google.firebase.Timestamp
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 data class Activity(
     val title: String = "",
     val description: String = "",
-    val location: Location = Location(""),
+    val location: Place = Place.builder().build(),
     val startTime: Timestamp = Timestamp(0, 0),
     val endTime: Timestamp = Timestamp(0, 0),
     val estimatedPrice: Double = 0.0,

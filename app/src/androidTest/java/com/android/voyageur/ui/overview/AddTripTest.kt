@@ -14,7 +14,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
@@ -23,6 +22,7 @@ import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.google.android.libraries.places.api.model.Place
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Date
@@ -166,7 +166,7 @@ class AddTripScreenTest {
             creator = "mockUserId",
             description = "4 days in London",
             name = "London Trip",
-            locations = listOf(Location(address = "Big Ben Cafe")),
+            location = Place.builder().build(),
             startDate = todayTimestamp,
             endDate = todayTimestamp,
             activities = listOf(),
@@ -209,7 +209,7 @@ class AddTripScreenTest {
             creator = "mockUserId",
             description = "Description for trip with unknown location",
             name = "Trip with Unknown Location",
-            locations = listOf(Location(address = "Big Ben Cafe")),
+            location = Place.builder().setName("Unknown").setAddress("InvalidLocation").build(),
             startDate = todayTimestamp,
             endDate = todayTimestamp,
             activities = listOf(),
@@ -249,7 +249,7 @@ class AddTripScreenTest {
             creator = "mockUserId",
             description = "Existing trip",
             name = "Existing Trip",
-            locations = listOf(Location(address = "Big Ben Cafe")),
+            location = Place.builder().setName("London").setAddress("London, UK").build(),
             startDate = Timestamp(Date()),
             endDate = Timestamp(Date()),
             activities = listOf(),
@@ -275,7 +275,7 @@ class AddTripScreenTest {
             creator = "mockUserId",
             description = "Existing trip",
             name = "Existing Trip",
-            locations = listOf(Location(address = "Big Ben Cafe")),
+            location = Place.builder().setName("London").setAddress("London, UK").build(),
             startDate = Timestamp(Date()),
             endDate = Timestamp(Date()),
             activities = listOf(),

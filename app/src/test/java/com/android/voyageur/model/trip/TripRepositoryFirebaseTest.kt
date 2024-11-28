@@ -6,6 +6,7 @@ import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
+import com.google.android.libraries.places.api.model.Place
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
@@ -49,7 +50,7 @@ class TripRepositoryFirebaseTest {
           listOf("creator"),
           "description",
           "name",
-          emptyList(),
+          Place.builder().build(),
           Timestamp.now(),
           Timestamp.now(),
           emptyList(),
