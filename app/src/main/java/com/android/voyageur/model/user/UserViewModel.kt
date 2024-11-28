@@ -31,7 +31,9 @@ import kotlinx.coroutines.launch
 open class UserViewModel(
     private val userRepository: UserRepository,
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance(),
-    private val friendRequestRepository: FriendRequestRepository
+    private val friendRequestRepository: FriendRequestRepository,
+    private val addAuthStateListener: Boolean =
+        true // New parameter to control the auth state listener
 ) : ViewModel() {
 
   /** Flow holding the current user data. */
@@ -93,14 +95,16 @@ open class UserViewModel(
           userListenerRegistration?.remove()
           userListenerRegistration = null
           _user.value = null
-          _contacts.value = emptyList()
           _isLoading.value = false
         }
       }
 
   init {
     // Attach the authentication state listener to FirebaseAuth instance
-    firebaseAuth.addAuthStateListener(authStateListener)
+    if (addAuthStateListener) {
+      // Attach the authentication state listener to FirebaseAuth instance
+      firebaseAuth.addAuthStateListener(authStateListener)
+    }
 
     // Observe changes in the user and update contacts accordingly
     viewModelScope.launch {
@@ -120,8 +124,10 @@ open class UserViewModel(
 
   override fun onCleared() {
     super.onCleared()
-    // Remove the authentication listener when ViewModel is destroyed
-    firebaseAuth.removeAuthStateListener(authStateListener)
+    if (addAuthStateListener) {
+      // Remove the authentication listener when ViewModel is destroyed
+      firebaseAuth.removeAuthStateListener(authStateListener)
+    }
     // Remove Firestore listener
     userListenerRegistration?.remove()
   }
