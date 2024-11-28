@@ -171,6 +171,10 @@ dependencies {
     implementation(libs.play.services.auth)
     implementation(libs.places)
 
+    // Icons
+    implementation (libs.androidx.material.icons.core)
+    implementation (libs.androidx.material.icons.extended)
+
     // Firebase
     implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.firestore)
