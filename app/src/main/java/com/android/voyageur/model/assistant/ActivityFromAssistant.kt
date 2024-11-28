@@ -37,15 +37,15 @@ data class ActivityFromAssistant(
 fun extractActivitiesFromAssistantFromJson(jsonString: String): MutableList<ActivityFromAssistant> {
   val gson = Gson()
   val activityListType = object : TypeToken<List<ActivityFromAssistant>>() {}.type
-    return try {
-        gson.fromJson(jsonString, activityListType)
-    } catch (e: JsonSyntaxException) {
-        Log.e("ActivityFromAssistant", "Error parsing JSON: ${e.message}")
-        mutableListOf() // Return an empty list if parsing fails
-    } catch (e: Exception) {
-        Log.e("ActivityFromAssistant", "Unexpected error: ${e.message}")
-        mutableListOf() // Handle any other unexpected exceptions
-    }
+  return try {
+    gson.fromJson(jsonString, activityListType)
+  } catch (e: JsonSyntaxException) {
+    Log.e("ActivityFromAssistant", "Error parsing JSON: ${e.message}")
+    mutableListOf() // Return an empty list if parsing fails
+  } catch (e: Exception) {
+    Log.e("ActivityFromAssistant", "Unexpected error: ${e.message}")
+    mutableListOf() // Handle any other unexpected exceptions
+  }
 }
 
 /**

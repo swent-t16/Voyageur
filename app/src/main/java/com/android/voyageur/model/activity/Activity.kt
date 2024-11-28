@@ -2,7 +2,6 @@ package com.android.voyageur.model.activity
 
 import com.android.voyageur.model.location.Location
 import com.google.firebase.Timestamp
-import kotlinx.serialization.Serializable
 
 data class Activity(
     val title: String = "",
