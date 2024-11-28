@@ -71,7 +71,7 @@ open class TripsViewModel(
     _selectedTrip.value = trip
   }
 
-  fun selectDay(day: LocalDate) {
+  open fun selectDay(day: LocalDate) {
     _selectedDay.value = day
   }
 
@@ -97,8 +97,9 @@ open class TripsViewModel(
         onFailure = {})
   }
 
-  fun createTrip(trip: Trip, onSuccess: () -> Unit = {}) {
-    tripsRepository.createTrip(trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = {})
+  fun createTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
+    tripsRepository.createTrip(
+        trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = { onFailure(it) })
   }
 
   fun deleteTripById(id: String, onSuccess: () -> Unit = {}) {
@@ -108,11 +109,9 @@ open class TripsViewModel(
         onFailure = { exception -> Log.e("TripsViewModel", "Failed to delete trip", exception) })
   }
 
-  fun updateTrip(trip: Trip, onSuccess: () -> Unit = {}) {
+  fun updateTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
     tripsRepository.updateTrip(
-        trip = trip,
-        onSuccess = { getTrips(onSuccess) },
-        onFailure = { Log.e("Fail", it.message ?: "") })
+        trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = { onFailure(it) })
   }
 
   fun uploadImageToFirebase(uri: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
@@ -130,10 +129,31 @@ open class TripsViewModel(
         .addOnFailureListener { exception -> onFailure(exception) }
   }
 
+  open fun getActivitiesForSelectedTrip(): List<Activity> {
+    return selectedTrip.value?.activities ?: emptyList()
+  }
+
   open fun addActivityToTrip(activity: Activity) {
     if (selectedTrip.value != null) {
       val trip = selectedTrip.value!!
       val updatedTrip = trip.copy(activities = trip.activities + activity)
+      updateTrip(
+          updatedTrip,
+          onSuccess = {
+            /*
+                This is a trick to force a recompose, because the reference wouldn't
+                change and update the UI.
+            */
+            selectTrip(Trip())
+            selectTrip(updatedTrip)
+          })
+    }
+  }
+
+  open fun removeActivityFromTrip(activity: Activity) {
+    if (selectedTrip.value != null) {
+      val trip = selectedTrip.value!!
+      val updatedTrip = trip.copy(activities = trip.activities - activity)
       updateTrip(
           updatedTrip,
           onSuccess = {

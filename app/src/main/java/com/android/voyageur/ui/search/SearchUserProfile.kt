@@ -35,7 +35,6 @@ fun SearchUserProfileScreen(userViewModel: UserViewModel, navigationActions: Nav
     return
   }
 
-  // Scaffold layout containing top bar for navigation and content for displaying user details
   Scaffold(
       modifier = Modifier.testTag("userProfileScreen"),
       topBar = {
@@ -58,7 +57,6 @@ fun SearchUserProfileScreen(userViewModel: UserViewModel, navigationActions: Nav
             modifier =
                 Modifier.fillMaxSize().padding(paddingValues).testTag("userProfileScreenContent"),
             contentAlignment = Alignment.Center) {
-              // Display appropriate content based on loading and user state
               when {
                 isLoading -> {
                   CircularProgressIndicator(
@@ -84,20 +82,30 @@ fun SearchUserProfileScreen(userViewModel: UserViewModel, navigationActions: Nav
  */
 @Composable
 fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
-  val isContactAdded by remember {
-    derivedStateOf { userViewModel.user.value?.contacts?.contains(userData.id) ?: false }
+  val currentUser by userViewModel.user.collectAsState()
+  val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
+
+  // Fetch sent friend requests and contacts when the composable is first displayed
+  LaunchedEffect(Unit) {
+    userViewModel.getSentFriendRequests()
+    userViewModel.getMyContacts {}
   }
-  val signedInUserId = userViewModel.user.value?.id ?: ""
+
+  val isContactAdded = currentUser?.contacts?.contains(userData.id) ?: false
+  val isRequestPending = sentFriendRequests.any { it.to == userData.id }
+  val signedInUserId = currentUser?.id ?: ""
 
   UserProfileContent(
       userData = userData,
       signedInUserId = signedInUserId,
       isContactAdded = isContactAdded,
-      onAddOrRemoveContact = {
-        if (isContactAdded) {
-          userViewModel.removeContact(userData.id)
-        } else {
-          userViewModel.sendContactRequest(userData.id)
+      isRequestPending = isRequestPending,
+      onAddContact = { userViewModel.sendContactRequest(userData.id) },
+      onRemoveContact = { userViewModel.removeContact(userData.id) },
+      onCancelRequest = {
+        val requestId = userViewModel.getSentRequestId(userData.id)
+        if (requestId != null) {
+          userViewModel.deleteFriendRequest(requestId)
         }
       })
 }

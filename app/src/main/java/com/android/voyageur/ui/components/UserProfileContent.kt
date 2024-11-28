@@ -25,7 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role.Companion.Image
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.user.User
 import com.android.voyageur.ui.profile.interests.InterestChip
@@ -53,9 +55,12 @@ fun UserProfileContent(
     signedInUserId: String,
     showEditAndSignOutButtons: Boolean = false,
     isContactAdded: Boolean = false,
+    isRequestPending: Boolean = false,
     onSignOut: (() -> Unit)? = null,
     onEdit: (() -> Unit)? = null,
-    onAddOrRemoveContact: (() -> Unit)? = null
+    onAddContact: (() -> Unit)? = null,
+    onRemoveContact: (() -> Unit)? = null,
+    onCancelRequest: (() -> Unit)? = null // Add this line
 ) {
   Column(
       modifier = Modifier.fillMaxSize().padding(16.dp).testTag("userProfileContent"),
@@ -122,16 +127,36 @@ fun UserProfileContent(
             Button(onClick = onSignOut, modifier = Modifier.testTag("signOutButton")) {
               Text(text = "Sign Out")
             }
-          } else if (userData.id != signedInUserId && onAddOrRemoveContact != null) {
+          } else if (userData.id != signedInUserId) {
             Button(
-                onClick = onAddOrRemoveContact,
+                onClick = {
+                  when {
+                    isContactAdded -> onRemoveContact?.invoke()
+                    isRequestPending -> onCancelRequest?.invoke()
+                    else -> onAddContact?.invoke()
+                  }
+                },
+                enabled = true, // Allow the button to be clickable in all states
                 colors =
                     ButtonDefaults.buttonColors(
                         containerColor =
-                            if (isContactAdded) MaterialTheme.colorScheme.error
-                            else MaterialTheme.colorScheme.primary),
+                            when {
+                              isContactAdded -> MaterialTheme.colorScheme.error
+                              isRequestPending -> MaterialTheme.colorScheme.secondary
+                              else -> MaterialTheme.colorScheme.primary
+                            }),
                 modifier = Modifier.testTag("userProfileAddRemoveContactButton")) {
-                  Text(text = if (isContactAdded) "Remove from contacts" else "Add to contacts")
+                  Text(
+                      text =
+                          when {
+                            isContactAdded -> "Remove"
+                            isRequestPending -> "Cancel"
+                            else -> "Add"
+                          },
+                      color = MaterialTheme.colorScheme.onPrimary,
+                      fontSize = 14.sp,
+                      maxLines = 1,
+                      textAlign = TextAlign.Center)
                 }
           }
         }
