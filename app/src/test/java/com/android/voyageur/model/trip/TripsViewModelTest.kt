@@ -66,13 +66,6 @@ class TripsViewModelTest {
   }
 
   @Test
-  fun getTripsCallsRepository() {
-
-    // Simulate a successful result from the repository
-
-  }
-
-  @Test
   fun createTripCallsRepository() {
     tripsViewModel.createTrip(trip)
     verify(tripsRepository).createTrip(any(), any(), any())
