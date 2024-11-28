@@ -153,18 +153,14 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
             placesClient
                 .fetchPhoto(photoRequest)
                 .addOnSuccessListener { fetchPhotoResponse ->
-
                   val bitmap = fetchPhotoResponse.bitmap.asImageBitmap()
                   bitmaps.add(bitmap)
                   num++
-                  if (num == photosMetadata.size || num == 5)
-                    onSuccess(CustomPlace(place, bitmaps))
-
+                  if (num == photosMetadata.size || num == 5) onSuccess(CustomPlace(place, bitmaps))
                 }
                 .addOnFailureListener { exception ->
-                   num++
-                    if (num == photosMetadata.size || num == 5)
-                        onSuccess(CustomPlace(place, bitmaps))
+                  num++
+                  if (num == photosMetadata.size || num == 5) onSuccess(CustomPlace(place, bitmaps))
                   Log.e("PlacesRepository", "Failed to fetch photo for $placeId", exception)
                 }
           }
