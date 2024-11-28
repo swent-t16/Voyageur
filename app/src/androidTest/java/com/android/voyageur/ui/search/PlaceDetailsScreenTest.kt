@@ -17,7 +17,6 @@ import com.android.voyageur.ui.navigation.Route
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.OpeningHours
 import com.google.android.libraries.places.api.model.Place
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -59,7 +58,13 @@ class PlaceDetailsScreenTest {
                           "Sunday: Closed"))
                   .build())
           .build()
-  val bitmapList = listOf(ImageBitmap(1, 1), ImageBitmap(1, 1), ImageBitmap(1, 1), ImageBitmap(1, 1), ImageBitmap(1, 1))
+  val bitmapList =
+      listOf(
+          ImageBitmap(1, 1),
+          ImageBitmap(1, 1),
+          ImageBitmap(1, 1),
+          ImageBitmap(1, 1),
+          ImageBitmap(1, 1))
   val customPlace = CustomPlace(place, bitmapList)
 
   @Before
@@ -71,10 +76,10 @@ class PlaceDetailsScreenTest {
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
     placesViewModel = PlacesViewModel(placesRepository)
     `when`(navigationActions.currentRoute()).thenReturn(Route.SEARCH)
-      `when`(placesRepository.fetchAdvancedDetails(any(), any(), any())).thenAnswer {
-          val onSuccess = it.arguments[1] as (CustomPlace) -> Unit
-          onSuccess(customPlace)
-      }
+    `when`(placesRepository.fetchAdvancedDetails(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (CustomPlace) -> Unit
+      onSuccess(customPlace)
+    }
     composeTestRule.setContent { PlaceDetailsScreen(navigationActions, placesViewModel) }
     placesViewModel.selectPlace(customPlace)
   }
@@ -119,10 +124,10 @@ class PlaceDetailsScreenTest {
             .build()
 
     val noRatingCustomPlace = CustomPlace(noRatingPlace, bitmapList)
-      `when`(placesRepository.fetchAdvancedDetails(any(), any(), any())).thenAnswer {
-          val onSuccess = it.arguments[1] as (CustomPlace) -> Unit
-          onSuccess(noRatingCustomPlace)
-      }
+    `when`(placesRepository.fetchAdvancedDetails(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (CustomPlace) -> Unit
+      onSuccess(noRatingCustomPlace)
+    }
     placesViewModel.selectPlace(noRatingCustomPlace)
 
     composeTestRule.onNodeWithTag("NoRatingsText").assertIsDisplayed()
@@ -145,10 +150,10 @@ class PlaceDetailsScreenTest {
             .build()
 
     val noOpeningHoursCustomPlace = CustomPlace(noOpeningHoursPlace, bitmapList)
-      `when`(placesRepository.fetchAdvancedDetails(any(), any(), any())).thenAnswer {
-          val onSuccess = it.arguments[1] as (CustomPlace) -> Unit
-          onSuccess(noOpeningHoursCustomPlace)
-      }
+    `when`(placesRepository.fetchAdvancedDetails(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (CustomPlace) -> Unit
+      onSuccess(noOpeningHoursCustomPlace)
+    }
     placesViewModel.selectPlace(noOpeningHoursCustomPlace)
 
     composeTestRule.onNodeWithTag("NoOpeningHoursText").assertIsDisplayed()
@@ -183,10 +188,10 @@ class PlaceDetailsScreenTest {
             .build()
 
     val noPhotosCustomPlace = CustomPlace(noPhotosPlace, emptyList())
-      `when`(placesRepository.fetchAdvancedDetails(any(), any(), any())).thenAnswer {
-          val onSuccess = it.arguments[1] as (CustomPlace) -> Unit
-          onSuccess(noPhotosCustomPlace)
-      }
+    `when`(placesRepository.fetchAdvancedDetails(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (CustomPlace) -> Unit
+      onSuccess(noPhotosCustomPlace)
+    }
     placesViewModel.selectPlace(noPhotosCustomPlace)
 
     composeTestRule.onNodeWithTag("PlaceholderImage").assertIsDisplayed()

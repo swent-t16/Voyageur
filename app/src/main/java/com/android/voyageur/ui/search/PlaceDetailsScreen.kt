@@ -89,7 +89,8 @@ fun PlaceDetailsScreen(navigationActions: NavigationActions, placesViewModel: Pl
               if (isLoading) {
                 // Display a loading indicator while fetching place details
                 CircularProgressIndicator(
-                    modifier = Modifier.size(48.dp).testTag("LoadingIndicator").align(Alignment.Center))
+                    modifier =
+                        Modifier.size(48.dp).testTag("LoadingIndicator").align(Alignment.Center))
               } else
                   Column(
                       modifier = Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
