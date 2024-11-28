@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.voyageur.model.activity.Activity
-import com.android.voyageur.model.activity.getYearMonthDay
 import com.android.voyageur.model.assistant.generatePrompt
 import com.android.voyageur.model.assistant.generativeModel
 import com.google.firebase.Firebase
@@ -169,12 +168,23 @@ open class TripsViewModel(
   // AI assistant
   // ****************************************************************************************************
 
-  fun sendActivitiesPrompt(trip: Trip, userPrompt: String) {
+  /**
+   * Sends a prompt to the AI assistant to generate activities for a trip. The result changes the UI
+   * state.
+   *
+   * @param trip the trip
+   * @param userPrompt the prompt that the user provides in the app
+   * @param provideFinalActivities whether to provide final activities with date and time or just
+   *   draft activities.
+   */
+  open fun sendActivitiesPrompt(trip: Trip, userPrompt: String, provideFinalActivities: Boolean) {
     _uiState.value = UiState.Loading
 
     viewModelScope.launch(Dispatchers.IO) {
       try {
-        val response = generativeModel.generateContent(generatePrompt(trip, userPrompt))
+        val response =
+            generativeModel.generateContent(
+                generatePrompt(trip, userPrompt, provideFinalActivities))
         Log.d("GeminiTest", "response: ${response.text}")
         response.text?.let { outputContent -> _uiState.value = UiState.Success(outputContent) }
       } catch (e: Exception) {
@@ -183,6 +193,7 @@ open class TripsViewModel(
     }
   }
 
+  /** Sets the initial UI state to [UiState.Initial]. */
   open fun setInitialUiState() {
     _uiState.value = UiState.Initial
   }

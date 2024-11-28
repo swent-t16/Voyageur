@@ -1,13 +1,16 @@
 package com.android.voyageur.model.assistant
 
 import com.android.voyageur.BuildConfig
-import com.android.voyageur.model.activity.getYearMonthDay
 import com.android.voyageur.model.trip.Trip
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.FunctionType
 import com.google.ai.client.generativeai.type.Schema
 import com.google.ai.client.generativeai.type.generationConfig
 
+/**
+ * The generative model that is used to generate activities for a trip. It corresponds to the
+ * ActivityFromAssistant class.
+ */
 val generativeModel =
     GenerativeModel(
         modelName = "gemini-1.5-flash",
@@ -55,22 +58,26 @@ val generativeModel =
                                       "startTimeHour" to
                                           Schema(
                                               name = "startTimeHour",
-                                              description = "Start time hour of the activity",
+                                              description =
+                                                  "Start time hour of the activity. Must be between 0 and 23",
                                               type = FunctionType.INTEGER),
                                       "startTimeMinute" to
                                           Schema(
                                               name = "startTimeMinute",
-                                              description = "Start time minute of the activity",
+                                              description =
+                                                  "Start time minute of the activity. Must be between 0 and 59",
                                               type = FunctionType.INTEGER),
                                       "endTimeHour" to
                                           Schema(
                                               name = "endTimeHour",
-                                              description = "End time hour of the activity",
+                                              description =
+                                                  "End time hour of the activity. Must be between 0 and 23",
                                               type = FunctionType.INTEGER),
                                       "endTimeMinute" to
                                           Schema(
                                               name = "endTimeMinute",
-                                              description = "End time minute of the activity",
+                                              description =
+                                                  "End time minute of the activity. Must be between 0 and 59",
                                               type = FunctionType.INTEGER),
                                       "estimatedPrice" to
                                           Schema(
@@ -99,12 +106,39 @@ val generativeModel =
                                       "activityType")))
             })
 
-fun generatePrompt(trip: Trip, userPrompt: String) : String {
-    val startDate = getYearMonthDay(trip.startDate)
-    val endDate = getYearMonthDay(trip.endDate)
-    val datePrompt =
-        "between the start date year ${startDate.first} month ${startDate.second + 1} day ${startDate.third} and the end date year ${endDate.first} month ${endDate.second + 1} day ${endDate.third}"
-   val prompt = "Make a full schedule by listing activities including separate activities for each separate activity, e.g. eating, transport, basically i want suggestions for every day spent on a trip called ${trip.name} that takes place $datePrompt" +
-                    " and with the following prompt: $userPrompt. You should recommend multiple activities for each day."
-      return prompt
+/**
+ * The prompt that is used to generate activities for a trip.
+ *
+ * @param trip the trip
+ * @param userPrompt the prompt that the user provides in the app
+ * @param provideFinalActivities whether to provide final activities with date and time or just
+ *   draft activities. In the case of draft activities, the prompt is a bit different to avoid
+ *   recommending a lunch for each day more or less the same.
+ * @return the prompt to send to use with the generative model
+ */
+fun generatePrompt(trip: Trip, userPrompt: String, provideFinalActivities: Boolean): String {
+  val startDate = getYearMonthDay(trip.startDate)
+  val endDate = getYearMonthDay(trip.endDate)
+  val datePrompt =
+      """
+          between the start date year ${startDate.first} month ${startDate.second + 1} day ${startDate.third} 
+          and the end date year ${endDate.first} month ${endDate.second + 1} day ${endDate.third}
+            """
+          .trimIndent()
+  val prompt =
+      if (provideFinalActivities) {
+        """
+    Make a full schedule by listing activities, including separate activities for eating, transport, etc.
+    The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt.
+    Recommend multiple activities for each day.
+    """
+            .trimIndent()
+      } else {
+        """
+    List a lot of popular specific activities to do on a trip called ${trip.name}.
+    The trip takes place $datePrompt with the following prompt: $userPrompt.
+    """
+            .trimIndent()
+      }
+  return prompt
 }

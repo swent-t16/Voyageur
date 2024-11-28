@@ -5,7 +5,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.NavHostController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.voyageur.model.activity.Activity
-import com.android.voyageur.model.activity.extractActivitiesFromJson
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
@@ -34,7 +33,8 @@ class AssistantScreenTest {
 
   private val sampleTrip = Trip(name = "Sample Trip")
   private val sampleJson =
-      "[{\"title\":\"Activity 1\", \"description\": \"Description 1\"}, {\"title\":\"Activity 2\", \"description\": \"Description 1\"}]"
+      "[{\"title\":\"Activity 1\", \"description\": \"Description 1\", \"year\": 2022, \"month\": 1, \"day\": 1, \"startTimeHour\": 12, \"startTimeMinute\": 0, \"endTimeHour\": 14, \"endTimeMinute\": 0}" +
+          ",{\"title\":\"Activity 2\", \"description\": \"Description 2\", \"year\": 2022, \"month\": 1, \"day\": 2, \"startTimeHour\": 12, \"startTimeMinute\": 0, \"endTimeHour\": 14, \"endTimeMinute\": 0}]"
 
   @Before
   fun setUp() {
@@ -53,6 +53,7 @@ class AssistantScreenTest {
     composeTestRule.onNodeWithTag("topBar").assertIsDisplayed()
     composeTestRule.onNodeWithTag("AIRequestTextField").assertIsDisplayed()
     composeTestRule.onNodeWithTag("AIRequestButton").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("settingsButton").assertIsDisplayed()
   }
 
   @Test
@@ -120,12 +121,39 @@ class AssistantScreenTest {
   }
 
   @Test
-  fun checkJsonParsing() {
-    val activities = extractActivitiesFromJson(sampleJson)
-    assert(activities.size == 2)
-    assert(activities[0].title == "Activity 1")
-    assert(activities[0].description == "Description 1")
-    assert(activities[1].title == "Activity 2")
-    assert(activities[1].description == "Description 1")
+  fun checkSettingsDialogIsDisplayedWhenSettingsButtonClicked() {
+    val uiStateFlow = MutableStateFlow(UiState.Loading)
+    val tripFlow = MutableStateFlow(sampleTrip)
+    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
+    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
+    composeTestRule.setContent { AssistantScreen(mockTripsViewModel, navigationActions) }
+    composeTestRule.onNodeWithTag("settingsButton").performClick()
+    composeTestRule.onNodeWithTag("settingsDialog").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("provideFinalActivitiesSwitch").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("provideFinalActivitiesSwitch").assertIsOff()
+  }
+
+  @Test
+  fun checkDraftActivitiesDisplayedInitially() {
+    val uiStateFlow = MutableStateFlow(UiState.Success(sampleJson))
+    val tripFlow = MutableStateFlow(sampleTrip)
+    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
+    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
+    composeTestRule.setContent { AssistantScreen(mockTripsViewModel, navigationActions) }
+    composeTestRule.onNodeWithTag("cardItem_Activity 1").assertIsDisplayed()
+    composeTestRule.onNodeWithText("2022/01/01 12:00 PM - 02:00 PM").assertIsNotDisplayed()
+  }
+
+  @Test
+  fun checkFinalActivitiesDisplayedWhenSwitched() {
+    val uiStateFlow = MutableStateFlow(UiState.Success(sampleJson))
+    val tripFlow = MutableStateFlow(sampleTrip)
+    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
+    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
+    composeTestRule.setContent { AssistantScreen(mockTripsViewModel, navigationActions) }
+    composeTestRule.onNodeWithTag("settingsButton").performClick()
+    composeTestRule.onNodeWithTag("provideFinalActivitiesSwitch").performClick()
+    composeTestRule.onNodeWithTag("closeDialogButton").performClick()
+    composeTestRule.onNodeWithText("01/01/2022 12:00 PM - 02:00 PM").assertIsDisplayed()
   }
 }
