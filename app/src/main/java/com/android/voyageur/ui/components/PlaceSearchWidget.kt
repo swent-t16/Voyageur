@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.PopupProperties
+import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesViewModel
 
@@ -24,7 +25,7 @@ import com.android.voyageur.model.place.PlacesViewModel
 @Composable
 fun PlaceSearchWidget(
     placesViewModel: PlacesViewModel,
-    onSelect: (CustomPlace) -> Unit,
+    onSelect: (Location) -> Unit,
     modifier: Modifier = Modifier,
     query: TextFieldValue,
     onQueryChange: (TextFieldValue) -> Unit
@@ -41,16 +42,7 @@ fun PlaceSearchWidget(
         },
         modifier = modifier.fillMaxWidth().testTag("searchTextField"),
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-        keyboardActions =
-            KeyboardActions(
-                onSearch = {
-                  val matchingPlace =
-                      searchedPlaces.firstOrNull { it.place.displayName == query.text }
-                  if (matchingPlace != null) {
-                    onSelect(matchingPlace)
-                    expanded = false
-                  }
-                }),
+        keyboardActions = KeyboardActions(onSearch = { expanded = false }),
         singleLine = true,
         placeholder = { Text("Search places...") },
         trailingIcon = {
@@ -70,11 +62,22 @@ fun PlaceSearchWidget(
             DropdownMenuItem(
                 text = { Text(place.place.displayName ?: "Unknown Place") },
                 onClick = {
-                  onSelect(place)
+                  val location = place.toLocation()
+                  onSelect(location)
                   expanded = false
                 },
                 modifier = Modifier.testTag("item-${place.place.id}"))
           }
         }
   }
+}
+
+/** function to convert a CustomPlace object to a Location object with only the fields we need */
+fun CustomPlace.toLocation(): Location {
+  return Location(
+      id = this.place.id ?: "",
+      name = this.place.displayName ?: "",
+      address = this.place.formattedAddress ?: "",
+      lat = this.place.latLng?.latitude ?: 0.0,
+      lng = this.place.latLng?.longitude ?: 0.0)
 }

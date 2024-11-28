@@ -44,7 +44,7 @@ class AddActivityScreenTest {
       Activity(
           title = "Hiking",
           description = "Trail hiking in the mountains",
-          location = Location("Toronto"),
+          location = Location(name = "Toronto"),
           startTime =
               Timestamp(Date.from(LocalDateTime.of(2024, 10, 3, 10, 0).toInstant(ZoneOffset.UTC))),
           endTime =
@@ -155,7 +155,7 @@ class AddActivityScreenTest {
             creator = "mockUserId",
             description = "Existing trip",
             name = "Existing Trip",
-            locations = listOf(Location("Paris")),
+            location = Location(name = "Paris"),
             startDate = Timestamp(Date()),
             endDate = Timestamp(Date()),
             activities = listOf(),

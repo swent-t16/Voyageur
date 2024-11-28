@@ -27,7 +27,6 @@ import androidx.compose.ui.window.Dialog
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
-import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
@@ -52,10 +51,8 @@ fun AddActivityScreen(
 ) {
   var title by remember { mutableStateOf(existingActivity?.title ?: "") }
   var description by remember { mutableStateOf(existingActivity?.description ?: "") }
-  var query by remember {
-    mutableStateOf(TextFieldValue(existingActivity?.location?.address ?: ""))
-  }
-  var selectedPlace by remember { mutableStateOf<CustomPlace?>(null) }
+  var query by remember { mutableStateOf(TextFieldValue(existingActivity?.location?.name ?: "")) }
+  var selectedLocation by remember { mutableStateOf<Location>(Location("", "", "", 0.0, 0.0)) }
   var showModal by remember { mutableStateOf(false) }
   var activityDate by remember {
     mutableStateOf<Long?>(existingActivity?.startTime?.toDate()?.time.takeIf { it != 0L })
@@ -113,7 +110,6 @@ fun AddActivityScreen(
       return calendar.time
     }
 
-    val today = normalizeToMidnight(Date())
     val dateNormalized = activityDate?.let { normalizeToMidnight(Date(it)) } ?: Date(0)
 
     val selectedTrip = tripsViewModel.selectedTrip.value!!
@@ -216,9 +212,7 @@ fun AddActivityScreen(
         Activity(
             title = title,
             description = description,
-            location =
-                selectedPlace?.let { Location(address = it.place.displayName ?: "") }
-                    ?: Location(""),
+            location = selectedLocation,
             startTime = startTimestamp,
             endTime = endTimestamp,
             estimatedPrice = estimatedPrice ?: 0.0,
@@ -300,8 +294,8 @@ fun AddActivityScreen(
                 PlaceSearchWidget(
                     placesViewModel = placesViewModel,
                     onSelect = { place ->
-                      selectedPlace = place
-                      query = TextFieldValue(place.place.displayName ?: "Unknown Place")
+                      selectedLocation = place
+                      query = TextFieldValue(place.name)
                     },
                     query = query,
                     onQueryChange = {

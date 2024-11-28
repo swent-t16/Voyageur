@@ -61,7 +61,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.location.Location
-import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
@@ -94,7 +93,7 @@ fun AddTripScreen(
   var name by remember { mutableStateOf("") }
   var description by remember { mutableStateOf("") }
   var query by remember { mutableStateOf(TextFieldValue("")) }
-  var selectedPlace by remember { mutableStateOf<CustomPlace?>(null) }
+  var selectedLocation by remember { mutableStateOf<Location>(Location("", "", "", 0.0, 0.0)) }
   var showModal by remember { mutableStateOf(false) }
   var selectedDateField by remember { mutableStateOf<DateField?>(null) }
   var startDate by remember { mutableStateOf<Long?>(null) }
@@ -139,7 +138,7 @@ fun AddTripScreen(
         description = trip.description
         tripType = trip.type
         imageUri = trip.imageUri
-        query = TextFieldValue(trip.locations.firstOrNull()?.address ?: "")
+        query = TextFieldValue(trip.location.name)
         startDate = trip.startDate.toDate().time
         endDate = trip.endDate.toDate().time
       }
@@ -202,9 +201,7 @@ fun AddTripScreen(
                 (userList.filter { it.second }.map { it.first.id } + Firebase.auth.uid.orEmpty())
                     .toSet()
                     .toList(),
-            locations =
-                selectedPlace?.let { listOf(Location(address = it.place.displayName ?: "")) }
-                    ?: emptyList(),
+            location = selectedLocation,
             startDate = startTimestamp,
             endDate = endTimestamp,
             activities =
@@ -331,9 +328,9 @@ fun AddTripScreen(
 
                 PlaceSearchWidget(
                     placesViewModel = placesViewModel,
-                    onSelect = { place ->
-                      selectedPlace = place
-                      query = TextFieldValue(place.place.displayName ?: "Unknown Place")
+                    onSelect = { location ->
+                      selectedLocation = location
+                      query = TextFieldValue(location.name)
                     },
                     query = query,
                     onQueryChange = {
