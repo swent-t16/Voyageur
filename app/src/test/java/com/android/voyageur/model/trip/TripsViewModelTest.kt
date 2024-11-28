@@ -80,7 +80,7 @@ class TripsViewModelTest {
                 emptyList(),
                 "description",
                 "name",
-                emptyList(),
+                Location("", "", "", 0.0, 0.0),
                 Timestamp.now(),
                 Timestamp.now(),
                 emptyList(),
