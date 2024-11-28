@@ -30,9 +30,10 @@ interface UserRepository {
       onSuccess: (String) -> Unit,
       onFailure: (Exception) -> Unit
   )
-    fun listenToUser(
-        userId: String,
-        onSuccess: (User) -> Unit,
-        onFailure: (Exception) -> Unit
-    ): ListenerRegistration?
+
+  fun listenToUser(
+      userId: String,
+      onSuccess: (User) -> Unit,
+      onFailure: (Exception) -> Unit
+  ): ListenerRegistration?
 }

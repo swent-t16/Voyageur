@@ -76,55 +76,55 @@ open class UserViewModel(
   // Job to manage debounce coroutine for search queries
   private var debounceJob: Job? = null
 
-    // Variable to hold the listener registration
-    private var userListenerRegistration: ListenerRegistration? = null
+  // Variable to hold the listener registration
+  private var userListenerRegistration: ListenerRegistration? = null
 
   // Listener to monitor authentication state changes
-  private val authStateListener = FirebaseAuth.AuthStateListener { auth ->
-      val firebaseUser = auth.currentUser
-      if (firebaseUser != null) {
+  private val authStateListener =
+      FirebaseAuth.AuthStateListener { auth ->
+        val firebaseUser = auth.currentUser
+        if (firebaseUser != null) {
           // User is signed in, start listening to user data
           loadUser(firebaseUser.uid, firebaseUser)
           // Fetch sent friend requests
           getSentFriendRequests()
-      } else {
+        } else {
           // User is signed out, clear user data and remove listeners
           userListenerRegistration?.remove()
           userListenerRegistration = null
           _user.value = null
           _contacts.value = emptyList()
           _isLoading.value = false
+        }
       }
-  }
 
   init {
     // Attach the authentication state listener to FirebaseAuth instance
     firebaseAuth.addAuthStateListener(authStateListener)
 
-      // Observe changes in the user and update contacts accordingly
-      viewModelScope.launch {
-          user.collectLatest { currentUser ->
-              if (currentUser != null) {
-                  updateContacts(currentUser.contacts)
-              } else {
-                  _contacts.value = emptyList()
-              }
-          }
-      }
-  }
-    private fun updateContacts(contactIds: List<String>) {
-        getUsersByIds(contactIds) { users ->
-            _contacts.value = users
+    // Observe changes in the user and update contacts accordingly
+    viewModelScope.launch {
+      user.collectLatest { currentUser ->
+        if (currentUser != null) {
+          updateContacts(currentUser.contacts)
+        } else {
+          _contacts.value = emptyList()
         }
+      }
     }
+  }
 
-    override fun onCleared() {
-        super.onCleared()
-        // Remove the authentication listener when ViewModel is destroyed
-        firebaseAuth.removeAuthStateListener(authStateListener)
-        // Remove Firestore listener
-        userListenerRegistration?.remove()
-    }
+  private fun updateContacts(contactIds: List<String>) {
+    getUsersByIds(contactIds) { users -> _contacts.value = users }
+  }
+
+  override fun onCleared() {
+    super.onCleared()
+    // Remove the authentication listener when ViewModel is destroyed
+    firebaseAuth.removeAuthStateListener(authStateListener)
+    // Remove Firestore listener
+    userListenerRegistration?.remove()
+  }
 
   /**
    * Loads user data from the repository. If the user does not exist, creates a new user profile
@@ -134,42 +134,42 @@ open class UserViewModel(
    * @param firebaseUser Optional Firebase user object for creating a new profile if needed.
    */
   fun loadUser(userId: String, firebaseUser: FirebaseUser? = null) {
-      // Remove any existing listener to avoid duplicates
-      userListenerRegistration?.remove()
+    // Remove any existing listener to avoid duplicates
+    userListenerRegistration?.remove()
 
-      _isLoading.value = true
+    _isLoading.value = true
 
-      userListenerRegistration = userRepository.listenToUser(
-          userId,
-          onSuccess = { retrievedUser ->
+    userListenerRegistration =
+        userRepository.listenToUser(
+            userId,
+            onSuccess = { retrievedUser ->
               _user.value = retrievedUser
               _isLoading.value = false
-          },
-          onFailure = {
+            },
+            onFailure = {
               firebaseUser?.let {
-                  // Create a new user profile if not found in the repository
-                  val newUser = User(
-                      id = it.uid,
-                      name = it.displayName ?: "Unknown",
-                      email = it.email ?: "No Email",
-                      profilePicture = it.photoUrl?.toString() ?: "",
-                      bio = "",
-                      username = it.email?.split("@")?.get(0) ?: ""
-                  )
-                  userRepository.createUser(
-                      newUser,
-                      onSuccess = {
-                          _user.value = newUser
-                          _isLoading.value = false
-                      },
-                      onFailure = { _isLoading.value = false }
-                  )
-              } ?: run {
-                  _user.value = null
-                  _isLoading.value = false
+                // Create a new user profile if not found in the repository
+                val newUser =
+                    User(
+                        id = it.uid,
+                        name = it.displayName ?: "Unknown",
+                        email = it.email ?: "No Email",
+                        profilePicture = it.photoUrl?.toString() ?: "",
+                        bio = "",
+                        username = it.email?.split("@")?.get(0) ?: "")
+                userRepository.createUser(
+                    newUser,
+                    onSuccess = {
+                      _user.value = newUser
+                      _isLoading.value = false
+                    },
+                    onFailure = { _isLoading.value = false })
               }
-          }
-      )
+                  ?: run {
+                    _user.value = null
+                    _isLoading.value = false
+                  }
+            })
   }
 
   /**
@@ -193,46 +193,42 @@ open class UserViewModel(
    * @param userId The ID of the user to add as a contact.
    */
   fun addContact(userId: String, friendRequestId: String) {
-      val currentUser = user.value ?: return
-      val updatedContacts = currentUser.contacts + userId // Creates a new list
-      val updatedUser = currentUser.copy(contacts = updatedContacts)
-      updateUser(updatedUser)
-      deleteFriendRequest(friendRequestId)
+    val currentUser = user.value ?: return
+    val updatedContacts = currentUser.contacts + userId // Creates a new list
+    val updatedUser = currentUser.copy(contacts = updatedContacts)
+    updateUser(updatedUser)
+    deleteFriendRequest(friendRequestId)
   }
 
-
-    /**
+  /**
    * Removes a contact from the current user's contact list.
    *
    * @param userId The ID of the user to remove from contacts.
    */
-    fun removeContact(userId: String) {
-        val currentUser = user.value ?: return
-        val updatedContacts = currentUser.contacts.filter { it != userId }
-        val updatedUser = currentUser.copy(contacts = updatedContacts)
-        updateUser(updatedUser)
-    }
+  fun removeContact(userId: String) {
+    val currentUser = user.value ?: return
+    val updatedContacts = currentUser.contacts.filter { it != userId }
+    val updatedUser = currentUser.copy(contacts = updatedContacts)
+    updateUser(updatedUser)
+  }
 
-
-    /**
+  /**
    * Updates user data in the repository.
    *
    * @param updatedUser The updated user data.
    */
-    fun updateUser(updatedUser: User) {
-        _isLoading.value = true
-        userRepository.updateUser(
-            updatedUser,
-            onSuccess = {
-                loadUser(updatedUser.id) // Reload the user from the backend
-                _isLoading.value = false
-            },
-            onFailure = { _isLoading.value = false }
-        )
-    }
+  fun updateUser(updatedUser: User) {
+    _isLoading.value = true
+    userRepository.updateUser(
+        updatedUser,
+        onSuccess = {
+          loadUser(updatedUser.id) // Reload the user from the backend
+          _isLoading.value = false
+        },
+        onFailure = { _isLoading.value = false })
+  }
 
-
-    /**
+  /**
    * Signs out the current user from Firebase. The AuthStateListener will automatically handle
    * updating the ViewModel state to reflect the sign-out.
    */

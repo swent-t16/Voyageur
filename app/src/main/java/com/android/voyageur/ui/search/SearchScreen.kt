@@ -395,21 +395,23 @@ fun UserSearchResultItem(
     fieldColor: Color,
     navigationActions: NavigationActions
 ) {
-    val currentUser by userViewModel.user.collectAsState()
-    val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
-    // Determine if the user is the currently logged-in user
+  val currentUser by userViewModel.user.collectAsState()
+  val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
+  // Determine if the user is the currently logged-in user
   val isCurrentUser = currentUser?.id == user.id
 
-    val isContactAdded by remember(currentUser, user) {
+  val isContactAdded by
+      remember(currentUser, user) {
         derivedStateOf { currentUser?.contacts?.contains(user.id) ?: false }
-    }
+      }
 
-    val isRequestPending by remember(sentFriendRequests, user) {
+  val isRequestPending by
+      remember(sentFriendRequests, user) {
         derivedStateOf { sentFriendRequests.any { it.to == user.id } }
-    }
-    LaunchedEffect(isContactAdded, isRequestPending) {
-        Log.d("UserSearchResultItem", "Recomposition triggered")
-    }
+      }
+  LaunchedEffect(isContactAdded, isRequestPending) {
+    Log.d("UserSearchResultItem", "Recomposition triggered")
+  }
 
   Row(
       modifier =

@@ -151,29 +151,29 @@ class UserRepositoryFirebase(private val db: FirebaseFirestore) : UserRepository
   fun getNewUserId(): String {
     return db.collection(collectionPath).document().id
   }
-    override fun listenToUser(
-        userId: String,
-        onSuccess: (User) -> Unit,
-        onFailure: (Exception) -> Unit
-    ): ListenerRegistration? {
-        return db.collection("users").document(userId)
-            .addSnapshotListener { snapshot, exception ->
-                if (exception != null) {
-                    onFailure(exception)
-                    return@addSnapshotListener
-                }
-                if (snapshot != null && snapshot.exists()) {
-                    val user = snapshot.toObject(User::class.java)
-                    if (user != null) {
-                        onSuccess(user)
-                    } else {
-                        onFailure(Exception("User data is null"))
-                    }
-                } else {
-                    onFailure(Exception("Snapshot is null or does not exist"))
-                }
-            }
+
+  override fun listenToUser(
+      userId: String,
+      onSuccess: (User) -> Unit,
+      onFailure: (Exception) -> Unit
+  ): ListenerRegistration? {
+    return db.collection("users").document(userId).addSnapshotListener { snapshot, exception ->
+      if (exception != null) {
+        onFailure(exception)
+        return@addSnapshotListener
+      }
+      if (snapshot != null && snapshot.exists()) {
+        val user = snapshot.toObject(User::class.java)
+        if (user != null) {
+          onSuccess(user)
+        } else {
+          onFailure(Exception("User data is null"))
+        }
+      } else {
+        onFailure(Exception("Snapshot is null or does not exist"))
+      }
     }
+  }
 
   companion object {
     fun create(): UserRepositoryFirebase {
