@@ -16,10 +16,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -37,7 +43,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.android.voyageur.model.activity.Activity
-import com.android.voyageur.model.activity.extractActivitiesFromJson
+import com.android.voyageur.model.assistant.convertActivityFromAssistantToActivity
+import com.android.voyageur.model.assistant.extractActivitiesFromAssistantFromJson
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.trip.UiState
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -45,16 +52,19 @@ import com.android.voyageur.ui.navigation.Screen
 import com.android.voyageur.ui.trip.activities.ActivityItem
 import com.android.voyageur.ui.trip.activities.ButtonType
 import com.android.voyageur.ui.trip.schedule.TopBarWithImageAndText
+import com.google.firebase.Timestamp
 
-@SuppressLint("StateFlowValueCalledInComposition")
+@SuppressLint("StateFlowValueCalledInComposition", "UnrememberedMutableState")
 @Composable
 fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: NavigationActions) {
   var result by rememberSaveable { mutableStateOf("placeholderResult") }
   val uiState by tripsViewModel.uiState.collectAsState()
   var prompt by rememberSaveable { mutableStateOf("") }
   var activities by remember { mutableStateOf(emptyList<Activity>()) }
-
   val keyboardController = LocalSoftwareKeyboardController.current
+
+  var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
+  var provideFinalActivities by rememberSaveable { mutableStateOf(false) }
 
   val trip = tripsViewModel.selectedTrip.value
   if (trip == null) {
@@ -83,15 +93,23 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
                         onDone = {
                           keyboardController?.hide()
                           if (uiState !is UiState.Loading) {
-                            tripsViewModel.sendActivitiesPrompt(trip, prompt)
+                            tripsViewModel.sendActivitiesPrompt(
+                                trip, prompt, provideFinalActivities)
                           }
                         }),
                 singleLine = true)
             Button(
-                onClick = { tripsViewModel.sendActivitiesPrompt(trip, prompt) },
+                onClick = {
+                  tripsViewModel.sendActivitiesPrompt(trip, prompt, provideFinalActivities)
+                },
                 enabled = uiState !is UiState.Loading, // Disable the button during loading
                 modifier = Modifier.testTag("AIRequestButton").align(Alignment.CenterVertically)) {
                   Text(text = "go")
+                }
+            IconButton(
+                onClick = { showSettingsDialog = true },
+                modifier = Modifier.testTag("settingsButton")) {
+                  Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings")
                 }
           }
 
@@ -115,7 +133,16 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
                           .verticalScroll(scrollState))
             } else if (uiState is UiState.Success) {
               result = (uiState as UiState.Success).outputText
-              activities = extractActivitiesFromJson(result)
+              val activitiesFromAssistant = extractActivitiesFromAssistantFromJson(result)
+              activities =
+                  activitiesFromAssistant.map {
+                    val activity = convertActivityFromAssistantToActivity(it)
+                    if (!provideFinalActivities) {
+                      activity.copy(startTime = Timestamp(0, 0), endTime = Timestamp(0, 0))
+                    } else {
+                      activity
+                    }
+                  }
               LazyColumn(
                   modifier =
                       Modifier.padding(pd)
@@ -142,6 +169,58 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
               }
             }
           }
+        }
+        if (showSettingsDialog) {
+          SettingsDialog(
+              onDismiss = { showSettingsDialog = false },
+              provideDraftActivities = provideFinalActivities,
+              onProvideFinalActivitiesChanged = { provideFinalActivities = it })
+        }
+      })
+}
+
+/**
+ * Dialog for the settings
+ *
+ * @param onDismiss the function to dismiss the dialog
+ * @param provideDraftActivities whether to provide final activities with date and time or just
+ *   draft activities
+ * @param onProvideFinalActivitiesChanged the function to change the setting
+ */
+@Composable
+fun SettingsDialog(
+    onDismiss: () -> Unit,
+    provideDraftActivities: Boolean,
+    onProvideFinalActivitiesChanged: (Boolean) -> Unit,
+) {
+  AlertDialog(
+      modifier = Modifier.testTag("settingsDialog"),
+      onDismissRequest = onDismiss,
+      title = { Text(text = "Settings") },
+      text = {
+        Column {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "Remember to click on the 'go' button after changing the settings",
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyLarge)
+          }
+          Spacer(modifier = Modifier.height(16.dp)) // Add a spacer for some vertical space
+
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "Provide final activities with date and time (recommended for trips shorter than a week)",
+                modifier = Modifier.weight(1f))
+            Switch(
+                checked = provideDraftActivities,
+                onCheckedChange = onProvideFinalActivitiesChanged,
+                modifier = Modifier.testTag("provideFinalActivitiesSwitch"))
+          }
+        }
+      },
+      confirmButton = {
+        Button(onClick = onDismiss, modifier = Modifier.testTag("closeDialogButton")) {
+          Text("Close")
         }
       })
 }
