@@ -199,16 +199,15 @@ open class UserViewModel(
    * @param userId The ID of the user to add as a contact.
    */
   fun addContact(userId: String, friendRequestId: String) {
-      val contacts = user.value?.contacts?.toMutableSet()
-      val newUser = user.value!!.copy()
-      contacts?.add(userId)
-      newUser.contacts = contacts?.toList().orEmpty()
-      if (user.value != null) {
-          updateUser(newUser)
-          // Deletes Friend Request since the user has been added as a contact
-          deleteFriendRequest(friendRequestId)
-      }
-
+    val contacts = user.value?.contacts?.toMutableSet()
+    val newUser = user.value!!.copy()
+    contacts?.add(userId)
+    newUser.contacts = contacts?.toList().orEmpty()
+    if (user.value != null) {
+      updateUser(newUser)
+      // Deletes Friend Request since the user has been added as a contact
+      deleteFriendRequest(friendRequestId)
+    }
   }
 
   /**
@@ -216,45 +215,46 @@ open class UserViewModel(
    *
    * @param userId The ID of the user to remove from contacts.
    */
-    fun removeContact(secondUserId: String, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
-        val currentUser = _user.value
+  fun removeContact(
+      secondUserId: String,
+      onSuccess: () -> Unit = {},
+      onFailure: (Exception) -> Unit = {}
+  ) {
+    val currentUser = _user.value
 
-        if (currentUser == null) {
-            onFailure(Exception("Current user is not available"))
-            return
-        }
-
-        // Fetch the second user's data
-        getUsersByIds(listOf(secondUserId)) { users ->
-            val secondUser = users.firstOrNull()
-
-            if (secondUser == null) {
-                onFailure(Exception("The specified user was not found"))
-                return@getUsersByIds
-            }
-
-            // Remove the second user from the current user's contacts
-            val updatedCurrentUserContacts = currentUser.contacts.toMutableList().apply {
-                remove(secondUserId)
-            }
-            val updatedCurrentUser = currentUser.copy(contacts = updatedCurrentUserContacts)
-
-            // Remove the current user from the second user's contacts
-            val updatedSecondUserContacts = secondUser.contacts.toMutableList().apply {
-                remove(currentUser.id)
-            }
-            val updatedSecondUser = secondUser.copy(contacts = updatedSecondUserContacts)
-
-            // Update both users in the repository
-            updateUser(updatedCurrentUser)
-            updateUser(updatedSecondUser)
-
-            onSuccess()
-        }
+    if (currentUser == null) {
+      onFailure(Exception("Current user is not available"))
+      return
     }
 
+    // Fetch the second user's data
+    getUsersByIds(listOf(secondUserId)) { users ->
+      val secondUser = users.firstOrNull()
 
-    /**
+      if (secondUser == null) {
+        onFailure(Exception("The specified user was not found"))
+        return@getUsersByIds
+      }
+
+      // Remove the second user from the current user's contacts
+      val updatedCurrentUserContacts =
+          currentUser.contacts.toMutableList().apply { remove(secondUserId) }
+      val updatedCurrentUser = currentUser.copy(contacts = updatedCurrentUserContacts)
+
+      // Remove the current user from the second user's contacts
+      val updatedSecondUserContacts =
+          secondUser.contacts.toMutableList().apply { remove(currentUser.id) }
+      val updatedSecondUser = secondUser.copy(contacts = updatedSecondUserContacts)
+
+      // Update both users in the repository
+      updateUser(updatedCurrentUser)
+      updateUser(updatedSecondUser)
+
+      onSuccess()
+    }
+  }
+
+  /**
    * Updates user data in the repository.
    *
    * @param updatedUser The updated user data.
@@ -295,32 +295,29 @@ open class UserViewModel(
         }
   }
 
-    /**
-     * Accepts a friend request by adding the sender to the user's contacts and removing the friend request.
-     *
-     * @param friendRequest The friend request to accept.
-     */
-    fun acceptFriendRequest(friendRequest: FriendRequest) {
-        val currentUser = user.value ?: return
-        val updatedContacts = currentUser.contacts.toMutableList().apply {
-            add(friendRequest.from)
-        }
-        val updatedUser = currentUser.copy(contacts = updatedContacts)
+  /**
+   * Accepts a friend request by adding the sender to the user's contacts and removing the friend
+   * request.
+   *
+   * @param friendRequest The friend request to accept.
+   */
+  fun acceptFriendRequest(friendRequest: FriendRequest) {
+    val currentUser = user.value ?: return
+    val updatedContacts = currentUser.contacts.toMutableList().apply { add(friendRequest.from) }
+    val updatedUser = currentUser.copy(contacts = updatedContacts)
 
-        updateUser(updatedUser)
+    updateUser(updatedUser)
 
-        getUsersByIds(listOf(friendRequest.from)) { users ->
-            val sender = users.firstOrNull() ?: return@getUsersByIds
-            val senderUpdatedContacts = sender.contacts.toMutableList().apply {
-                add(currentUser.id)
-            }
-            val updatedSender = sender.copy(contacts = senderUpdatedContacts)
+    getUsersByIds(listOf(friendRequest.from)) { users ->
+      val sender = users.firstOrNull() ?: return@getUsersByIds
+      val senderUpdatedContacts = sender.contacts.toMutableList().apply { add(currentUser.id) }
+      val updatedSender = sender.copy(contacts = senderUpdatedContacts)
 
-            updateUser(updatedSender)
-        }
-
-        deleteFriendRequest(friendRequest.id)
+      updateUser(updatedSender)
     }
+
+    deleteFriendRequest(friendRequest.id)
+  }
   /**
    * Searches for users matching the provided query.
    *
