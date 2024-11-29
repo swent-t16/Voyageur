@@ -72,7 +72,7 @@ class PlaceSearchWidgetTest {
           placesViewModel = placesViewModel,
           onSelect = {},
           query = TextFieldValue(),
-          onQueryChange = {})
+          onQueryChange = { _, _ -> })
     }
 
     composeTestRule.onNodeWithTag("searchTextField").assertIsDisplayed()
@@ -91,7 +91,7 @@ class PlaceSearchWidgetTest {
           placesViewModel = placesViewModel,
           onSelect = {},
           query = TextFieldValue(),
-          onQueryChange = {})
+          onQueryChange = { _, _ -> })
     }
 
     composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test")

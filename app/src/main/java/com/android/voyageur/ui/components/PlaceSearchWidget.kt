@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.PopupProperties
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.place.PlacesViewModel
+import com.android.voyageur.utils.findMainActivityOrNull
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -59,7 +60,8 @@ fun PlaceSearchWidget(
           "PlaceSearchWidget",
           "Fetched user location: ${userLocation?.latitude}, ${userLocation?.longitude}")
     } else {
-      locationPermissionState.launchPermissionRequest()
+      if (context.findMainActivityOrNull() != null)
+          locationPermissionState.launchPermissionRequest()
     }
   }
 
@@ -118,6 +120,7 @@ fun PlaceSearchWidget(
  */
 @SuppressLint("MissingPermission")
 suspend fun requestUserLocation(context: Context): LatLng? {
+
   val fusedLocationClient: FusedLocationProviderClient =
       LocationServices.getFusedLocationProviderClient(context)
 
