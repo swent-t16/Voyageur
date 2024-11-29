@@ -1,5 +1,3 @@
-// File: com/android/voyageur/ui/notifications/NotificationHelper.kt
-
 package com.android.voyageur.ui.notifications
 
 import android.app.NotificationChannel
@@ -11,21 +9,27 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.android.voyageur.R
 
 object NotificationHelper {
     private const val CHANNEL_ID = "voyageur_notifications"
-    private const val CHANNEL_NAME = "Voyageur Notifications"
-    private const val CHANNEL_DESCRIPTION = "Notifications from Voyageur App"
 
     /** Creates a notification channel for Android O and above. */
     fun createNotificationChannel(context: Context, notificationManager: NotificationManager? = null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
-                description = CHANNEL_DESCRIPTION
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                context.getString(R.string.channel_name),
+                importance
+            ).apply {
+                description = context.getString(R.string.channel_description)
             }
-            val mgr = notificationManager ?: context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            mgr.createNotificationChannel(channel)
+            val mgr = notificationManager ?: context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            mgr?.createNotificationChannel(channel) ?: run {
+                // Log or handle the error gracefully
+                android.util.Log.e("NotificationHelper", "NotificationManager is null. Cannot create notification channel.")
+            }
         }
     }
 
@@ -52,7 +56,10 @@ object NotificationHelper {
         val pendingIntent =
             intent?.let {
                 PendingIntent.getActivity(
-                    context, 0, it, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    context,
+                    0,
+                    it,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
             }
 
@@ -74,5 +81,20 @@ object NotificationHelper {
         ) {
             mgrCompat.notify(notificationId, builder.build())
         }
+    }
+
+    /**
+     * Displays a notification for no internet connection.
+     * This method is specialized to avoid redundancy in multiple places.
+     */
+    fun showNoInternetNotification(context: Context, iconResId: Int, intent: Intent? = null) {
+        showNotification(
+            context = context,
+            notificationId = 1,
+            title = context.getString(R.string.notification_no_internet_title),
+            text = context.getString(R.string.notification_no_internet_text),
+            iconResId = iconResId,
+            intent = intent
+        )
     }
 }
