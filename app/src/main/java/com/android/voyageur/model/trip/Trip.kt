@@ -65,7 +65,7 @@ data class Trip(
         activities == other.activities &&
         type == other.type &&
         imageUri == other.imageUri &&
-            discoverable == other.discoverable
+        discoverable == other.discoverable
   }
 
   /**

@@ -142,7 +142,7 @@ fun AddTripScreen(
         query = TextFieldValue(trip.location.name)
         startDate = trip.startDate.toDate().time
         endDate = trip.endDate.toDate().time
-          isDiscoverable = trip.discoverable
+        isDiscoverable = trip.discoverable
       }
     } else {
       //      userList.clear()
@@ -211,8 +211,7 @@ fun AddTripScreen(
                 else listOf(),
             type = tripType,
             imageUri = imageUrl,
-            discoverable = isDiscoverable
-            )
+            discoverable = isDiscoverable)
 
     if (!isEditMode) {
       isSaving = true
@@ -425,17 +424,15 @@ fun AddTripScreen(
                           }
                     }
 
-              Row(
-                  verticalAlignment = Alignment.CenterVertically,
-                  modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-
-                Text("Make public", modifier = Modifier.padding(start = 16.dp))
-                Checkbox(
-                    checked = isDiscoverable,
-                    onCheckedChange = { isDiscoverable = it },
-                    modifier = Modifier.testTag("tripDiscoverable"))
-
-              }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                      Text("Make public", modifier = Modifier.padding(start = 16.dp))
+                      Checkbox(
+                          checked = isDiscoverable,
+                          onCheckedChange = { isDiscoverable = it },
+                          modifier = Modifier.testTag("tripDiscoverable"))
+                    }
 
                 Spacer(modifier = Modifier.height(16.dp))
               }
