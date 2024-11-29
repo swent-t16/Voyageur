@@ -19,8 +19,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -35,7 +39,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,6 +58,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,9 +87,11 @@ fun OverviewScreen(
     userViewModel: UserViewModel,
 ) {
   val trips by tripsViewModel.trips.collectAsState()
+  var isLoading = false
+  var searchVisible by remember { mutableStateOf(false) }
+  var searchQuery by remember { mutableStateOf("") }
   val isLoadingUser by userViewModel.isLoading.collectAsState()
   val isLoadingTrip by tripsViewModel.isLoading.collectAsState()
-  var isLoading = false
   val status by connectivityState()
   val context = LocalContext.current
   val isConnected = status === ConnectionState.Available
@@ -117,7 +126,53 @@ fun OverviewScreen(
       },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        TopAppBar(title = { Text(text = "Your trips") }, modifier = Modifier.testTag("topBarTitle"))
+        TopAppBar(
+            title = {
+              Box(
+                  modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                  contentAlignment = Alignment.CenterStart) {
+                    if (!searchVisible) {
+                      Text(
+                          text = "Your Trips",
+                          style =
+                              MaterialTheme.typography.headlineMedium.copy(
+                                  fontWeight = FontWeight.Bold),
+                          modifier = Modifier.testTag("topBarTitle"))
+                    } else {
+                      TextField(
+                          value = searchQuery,
+                          onValueChange = { searchQuery = it },
+                          placeholder = { Text("Search trips...") },
+                          modifier = Modifier.fillMaxWidth().testTag("searchField"),
+                          singleLine = true,
+                          shape = RoundedCornerShape(10.dp),
+                          keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                          keyboardActions = KeyboardActions(onSearch = {}))
+                    }
+                  }
+            },
+            actions = {
+              Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
+                IconButton(
+                    onClick = {
+                      searchVisible = !searchVisible
+                      if (!searchVisible) searchQuery = ""
+                    },
+                    modifier = Modifier.testTag("searchButton")) {
+                      Icon(
+                          imageVector =
+                              if (searchVisible) Icons.Default.Close else Icons.Default.Search,
+                          contentDescription =
+                              if (searchVisible) "Close search" else "Search trips")
+                    }
+              }
+            },
+            modifier = Modifier.height(120.dp).testTag("topAppBar"),
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary))
       },
       bottomBar = {
         BottomNavigationMenu(
@@ -143,12 +198,20 @@ fun OverviewScreen(
                     )
                   }
             } else {
-              val sortedTrips = trips.sortedBy { trip -> trip.startDate }
+              val filteredTrips =
+                  if (searchQuery.isEmpty()) {
+                    trips.sortedBy { it.startDate }
+                  } else {
+                    trips
+                        .filter { it.name.contains(searchQuery, ignoreCase = true) }
+                        .sortedBy { it.startDate }
+                  }
+
               LazyColumn(
                   verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
-                  horizontalAlignment = Alignment.CenterHorizontally, // Center items horizontally
+                  horizontalAlignment = Alignment.CenterHorizontally,
                   modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
-                    sortedTrips.forEach { trip ->
+                    filteredTrips.forEach { trip ->
                       item {
                         TripItem(
                             tripsViewModel = tripsViewModel,
@@ -177,8 +240,6 @@ fun TripItem(
   var isExpanded by remember { mutableStateOf(false) }
   var showDialog by remember { mutableStateOf(false) }
   val context = LocalContext.current
-  val status by connectivityState()
-  val isConnected = status === ConnectionState.Available
   Card(
       onClick = {
         // When opening a trip, navigate to the Schedule screen, with the daily view enabled
@@ -242,7 +303,6 @@ fun TripItem(
                   }
               Box(modifier = Modifier.align(Alignment.Top)) {
                 IconButton(
-                    enabled = isConnected,
                     onClick = { isExpanded = !isExpanded },
                     modifier = Modifier.testTag("expandIcon_${trip.name}")) {
                       Icon(

@@ -3,11 +3,16 @@ package com.android.voyageur.ui.trip.activities
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -16,8 +21,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.voyageur.R
@@ -59,25 +67,58 @@ fun ActivitiesScreen(
   // States for filtering
   var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
   var showFilterMenu by remember { mutableStateOf(false) }
+  var searchQuery by remember { mutableStateOf("") }
 
   var drafts by remember {
     mutableStateOf(
         tripsViewModel.getActivitiesForSelectedTrip().filter { activity ->
-          activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
+          val matchesTimestamp =
+              activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
+          val matchesSearch =
+              searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
+          matchesTimestamp && matchesSearch
         })
   }
+
   var final by remember {
     mutableStateOf(
         tripsViewModel
             .getActivitiesForSelectedTrip()
             .filter { activity ->
-              activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
+              val matchesTimestamp =
+                  activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
+              val matchesSearch =
+                  searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
+              matchesTimestamp && matchesSearch
+            }
+            .sortedWith(compareBy({ it.startTime }, { it.endTime })))
+  }
+
+  LaunchedEffect(searchQuery) {
+    drafts =
+        tripsViewModel.getActivitiesForSelectedTrip().filter { activity ->
+          val matchesTimestamp =
+              activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
+          val matchesSearch =
+              searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
+          matchesTimestamp && matchesSearch
+        }
+
+    final =
+        tripsViewModel
+            .getActivitiesForSelectedTrip()
+            .filter { activity ->
+              val matchesTimestamp =
+                  activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
+              val matchesSearch =
+                  searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
+              matchesTimestamp && matchesSearch
             }
             .sortedWith(
                 compareBy(
                     { it.startTime }, // First, sort by startTime
                     { it.endTime } // If startTime is equal, sort by endTime
-                    )))
+                    ))
   }
 
   var showDialog by remember { mutableStateOf(false) }
@@ -94,23 +135,36 @@ fun ActivitiesScreen(
             selectedItem = navigationActions.currentRoute(),
             userViewModel = userViewModel)
       },
-      topBar = { // TODO: include the Search in TopAppBar
+      topBar = {
         TopAppBar(
             title = {
-              Text("Activities bar")
-            }, // This is a hardcoded string, as it should be replaced by the search bar
+              Box(
+                  modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                  contentAlignment = Alignment.CenterStart) {
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text("Search activities...") },
+                        modifier = Modifier.fillMaxWidth().testTag("searchField"),
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = {}))
+                  }
+            },
             actions = {
-              IconButton(
-                  modifier = Modifier.testTag("filterButton"),
-                  onClick = { showFilterMenu = true },
-                  content = {
-                    Icon(
-                        imageVector = Icons.Outlined.FilterAlt,
-                        contentDescription = stringResource(R.string.filter_activities),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                  })
-            })
+              Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
+                IconButton(
+                    modifier = Modifier.testTag("filterButton"),
+                    onClick = { showFilterMenu = true }) {
+                      Icon(
+                          imageVector = Icons.Outlined.FilterAlt,
+                          contentDescription = stringResource(R.string.filter_activities),
+                          tint = MaterialTheme.colorScheme.primary)
+                    }
+              }
+            },
+            modifier = Modifier.height(120.dp).testTag("topAppBar"))
       },
       floatingActionButton = { AddActivityButton(navigationActions) },
       content = { pd ->
