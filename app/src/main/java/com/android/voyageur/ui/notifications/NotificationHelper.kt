@@ -38,13 +38,14 @@ object NotificationHelper {
   }
 
   /**
-   * Displays a notification with the provided details.
+   * Displays a notification with the provided details and configurable priority.
    *
    * @param context The context from which the notification is sent.
    * @param notificationId Unique ID for the notification.
    * @param title Title of the notification.
    * @param text Content text of the notification.
    * @param iconResId Resource ID of the notification icon.
+   * @param priority Priority level for the notification (e.g., PRIORITY_DEFAULT, PRIORITY_HIGH).
    * @param intent Optional intent to be triggered when the notification is clicked.
    * @param notificationManagerCompat Optional NotificationManagerCompat for testing.
    */
@@ -54,6 +55,7 @@ object NotificationHelper {
       title: String,
       text: String,
       iconResId: Int,
+      priority: Int = NotificationCompat.PRIORITY_DEFAULT,
       intent: Intent? = null,
       notificationManagerCompat: NotificationManagerCompat? = null
   ) {
@@ -68,7 +70,7 @@ object NotificationHelper {
             .setSmallIcon(iconResId)
             .setContentTitle(title)
             .setContentText(text)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(priority)
             .setAutoCancel(true)
 
     pendingIntent?.let { builder.setContentIntent(it) }
@@ -93,6 +95,7 @@ object NotificationHelper {
         title = context.getString(R.string.notification_no_internet_title),
         text = context.getString(R.string.notification_no_internet_text),
         iconResId = iconResId,
+        priority = NotificationCompat.PRIORITY_HIGH, // Critical notification
         intent = intent)
   }
 }
