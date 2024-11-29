@@ -199,11 +199,15 @@ open class UserViewModel(
    * @param userId The ID of the user to add as a contact.
    */
   fun addContact(userId: String, friendRequestId: String) {
-    val currentUser = user.value ?: return
-    val updatedContacts = currentUser.contacts + userId // Creates a new list
-    val updatedUser = currentUser.copy(contacts = updatedContacts)
-    updateUser(updatedUser)
-    deleteFriendRequest(friendRequestId)
+      val contacts = user.value?.contacts?.toMutableSet()
+      val newUser = user.value!!.copy()
+      contacts?.add(userId)
+      newUser.contacts = contacts?.toList().orEmpty()
+      if (user.value != null) {
+          updateUser(newUser)
+          // Deletes Friend Request since the user has been added as a contact
+          deleteFriendRequest(friendRequestId)
+      }
   }
 
   /**
@@ -212,10 +216,13 @@ open class UserViewModel(
    * @param userId The ID of the user to remove from contacts.
    */
   fun removeContact(userId: String) {
-    val currentUser = user.value ?: return
-    val updatedContacts = currentUser.contacts.filter { it != userId }
-    val updatedUser = currentUser.copy(contacts = updatedContacts)
-    updateUser(updatedUser)
+      val contacts = user.value?.contacts?.toMutableSet() ?: return
+      if (contacts.remove(userId)) {
+          val updatedUser = user.value!!.copy(contacts = contacts.toList())
+          updateUser(updatedUser)
+          // Reload the user to update the state
+          loadUser(updatedUser.id)
+      }
   }
 
   /**
