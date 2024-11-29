@@ -208,6 +208,7 @@ open class UserViewModel(
           // Deletes Friend Request since the user has been added as a contact
           deleteFriendRequest(friendRequestId)
       }
+
   }
 
   /**
@@ -265,6 +266,37 @@ open class UserViewModel(
           }
         }
   }
+
+    /**
+     * Accepts a friend request by adding the sender to the user's contacts and removing the friend request.
+     *
+     * @param friendRequest The friend request to accept.
+     */
+    fun acceptFriendRequest(friendRequest: FriendRequest) {
+        val currentUser = user.value ?: return
+        val updatedContacts = currentUser.contacts.toMutableList().apply {
+            add(friendRequest.from)
+        }
+        val updatedUser = currentUser.copy(contacts = updatedContacts)
+
+        // Update the current user's contacts
+        updateUser(updatedUser)
+
+        // Retrieve the sender's user data and update their contacts
+        getUsersByIds(listOf(friendRequest.from)) { users ->
+            val sender = users.firstOrNull() ?: return@getUsersByIds
+            val senderUpdatedContacts = sender.contacts.toMutableList().apply {
+                add(currentUser.id)
+            }
+            val updatedSender = sender.copy(contacts = senderUpdatedContacts)
+
+            // Update the sender's user data
+            updateUser(updatedSender)
+        }
+
+        // Delete the friend request
+        deleteFriendRequest(friendRequest.id)
+    }
 
   /**
    * Searches for users matching the provided query.
