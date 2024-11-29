@@ -24,7 +24,7 @@ class NotificationHelperTest {
     // Arrange
     val context = ApplicationProvider.getApplicationContext<Context>()
     val notificationManager =
-      context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     val shadowNotificationManager = Shadows.shadowOf(notificationManager)
 
     // Act
@@ -53,20 +53,19 @@ class NotificationHelperTest {
 
     // Clear all existing notifications
     val notificationManager =
-      context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     notificationManager.cancelAll() // Reset notifications
 
     // Act
     NotificationHelper.showNotification(
-      context = context,
-      notificationId = notificationId,
-      title = title,
-      text = text,
-      iconResId = iconResId,
-      priority = NotificationManager.IMPORTANCE_DEFAULT, // Default priority
-      intent = intent,
-      notificationManagerCompat = notificationManagerCompat
-    )
+        context = context,
+        notificationId = notificationId,
+        title = title,
+        text = text,
+        iconResId = iconResId,
+        priority = NotificationManager.IMPORTANCE_DEFAULT, // Default priority
+        intent = intent,
+        notificationManagerCompat = notificationManagerCompat)
 
     // Assert
     val shadowNotificationManager = Shadows.shadowOf(notificationManager)
@@ -91,20 +90,19 @@ class NotificationHelperTest {
 
     // Clear all existing notifications
     val notificationManager =
-      context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     notificationManager.cancelAll() // Reset notifications
 
     // Act
     NotificationHelper.showNotification(
-      context = context,
-      notificationId = notificationId,
-      title = title,
-      text = text,
-      iconResId = iconResId,
-      priority = NotificationManager.IMPORTANCE_HIGH, // High priority
-      intent = intent,
-      notificationManagerCompat = notificationManagerCompat
-    )
+        context = context,
+        notificationId = notificationId,
+        title = title,
+        text = text,
+        iconResId = iconResId,
+        priority = NotificationManager.IMPORTANCE_HIGH, // High priority
+        intent = intent,
+        notificationManagerCompat = notificationManagerCompat)
 
     // Assert
     val shadowNotificationManager = Shadows.shadowOf(notificationManager)
