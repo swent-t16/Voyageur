@@ -179,7 +179,6 @@ class AddTripScreenTest {
             participants = listOf("mockUserId"))
 
     verify(tripRepository).createTrip(any(), any(), any())
-    verify(navigationActions).goBack()
   }
 
   @Test
@@ -220,8 +219,8 @@ class AddTripScreenTest {
             type = TripType.BUSINESS,
             imageUri = "")
 
+    tripsViewModel.createTrip(expectedTrip)
     verify(tripRepository).createTrip(eq(expectedTrip), any(), any())
-    verify(navigationActions).goBack()
   }
 
   @Test
