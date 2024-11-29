@@ -96,7 +96,8 @@ class MainActivity : ComponentActivity() {
                         stringResource(R.string.no_internet_connection),
                         modifier =
                             Modifier.fillMaxWidth()
-                                .background(color = MaterialTheme.colorScheme.error),
+                                .background(color = MaterialTheme.colorScheme.error)
+                                .semantics { testTag = "NoInternetBanner" },
                         color = MaterialTheme.colorScheme.onError,
                         textAlign = TextAlign.Center)
                   }
