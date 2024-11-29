@@ -32,8 +32,7 @@ data class Trip(
     val endDate: Timestamp = Timestamp.now(),
     var activities: List<Activity> = emptyList(),
     val type: TripType = TripType.TOURISM,
-    val imageUri: String = "", // default image for trip
-    val discoverable: Boolean = false
+    val imageUri: String = "" // default image for trip
 ) {
   /**
    * A computed property that retrieves the [TripType] of the trip, excluding it from Firestore
@@ -64,8 +63,7 @@ data class Trip(
         endDate == other.endDate &&
         activities == other.activities &&
         type == other.type &&
-        imageUri == other.imageUri &&
-        discoverable == other.discoverable
+        imageUri == other.imageUri
   }
 
   /**
@@ -85,7 +83,6 @@ data class Trip(
     result = 31 * result + activities.hashCode()
     result = 31 * result + type.hashCode()
     result = 31 * result + imageUri.hashCode()
-    result = 31 * result + discoverable.hashCode()
     return result
   }
 }

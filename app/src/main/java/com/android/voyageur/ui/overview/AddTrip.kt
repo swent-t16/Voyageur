@@ -26,7 +26,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -101,7 +100,7 @@ fun AddTripScreen(
   var endDate by remember { mutableStateOf<Long?>(null) }
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
   var imageUri by remember { mutableStateOf("") }
-  var isDiscoverable by remember { mutableStateOf(false) }
+
   val contactsAndUsers by userViewModel.contacts.collectAsState()
   val userList =
       remember(contactsAndUsers, isEditMode) {
@@ -142,7 +141,6 @@ fun AddTripScreen(
         query = TextFieldValue(trip.location.name)
         startDate = trip.startDate.toDate().time
         endDate = trip.endDate.toDate().time
-        isDiscoverable = trip.discoverable
       }
     } else {
       //      userList.clear()
@@ -210,8 +208,7 @@ fun AddTripScreen(
                 if (isEditMode) tripsViewModel.selectedTrip.value?.activities ?: listOf()
                 else listOf(),
             type = tripType,
-            imageUri = imageUrl,
-            discoverable = isDiscoverable)
+            imageUri = imageUrl)
 
     if (!isEditMode) {
       isSaving = true
@@ -422,16 +419,6 @@ fun AddTripScreen(
                                 modifier = Modifier.testTag("tripTypeTourism"))
                             Text("Tourism", modifier = Modifier.padding(start = 2.dp))
                           }
-                    }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-                      Text("Make public", modifier = Modifier.padding(start = 16.dp))
-                      Checkbox(
-                          checked = isDiscoverable,
-                          onCheckedChange = { isDiscoverable = it },
-                          modifier = Modifier.testTag("tripDiscoverable"))
                     }
 
                 Spacer(modifier = Modifier.height(16.dp))
