@@ -217,12 +217,23 @@ open class UserViewModel(
    * @param userId The ID of the user to remove from contacts.
    */
   fun removeContact(userId: String) {
-      val contacts = user.value?.contacts?.toMutableSet() ?: return
+      val currentUser = user.value ?: return
+      val contacts = currentUser.contacts.toMutableSet()
       if (contacts.remove(userId)) {
-          val updatedUser = user.value!!.copy(contacts = contacts.toList())
+          val updatedUser = currentUser.copy(contacts = contacts.toList())
           updateUser(updatedUser)
           // Reload the user to update the state
           loadUser(updatedUser.id)
+      }
+
+      // Update the contact list of the user being removed
+      getUsersByIds(listOf(userId)) { users ->
+          val userToRemove = users.firstOrNull() ?: return@getUsersByIds
+          val userToRemoveContacts = userToRemove.contacts.toMutableSet()
+          if (userToRemoveContacts.remove(currentUser.id)) {
+              val updatedUserToRemove = userToRemove.copy(contacts = userToRemoveContacts.toList())
+              updateUser(updatedUserToRemove)
+          }
       }
   }
 
