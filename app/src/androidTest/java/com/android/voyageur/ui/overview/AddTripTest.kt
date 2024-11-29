@@ -178,7 +178,6 @@ class AddTripScreenTest {
             imageUri = "",
             participants = listOf("mockUserId"))
 
-    tripsViewModel.createTrip(expectedTrip)
     verify(tripRepository).createTrip(any(), any(), any())
   }
 
@@ -421,7 +420,6 @@ class AddTripScreenTest {
     composeTestRule.onNodeWithTag("tripSave").performClick()
     composeTestRule.onNodeWithTag("tripSave").performClick()
 
-    tripsViewModel.createTrip(Trip(""))
     verify(tripRepository).createTrip(any(), any(), any())
   }
 }

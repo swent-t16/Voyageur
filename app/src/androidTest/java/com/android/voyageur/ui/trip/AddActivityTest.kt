@@ -322,7 +322,6 @@ class AddActivityScreenTest {
     composeTestRule.onNodeWithText("OK").performClick()
     composeTestRule.onNodeWithTag("activitySave").performClick()
 
-    tripsViewModel.updateTrip(trip)
     verify(tripRepository).updateTrip(any(), any(), any())
   }
 
