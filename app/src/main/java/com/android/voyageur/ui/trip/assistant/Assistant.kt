@@ -78,7 +78,8 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
       modifier = Modifier.testTag("assistantScreen"),
       content = { pd ->
         Column {
-          TopBarWithImageAndText(trip, navigationActions, stringResource(R.string.ask_assistant), trip.name)
+          TopBarWithImageAndText(
+              trip, navigationActions, stringResource(R.string.ask_assistant), trip.name)
           Row(modifier = Modifier.padding(all = 16.dp)) {
             TextField(
                 value = prompt,
@@ -210,9 +211,7 @@ fun SettingsDialog(
           Spacer(modifier = Modifier.height(16.dp)) // Add a spacer for some vertical space
 
           Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                stringResource(R.string.provide_final_activities),
-                modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.provide_final_activities), modifier = Modifier.weight(1f))
             Switch(
                 checked = provideDraftActivities,
                 onCheckedChange = onProvideFinalActivitiesChanged,
