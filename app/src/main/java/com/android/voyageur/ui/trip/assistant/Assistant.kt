@@ -39,9 +39,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.android.voyageur.R
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.assistant.convertActivityFromAssistantToActivity
 import com.android.voyageur.model.assistant.extractActivitiesFromAssistantFromJson
@@ -76,11 +78,11 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
       modifier = Modifier.testTag("assistantScreen"),
       content = { pd ->
         Column {
-          TopBarWithImageAndText(trip, navigationActions, "Ask the AI assistant!", trip.name)
+          TopBarWithImageAndText(trip, navigationActions, stringResource(R.string.ask_assistant), trip.name)
           Row(modifier = Modifier.padding(all = 16.dp)) {
             TextField(
                 value = prompt,
-                label = { Text("prompt") },
+                label = { Text(stringResource(R.string.prompt)) },
                 onValueChange = { prompt = it },
                 modifier =
                     Modifier.testTag("AIRequestTextField")
@@ -104,7 +106,7 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
                 },
                 enabled = uiState !is UiState.Loading, // Disable the button during loading
                 modifier = Modifier.testTag("AIRequestButton").align(Alignment.CenterVertically)) {
-                  Text(text = "go")
+                  Text(text = stringResource(R.string.go))
                 }
             IconButton(
                 onClick = { showSettingsDialog = true },
@@ -196,12 +198,12 @@ fun SettingsDialog(
   AlertDialog(
       modifier = Modifier.testTag("settingsDialog"),
       onDismissRequest = onDismiss,
-      title = { Text(text = "Settings") },
+      title = { Text(text = stringResource(R.string.settings)) },
       text = {
         Column {
           Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "Remember to click on the 'go' button after changing the settings",
+                stringResource(R.string.settings_subtitle),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyLarge)
           }
@@ -209,7 +211,7 @@ fun SettingsDialog(
 
           Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "Provide final activities with date and time (recommended for trips shorter than a week)",
+                stringResource(R.string.provide_final_activities),
                 modifier = Modifier.weight(1f))
             Switch(
                 checked = provideDraftActivities,
@@ -220,7 +222,7 @@ fun SettingsDialog(
       },
       confirmButton = {
         Button(onClick = onDismiss, modifier = Modifier.testTag("closeDialogButton")) {
-          Text("Close")
+          Text(stringResource(R.string.close))
         }
       })
 }
