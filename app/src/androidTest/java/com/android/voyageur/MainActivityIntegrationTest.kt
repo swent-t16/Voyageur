@@ -1,12 +1,10 @@
-package com.android.voyageur.ui
+package com.android.voyageur
 
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.voyageur.MainActivity
-import com.android.voyageur.R
 import com.android.voyageur.ui.notifications.NotificationHelper
 import org.junit.After
 import org.junit.Assert.fail
