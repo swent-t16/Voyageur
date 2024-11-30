@@ -1,6 +1,7 @@
 package com.android.voyageur.model.notifications
 
 import com.google.firebase.firestore.AggregateSource
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
@@ -110,5 +111,22 @@ class FriendRequestRepositoryFirebase(private val db: FirebaseFirestore) : Frien
 
   override fun getNewId(): String {
     return db.collection(collectionPath).document().id
+  }
+
+  override fun listenForFriendRequests(
+      userId: String,
+      onNewRequest: (FriendRequest) -> Unit,
+      onDeletedRequest: (String) -> Unit
+  ) {
+    db.collection(collectionPath).whereEqualTo("to", userId).addSnapshotListener { snapshot, _ ->
+      snapshot?.documentChanges?.forEach { change ->
+        val request = change.document.toObject(FriendRequest::class.java)
+        when (change.type) {
+          DocumentChange.Type.ADDED -> onNewRequest(request)
+          DocumentChange.Type.REMOVED -> onDeletedRequest(request.id)
+          else -> {}
+        }
+      }
+    }
   }
 }

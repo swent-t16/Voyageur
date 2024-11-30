@@ -116,6 +116,19 @@ open class UserViewModel(
         }
       }
     }
+
+    friendRequestRepository.listenForFriendRequests(
+        Firebase.auth.uid.orEmpty(),
+        { request ->
+          getFriendRequests {}
+          getSentFriendRequests()
+          getNotificationsCount {}
+        },
+        {
+          getFriendRequests {}
+          getSentFriendRequests()
+          getNotificationsCount {}
+        })
   }
 
   private fun updateContacts(contactIds: List<String>) {
@@ -199,16 +212,15 @@ open class UserViewModel(
    * @param userId The ID of the user to add as a contact.
    */
   fun addContact(userId: String, friendRequestId: String) {
-      val contacts = user.value?.contacts?.toMutableSet()
-      val newUser = user.value!!.copy()
-      contacts?.add(userId)
-      newUser.contacts = contacts?.toList().orEmpty()
-      if (user.value != null) {
-          updateUser(newUser)
-          // Deletes Friend Request since the user has been added as a contact
-          deleteFriendRequest(friendRequestId)
-      }
-
+    val contacts = user.value?.contacts?.toMutableSet()
+    val newUser = user.value!!.copy()
+    contacts?.add(userId)
+    newUser.contacts = contacts?.toList().orEmpty()
+    if (user.value != null) {
+      updateUser(newUser)
+      // Deletes Friend Request since the user has been added as a contact
+      deleteFriendRequest(friendRequestId)
+    }
   }
 
   /**
@@ -217,13 +229,13 @@ open class UserViewModel(
    * @param userId The ID of the user to remove from contacts.
    */
   fun removeContact(userId: String) {
-      val contacts = user.value?.contacts?.toMutableSet() ?: return
-      if (contacts.remove(userId)) {
-          val updatedUser = user.value!!.copy(contacts = contacts.toList())
-          updateUser(updatedUser)
-          // Reload the user to update the state
-          loadUser(updatedUser.id)
-      }
+    val contacts = user.value?.contacts?.toMutableSet() ?: return
+    if (contacts.remove(userId)) {
+      val updatedUser = user.value!!.copy(contacts = contacts.toList())
+      updateUser(updatedUser)
+      // Reload the user to update the state
+      loadUser(updatedUser.id)
+    }
   }
 
   /**
@@ -267,36 +279,33 @@ open class UserViewModel(
         }
   }
 
-    /**
-     * Accepts a friend request by adding the sender to the user's contacts and removing the friend request.
-     *
-     * @param friendRequest The friend request to accept.
-     */
-    fun acceptFriendRequest(friendRequest: FriendRequest) {
-        val currentUser = user.value ?: return
-        val updatedContacts = currentUser.contacts.toMutableList().apply {
-            add(friendRequest.from)
-        }
-        val updatedUser = currentUser.copy(contacts = updatedContacts)
+  /**
+   * Accepts a friend request by adding the sender to the user's contacts and removing the friend
+   * request.
+   *
+   * @param friendRequest The friend request to accept.
+   */
+  fun acceptFriendRequest(friendRequest: FriendRequest) {
+    val currentUser = user.value ?: return
+    val updatedContacts = currentUser.contacts.toMutableList().apply { add(friendRequest.from) }
+    val updatedUser = currentUser.copy(contacts = updatedContacts)
 
-        // Update the current user's contacts
-        updateUser(updatedUser)
+    // Update the current user's contacts
+    updateUser(updatedUser)
 
-        // Retrieve the sender's user data and update their contacts
-        getUsersByIds(listOf(friendRequest.from)) { users ->
-            val sender = users.firstOrNull() ?: return@getUsersByIds
-            val senderUpdatedContacts = sender.contacts.toMutableList().apply {
-                add(currentUser.id)
-            }
-            val updatedSender = sender.copy(contacts = senderUpdatedContacts)
+    // Retrieve the sender's user data and update their contacts
+    getUsersByIds(listOf(friendRequest.from)) { users ->
+      val sender = users.firstOrNull() ?: return@getUsersByIds
+      val senderUpdatedContacts = sender.contacts.toMutableList().apply { add(currentUser.id) }
+      val updatedSender = sender.copy(contacts = senderUpdatedContacts)
 
-            // Update the sender's user data
-            updateUser(updatedSender)
-        }
-
-        // Delete the friend request
-        deleteFriendRequest(friendRequest.id)
+      // Update the sender's user data
+      updateUser(updatedSender)
     }
+
+    // Delete the friend request
+    deleteFriendRequest(friendRequest.id)
+  }
 
   /**
    * Searches for users matching the provided query.

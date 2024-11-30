@@ -15,7 +15,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -25,8 +24,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.android.voyageur.model.user.UserViewModel
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 
 @Composable
 fun BottomNavigationMenu(
@@ -36,12 +33,6 @@ fun BottomNavigationMenu(
     userViewModel: UserViewModel
 ) {
   val notifications by userViewModel._notificationCount.collectAsState()
-  LaunchedEffect(notifications) { userViewModel.getFriendRequests {} }
-  LaunchedEffect(Unit) {
-    if (Firebase.auth.uid != null) {
-      userViewModel.getNotificationsCount {}
-    }
-  }
   NavigationBar(
       modifier = Modifier.fillMaxWidth().height(60.dp).testTag("bottomNavigationMenu"),
       containerColor = MaterialTheme.colorScheme.surface,
