@@ -133,7 +133,7 @@ fun OverviewScreen(
                   contentAlignment = Alignment.CenterStart) {
                     if (!searchVisible) {
                       Text(
-                          text = "Your Trips",
+                          text = "Your trips",
                           style =
                               MaterialTheme.typography.headlineMedium.copy(
                                   fontWeight = FontWeight.Bold),
