@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
@@ -252,5 +253,82 @@ class OverviewScreenTest {
     composeTestRule.onNodeWithText("Remove").performClick()
 
     verify(tripRepository).deleteTripById(eq(mockTrip.id), any(), any())
+  }
+
+  @Test
+  fun searchButton_togglesSearchField() {
+
+    // Initially, search field should not be visible
+    composeTestRule.onNodeWithTag("searchField").assertDoesNotExist()
+    composeTestRule.onNodeWithTag("topBarTitle").assertExists()
+
+    // Click search button
+    composeTestRule.onNodeWithTag("searchButton").performClick()
+
+    // Search field should be visible and title should be hidden
+    composeTestRule.onNodeWithTag("searchField").assertExists()
+    composeTestRule.onNodeWithTag("topBarTitle").assertDoesNotExist()
+
+    // Click close button
+    composeTestRule.onNodeWithTag("searchButton").performClick()
+
+    // Search field should be hidden and title should be visible again
+    composeTestRule.onNodeWithTag("searchField").assertDoesNotExist()
+    composeTestRule.onNodeWithTag("topBarTitle").assertExists()
+  }
+
+  @Test
+  fun searchField_filtersTrips() {
+    val mockTrip =
+        Trip(
+            id = "1",
+            creator = "Andreea",
+            participants = listOf("Alex"),
+            name = "Paris Trip",
+            imageUri = "https://example.com/image.jpg",
+            startDate = Timestamp.now(),
+            endDate = Timestamp.now())
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(listOf(mockTrip))
+    }
+    tripViewModel.getTrips()
+
+    // Open search
+    composeTestRule.onNodeWithTag("searchButton").performClick()
+
+    // Enter search query
+    composeTestRule.onNodeWithTag("searchField").performTextInput("1")
+
+    // Check if only matching trip is shown
+    composeTestRule.onNodeWithText("1").assertExists()
+  }
+
+  @Test
+  fun searchField_clearsClearsPreviousResults() {
+    val mockTrip =
+        Trip(
+            id = "1",
+            creator = "Andreea",
+            participants = listOf("Alex"),
+            name = "Paris Trip",
+            imageUri = "https://example.com/image.jpg",
+            startDate = Timestamp.now(),
+            endDate = Timestamp.now())
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(listOf(mockTrip))
+    }
+    tripViewModel.getTrips()
+
+    // Open search
+    composeTestRule.onNodeWithTag("searchButton").performClick()
+
+    // Enter search query
+    composeTestRule.onNodeWithTag("searchField").performTextInput("2")
+
+    // Clear search
+    composeTestRule.onNodeWithTag("searchButton").performClick()
+
+    // Verify all trips are shown again
+    composeTestRule.onNodeWithText("1").assertDoesNotExist()
   }
 }
