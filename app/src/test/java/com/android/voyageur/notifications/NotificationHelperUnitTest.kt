@@ -4,6 +4,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.R
@@ -113,5 +114,37 @@ class NotificationHelperTest {
     assertEquals(title, notification.extras.getString("android.title"))
     assertEquals(text, notification.extras.getString("android.text"))
     assertEquals(NotificationManager.IMPORTANCE_HIGH, notification.priority)
+  }
+
+  @Test
+  fun `showNoInternetNotification displays no internet notification correctly`() {
+    // Arrange
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val notificationId = 1 // Fixed ID for no internet notifications
+    val iconResId = android.R.drawable.ic_dialog_alert
+    val intent = Intent(context, NotificationHelperTest::class.java)
+
+    val notificationManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val shadowNotificationManager = Shadows.shadowOf(notificationManager)
+    notificationManager.cancelAll() // Clear all existing notifications
+
+    // Expected title and text from resources
+    val expectedTitle = context.getString(R.string.notification_no_internet_title)
+    val expectedText = context.getString(R.string.notification_no_internet_text)
+
+    // Act
+    NotificationHelper.showNoInternetNotification(context, iconResId, intent)
+
+    // Assert
+    val postedNotifications = shadowNotificationManager.allNotifications
+    assertNotNull(postedNotifications)
+    assertEquals(1, postedNotifications.size) // Expect exactly one notification
+
+    val notification = postedNotifications[0]
+    assertEquals(expectedTitle, notification.extras.getString("android.title"))
+    assertEquals(expectedText, notification.extras.getString("android.text"))
+    assertEquals(iconResId, notification.smallIcon.resId)
+    assertEquals(NotificationCompat.PRIORITY_HIGH, notification.priority)
   }
 }
