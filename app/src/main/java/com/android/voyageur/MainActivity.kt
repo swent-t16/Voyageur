@@ -33,7 +33,7 @@ import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class MainActivity : ComponentActivity() {
-  private lateinit var placesClient: PlacesClient
+  lateinit var placesClient: PlacesClient
 
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun onCreate(savedInstanceState: Bundle?) {
