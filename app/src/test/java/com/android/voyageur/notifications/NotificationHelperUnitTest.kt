@@ -1,4 +1,4 @@
-package com.android.voyageur.ui.notifications
+package com.android.voyageur.notifications
 
 import android.app.NotificationManager
 import android.content.Context
@@ -8,6 +8,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.R
+import com.android.voyageur.ui.notifications.NotificationHelper
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -59,14 +60,15 @@ class NotificationHelperTest {
 
     // Act
     NotificationHelper.showNotification(
-        context = context,
-        notificationId = notificationId,
-        title = title,
-        text = text,
-        iconResId = iconResId,
-        priority = NotificationManager.IMPORTANCE_DEFAULT, // Default priority
-        intent = intent,
-        notificationManagerCompat = notificationManagerCompat)
+      context = context,
+      notificationId = notificationId,
+      title = title,
+      text = text,
+      iconResId = iconResId,
+      priority = NotificationManager.IMPORTANCE_DEFAULT, // Default priority
+      intent = intent,
+      notificationManagerCompat = notificationManagerCompat
+    )
 
     // Assert
     val shadowNotificationManager = Shadows.shadowOf(notificationManager)
@@ -96,14 +98,15 @@ class NotificationHelperTest {
 
     // Act
     NotificationHelper.showNotification(
-        context = context,
-        notificationId = notificationId,
-        title = title,
-        text = text,
-        iconResId = iconResId,
-        priority = NotificationManager.IMPORTANCE_HIGH, // High priority
-        intent = intent,
-        notificationManagerCompat = notificationManagerCompat)
+      context = context,
+      notificationId = notificationId,
+      title = title,
+      text = text,
+      iconResId = iconResId,
+      priority = NotificationManager.IMPORTANCE_HIGH, // High priority
+      intent = intent,
+      notificationManagerCompat = notificationManagerCompat
+    )
 
     // Assert
     val shadowNotificationManager = Shadows.shadowOf(notificationManager)
@@ -182,13 +185,14 @@ class NotificationHelperTest {
 
     // Act
     NotificationHelper.showNotification(
-        context = context,
-        notificationId = notificationId,
-        title = title,
-        text = text,
-        iconResId = iconResId,
-        intent = null,
-        notificationManagerCompat = notificationManagerCompat)
+      context = context,
+      notificationId = notificationId,
+      title = title,
+      text = text,
+      iconResId = iconResId,
+      intent = null,
+      notificationManagerCompat = notificationManagerCompat
+    )
 
     // Assert
     val shadowNotificationManager = Shadows.shadowOf(notificationManager)

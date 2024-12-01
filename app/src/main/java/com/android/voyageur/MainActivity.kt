@@ -1,7 +1,6 @@
 package com.android.voyageur
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -65,23 +63,6 @@ class MainActivity : ComponentActivity() {
             color = MaterialTheme.colorScheme.background) {
               val status by connectivityState()
               val isConnected = status == ConnectionState.Available
-
-              // Trigger notification when not connected
-              LaunchedEffect(isConnected) {
-                if (!isConnected) {
-                  val intent =
-                      Intent(this@MainActivity, MainActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                      }
-                  NotificationHelper.showNotification(
-                      context = this@MainActivity,
-                      notificationId = 1,
-                      title = getString(R.string.no_internet_connection),
-                      text = getString(R.string.check_network_settings),
-                      iconResId = R.drawable.app_logo,
-                      intent = intent)
-                }
-              }
 
               Column {
                 Row {
