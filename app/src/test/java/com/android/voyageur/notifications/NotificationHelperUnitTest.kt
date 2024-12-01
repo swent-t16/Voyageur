@@ -60,15 +60,14 @@ class NotificationHelperTest {
 
     // Act
     NotificationHelper.showNotification(
-      context = context,
-      notificationId = notificationId,
-      title = title,
-      text = text,
-      iconResId = iconResId,
-      priority = NotificationManager.IMPORTANCE_DEFAULT, // Default priority
-      intent = intent,
-      notificationManagerCompat = notificationManagerCompat
-    )
+        context = context,
+        notificationId = notificationId,
+        title = title,
+        text = text,
+        iconResId = iconResId,
+        priority = NotificationManager.IMPORTANCE_DEFAULT, // Default priority
+        intent = intent,
+        notificationManagerCompat = notificationManagerCompat)
 
     // Assert
     val shadowNotificationManager = Shadows.shadowOf(notificationManager)
@@ -98,15 +97,14 @@ class NotificationHelperTest {
 
     // Act
     NotificationHelper.showNotification(
-      context = context,
-      notificationId = notificationId,
-      title = title,
-      text = text,
-      iconResId = iconResId,
-      priority = NotificationManager.IMPORTANCE_HIGH, // High priority
-      intent = intent,
-      notificationManagerCompat = notificationManagerCompat
-    )
+        context = context,
+        notificationId = notificationId,
+        title = title,
+        text = text,
+        iconResId = iconResId,
+        priority = NotificationManager.IMPORTANCE_HIGH, // High priority
+        intent = intent,
+        notificationManagerCompat = notificationManagerCompat)
 
     // Assert
     val shadowNotificationManager = Shadows.shadowOf(notificationManager)
@@ -185,14 +183,13 @@ class NotificationHelperTest {
 
     // Act
     NotificationHelper.showNotification(
-      context = context,
-      notificationId = notificationId,
-      title = title,
-      text = text,
-      iconResId = iconResId,
-      intent = null,
-      notificationManagerCompat = notificationManagerCompat
-    )
+        context = context,
+        notificationId = notificationId,
+        title = title,
+        text = text,
+        iconResId = iconResId,
+        intent = null,
+        notificationManagerCompat = notificationManagerCompat)
 
     // Assert
     val shadowNotificationManager = Shadows.shadowOf(notificationManager)
