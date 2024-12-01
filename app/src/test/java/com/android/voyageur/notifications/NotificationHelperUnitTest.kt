@@ -147,4 +147,89 @@ class NotificationHelperTest {
     assertEquals(iconResId, notification.smallIcon.resId)
     assertEquals(NotificationCompat.PRIORITY_HIGH, notification.priority)
   }
+
+  @Test
+  fun `createNotificationChannel handles null NotificationManager gracefully`() {
+    // Arrange
+    val context = ApplicationProvider.getApplicationContext<Context>()
+
+    // Act
+    NotificationHelper.createNotificationChannel(context, null)
+
+    // Assert
+    val notificationManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val shadowNotificationManager = Shadows.shadowOf(notificationManager)
+    val channels = notificationManager.notificationChannels
+    assertNotNull(channels)
+    assertEquals(1, channels.size)
+    assertEquals("voyageur_notifications", channels[0].id)
+  }
+
+  @Test
+  fun `showNotification works correctly with null intent`() {
+    // Arrange
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val notificationId = 4
+    val title = "Null Intent Test Title"
+    val text = "Null Intent Test Text"
+    val iconResId = android.R.drawable.ic_dialog_info
+
+    val notificationManagerCompat = NotificationManagerCompat.from(context)
+    val notificationManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    notificationManager.cancelAll() // Clear all existing notifications
+
+    // Act
+    NotificationHelper.showNotification(
+        context = context,
+        notificationId = notificationId,
+        title = title,
+        text = text,
+        iconResId = iconResId,
+        intent = null,
+        notificationManagerCompat = notificationManagerCompat)
+
+    // Assert
+    val shadowNotificationManager = Shadows.shadowOf(notificationManager)
+    val postedNotifications = shadowNotificationManager.allNotifications
+    assertNotNull(postedNotifications)
+    assertEquals(1, postedNotifications.size)
+    val notification = postedNotifications[0]
+    assertEquals(title, notification.extras.getString("android.title"))
+    assertEquals(text, notification.extras.getString("android.text"))
+    assertEquals(iconResId, notification.smallIcon.resId)
+  }
+
+  @Test
+  fun `showNoInternetNotification works correctly with non-null intent`() {
+    // Arrange
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val notificationId = 1
+    val iconResId = android.R.drawable.ic_dialog_alert
+    val intent = Intent(context, NotificationHelperTest::class.java)
+
+    val notificationManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    notificationManager.cancelAll() // Clear all existing notifications
+
+    // Expected title and text from resources
+    val expectedTitle = context.getString(R.string.notification_no_internet_title)
+    val expectedText = context.getString(R.string.notification_no_internet_text)
+
+    // Act
+    NotificationHelper.showNoInternetNotification(context, iconResId, intent)
+
+    // Assert
+    val shadowNotificationManager = Shadows.shadowOf(notificationManager)
+    val postedNotifications = shadowNotificationManager.allNotifications
+    assertNotNull(postedNotifications)
+    assertEquals(1, postedNotifications.size)
+
+    val notification = postedNotifications[0]
+    assertEquals(expectedTitle, notification.extras.getString("android.title"))
+    assertEquals(expectedText, notification.extras.getString("android.text"))
+    assertEquals(iconResId, notification.smallIcon.resId)
+    assertEquals(NotificationCompat.PRIORITY_HIGH, notification.priority)
+  }
 }
