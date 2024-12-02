@@ -57,166 +57,167 @@ fun ActivitiesScreen(
     userViewModel: UserViewModel,
     tripsViewModel: TripsViewModel
 ) {
-    // States for filtering
-    var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
-    var showFilterMenu by remember { mutableStateOf(false) }
+  // States for filtering
+  var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
+  var showFilterMenu by remember { mutableStateOf(false) }
 
-    var drafts by remember {
-        mutableStateOf(
-            tripsViewModel.getActivitiesForSelectedTrip().filter { activity ->
-                activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
-            })
-    }
-    var final by remember {
-        mutableStateOf(
-            tripsViewModel
-                .getActivitiesForSelectedTrip()
-                .filter { activity ->
-                    activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
-                }
-                .sortedWith(
-                    compareBy(
-                        { it.startTime }, // First, sort by startTime
-                        { it.endTime } // If startTime is equal, sort by endTime
-                    )))
-    }
-
-    var showDialog by remember { mutableStateOf(false) }
-    var activityToDelete by remember { mutableStateOf<Activity?>(null) }
-    var totalEstimatedPrice by remember { mutableStateOf(0.0) }
-
-    LaunchedEffect(final, selectedFilters) {
-        totalEstimatedPrice = final
-            .filter { activity -> selectedFilters.isEmpty() || activity.activityType in selectedFilters }
-            .sumOf { it.estimatedPrice }
-    }
-
-    Scaffold(
-        modifier = Modifier.testTag("activitiesScreen"),
-        bottomBar = {
-            BottomNavigationMenu(
-                onTabSelect = { route -> navigationActions.navigateTo(route) },
-                tabList = LIST_TOP_LEVEL_DESTINATION,
-                selectedItem = navigationActions.currentRoute(),
-                userViewModel = userViewModel)
-        },
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text("Activities bar")
-                },
-                actions = {
-                    IconButton(
-                        modifier = Modifier.testTag("filterButton"),
-                        onClick = { showFilterMenu = true },
-                        content = {
-                            Icon(
-                                imageVector = Icons.Outlined.FilterAlt,
-                                contentDescription = stringResource(R.string.filter_activities),
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        })
-                })
-        },
-        floatingActionButton = { AddActivityButton(navigationActions) },
-        content = { pd ->
-            LazyColumn(
-                modifier =
-                Modifier.padding(pd).padding(top = 16.dp).fillMaxWidth().testTag("lazyColumn"),
-                verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
-            ) {
-                item {
-                    Text(
-                        text = stringResource(R.string.drafts),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 10.dp))
-                }
-                drafts.forEach { activity ->
-                    item {
-                        if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
-                            ActivityItem(
-                                activity,
-                                true,
-                                onClickButton = {
-                                    activityToDelete = activity
-                                    showDialog = true
-                                },
-                                ButtonType.DELETE,
-                                navigationActions,
-                                tripsViewModel)
-                            Spacer(modifier = Modifier.height(10.dp))
-                        }
-                    }
-                }
-                item {
-                    Text(
-                        text = stringResource(R.string.final_activities),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 10.dp))
-                }
-                final.forEach { activity ->
-                    item {
-                        if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
-                            ActivityItem(
-                                activity,
-                                true,
-                                onClickButton = {
-                                    activityToDelete = activity
-                                    showDialog = true
-                                },
-                                ButtonType.DELETE,
-                                navigationActions,
-                                tripsViewModel)
-                            Spacer(modifier = Modifier.height(10.dp))
-                        }
-                    }
-                }
-                item {
-                    androidx.compose.foundation.layout.Box(
-                        modifier =
-                        Modifier.fillMaxWidth()
-                            .padding(16.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
-                                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                            .padding(16.dp) // Inner padding for content within the box
-                            .testTag("totalEstimatedPriceBox"),
-                        contentAlignment = Alignment.Center) {
-                        Text(
-                            text = stringResource(R.string.total_price, totalEstimatedPrice),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.align(Alignment.Center))
-                    }
-                }
-            }
-
-            if (showDialog) {
-                DeleteActivityAlertDialog(
-                    onDismissRequest = { showDialog = false },
-                    activityToDelete = activityToDelete,
-                    tripsViewModel = tripsViewModel,
-                    confirmButtonOnClick = {
-                        showDialog = false
-                        final = final.filter { it != activityToDelete }
-                        drafts = drafts.filter { it != activityToDelete }
-                    })
-            }
-            if (showFilterMenu) {
-                FilterDialog(
-                    selectedFilters = selectedFilters,
-                    onFilterChanged = { filter, isSelected ->
-                        selectedFilters =
-                            if (isSelected) {
-                                selectedFilters + filter
-                            } else {
-                                selectedFilters - filter
-                            }
-                    },
-                    onDismiss = { showFilterMenu = false })
-            }
+  var drafts by remember {
+    mutableStateOf(
+        tripsViewModel.getActivitiesForSelectedTrip().filter { activity ->
+          activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
         })
+  }
+  var final by remember {
+    mutableStateOf(
+        tripsViewModel
+            .getActivitiesForSelectedTrip()
+            .filter { activity ->
+              activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
+            }
+            .sortedWith(
+                compareBy(
+                    { it.startTime }, // First, sort by startTime
+                    { it.endTime } // If startTime is equal, sort by endTime
+                    )))
+  }
+
+  var showDialog by remember { mutableStateOf(false) }
+  var activityToDelete by remember { mutableStateOf<Activity?>(null) }
+  var totalEstimatedPrice by remember { mutableStateOf(0.0) }
+
+  LaunchedEffect(final, selectedFilters) {
+    totalEstimatedPrice =
+        final
+            .filter { activity ->
+              selectedFilters.isEmpty() || activity.activityType in selectedFilters
+            }
+            .sumOf { it.estimatedPrice }
+  }
+
+  Scaffold(
+      modifier = Modifier.testTag("activitiesScreen"),
+      bottomBar = {
+        BottomNavigationMenu(
+            onTabSelect = { route -> navigationActions.navigateTo(route) },
+            tabList = LIST_TOP_LEVEL_DESTINATION,
+            selectedItem = navigationActions.currentRoute(),
+            userViewModel = userViewModel)
+      },
+      topBar = {
+        TopAppBar(
+            title = { Text("Activities bar") },
+            actions = {
+              IconButton(
+                  modifier = Modifier.testTag("filterButton"),
+                  onClick = { showFilterMenu = true },
+                  content = {
+                    Icon(
+                        imageVector = Icons.Outlined.FilterAlt,
+                        contentDescription = stringResource(R.string.filter_activities),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                  })
+            })
+      },
+      floatingActionButton = { AddActivityButton(navigationActions) },
+      content = { pd ->
+        LazyColumn(
+            modifier =
+                Modifier.padding(pd).padding(top = 16.dp).fillMaxWidth().testTag("lazyColumn"),
+            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+        ) {
+          item {
+            Text(
+                text = stringResource(R.string.drafts),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 10.dp))
+          }
+          drafts.forEach { activity ->
+            item {
+              if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
+                ActivityItem(
+                    activity,
+                    true,
+                    onClickButton = {
+                      activityToDelete = activity
+                      showDialog = true
+                    },
+                    ButtonType.DELETE,
+                    navigationActions,
+                    tripsViewModel)
+                Spacer(modifier = Modifier.height(10.dp))
+              }
+            }
+          }
+          item {
+            Text(
+                text = stringResource(R.string.final_activities),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 10.dp))
+          }
+          final.forEach { activity ->
+            item {
+              if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
+                ActivityItem(
+                    activity,
+                    true,
+                    onClickButton = {
+                      activityToDelete = activity
+                      showDialog = true
+                    },
+                    ButtonType.DELETE,
+                    navigationActions,
+                    tripsViewModel)
+                Spacer(modifier = Modifier.height(10.dp))
+              }
+            }
+          }
+          item {
+            androidx.compose.foundation.layout.Box(
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .padding(16.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                        .padding(16.dp) // Inner padding for content within the box
+                        .testTag("totalEstimatedPriceBox"),
+                contentAlignment = Alignment.Center) {
+                  Text(
+                      text = stringResource(R.string.total_price, totalEstimatedPrice),
+                      fontSize = 20.sp,
+                      fontWeight = FontWeight.Medium,
+                      color = MaterialTheme.colorScheme.primary,
+                      modifier = Modifier.align(Alignment.Center))
+                }
+          }
+        }
+
+        if (showDialog) {
+          DeleteActivityAlertDialog(
+              onDismissRequest = { showDialog = false },
+              activityToDelete = activityToDelete,
+              tripsViewModel = tripsViewModel,
+              confirmButtonOnClick = {
+                showDialog = false
+                final = final.filter { it != activityToDelete }
+                drafts = drafts.filter { it != activityToDelete }
+              })
+        }
+        if (showFilterMenu) {
+          FilterDialog(
+              selectedFilters = selectedFilters,
+              onFilterChanged = { filter, isSelected ->
+                selectedFilters =
+                    if (isSelected) {
+                      selectedFilters + filter
+                    } else {
+                      selectedFilters - filter
+                    }
+              },
+              onDismiss = { showFilterMenu = false })
+        }
+      })
 }
