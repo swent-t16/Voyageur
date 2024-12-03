@@ -105,7 +105,7 @@ fun ActivitiesScreen(
       },
       topBar = {
         TopAppBar(
-            title = { Text("Activities bar") },
+            title = { Text("Activities bar") }, // TODO: should be replaced by the search bar
             actions = {
               IconButton(
                   modifier = Modifier.testTag("filterButton"),
