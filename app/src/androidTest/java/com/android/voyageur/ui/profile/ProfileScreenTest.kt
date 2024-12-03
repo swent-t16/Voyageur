@@ -165,6 +165,8 @@ class ProfileScreenTest {
     userViewModel._user.value = user
     userViewModel._isLoading.value = false
 
+    composeTestRule.onNodeWithTag("profileScreen").assertIsDisplayed()
+
     // Assert: Check that the user profile information is displayed
     composeTestRule.onNodeWithTag("userName").assertIsDisplayed()
     composeTestRule.onNodeWithTag("userEmail").assertIsDisplayed()
