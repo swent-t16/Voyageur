@@ -16,6 +16,12 @@
     <string name="accept">Accept</string>
     <string name="reject">Reject</string>
     <string name="total_price">Total price: %.2f CHF</string>
+    <string name="channel_name">Voyageur Notifications</string>
+    <string name="channel_description">Notifications from Voyageur App</string>
+    <string name="check_network_settings">Please check your network settings.</string>
+    <string name="notification_no_internet_title">No Internet Connection</string>
+    <string name="notification_no_internet_text">Please check your network settings.</string>
+
 <!--    AI ASSISTANT    -->
     <string name="ask_assistant">Ask the AI assistant!</string>
     <string name="prompt">Prompt</string>
