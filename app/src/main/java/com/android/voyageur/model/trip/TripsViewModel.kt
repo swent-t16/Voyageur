@@ -191,14 +191,20 @@ open class TripsViewModel(
    * @param provideFinalActivities whether to provide final activities with date and time or just
    *   draft activities.
    */
-  open fun sendActivitiesPrompt(trip: Trip, userPrompt: String, provideFinalActivities: Boolean) {
+  open fun sendActivitiesPrompt(
+      trip: Trip,
+      userPrompt: String,
+      interests: List<String>,
+      provideFinalActivities: Boolean,
+      useInterests: Boolean
+  ) {
     _uiState.value = UiState.Loading
 
     viewModelScope.launch(Dispatchers.IO) {
       try {
         val response =
             generativeModel.generateContent(
-                generatePrompt(trip, userPrompt, provideFinalActivities))
+                generatePrompt(trip, userPrompt, interests, provideFinalActivities, useInterests))
         response.text?.let { outputContent -> _uiState.value = UiState.Success(outputContent) }
       } catch (e: Exception) {
         _uiState.value = UiState.Error(e.localizedMessage ?: "unknown error")

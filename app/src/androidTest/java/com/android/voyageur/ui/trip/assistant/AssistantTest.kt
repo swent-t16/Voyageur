@@ -9,6 +9,8 @@ import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.trip.UiState
+import com.android.voyageur.model.user.User
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Before
@@ -28,6 +30,7 @@ class AssistantScreenTest {
   private lateinit var tripRepository: TripRepository
   private lateinit var mockTripsViewModel: TripsViewModel
   private lateinit var navHostController: NavHostController
+  private lateinit var userViewModel: UserViewModel
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -35,6 +38,16 @@ class AssistantScreenTest {
   private val sampleJson =
       "[{\"title\":\"Activity 1\", \"description\": \"Description 1\", \"year\": 2022, \"month\": 1, \"day\": 1, \"startTimeHour\": 12, \"startTimeMinute\": 0, \"endTimeHour\": 14, \"endTimeMinute\": 0}" +
           ",{\"title\":\"Activity 2\", \"description\": \"Description 2\", \"year\": 2022, \"month\": 1, \"day\": 2, \"startTimeHour\": 12, \"startTimeMinute\": 0, \"endTimeHour\": 14, \"endTimeMinute\": 0}]"
+  private val mockUser =
+      User(
+          id = "user123",
+          name = "John Doe",
+          email = "john.doe@example.com",
+          profilePicture = "https://example.com/profile.jpg",
+          bio = "Traveler",
+          username = "johndoe",
+          contacts = listOf(),
+          interests = listOf("hiking", "cycling"))
 
   @Before
   fun setUp() {
@@ -43,12 +56,18 @@ class AssistantScreenTest {
     navigationActions = NavigationActions(navHostController)
     tripsViewModel = TripsViewModel(tripRepository)
     mockTripsViewModel = mock(TripsViewModel::class.java)
+    userViewModel = mock(UserViewModel::class.java)
+
+    // We need this because userViewModel.user is not an open property
+    val userField = UserViewModel::class.java.getDeclaredField("user")
+    userField.isAccessible = true
+    userField.set(userViewModel, MutableStateFlow(mockUser))
   }
 
   @Test
   fun initialRenderingOfScreen() {
     tripsViewModel.selectTrip(sampleTrip)
-    composeTestRule.setContent { AssistantScreen(tripsViewModel, navigationActions) }
+    composeTestRule.setContent { AssistantScreen(tripsViewModel, navigationActions, userViewModel) }
     composeTestRule.onNodeWithTag("assistantScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("topBar").assertIsDisplayed()
     composeTestRule.onNodeWithTag("AIRequestTextField").assertIsDisplayed()
@@ -62,7 +81,9 @@ class AssistantScreenTest {
     val tripFlow = MutableStateFlow(sampleTrip)
     `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
     `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
-    composeTestRule.setContent { AssistantScreen(mockTripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+    }
 
     composeTestRule.onNodeWithTag("loadingIndicator").assertIsDisplayed()
   }
@@ -74,7 +95,9 @@ class AssistantScreenTest {
     val tripFlow = MutableStateFlow(sampleTrip)
     `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
     `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
-    composeTestRule.setContent { AssistantScreen(mockTripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+    }
 
     composeTestRule.onNodeWithTag("errorMessage").assertIsDisplayed()
   }
@@ -85,7 +108,9 @@ class AssistantScreenTest {
     val tripFlow = MutableStateFlow(sampleTrip)
     `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
     `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
-    composeTestRule.setContent { AssistantScreen(mockTripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+    }
     composeTestRule.onNodeWithTag("cardItem_Activity 1").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_Activity 2").assertIsDisplayed()
   }
@@ -98,7 +123,9 @@ class AssistantScreenTest {
     `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
     val mockActivity = Activity(title = "Activity 1", description = "Description 1")
     doNothing().`when`(mockTripsViewModel).addActivityToTrip(mockActivity)
-    composeTestRule.setContent { AssistantScreen(mockTripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+    }
     // Act
     composeTestRule.onNodeWithTag("cardItem_Activity 1").assertIsDisplayed()
     // click on expand icon
@@ -116,7 +143,9 @@ class AssistantScreenTest {
     val tripFlow = MutableStateFlow(sampleTrip)
     `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
     `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
-    composeTestRule.setContent { AssistantScreen(mockTripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+    }
     composeTestRule.onNodeWithTag("AIRequestButton").assertIsNotEnabled()
   }
 
@@ -126,11 +155,16 @@ class AssistantScreenTest {
     val tripFlow = MutableStateFlow(sampleTrip)
     `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
     `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
-    composeTestRule.setContent { AssistantScreen(mockTripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+    }
     composeTestRule.onNodeWithTag("settingsButton").performClick()
     composeTestRule.onNodeWithTag("settingsDialog").assertIsDisplayed()
     composeTestRule.onNodeWithTag("provideFinalActivitiesSwitch").assertIsDisplayed()
     composeTestRule.onNodeWithTag("provideFinalActivitiesSwitch").assertIsOff()
+    composeTestRule.onNodeWithTag("useInterestsSwitch").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("useInterestsSwitch").assertIsOff()
+    composeTestRule.onNodeWithTag("closeDialogButton").assertIsDisplayed()
   }
 
   @Test
@@ -139,7 +173,9 @@ class AssistantScreenTest {
     val tripFlow = MutableStateFlow(sampleTrip)
     `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
     `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
-    composeTestRule.setContent { AssistantScreen(mockTripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+    }
     composeTestRule.onNodeWithTag("cardItem_Activity 1").assertIsDisplayed()
     composeTestRule.onNodeWithText("2022/01/01 12:00 PM - 02:00 PM").assertIsNotDisplayed()
   }
@@ -150,10 +186,45 @@ class AssistantScreenTest {
     val tripFlow = MutableStateFlow(sampleTrip)
     `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
     `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
-    composeTestRule.setContent { AssistantScreen(mockTripsViewModel, navigationActions) }
+    composeTestRule.setContent {
+      AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+    }
     composeTestRule.onNodeWithTag("settingsButton").performClick()
     composeTestRule.onNodeWithTag("provideFinalActivitiesSwitch").performClick()
     composeTestRule.onNodeWithTag("closeDialogButton").performClick()
     composeTestRule.onNodeWithText("01/01/2022 12:00 PM - 02:00 PM").assertIsDisplayed()
+    // check the call to sendActivitiesPrompt happens with provideFinalActivities = true
+    composeTestRule.onNodeWithTag("AIRequestButton").performClick()
+    verify(mockTripsViewModel)
+        .sendActivitiesPrompt(
+            sampleTrip,
+            "",
+            listOf("hiking", "cycling"),
+            provideFinalActivities = true,
+            useInterests = false)
+  }
+
+  @Test
+  fun checkInterestsUsedWhenSwitched() {
+    val uiStateFlow = MutableStateFlow(UiState.Success(sampleJson))
+    val tripFlow = MutableStateFlow(sampleTrip)
+    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
+    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
+    composeTestRule.setContent {
+      AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+    }
+
+    composeTestRule.onNodeWithTag("settingsButton").performClick()
+    composeTestRule.onNodeWithTag("useInterestsSwitch").performClick()
+    composeTestRule.onNodeWithTag("closeDialogButton").performClick()
+    // check the call to sendActivitiesPrompt happens with useInterests = true
+    composeTestRule.onNodeWithTag("AIRequestButton").performClick()
+    verify(mockTripsViewModel)
+        .sendActivitiesPrompt(
+            sampleTrip,
+            "",
+            listOf("hiking", "cycling"),
+            provideFinalActivities = false,
+            useInterests = true)
   }
 }

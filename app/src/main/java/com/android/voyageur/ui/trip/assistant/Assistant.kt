@@ -1,6 +1,7 @@
 package com.android.voyageur.ui.trip.assistant
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import com.android.voyageur.model.assistant.convertActivityFromAssistantToActivi
 import com.android.voyageur.model.assistant.extractActivitiesFromAssistantFromJson
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.trip.UiState
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
 import com.android.voyageur.ui.trip.activities.ActivityItem
@@ -56,17 +58,38 @@ import com.android.voyageur.ui.trip.activities.ButtonType
 import com.android.voyageur.ui.trip.schedule.TopBarWithImageAndText
 import com.google.firebase.Timestamp
 
+/**
+ * The assistant screen that allows the user to ask the assistant for activities for a trip. The
+ * user can provide a prompt and the assistant will generate activities based on that prompt. The
+ * user can also provide settings for the assistant. The user can also add the activities direrctly
+ * to the trip.
+ *
+ * @param tripsViewModel the view model for the trips
+ * @param navigationActions the navigation actions
+ * @param userViewModel the view model for the user
+ */
 @SuppressLint("StateFlowValueCalledInComposition", "UnrememberedMutableState")
 @Composable
-fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: NavigationActions) {
+fun AssistantScreen(
+    tripsViewModel: TripsViewModel,
+    navigationActions: NavigationActions,
+    userViewModel: UserViewModel
+) {
   var result by rememberSaveable { mutableStateOf("placeholderResult") }
   val uiState by tripsViewModel.uiState.collectAsState()
   var prompt by rememberSaveable { mutableStateOf("") }
   var activities by remember { mutableStateOf(emptyList<Activity>()) }
+  Log.d("AssistantScreen", userViewModel.user.toString())
+  Log.d("AssistantScreen", userViewModel.user.collectAsState().toString())
+  Log.d("AssistantScreen", userViewModel.user.collectAsState().value.toString())
+  Log.d("AssistantScreen", userViewModel.user.collectAsState().value?.interests.toString())
+
+  val interests = userViewModel.user.collectAsState().value?.interests ?: emptyList()
   val keyboardController = LocalSoftwareKeyboardController.current
 
   var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
   var provideFinalActivities by rememberSaveable { mutableStateOf(false) }
+  var useInterests by rememberSaveable { mutableStateOf(false) }
 
   val trip = tripsViewModel.selectedTrip.value
   if (trip == null) {
@@ -97,13 +120,14 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
                           keyboardController?.hide()
                           if (uiState !is UiState.Loading) {
                             tripsViewModel.sendActivitiesPrompt(
-                                trip, prompt, provideFinalActivities)
+                                trip, prompt, interests, provideFinalActivities, useInterests)
                           }
                         }),
                 singleLine = true)
             Button(
                 onClick = {
-                  tripsViewModel.sendActivitiesPrompt(trip, prompt, provideFinalActivities)
+                  tripsViewModel.sendActivitiesPrompt(
+                      trip, prompt, interests, provideFinalActivities, useInterests)
                 },
                 enabled = uiState !is UiState.Loading, // Disable the button during loading
                 modifier = Modifier.testTag("AIRequestButton").align(Alignment.CenterVertically)) {
@@ -177,7 +201,9 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
           SettingsDialog(
               onDismiss = { showSettingsDialog = false },
               provideDraftActivities = provideFinalActivities,
-              onProvideFinalActivitiesChanged = { provideFinalActivities = it })
+              onProvideFinalActivitiesChanged = { provideFinalActivities = it },
+              useInterests = useInterests,
+              onUseInterestsChanged = { useInterests = it })
         }
       })
 }
@@ -195,6 +221,8 @@ fun SettingsDialog(
     onDismiss: () -> Unit,
     provideDraftActivities: Boolean,
     onProvideFinalActivitiesChanged: (Boolean) -> Unit,
+    useInterests: Boolean,
+    onUseInterestsChanged: (Boolean) -> Unit
 ) {
   AlertDialog(
       modifier = Modifier.testTag("settingsDialog"),
@@ -216,6 +244,14 @@ fun SettingsDialog(
                 checked = provideDraftActivities,
                 onCheckedChange = onProvideFinalActivitiesChanged,
                 modifier = Modifier.testTag("provideFinalActivitiesSwitch"))
+          }
+          Spacer(modifier = Modifier.height(16.dp)) // Add a spacer for some vertical space
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.use_interests), modifier = Modifier.weight(1f))
+            Switch(
+                checked = useInterests,
+                onCheckedChange = onUseInterestsChanged,
+                modifier = Modifier.testTag("useInterestsSwitch"))
           }
         }
       },
