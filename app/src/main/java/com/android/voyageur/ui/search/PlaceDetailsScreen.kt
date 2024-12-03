@@ -66,6 +66,7 @@ fun PlaceDetailsScreen(navigationActions: NavigationActions, placesViewModel: Pl
   val customPlace by placesViewModel.selectedPlace.collectAsState()
   val isLoading by placesViewModel.isLoading.collectAsState()
   Scaffold(
+      modifier = Modifier.testTag("placeDetailsScreen"),
       topBar = {
         TopAppBar(
             title = { Text("Place Details") },
