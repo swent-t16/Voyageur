@@ -1,8 +1,12 @@
 package com.android.voyageur.ui.profile
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -13,8 +17,10 @@ import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
+import com.android.voyageur.ui.navigation.TopLevelDestination
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import org.junit.Before
@@ -36,6 +42,11 @@ class ProfileScreenTest {
   private lateinit var firebaseUser: FirebaseUser
   private lateinit var friendRequestRepository: FriendRequestRepository
   @get:Rule val composeTestRule = createComposeRule()
+
+  private val mockTabs =
+      listOf(
+          TopLevelDestination("Home", Icons.Default.Home, "HomeRoute"),
+          TopLevelDestination("Profile", Icons.Default.Person, "ProfileRoute"))
 
   @Before
   fun setUp() {
@@ -125,6 +136,11 @@ class ProfileScreenTest {
       FriendReqMenu(
           friendRequests = friendRequests.value,
           notificationUsers = notificationUsers.value,
+          userViewModel = userViewModel)
+      BottomNavigationMenu(
+          onTabSelect = {},
+          tabList = mockTabs,
+          selectedItem = "ProfileRoute",
           userViewModel = userViewModel)
     }
   }
@@ -286,5 +302,14 @@ class ProfileScreenTest {
     // Assert: Check the accept and deny buttons are displayed
     composeTestRule.onNodeWithTag("acceptButton", useUnmergedTree = true).assertIsDisplayed()
     composeTestRule.onNodeWithTag("denyButton", useUnmergedTree = true).assertIsDisplayed()
+  }
+
+  @Test
+  fun notificationBadgeIsNotDisplayed() {
+    userViewModel._notificationCount.value = 0
+    composeTestRule.waitForIdle()
+    assert(userViewModel._notificationCount.value == 0L)
+    // Verify the notification badge is not displayed on the profile tab
+    composeTestRule.onNodeWithTag("notificationBadge").assertIsNotDisplayed()
   }
 }

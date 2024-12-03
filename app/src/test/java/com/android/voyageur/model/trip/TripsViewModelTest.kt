@@ -309,4 +309,30 @@ class TripsViewModelTest {
     tripsViewModel.setInitialUiState()
     assert(tripsViewModel.uiState.value is UiState.Initial)
   }
+
+  @Test
+  fun sendActivitiesPrompt_shouldUpdateUiStateWithSuccess() = runTest {
+    val trip =
+        Trip(
+            id = "1",
+            creator = "creator",
+            participants = emptyList(),
+            description = "Trip description",
+            name = "Trip name",
+            location = Location("", "", "", 0.0, 0.0),
+            startDate = Timestamp.now(),
+            endDate = Timestamp.now(),
+            activities = emptyList(),
+            type = TripType.TOURISM,
+            imageUri = "")
+    val userPrompt = "Generate activities for the trip"
+    val provideFinalActivities = true
+
+    tripsViewModel.sendActivitiesPrompt(trip, userPrompt, provideFinalActivities)
+    advanceUntilIdle()
+
+    val uiState = tripsViewModel.uiState.value
+    tripsViewModel.setInitialUiState()
+    assert(tripsViewModel.uiState.value is UiState.Initial)
+  }
 }
