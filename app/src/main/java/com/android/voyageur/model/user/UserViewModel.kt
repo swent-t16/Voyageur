@@ -327,21 +327,22 @@ open class UserViewModel(
       _user.value = updatedUser
 
       // Update the current user in the database
-      updateUser(updatedUser)
+      updateUser(updatedUser) {
+          // Fetch and update the sender's contacts
+          getUsersByIds(listOf(friendRequest.from)) { users ->
+              val sender = users.firstOrNull() ?: return@getUsersByIds
+              val senderUpdatedContacts = sender.contacts.toMutableList().apply { add(currentUserId) }
+              val updatedSender = sender.copy(contacts = senderUpdatedContacts)
 
-      // Fetch and update the sender's contacts
-      getUsersByIds(listOf(friendRequest.from)) { users ->
-          val sender = users.firstOrNull() ?: return@getUsersByIds
-          val senderUpdatedContacts = sender.contacts.toMutableList().apply { add(currentUserId) }
-          val updatedSender = sender.copy(contacts = senderUpdatedContacts)
-
-          // Update the sender in the database
-          updateUser(updatedSender)
+              // Update the sender in the database
+              updateUser(updatedSender) {
+                  // Clear the friend request state (delete from database and local state)
+                  clearFriendRequestState(friendRequest.from)
+              }
+          }
       }
-
-      // Delete the friend request after updating both users
-      deleteFriendRequest(friendRequest.id)
   }
+
 
     /**
    * Searches for users matching the provided query.
