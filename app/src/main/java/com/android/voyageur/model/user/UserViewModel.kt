@@ -259,7 +259,7 @@ open class UserViewModel(
     }
   }
 
-  private fun clearFriendRequestState(userId: String) {
+  fun clearFriendRequestState(userId: String) {
     val requestsToDelete = _friendRequests.value.filter { it.to == userId || it.from == userId }
 
     requestsToDelete.forEach { request ->

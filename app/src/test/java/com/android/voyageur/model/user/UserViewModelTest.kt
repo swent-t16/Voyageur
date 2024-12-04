@@ -22,9 +22,11 @@ import org.mockito.MockedStatic
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.times
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argThat
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -408,4 +410,108 @@ class UserViewModelTest {
     // Verify deleteFriendRequest was called
     verify(friendRequestRepository).deleteRequest(eq(friendRequestId), any(), anyOrNull())
   }
+    @Test
+    fun clearFriendRequestState_RemovesFriendRequest() = runTest {
+        val friendRequestId = "req_123"
+        val friendRequest = FriendRequest(id = friendRequestId, from = "123", to = "456")
+        userViewModel._friendRequests.value = listOf(friendRequest)
+
+        // Mock deleteRequest to succeed
+        doAnswer { invocation ->
+            val onSuccess = invocation.getArgument<() -> Unit>(1)
+            onSuccess()
+            null
+        }.`when`(friendRequestRepository).deleteRequest(eq(friendRequestId), any(), anyOrNull())
+
+        // Call the method under test
+        userViewModel.clearFriendRequestState(friendRequest.to)
+
+        // Verify deleteRequest was called
+        verify(friendRequestRepository).deleteRequest(eq(friendRequestId), any(), anyOrNull())
+
+        // Assert the local state is updated
+        assert(userViewModel.friendRequests.value.isEmpty())
+    }
+    @Test
+    fun getSentFriendRequests_UpdatesState() = runTest {
+        val mockSentRequests = listOf(
+            FriendRequest(id = "req_1", from = "123", to = "456"),
+            FriendRequest(id = "req_2", from = "123", to = "789")
+        )
+
+        // Mock the repository to return mock data
+        doAnswer { invocation ->
+            val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
+            onSuccess(mockSentRequests)
+            null
+        }.`when`(friendRequestRepository).getSentFriendRequests(eq(""), any(), anyOrNull())
+
+        // Call the method under test
+        userViewModel.getSentFriendRequests()
+
+        // Verify the repository method was called
+        verify(friendRequestRepository).getSentFriendRequests(eq(""), any(), anyOrNull())
+
+        // Assert the state is updated
+        assert(userViewModel.sentFriendRequests.value == mockSentRequests)
+    }
+
+    @Test
+    fun acceptFriendRequest_UpdatesContactsAndClearsRequest() = runTest {
+        val currentUserId = "123"
+        val senderId = "456"
+        val friendRequest = FriendRequest(id = "req_123", from = senderId, to = currentUserId)
+        val currentUser =
+            User(id = currentUserId, name = "Current User", email = "current@example.com", contacts = listOf())
+        val senderUser =
+            User(id = senderId, name = "Sender User", email = "sender@example.com", contacts = listOf())
+
+        userViewModel._user.value = currentUser
+
+        // Mock fetchUsersByIds to return the sender user
+        doAnswer { invocation ->
+            val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+            onSuccess(listOf(senderUser))
+            null
+        }.`when`(userRepository).fetchUsersByIds(eq(listOf(senderId)), any(), anyOrNull())
+
+        // Mock updateUser to succeed
+        doAnswer { invocation ->
+            val onSuccess = invocation.getArgument<() -> Unit>(1)
+            onSuccess()
+            null
+        }.`when`(userRepository).updateUser(any(), any(), anyOrNull())
+
+        // Mock deleteRequest to succeed
+        doAnswer { invocation ->
+            val onSuccess = invocation.getArgument<() -> Unit>(1)
+            onSuccess()
+            null
+        }.`when`(friendRequestRepository).deleteRequest(eq(friendRequest.id), any(), anyOrNull())
+
+        // Call the method under test
+        userViewModel.acceptFriendRequest(friendRequest)
+
+        // Verify that the sender's user data was fetched
+        verify(userRepository).fetchUsersByIds(eq(listOf(senderId)), any(), anyOrNull())
+
+        // Verify updateUser was called twice: once for the current user and once for the sender
+        verify(userRepository, times(2)).updateUser(any(), any(), anyOrNull())
+
+        // Verify the correct updates for each user
+        verify(userRepository).updateUser(
+            argThat { user -> user.id == currentUserId && user.contacts.contains(senderId) },
+            any(),
+            anyOrNull()
+        )
+        verify(userRepository).updateUser(
+            argThat { user -> user.id == senderId && user.contacts.contains(currentUserId) },
+            any(),
+            anyOrNull()
+        )
+
+        // Verify the friend request was deleted
+        verify(friendRequestRepository).deleteRequest(eq(friendRequest.id), any(), anyOrNull())
+    }
+
 }
