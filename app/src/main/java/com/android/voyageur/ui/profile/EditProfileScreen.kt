@@ -67,6 +67,7 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
   }
 
   Scaffold(
+      modifier = Modifier.testTag("editProfileScreen"),
       topBar = {
         TopAppBar(
             title = { Text("Edit Profile") },
