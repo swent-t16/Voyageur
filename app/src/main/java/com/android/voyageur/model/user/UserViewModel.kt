@@ -220,38 +220,36 @@ open class UserViewModel(
       onSuccess: () -> Unit = {},
       onFailure: (Exception) -> Unit = {}
   ) {
-    val currentUser = _user.value
+      val currentUser = _user.value
 
-    if (currentUser == null) {
-      onFailure(Exception("Current user is not available"))
-      return
-    }
-
-    // Fetch the second user's data
-    getUsersByIds(listOf(secondUserId)) { users ->
-      val secondUser = users.firstOrNull()
-
-      if (secondUser == null) {
-        onFailure(Exception("The specified user was not found"))
-        return@getUsersByIds
+      if (currentUser == null) {
+          onFailure(Exception("Current user is not available"))
+          return
       }
 
-      // Remove the second user from the current user's contacts
-      val updatedCurrentUserContacts =
-          currentUser.contacts.toMutableList().apply { remove(secondUserId) }
-      val updatedCurrentUser = currentUser.copy(contacts = updatedCurrentUserContacts)
+      // Fetch the second user's data
+      getUsersByIds(listOf(secondUserId)) { users ->
+          val secondUser = users.firstOrNull()
 
-      // Remove the current user from the second user's contacts
-      val updatedSecondUserContacts =
-          secondUser.contacts.toMutableList().apply { remove(currentUser.id) }
-      val updatedSecondUser = secondUser.copy(contacts = updatedSecondUserContacts)
+          if (secondUser == null) {
+              onFailure(Exception("The specified user was not found"))
+              return@getUsersByIds
+          }
 
-      // Update both users in the repository
-      updateUser(updatedCurrentUser)
-      updateUser(updatedSecondUser)
+          // Remove the second user from the current user's contacts
+          val updatedCurrentUserContacts = currentUser.contacts.toMutableList().apply { remove(secondUserId) }
+          val updatedCurrentUser = currentUser.copy(contacts = updatedCurrentUserContacts)
 
-      onSuccess()
-    }
+          // Remove the current user from the second user's contacts
+          val updatedSecondUserContacts = secondUser.contacts.toMutableList().apply { remove(currentUser.id) }
+          val updatedSecondUser = secondUser.copy(contacts = updatedSecondUserContacts)
+
+          // Update both users in the repository
+          updateUser(updatedCurrentUser) {
+              // Only update the second user if the current user update was successful
+              updateUser(updatedSecondUser, onSuccess, onFailure)
+          }
+      }
   }
 
   /**
@@ -259,15 +257,20 @@ open class UserViewModel(
    *
    * @param updatedUser The updated user data.
    */
-  fun updateUser(updatedUser: User) {
-    _isLoading.value = true
-    userRepository.updateUser(
-        updatedUser,
-        onSuccess = {
-          loadUser(updatedUser.id) // Reload the user from the backend
-          _isLoading.value = false
-        },
-        onFailure = { _isLoading.value = false })
+  fun updateUser(updatedUser: User, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
+      _isLoading.value = true
+      userRepository.updateUser(
+          updatedUser,
+          onSuccess = {
+              _user.value = updatedUser // Update the local state
+              _isLoading.value = false
+              onSuccess()
+          },
+          onFailure = { exception ->
+              _isLoading.value = false
+              onFailure(exception)
+          }
+      )
   }
 
   /**
