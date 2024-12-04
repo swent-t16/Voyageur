@@ -248,9 +248,24 @@ open class UserViewModel(
               onFailure(Exception("Failed to update the other user"))
           })
 
+          // Clear any lingering friend request state
+          clearFriendRequestState(secondUserId)
+
           onSuccess()
       }
   }
+    private fun clearFriendRequestState(secondUserId: String) {
+        // Check if there is an existing sent friend request to the user
+        val sentRequestId = getSentRequestId(secondUserId)
+        if (sentRequestId != null) {
+            deleteFriendRequest(sentRequestId)
+        }
+
+        // Reset UI or state to reflect "Add" as the button state
+        _friendRequests.value = _friendRequests.value.filterNot { it.to == secondUserId || it.from == secondUserId }
+        _sentFriendRequests.value = _sentFriendRequests.value.filterNot { it.to == secondUserId }
+    }
+
 
 
     /**
