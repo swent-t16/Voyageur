@@ -210,83 +210,87 @@ open class UserViewModel(
     }
   }
 
-    /**
-     * Removes a contact from the current user's contact list.
-     *
-     * @param secondUserId The ID of the user to remove from contacts.
-     */
-    fun removeContact(
-        secondUserId: String,
-        onSuccess: () -> Unit = {},
-        onFailure: (Exception) -> Unit = {}
-    ) {
-        val currentUser = _user.value ?: return onFailure(Exception("Current user is not available"))
+  /**
+   * Removes a contact from the current user's contact list.
+   *
+   * @param secondUserId The ID of the user to remove from contacts.
+   */
+  fun removeContact(
+      secondUserId: String,
+      onSuccess: () -> Unit = {},
+      onFailure: (Exception) -> Unit = {}
+  ) {
+    val currentUser = _user.value ?: return onFailure(Exception("Current user is not available"))
 
-        getUsersByIds(listOf(secondUserId)) { users ->
-            val secondUser = users.firstOrNull() ?: return@getUsersByIds onFailure(Exception("User not found"))
+    getUsersByIds(listOf(secondUserId)) { users ->
+      val secondUser =
+          users.firstOrNull() ?: return@getUsersByIds onFailure(Exception("User not found"))
 
-            // Update the current user's contact list
-            val updatedCurrentUserContacts = currentUser.contacts.toMutableList().apply { remove(secondUserId) }
-            val updatedCurrentUser = currentUser.copy(contacts = updatedCurrentUserContacts)
+      // Update the current user's contact list
+      val updatedCurrentUserContacts =
+          currentUser.contacts.toMutableList().apply { remove(secondUserId) }
+      val updatedCurrentUser = currentUser.copy(contacts = updatedCurrentUserContacts)
 
-            // Update the second user's contact list
-            val updatedSecondUserContacts = secondUser.contacts.toMutableList().apply { remove(currentUser.id) }
-            val updatedSecondUser = secondUser.copy(contacts = updatedSecondUserContacts)
+      // Update the second user's contact list
+      val updatedSecondUserContacts =
+          secondUser.contacts.toMutableList().apply { remove(currentUser.id) }
+      val updatedSecondUser = secondUser.copy(contacts = updatedSecondUserContacts)
 
-            // Perform Firestore updates
-            updateUser(updatedCurrentUser, onSuccess = {
-                updateUser(updatedSecondUser, onSuccess = {
-                    // Clear lingering friend requests
-                    clearFriendRequestState(secondUserId)
-                    onSuccess()
-                }, onFailure = { error ->
-                    Log.e("REMOVE_CONTACT", "Failed to update second user: ${error.message}")
-                    onFailure(error)
-                })
-            }, onFailure = { error ->
-                Log.e("REMOVE_CONTACT", "Failed to update current user: ${error.message}")
-                onFailure(error)
-            })
-        }
-    }
-
-
-    private fun clearFriendRequestState(userId: String) {
-        val requestsToDelete = _friendRequests.value.filter { it.to == userId || it.from == userId }
-
-        requestsToDelete.forEach { request ->
-            friendRequestRepository.deleteRequest(
-                reqId = request.id,
+      // Perform Firestore updates
+      updateUser(
+          updatedCurrentUser,
+          onSuccess = {
+            updateUser(
+                updatedSecondUser,
                 onSuccess = {
-                    Log.d("FRIEND_REQUEST", "Deleted request: ${request.id}")
-                    _friendRequests.value = _friendRequests.value.filterNot { it.id == request.id }
+                  // Clear lingering friend requests
+                  clearFriendRequestState(secondUserId)
+                  onSuccess()
                 },
-                onFailure = { exception ->
-                    Log.e("FRIEND_REQUEST", "Failed to delete request: ${request.id}, ${exception.message}")
-                }
-            )
-        }
+                onFailure = { error ->
+                  Log.e("REMOVE_CONTACT", "Failed to update second user: ${error.message}")
+                  onFailure(error)
+                })
+          },
+          onFailure = { error ->
+            Log.e("REMOVE_CONTACT", "Failed to update current user: ${error.message}")
+            onFailure(error)
+          })
     }
+  }
 
+  private fun clearFriendRequestState(userId: String) {
+    val requestsToDelete = _friendRequests.value.filter { it.to == userId || it.from == userId }
 
+    requestsToDelete.forEach { request ->
+      friendRequestRepository.deleteRequest(
+          reqId = request.id,
+          onSuccess = {
+            Log.d("FRIEND_REQUEST", "Deleted request: ${request.id}")
+            _friendRequests.value = _friendRequests.value.filterNot { it.id == request.id }
+          },
+          onFailure = { exception ->
+            Log.e("FRIEND_REQUEST", "Failed to delete request: ${request.id}, ${exception.message}")
+          })
+    }
+  }
 
-    /**
+  /**
    * Updates user data in the repository.
    *
    * @param updatedUser The updated user data.
    */
   fun updateUser(updatedUser: User, onFailure: (Exception) -> Unit = {}) {
-      userRepository.updateUser(
-          updatedUser,
-          onSuccess = { Log.d("USER_UPDATE", "Successfully updated user: ${updatedUser.id}") },
-          onFailure = { error ->
-              Log.e("USER_UPDATE", "Failed to update user: $error")
-              onFailure(error)
-          }
-      )
+    userRepository.updateUser(
+        updatedUser,
+        onSuccess = { Log.d("USER_UPDATE", "Successfully updated user: ${updatedUser.id}") },
+        onFailure = { error ->
+          Log.e("USER_UPDATE", "Failed to update user: $error")
+          onFailure(error)
+        })
   }
 
-    /**
+  /**
    * Signs out the current user from Firebase. The AuthStateListener will automatically handle
    * updating the ViewModel state to reflect the sign-out.
    */
@@ -310,70 +314,70 @@ open class UserViewModel(
           }
         }
   }
-    /**
-     * Updates user data in the repository.
-     *
-     * @param updatedUser The updated user data.
-     * @param onSuccess Callback to execute after a successful update.
-     * @param onFailure Callback to execute if the update fails.
-     */
-    fun updateUser(
-        updatedUser: User,
-        onSuccess: () -> Unit = {},
-        onFailure: (Exception) -> Unit = {}
-    ) {
-        userRepository.updateUser(
-            updatedUser,
-            onSuccess = {
-                Log.d("USER_UPDATE", "Successfully updated user: ${updatedUser.id}")
-                onSuccess()
-            },
-            onFailure = { error ->
-                Log.e("USER_UPDATE", "Failed to update user: $error")
-                onFailure(error)
-            }
-        )
-    }
-
-
-
-    /**
-     * Accepts a friend request by adding the sender to the user's contacts and removing the friend
-     * request.
-     *
-     * @param friendRequest The friend request to accept.
-     */
-    fun acceptFriendRequest(friendRequest: FriendRequest) {
-        val currentUser = _user.value ?: return
-        val currentUserId = currentUser.id
-
-        // Add the sender to the current user's contacts
-        val updatedContacts = currentUser.contacts.toMutableList().apply { add(friendRequest.from) }
-        val updatedUser = currentUser.copy(contacts = updatedContacts)
-
-        updateUser(updatedUser, onSuccess = {
-            // Fetch and update the sender's data
-            getUsersByIds(listOf(friendRequest.from)) { users ->
-                val sender = users.firstOrNull() ?: return@getUsersByIds
-                val senderUpdatedContacts = sender.contacts.toMutableList().apply { add(currentUserId) }
-                val updatedSender = sender.copy(contacts = senderUpdatedContacts)
-
-                updateUser(updatedSender, onSuccess = {
-                    // Clear the friend request after successful updates
-                    deleteFriendRequest(friendRequest.id)
-                }, onFailure = { error ->
-                    Log.e("ACCEPT_REQUEST", "Failed to update sender: ${error.message}")
-                })
-            }
-        }, onFailure = { error ->
-            Log.e("ACCEPT_REQUEST", "Failed to update current user: ${error.message}")
+  /**
+   * Updates user data in the repository.
+   *
+   * @param updatedUser The updated user data.
+   * @param onSuccess Callback to execute after a successful update.
+   * @param onFailure Callback to execute if the update fails.
+   */
+  fun updateUser(
+      updatedUser: User,
+      onSuccess: () -> Unit = {},
+      onFailure: (Exception) -> Unit = {}
+  ) {
+    userRepository.updateUser(
+        updatedUser,
+        onSuccess = {
+          Log.d("USER_UPDATE", "Successfully updated user: ${updatedUser.id}")
+          onSuccess()
+        },
+        onFailure = { error ->
+          Log.e("USER_UPDATE", "Failed to update user: $error")
+          onFailure(error)
         })
-    }
+  }
 
+  /**
+   * Accepts a friend request by adding the sender to the user's contacts and removing the friend
+   * request.
+   *
+   * @param friendRequest The friend request to accept.
+   */
+  fun acceptFriendRequest(friendRequest: FriendRequest) {
+    val currentUser = _user.value ?: return
+    val currentUserId = currentUser.id
 
+    // Add the sender to the current user's contacts
+    val updatedContacts = currentUser.contacts.toMutableList().apply { add(friendRequest.from) }
+    val updatedUser = currentUser.copy(contacts = updatedContacts)
 
+    updateUser(
+        updatedUser,
+        onSuccess = {
+          // Fetch and update the sender's data
+          getUsersByIds(listOf(friendRequest.from)) { users ->
+            val sender = users.firstOrNull() ?: return@getUsersByIds
+            val senderUpdatedContacts = sender.contacts.toMutableList().apply { add(currentUserId) }
+            val updatedSender = sender.copy(contacts = senderUpdatedContacts)
 
-    /**
+            updateUser(
+                updatedSender,
+                onSuccess = {
+                  // Clear the friend request after successful updates
+                  deleteFriendRequest(friendRequest.id)
+                },
+                onFailure = { error ->
+                  Log.e("ACCEPT_REQUEST", "Failed to update sender: ${error.message}")
+                })
+          }
+        },
+        onFailure = { error ->
+          Log.e("ACCEPT_REQUEST", "Failed to update current user: ${error.message}")
+        })
+  }
+
+  /**
    * Searches for users matching the provided query.
    *
    * @param query The search query string.
@@ -516,15 +520,14 @@ open class UserViewModel(
    * @param reqId the request ID of the friend request to delete
    */
   fun deleteFriendRequest(reqId: String) {
-      friendRequestRepository.deleteRequest(
-          reqId = reqId,
-          onSuccess = {
-              Log.d("FRIEND_REQUEST", "Friend request $reqId successfully deleted")
-              getFriendRequests { /* Optionally refresh friend requests */ }
-          },
-          onFailure = { exception ->
-              Log.e("FRIEND_REQUEST", "Failed to delete friend request: ${exception.message}")
-          }
-      )
+    friendRequestRepository.deleteRequest(
+        reqId = reqId,
+        onSuccess = {
+          Log.d("FRIEND_REQUEST", "Friend request $reqId successfully deleted")
+          getFriendRequests { /* Optionally refresh friend requests */}
+        },
+        onFailure = { exception ->
+          Log.e("FRIEND_REQUEST", "Failed to delete friend request: ${exception.message}")
+        })
   }
 }
