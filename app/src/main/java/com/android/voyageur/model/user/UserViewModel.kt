@@ -220,12 +220,7 @@ open class UserViewModel(
       onSuccess: () -> Unit = {},
       onFailure: (Exception) -> Unit = {}
   ) {
-      val currentUser = _user.value
-
-      if (currentUser == null) {
-          onFailure(Exception("Current user is not available"))
-          return
-      }
+      val currentUser = _user.value ?: return onFailure(Exception("Current user is not available"))
 
       // Fetch the second user's data
       getUsersByIds(listOf(secondUserId)) { users ->
@@ -244,15 +239,21 @@ open class UserViewModel(
           val updatedSecondUserContacts = secondUser.contacts.toMutableList().apply { remove(currentUser.id) }
           val updatedSecondUser = secondUser.copy(contacts = updatedSecondUserContacts)
 
-          // Update both users in the repository
-          updateUser(updatedCurrentUser) {
-              // Only update the second user if the current user update was successful
-              updateUser(updatedSecondUser)
-          }
+          // Sequentially update both users
+          updateUser(updatedCurrentUser, onFailure = {
+              onFailure(Exception("Failed to update the current user"))
+          })
+
+          updateUser(updatedSecondUser, onFailure = {
+              onFailure(Exception("Failed to update the other user"))
+          })
+
+          onSuccess()
       }
   }
 
-  /**
+
+    /**
    * Updates user data in the repository.
    *
    * @param updatedUser The updated user data.
