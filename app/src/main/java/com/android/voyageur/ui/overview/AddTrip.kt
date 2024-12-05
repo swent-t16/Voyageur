@@ -1,13 +1,7 @@
 package com.android.voyageur.ui.overview
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.ContentValues
-import android.content.Context
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.provider.CalendarContract
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -24,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -33,7 +26,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -65,8 +57,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
@@ -159,11 +149,6 @@ fun AddTripScreen(
       //      userList.clear()
     }
   }
-  LaunchedEffect(Unit) {
-    if (!checkAndRequestCalendarPermissions(context, context as Activity)) {
-      Toast.makeText(context, "Calendar permissions are required", Toast.LENGTH_SHORT).show()
-    }
-  }
 
   fun createTripWithImage(imageUrl: String) {
     if (isSaving) return // Prevent duplicate saves
@@ -236,9 +221,6 @@ fun AddTripScreen(
           onSuccess = {
             isSaving = false
             Toast.makeText(context, "Trip created successfully!", Toast.LENGTH_SHORT).show()
-            if (addToCalendar) {
-              addEventToGoogleCalendar(context, trip)
-            }
           },
           onFailure = { error ->
             isSaving = false
@@ -418,7 +400,7 @@ fun AddTripScreen(
 
                 Spacer(modifier = Modifier.height(4.dp))
                 // Add the checkbox
-                Row(
+                /*Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                       Checkbox(
@@ -428,7 +410,7 @@ fun AddTripScreen(
                       Spacer(modifier = Modifier.width(8.dp))
                       Text("Add to Google Calendar")
                     }
-
+                */
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -487,104 +469,7 @@ fun AddTripScreen(
       }
 }
 
-private fun logAvailableCalendars(context: Context) {
-  val projection =
-      arrayOf(
-          CalendarContract.Calendars._ID,
-          CalendarContract.Calendars.ACCOUNT_NAME,
-          CalendarContract.Calendars.CALENDAR_DISPLAY_NAME)
-
-  context.contentResolver
-      .query(
-          CalendarContract.Calendars.CONTENT_URI,
-          projection,
-          null, // No selection, so it queries all calendars
-          null,
-          null)
-      ?.use { cursor ->
-        while (cursor.moveToNext()) {
-          val id = cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID))
-          val accountName =
-              cursor.getString(
-                  cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
-          val displayName =
-              cursor.getString(
-                  cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
-          Log.d(
-              "AvailableCalendar", "ID: $id, AccountName: $accountName, DisplayName: $displayName")
-        }
-      }
-}
-
 enum class DateField {
   START,
   END
-}
-
-fun addEventToGoogleCalendar(context: Context, trip: Trip) {
-
-  val calendarId = getGoogleCalendarId(context)
-  if (calendarId == null) {
-    Toast.makeText(context, "No Google Calendar found", Toast.LENGTH_SHORT).show()
-    return
-  }
-
-  val values =
-      ContentValues().apply {
-        put(CalendarContract.Events.CALENDAR_ID, calendarId) // Use the Google Calendar ID
-        put(CalendarContract.Events.TITLE, trip.name)
-        put(CalendarContract.Events.DESCRIPTION, trip.description)
-        put(CalendarContract.Events.DTSTART, trip.startDate.toDate().time)
-        put(CalendarContract.Events.DTEND, trip.endDate.toDate().time)
-        put(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
-      }
-
-  try {
-    val uri = context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)
-    if (uri != null) {
-      Toast.makeText(context, "Event added to Google Calendar", Toast.LENGTH_SHORT).show()
-    } else {
-      Toast.makeText(context, "Failed to add event to calendar", Toast.LENGTH_SHORT).show()
-    }
-  } catch (e: Exception) {
-    Log.e("AddToCalendar", "Error adding event", e)
-    Toast.makeText(context, "Error adding event: ${e.message}", Toast.LENGTH_SHORT).show()
-  }
-}
-
-private fun getGoogleCalendarId(context: Context): Long? {
-  val projection =
-      arrayOf(
-          CalendarContract.Calendars._ID,
-          CalendarContract.Calendars.ACCOUNT_NAME,
-          CalendarContract.Calendars.IS_PRIMARY)
-
-  val selection =
-      "${CalendarContract.Calendars.ACCOUNT_NAME} LIKE ? AND ${CalendarContract.Calendars.IS_PRIMARY} = 1"
-  val selectionArgs = arrayOf("%@gmail.com") // Match Google accounts
-
-  context.contentResolver
-      .query(CalendarContract.Calendars.CONTENT_URI, projection, selection, selectionArgs, null)
-      ?.use { cursor ->
-        if (cursor.moveToFirst()) {
-          return cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID))
-        }
-      }
-
-  return null
-}
-
-fun checkAndRequestCalendarPermissions(context: Context, activity: Activity): Boolean {
-  val permissions = arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
-
-  val permissionsGranted =
-      permissions.all {
-        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
-      }
-
-  if (!permissionsGranted) {
-    ActivityCompat.requestPermissions(activity, permissions, 100)
-  }
-
-  return permissionsGranted
 }

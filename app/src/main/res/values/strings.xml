@@ -30,4 +30,28 @@
     <string name="settings_subtitle">Remember to click on the \'go\' button after changing the settings</string>
     <string name="provide_final_activities">"Provide final activities with date and time (recommended for trips shorter than a week)</string>
     <string name="close">Close</string>
+
+    <!-- OVERVIEW SCREEN -->
+    <string name="your_trips_text">Your trips</string>
+    <string name="floating_button">Floating button action</string>
+    <string name="empty_trip_prompt">You have no trips yet.</string>
+    <string name="denied_calendar_permission">Permission denied. Cannot open calendar.</string>
+    <string name="selected_image_description">Selected image</string>
+    <string name="trip_image_overview_description">Trip image overview</string>
+    <string name="collapse_text">Collapse</string>
+    <string name="expand_text">Expand</string>
+    <string name="delete_text">Delete</string>
+    <string name="add_to_calendar_text">Add to calendar</string>
+    <string name="remove_trip_text">Remove Trip</string>
+    <string name="cancel_text">Cancel</string>
+    <string name="remove_text">Remove</string>
+    <string name="no_participants_text">No participants.</string>
+    <string name="one_participant_text">1 Participant:</string>
+    <string name="remove_trip_confirmation">Are you sure you want to remove %1$s from your trips?</string>
+    <string name="deleted_trip_text">Trip successfully deleted</string>
+    <string name="additional_participants">and %1$d more</string>
+    <string name="participants_count">%1$d Participants:</string>
+
+
+
 </resources>
