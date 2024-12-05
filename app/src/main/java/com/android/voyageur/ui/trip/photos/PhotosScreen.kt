@@ -1,7 +1,6 @@
 package com.android.voyageur.ui.trip.photos
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,7 +38,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
-import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.gallery.PermissionButtonForGallery
@@ -57,8 +56,8 @@ fun PhotosScreen(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel
 ) {
-  val trip = tripsViewModel.selectedTrip.value!!
-  val photos by remember { mutableStateOf(tripsViewModel.getPhotosForSelectedTrip()) }
+  val trip by tripsViewModel.selectedTrip.collectAsState()
+  val photos = trip?.photos ?: emptyList()
   val context = LocalContext.current
   val status by connectivityState()
   val isConnected = status === ConnectionState.Available
@@ -71,8 +70,7 @@ fun PhotosScreen(
                 if (isConnected) {
                   val newPhotoUri = uri.toString()
                   tripsViewModel.addPhotoToTrip(newPhotoUri)
-                    Toast.makeText(context, "Photo successfully added", Toast.LENGTH_SHORT)
-                        .show()
+                  Toast.makeText(context, "Photo successfully added", Toast.LENGTH_SHORT).show()
                 } else {
                   Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
                 }
@@ -117,6 +115,7 @@ fun PhotosScreen(
       })
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun PhotoItem(photoUri: String, tripsViewModel: TripsViewModel) {
   var isExpanded by remember { mutableStateOf(false) }
@@ -163,9 +162,8 @@ fun PhotoItem(photoUri: String, tripsViewModel: TripsViewModel) {
           TextButton(
               onClick = {
                 if (isConnected) {
-                    tripsViewModel.removePhotoFromTrip(photoUri)
-                    Toast.makeText(context, "Photo successfully deleted", Toast.LENGTH_SHORT)
-                        .show()
+                  tripsViewModel.removePhotoFromTrip(photoUri)
+                  Toast.makeText(context, "Photo successfully deleted", Toast.LENGTH_SHORT).show()
                 } else {
                   Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
                 }

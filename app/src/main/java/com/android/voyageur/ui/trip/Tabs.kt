@@ -81,7 +81,7 @@ fun TopTabs(
               placesViewModel = placesViewModel,
               onUpdate = {
                 navigationActions.getNavigationState().currentTabIndexForTrip = 0
-                navigationActions.getNavigationState().currentTabIndexForTrip = 2
+                navigationActions.getNavigationState().currentTabIndexForTrip = 3
               })
     }
   }

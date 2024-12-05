@@ -208,7 +208,9 @@ fun AddTripScreen(
                 if (isEditMode) tripsViewModel.selectedTrip.value?.activities ?: listOf()
                 else listOf(),
             type = tripType,
-            imageUri = imageUrl)
+            imageUri = imageUrl,
+            photos =
+                if (isEditMode) tripsViewModel.selectedTrip.value?.photos ?: listOf() else listOf())
 
     if (!isEditMode) {
       isSaving = true

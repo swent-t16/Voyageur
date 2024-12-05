@@ -2,7 +2,6 @@ package com.android.voyageur.model.trip
 
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -218,9 +217,8 @@ open class TripsViewModel(
             selectTrip(updatedTrip)
           },
           onFailure = { error ->
-              Log.e("PhotoItem", "Error deleting photo: ${error.message}", error)
-          }
-          )
+            Log.e("PhotoItem", "Error deleting photo: ${error.message}", error)
+          })
     }
   }
 
