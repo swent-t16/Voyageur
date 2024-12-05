@@ -74,6 +74,7 @@ import androidx.core.content.ContextCompat
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesViewModel
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
@@ -95,6 +96,8 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+const val DISCOVER_PAGE_INDEX = 2
+
 /**
  * Composable function for the search screen.
  *
@@ -108,6 +111,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 fun SearchScreen(
     userViewModel: UserViewModel,
     placesViewModel: PlacesViewModel,
+    tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
     requirePermission: Boolean = true
 ) {
@@ -130,7 +134,8 @@ fun SearchScreen(
   val isConnected = status === ConnectionState.Available
   if (isConnected) {
     placesViewModel.searchPlaces(searchQuery.text, userLocation)
-  } else if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {
+  } else if (navigationActions.getNavigationState().currentTabForSearch ==
+      FilterType.PLACES.ordinal) {
     Toast.makeText(context, "No internet connection, places search is disabled", Toast.LENGTH_SHORT)
         .show()
   }
@@ -210,7 +215,7 @@ fun SearchScreen(
         })
   }
   LaunchedEffect(navigationActions.getNavigationState().currentTabForSearch) {
-    if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES &&
+    if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES.ordinal &&
         requirePermission) {
       if (permissions.all {
         ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
@@ -232,7 +237,8 @@ fun SearchScreen(
             userViewModel)
       },
       floatingActionButton = {
-        if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {
+        if (navigationActions.getNavigationState().currentTabForSearch ==
+            FilterType.PLACES.ordinal) {
           FloatingActionButton(
               modifier = Modifier.testTag("toggleMapViewButton"),
               onClick = { isMapView = !isMapView }) {
@@ -282,18 +288,29 @@ fun SearchScreen(
           // Tabs
           TabRow(
               modifier = Modifier.testTag("tabRow"),
-              selectedTabIndex =
-                  navigationActions.getNavigationState().currentTabForSearch.ordinal) {
+              selectedTabIndex = navigationActions.getNavigationState().currentTabForSearch) {
                 FilterType.values().forEachIndexed { index, filterType ->
                   Tab(
                       modifier = Modifier.testTag("filterButton_${filterType.name}"),
                       selected =
-                          navigationActions.getNavigationState().currentTabForSearch == filterType,
+                          navigationActions.getNavigationState().currentTabForSearch ==
+                              filterType.ordinal,
                       onClick = {
-                        navigationActions.getNavigationState().currentTabForSearch = filterType
+                        navigationActions.getNavigationState().currentTabForSearch =
+                            filterType.ordinal
                       },
                       text = { Text(filterType.name) })
                 }
+                Tab(
+                    modifier = Modifier.testTag("discoverTab"),
+                    selected =
+                        navigationActions.getNavigationState().currentTabForSearch ==
+                            DISCOVER_PAGE_INDEX,
+                    onClick = {
+                      navigationActions.getNavigationState().currentTabForSearch =
+                          DISCOVER_PAGE_INDEX
+                    },
+                    text = { Text("DISCOVER") })
               }
 
           Spacer(modifier = Modifier.height(16.dp))
@@ -311,9 +328,10 @@ fun SearchScreen(
               modifier = Modifier.padding(horizontal = 16.dp))
 
           // Search results based on the selected tab
-          if (navigationActions.getNavigationState().currentTabForSearch == FilterType.PLACES) {
+          if (navigationActions.getNavigationState().currentTabForSearch ==
+              FilterType.PLACES.ordinal) {
             if (isMapView) {
-              var cameraPositionState = rememberCameraPositionState {
+              val cameraPositionState = rememberCameraPositionState {
                 position =
                     com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
                         userLocation ?: LatLng(37.7749, -122.4194), // Default to SF
@@ -373,7 +391,8 @@ fun SearchScreen(
                     }
                   }
             }
-          } else {
+          } else if (navigationActions.getNavigationState().currentTabForSearch ==
+              FilterType.USERS.ordinal) {
             LazyColumn(
                 modifier =
                     Modifier.fillMaxSize()
@@ -393,6 +412,8 @@ fun SearchScreen(
                     }
                   }
                 }
+          } else {
+            DiscoverContent(tripsViewModel, userViewModel)
           }
         }
       }
