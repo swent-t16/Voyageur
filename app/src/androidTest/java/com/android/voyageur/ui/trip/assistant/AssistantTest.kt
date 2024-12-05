@@ -1,5 +1,8 @@
 package com.android.voyageur.ui.trip.assistant
 
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.NavHostController
@@ -19,7 +22,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.doNothing
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 
 @RunWith(AndroidJUnit4::class)
@@ -217,5 +222,60 @@ class AssistantScreenTest {
     verify(mockTripsViewModel)
         .sendActivitiesPrompt(
             sampleTrip, "", listOf("hiking", "cycling"), provideFinalActivities = false)
+  }
+
+  @Test
+  fun assistantScreen_doneAction_hidesKeyboardAndSendsPrompt() {
+    val uiStateFlow = MutableStateFlow(UiState.Success(sampleJson))
+    val tripFlow = MutableStateFlow(sampleTrip)
+    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
+    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
+
+    val keyboardController = mock(SoftwareKeyboardController::class.java)
+
+    composeTestRule.setContent {
+      CompositionLocalProvider(LocalSoftwareKeyboardController provides keyboardController) {
+        AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+      }
+    }
+    // Simulate entering a prompt
+    val inputPrompt = "Test prompt"
+    composeTestRule.onNodeWithTag("AIRequestTextField").performTextInput(inputPrompt)
+
+    // Simulate the Done action
+    composeTestRule.onNodeWithTag("AIRequestTextField").performImeAction()
+
+    verify(keyboardController).hide()
+    verify(mockTripsViewModel)
+        .sendActivitiesPrompt(
+            trip = sampleTrip,
+            userPrompt = inputPrompt,
+            interests = emptyList(),
+            provideFinalActivities = false)
+  }
+
+  @Test
+  fun assistantScreen_doneAction_preventsPromptSubmissionWhenLoading() {
+    val uiStateFlow = MutableStateFlow(UiState.Loading)
+    val tripFlow = MutableStateFlow(sampleTrip)
+    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
+    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
+
+    val keyboardController = mock(SoftwareKeyboardController::class.java)
+
+    composeTestRule.setContent {
+      CompositionLocalProvider(LocalSoftwareKeyboardController provides keyboardController) {
+        AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+      }
+    }
+    // Simulate entering a prompt
+    val inputPrompt = "Test prompt"
+    composeTestRule.onNodeWithTag("AIRequestTextField").performTextInput(inputPrompt)
+
+    // Simulate the Done action
+    composeTestRule.onNodeWithTag("AIRequestTextField").performImeAction()
+
+    verify(keyboardController).hide()
+    verify(mockTripsViewModel, times(0)).sendActivitiesPrompt(any(), any(), any(), any())
   }
 }
