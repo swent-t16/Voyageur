@@ -335,4 +335,10 @@ class TripsViewModelTest {
     tripsViewModel.setInitialUiState()
     assert(tripsViewModel.uiState.value is UiState.Initial)
   }
+
+  @Test
+  fun testGetFeed() {
+    tripsViewModel.getFeed("userId")
+    verify(tripsRepository).getFeed(any(), any(), any())
+  }
 }
