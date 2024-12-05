@@ -2,6 +2,7 @@ package com.android.voyageur.model.assistant
 
 import android.util.Log
 import com.android.voyageur.BuildConfig
+import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.Trip
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.FunctionType
@@ -126,6 +127,8 @@ fun generatePrompt(
     provideFinalActivities: Boolean,
     alreadyPresentActivities: List<String>
 ): String {
+    val possibleEnumTypePrompt = "The activity type can only be ${ActivityType.entries.joinToString { ", " }}"
+    Log.d("AssistantUtils", "possibleEnumTypePrompt: $possibleEnumTypePrompt")
   val startDate = getYearMonthDay(trip.startDate)
   val endDate = getYearMonthDay(trip.endDate)
   val datePrompt =
@@ -152,14 +155,14 @@ fun generatePrompt(
       if (provideFinalActivities) {
         """
     Make a full schedule by listing activities, including separate activities for eating, transport, etc.
-    The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt $alreadyPresentActivitiesPrompt
+    The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt $alreadyPresentActivitiesPrompt $possibleEnumTypePrompt
     Recommend multiple activities for each day.
     """
             .trimIndent()
       } else {
         """
     List a lot of popular specific activities to do on a trip called ${trip.name}.
-    The trip takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt $alreadyPresentActivitiesPrompt
+    The trip takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt $alreadyPresentActivitiesPrompt $possibleEnumTypePrompt
     """
             .trimIndent()
       }
