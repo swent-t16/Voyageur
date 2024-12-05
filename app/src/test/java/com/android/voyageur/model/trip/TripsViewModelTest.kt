@@ -1,10 +1,12 @@
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
+import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.trip.UiState
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.FirebaseApp
@@ -32,6 +34,7 @@ import org.robolectric.RobolectricTestRunner
 class TripsViewModelTest {
   private lateinit var tripsRepository: TripRepository
   private lateinit var tripsViewModel: TripsViewModel
+  private lateinit var mockTripsViewModel: TripsViewModel
 
   private val trip =
       Trip(
@@ -51,6 +54,7 @@ class TripsViewModelTest {
   fun setUp() {
     tripsRepository = mock(TripRepository::class.java)
     tripsViewModel = TripsViewModel(tripsRepository)
+    mockTripsViewModel = mock(TripsViewModel::class.java)
     // Initialize Firebase if necessary
     if (FirebaseApp.getApps(ApplicationProvider.getApplicationContext()).isEmpty()) {
       FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
@@ -268,5 +272,67 @@ class TripsViewModelTest {
           assert(false) // This should not be called in the failure scenario
         },
         onFailure = { exception -> assert(exception.message == "Upload failed") })
+  }
+
+  @Test
+  fun testSetTripType() {
+    tripsViewModel.setTripType(TripType.BUSINESS)
+    assert(tripsViewModel.tripType.value == TripType.BUSINESS)
+  }
+
+  @Test
+  fun testGetActivitiesForSelectedTrip() {
+    tripsViewModel.selectTrip(trip)
+    assert(tripsViewModel.getActivitiesForSelectedTrip() == trip.activities)
+  }
+
+  @Test
+  fun testAddActivityToTrip() {
+    tripsViewModel.selectTrip(trip)
+    val activity = Activity(title = "Activity 1", description = "Description 1")
+    tripsViewModel.removeActivityFromTrip(activity)
+    assert(tripsViewModel.getActivitiesForSelectedTrip() == trip.activities)
+  }
+
+  @Test
+  fun testRemoveActivityFromTrip() {
+    tripsViewModel.selectTrip(trip)
+    val activity = Activity(title = "Activity 1", description = "Description 1")
+    // mock add and remove an activity
+    tripsViewModel.addActivityToTrip(activity)
+    tripsViewModel.removeActivityFromTrip(activity)
+    assert(tripsViewModel.getActivitiesForSelectedTrip().isEmpty())
+  }
+
+  @Test
+  fun testSetInitialUiState() {
+    tripsViewModel.setInitialUiState()
+    assert(tripsViewModel.uiState.value is UiState.Initial)
+  }
+
+  @Test
+  fun sendActivitiesPrompt_shouldUpdateUiStateWithSuccess() = runTest {
+    val trip =
+        Trip(
+            id = "1",
+            creator = "creator",
+            participants = emptyList(),
+            description = "Trip description",
+            name = "Trip name",
+            location = Location("", "", "", 0.0, 0.0),
+            startDate = Timestamp.now(),
+            endDate = Timestamp.now(),
+            activities = emptyList(),
+            type = TripType.TOURISM,
+            imageUri = "")
+    val userPrompt = "Generate activities for the trip"
+    val provideFinalActivities = true
+
+    tripsViewModel.sendActivitiesPrompt(trip, userPrompt, emptyList(), provideFinalActivities)
+    advanceUntilIdle()
+
+    val uiState = tripsViewModel.uiState.value
+    tripsViewModel.setInitialUiState()
+    assert(tripsViewModel.uiState.value is UiState.Initial)
   }
 }

@@ -112,6 +112,8 @@ class EditProfileScreenTest {
     userViewModel._user.value = user
     userViewModel._isLoading.value = false
 
+    composeTestRule.onNodeWithTag("editProfileScreen").assertIsDisplayed()
+
     // Assert: Check that the user data fields are displayed with correct values
     composeTestRule.onNodeWithTag("nameField").assertIsDisplayed()
     composeTestRule.onNodeWithTag("emailField").assertIsDisplayed()
