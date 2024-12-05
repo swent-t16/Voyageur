@@ -19,10 +19,13 @@ class GeneratePromptTest {
 
     val userPrompt = "Explore beaches and try local cuisine"
     val provideFinalActivities = true
-    val interests = listOf("hiking", "cycling")
-    val useInterests = false
 
-    val prompt = generatePrompt(trip, userPrompt, interests, provideFinalActivities, useInterests)
+    val prompt =
+        generatePrompt(
+            trip = trip,
+            userPrompt = userPrompt,
+            interests = emptyList(),
+            provideFinalActivities = provideFinalActivities)
     println(prompt)
 
     assertTrue(prompt.contains("Summer Adventure"))
@@ -44,10 +47,13 @@ class GeneratePromptTest {
 
     val userPrompt = "Enjoy snowy landscapes and Christmas markets"
     val provideFinalActivities = false
-    val interests = listOf("hiking, cycling")
-    val useInterests = false
 
-    val prompt = generatePrompt(trip, userPrompt, interests, provideFinalActivities, useInterests)
+    val prompt =
+        generatePrompt(
+            trip = trip,
+            userPrompt = userPrompt,
+            interests = emptyList(),
+            provideFinalActivities = provideFinalActivities)
 
     assertTrue(prompt.contains("Winter Wonderland"))
     assertTrue(prompt.contains("start date year 2024 month 12 day 20"))
@@ -69,9 +75,8 @@ class GeneratePromptTest {
     val userPrompt = "Relax and have fun"
     val provideFinalActivities = false
     val interests = listOf("hiking", "cycling")
-    val useInterests = true
 
-    val prompt = generatePrompt(trip, userPrompt, interests, provideFinalActivities, useInterests)
+    val prompt = generatePrompt(trip, userPrompt, interests, provideFinalActivities)
 
     assertTrue(prompt.contains("Spring Break"))
     assertTrue(prompt.contains("start date year 2024 month 3 day 1"))
@@ -93,9 +98,8 @@ class GeneratePromptTest {
     val userPrompt = "Relax and have fun"
     val provideFinalActivities = true
     val interests = listOf("hiking", "cycling")
-    val useInterests = true
 
-    val prompt = generatePrompt(trip, userPrompt, interests, provideFinalActivities, useInterests)
+    val prompt = generatePrompt(trip, userPrompt, interests, provideFinalActivities)
 
     assertTrue(prompt.contains("Spring Break"))
     assertTrue(prompt.contains("start date year 2024 month 3 day 1"))

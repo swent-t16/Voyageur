@@ -123,7 +123,6 @@ fun generatePrompt(
     userPrompt: String,
     interests: List<String>,
     provideFinalActivities: Boolean,
-    useInterests: Boolean
 ): String {
   val startDate = getYearMonthDay(trip.startDate)
   val endDate = getYearMonthDay(trip.endDate)
@@ -134,7 +133,7 @@ fun generatePrompt(
             """
           .trimIndent()
   val interestsPrompt =
-      if (useInterests && interests.isNotEmpty()) {
+      if (interests.isNotEmpty()) {
         "The activities should focus on the following interests (if applicable): ${interests.joinToString(", ")}."
       } else {
         ""

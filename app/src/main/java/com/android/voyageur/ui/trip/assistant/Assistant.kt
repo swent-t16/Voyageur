@@ -120,14 +120,22 @@ fun AssistantScreen(
                           keyboardController?.hide()
                           if (uiState !is UiState.Loading) {
                             tripsViewModel.sendActivitiesPrompt(
-                                trip, prompt, interests, provideFinalActivities, useInterests)
+                                trip = trip,
+                                userPrompt = prompt,
+                                interests = if (useInterests) interests else emptyList(),
+                                provideFinalActivities = provideFinalActivities,
+                            )
                           }
                         }),
                 singleLine = true)
             Button(
                 onClick = {
                   tripsViewModel.sendActivitiesPrompt(
-                      trip, prompt, interests, provideFinalActivities, useInterests)
+                      trip = trip,
+                      userPrompt = prompt,
+                      interests = if (useInterests) interests else emptyList(),
+                      provideFinalActivities = provideFinalActivities,
+                  )
                 },
                 enabled = uiState !is UiState.Loading, // Disable the button during loading
                 modifier = Modifier.testTag("AIRequestButton").align(Alignment.CenterVertically)) {

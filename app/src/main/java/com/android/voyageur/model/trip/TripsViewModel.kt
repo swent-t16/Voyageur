@@ -194,9 +194,8 @@ open class TripsViewModel(
   open fun sendActivitiesPrompt(
       trip: Trip,
       userPrompt: String,
-      interests: List<String>,
+      interests: List<String> = emptyList(),
       provideFinalActivities: Boolean,
-      useInterests: Boolean
   ) {
     _uiState.value = UiState.Loading
 
@@ -204,7 +203,7 @@ open class TripsViewModel(
       try {
         val response =
             generativeModel.generateContent(
-                generatePrompt(trip, userPrompt, interests, provideFinalActivities, useInterests))
+                generatePrompt(trip, userPrompt, interests, provideFinalActivities))
         response.text?.let { outputContent -> _uiState.value = UiState.Success(outputContent) }
       } catch (e: Exception) {
         _uiState.value = UiState.Error(e.localizedMessage ?: "unknown error")
