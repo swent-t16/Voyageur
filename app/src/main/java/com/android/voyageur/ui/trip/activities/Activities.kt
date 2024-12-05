@@ -123,8 +123,16 @@ fun ActivitiesScreen(
 
   var showDialog by remember { mutableStateOf(false) }
   var activityToDelete by remember { mutableStateOf<Activity?>(null) }
+  var totalEstimatedPrice by remember { mutableStateOf(0.0) }
 
-  val totalEstimatedPrice = final.sumOf { it.estimatedPrice }
+  LaunchedEffect(final, selectedFilters) {
+    totalEstimatedPrice =
+        final
+            .filter { activity ->
+              selectedFilters.isEmpty() || activity.activityType in selectedFilters
+            }
+            .sumOf { it.estimatedPrice }
+  }
 
   Scaffold(
       modifier = Modifier.testTag("activitiesScreen"),
@@ -251,7 +259,6 @@ fun ActivitiesScreen(
                 drafts = drafts.filter { it != activityToDelete }
               })
         }
-        // Opens the filter menu dialog
         if (showFilterMenu) {
           FilterDialog(
               selectedFilters = selectedFilters,
