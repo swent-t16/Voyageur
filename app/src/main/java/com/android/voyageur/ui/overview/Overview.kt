@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
@@ -59,7 +57,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -134,7 +131,7 @@ fun OverviewScreen(
                   contentAlignment = Alignment.CenterStart) {
                     if (!searchVisible) {
                       Text(
-                          text = stringResource( R.string.overview_header_text),
+                          text = stringResource(R.string.overview_header_text),
                           style =
                               MaterialTheme.typography.headlineMedium.copy(
                                   fontWeight = FontWeight.Bold),
@@ -143,7 +140,9 @@ fun OverviewScreen(
                       TextField(
                           value = searchQuery,
                           onValueChange = { searchQuery = it },
-                          placeholder = { Text(stringResource( R.string.overview_searchbar_placeholder)) },
+                          placeholder = {
+                            Text(stringResource(R.string.overview_searchbar_placeholder))
+                          },
                           modifier = Modifier.fillMaxWidth().testTag("searchField"),
                           singleLine = true,
                           shape = RoundedCornerShape(10.dp))
