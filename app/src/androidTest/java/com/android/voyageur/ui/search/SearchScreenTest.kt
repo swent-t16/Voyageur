@@ -135,7 +135,7 @@ class SearchScreenTest {
   }
 
   @Test
-  fun testDiscoverContent() = runTest{
+  fun testDiscoverContent() = runTest {
     `when`(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
       val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
       onSuccess(listOf(Trip(id = "1", name = "Test Trip 1"), Trip(id = "2", name = "Test Trip 2")))
