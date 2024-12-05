@@ -52,7 +52,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -71,7 +70,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesViewModel
@@ -415,14 +413,14 @@ fun UserSearchResultItem(
     fieldColor: Color,
     navigationActions: NavigationActions
 ) {
-    val connectionStatus by connectivityState()
-    val isConnected = connectionStatus == ConnectionState.Available
-    val currentUser by userViewModel.user.collectAsState()
-    val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
+  val connectionStatus by connectivityState()
+  val isConnected = connectionStatus == ConnectionState.Available
+  val currentUser by userViewModel.user.collectAsState()
+  val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
 
-    val isCurrentUser = currentUser?.id == user.id
-    val isContactAdded = currentUser?.contacts?.contains(user.id) ?: false
-    val isRequestPending = sentFriendRequests.any { it.to == user.id }
+  val isCurrentUser = currentUser?.id == user.id
+  val isContactAdded = currentUser?.contacts?.contains(user.id) ?: false
+  val isRequestPending = sentFriendRequests.any { it.to == user.id }
 
   LaunchedEffect(isContactAdded, isRequestPending) {
     Log.d("UserSearchResultItem", "Recomposition triggered")
