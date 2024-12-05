@@ -34,7 +34,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
@@ -59,9 +58,9 @@ class AddTripScreenTest {
     placesRepository = mock(PlacesRepository::class.java)
     placesViewModel = PlacesViewModel(placesRepository)
 
-    `when`(navigationActions.currentRoute()).thenReturn(Screen.ADD_TRIP)
-    whenever(tripsViewModel.getNewTripId()).thenReturn("mockTripId")
     whenever(firebaseAuth.uid).thenReturn("mockUserId")
+    whenever(tripRepository.getNewTripId()).thenReturn("mockTripId")
+    whenever(navigationActions.currentRoute()).thenReturn(Screen.ADD_TRIP)
   }
 
   @Test
@@ -70,6 +69,7 @@ class AddTripScreenTest {
       AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
     }
 
+    composeTestRule.onNodeWithTag("addTrip").assertExists()
     composeTestRule.onNodeWithTag("inputTripTitle").assertExists()
     composeTestRule.onNodeWithTag("inputTripDescription").assertExists()
     composeTestRule.onNodeWithTag("searchTextField").assertExists()
@@ -147,37 +147,20 @@ class AddTripScreenTest {
       AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
     }
 
+    // Fill input fields
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("London Trip")
     composeTestRule.onNodeWithTag("inputTripDescription").performTextInput("4 days in London")
-    composeTestRule.onNodeWithTag("searchTextField").performTextInput("London")
+    composeTestRule.onNodeWithTag("searchTextField").performTextInput("Big Ben Cafe")
     composeTestRule.onNodeWithText("Start Date *").performClick()
-    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithText("OK").performClick() // Simulate start date selection
     composeTestRule.onNodeWithText("End Date *").performClick()
-    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.onNodeWithText("OK").performClick() // Simulate end date selection
 
+    // Verify save button is enabled and click it
+    composeTestRule.onNodeWithTag("tripSave").assertIsEnabled()
     composeTestRule.onNodeWithTag("tripSave").performClick()
 
-    val today = GregorianCalendar()
-    today.set(GregorianCalendar.HOUR_OF_DAY, 0)
-    today.set(GregorianCalendar.MINUTE, 0)
-    today.set(GregorianCalendar.SECOND, 0)
-    today.set(GregorianCalendar.MILLISECOND, 0)
-    val todayTimestamp = Timestamp(today.time)
-
-    val expectedTrip =
-        Trip(
-            id = "mockTripId",
-            creator = "mockUserId",
-            description = "4 days in London",
-            name = "London Trip",
-            location = Location(name = "Big Ben Cafe"),
-            startDate = todayTimestamp,
-            endDate = todayTimestamp,
-            activities = listOf(),
-            type = TripType.BUSINESS,
-            imageUri = "",
-            participants = listOf("mockUserId"))
-
+    // Verify the createTrip call
     verify(tripRepository).createTrip(any(), any(), any())
   }
 

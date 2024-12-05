@@ -54,7 +54,8 @@ fun BottomNavigationMenu(
                       modifier =
                           Modifier.clip(RoundedCornerShape(50))
                               .background(MaterialTheme.colorScheme.error)
-                              .size(16.dp)) {
+                              .size(16.dp)
+                              .testTag("notificationBadge")) {
                         Text(
                             text = notifications.toString(),
                             style = MaterialTheme.typography.labelSmall,
