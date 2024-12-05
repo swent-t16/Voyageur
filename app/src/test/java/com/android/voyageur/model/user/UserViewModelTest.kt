@@ -761,4 +761,423 @@ class UserViewModelTest {
     mockLog.verify { Log.d("FRIEND_REQUEST", "Deleted request: req_123") }
     mockLog.close()
   }
+
+  @Test
+  fun getSentRequestId_returnsCorrectRequestId() {
+    val userId = "456"
+    val requestId = "req_123"
+    val currentUserId = "123"
+
+    val friendRequest = FriendRequest(id = requestId, from = currentUserId, to = userId)
+    userViewModel._sentFriendRequests.value = listOf(friendRequest)
+
+    val result = userViewModel.getSentRequestId(userId)
+    assert(result == requestId)
+  }
+
+  @Test
+  fun getSentRequestId_returnsNullIfNotFound() {
+    val userId = "456"
+    val currentUserId = "123"
+
+    val friendRequest = FriendRequest(id = "req_123", from = currentUserId, to = "789")
+    userViewModel._sentFriendRequests.value = listOf(friendRequest)
+
+    val result = userViewModel.getSentRequestId(userId)
+    assert(result == null)
+  }
+
+  @Test
+  fun setQuery_withEmptyString_doesNotTriggerSearch() = runTest {
+    val query = ""
+    userViewModel.setQuery(query)
+    assert(userViewModel.query.value == query)
+    delay(300) // Wait for debounce delay
+    verify(userRepository, never()).searchUsers(any(), any(), any())
+  }
+
+  @Test
+  fun updateUser_failure() = runTest {
+    val user = User("123", "Jane Doe", "jane@example.com")
+    val exception = Exception("Update failed")
+
+    doAnswer { invocation ->
+          val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+          onFailure(exception)
+          null
+        }
+        .whenever(userRepository)
+        .updateUser(any(), any(), anyOrNull())
+
+    var failureCalled = false
+    userViewModel.updateUser(
+        user,
+        onFailure = {
+          failureCalled = true
+          assert(it == exception)
+        })
+
+    verify(userRepository).updateUser(eq(user), any(), anyOrNull())
+    assert(failureCalled)
+  }
+
+  @Test
+  fun acceptFriendRequest_senderUserNotFound() = runTest {
+    val currentUserId = "123"
+    val senderId = "456"
+    val friendRequest = FriendRequest(id = "req_123", from = senderId, to = currentUserId)
+    val currentUser =
+        User(
+            id = currentUserId,
+            name = "Current User",
+            email = "current@example.com",
+            contacts = listOf())
+    userViewModel._user.value = currentUser
+
+    // Mock getUsersByIds to return empty list (sender user not found)
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+          onSuccess(emptyList())
+          null
+        }
+        .whenever(userRepository)
+        .fetchUsersByIds(eq(listOf(senderId)), any(), anyOrNull())
+
+    // Call the method under test
+    userViewModel.acceptFriendRequest(friendRequest)
+
+    // Verify that updateUser was not called for sender
+    verify(userRepository, never())
+        .updateUser(argThat { user -> user.id == senderId }, any(), anyOrNull())
+  }
+
+  @Test
+  fun updateUserProfilePicture_failure() = runTest {
+    val mockUri = mock(Uri::class.java)
+    val userId = "123"
+    val exception = Exception("Upload failed")
+
+    userViewModel._user.value = User(id = userId, name = "Test User")
+
+    // Properly mock uploadProfilePicture to return a failure
+    doAnswer { invocation ->
+          val onFailure = invocation.getArgument<(Exception) -> Unit>(3)
+          onFailure(exception)
+          null
+        }
+        .whenever(userRepository)
+        .uploadProfilePicture(eq(mockUri), eq(userId), any(), any())
+
+    var resultUrl: String? = null
+    userViewModel.updateUserProfilePicture(mockUri) { url -> resultUrl = url }
+
+    verify(userRepository).uploadProfilePicture(eq(mockUri), eq(userId), any(), any())
+    assert(resultUrl == null)
+    assert(!userViewModel.isLoading.value)
+  }
+
+  @Test
+  fun getNotificationsCount_handlesFailure() = runTest {
+    val exception = Exception("Failed to get notification count")
+
+    doAnswer { invocation ->
+          val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+          onFailure(exception)
+          null
+        }
+        .whenever(friendRequestRepository)
+        .getNotificationCount(anyString(), any(), anyOrNull())
+
+    userViewModel.getNotificationsCount { count -> fail("onSuccess should not be called") }
+
+    verify(friendRequestRepository).getNotificationCount(anyString(), any(), anyOrNull())
+    assert(userViewModel.notificationCount.value == 0L)
+  }
+
+  @Test
+  fun getFriendRequests_handlesFailure() = runTest {
+    val exception = Exception("Failed to get friend requests")
+
+    doAnswer { invocation ->
+          val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+          onFailure(exception)
+          null
+        }
+        .whenever(friendRequestRepository)
+        .getFriendRequests(anyString(), any(), anyOrNull())
+
+    var onSuccessCalled = false
+    userViewModel.getFriendRequests { onSuccessCalled = true }
+
+    verify(friendRequestRepository).getFriendRequests(anyString(), any(), anyOrNull())
+    assert(!onSuccessCalled)
+    assert(userViewModel.friendRequests.value.isEmpty())
+  }
+
+  @Test
+  fun getUsersByIds_handlesFailure() = runTest {
+    val userIds = listOf("123", "456")
+    val exception = Exception("Failed to fetch users")
+
+    doAnswer { invocation ->
+          val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+          onFailure(exception)
+          null
+        }
+        .whenever(userRepository)
+        .fetchUsersByIds(eq(userIds), any(), anyOrNull())
+
+    var onSuccessCalled = false
+    userViewModel.getUsersByIds(userIds) { users -> onSuccessCalled = true }
+
+    verify(userRepository).fetchUsersByIds(eq(userIds), any(), anyOrNull())
+    assert(!onSuccessCalled)
+  }
+
+  @Test
+  fun getMyContacts_handlesFailure() = runTest {
+    val exception = Exception("Failed to get contacts")
+
+    // Mock Firebase.auth.uid to return a non-null value
+    whenever(Firebase.auth.uid).thenReturn("mockUserId")
+
+    doAnswer { invocation ->
+          val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+          onFailure(exception)
+          null
+        }
+        .whenever(userRepository)
+        .getContacts(eq("mockUserId"), any(), anyOrNull())
+
+    var onSuccessCalled = false
+    userViewModel.getMyContacts { users -> onSuccessCalled = true }
+
+    verify(userRepository).getContacts(eq("mockUserId"), any(), anyOrNull())
+    assert(!onSuccessCalled)
+  }
+
+  @Test
+  fun getFriendRequests_updatesStateOnSuccess_newData() = runTest {
+    val userId = "123"
+    val friendRequests =
+        listOf(
+            FriendRequest(id = "req1", from = "userA", to = userId),
+            FriendRequest(id = "req2", from = "userB", to = userId))
+
+    // Mock Firebase.auth.uid to return userId
+    whenever(Firebase.auth.uid).thenReturn(userId)
+
+    // Mock friendRequestRepository.getFriendRequests to call onSuccess with friendRequests
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
+          onSuccess(friendRequests)
+          null
+        }
+        .whenever(friendRequestRepository)
+        .getFriendRequests(eq(userId), any(), anyOrNull())
+
+    // Mock getUsersByIds to return users corresponding to friendRequests.from
+    val users =
+        listOf(
+            User(id = "userA", name = "User A", email = "userA@example.com"),
+            User(id = "userB", name = "User B", email = "userB@example.com"))
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+          onSuccess(users)
+          null
+        }
+        .whenever(userRepository)
+        .fetchUsersByIds(eq(listOf("userA", "userB")), any(), anyOrNull())
+
+    var onSuccessCalled = false
+    userViewModel.getFriendRequests {
+      onSuccessCalled = true
+      assert(it == friendRequests)
+    }
+
+    verify(friendRequestRepository).getFriendRequests(eq(userId), any(), anyOrNull())
+    verify(userRepository).fetchUsersByIds(eq(listOf("userA", "userB")), any(), anyOrNull())
+
+    assert(onSuccessCalled)
+    assert(userViewModel.friendRequests.value == friendRequests)
+    assert(userViewModel.notificationUsers.value == users)
+  }
+
+  @Test
+  fun getFriendRequests_noUpdateNeeded() = runTest {
+    val userId = "123"
+    val existingFriendRequests =
+        listOf(
+            FriendRequest(id = "req1", from = "userA", to = userId),
+            FriendRequest(id = "req2", from = "userB", to = userId))
+    userViewModel._friendRequests.value = existingFriendRequests
+
+    // Mock Firebase.auth.uid to return userId
+    whenever(Firebase.auth.uid).thenReturn(userId)
+
+    // Mock friendRequestRepository.getFriendRequests to return the same friendRequests
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
+          onSuccess(existingFriendRequests)
+          null
+        }
+        .whenever(friendRequestRepository)
+        .getFriendRequests(eq(userId), any(), anyOrNull())
+
+    var onSuccessCalled = false
+    userViewModel.getFriendRequests {
+      onSuccessCalled = true
+      assert(it == existingFriendRequests)
+    }
+
+    verify(friendRequestRepository).getFriendRequests(eq(userId), any(), anyOrNull())
+    // Verify that fetchUsersByIds is not called since data hasn't changed
+    verify(userRepository, never()).fetchUsersByIds(any(), any(), anyOrNull())
+
+    assert(onSuccessCalled)
+    assert(userViewModel.friendRequests.value == existingFriendRequests)
+  }
+
+  @Test
+  fun getFriendRequests_updatesStateWhenListChanges() = runTest {
+    val userId = "123"
+    val initialFriendRequests = listOf(FriendRequest(id = "req1", from = "userA", to = userId))
+    userViewModel._friendRequests.value = initialFriendRequests
+
+    // New friend requests from repository
+    val newFriendRequests =
+        listOf(
+            FriendRequest(id = "req1", from = "userA", to = userId),
+            FriendRequest(id = "req2", from = "userB", to = userId))
+
+    // Mock Firebase.auth.uid to return userId
+    whenever(Firebase.auth.uid).thenReturn(userId)
+
+    // Mock friendRequestRepository.getFriendRequests to return newFriendRequests
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
+          onSuccess(newFriendRequests)
+          null
+        }
+        .whenever(friendRequestRepository)
+        .getFriendRequests(eq(userId), any(), anyOrNull())
+
+    // Mock getUsersByIds to return users corresponding to newFriendRequests.from
+    val users =
+        listOf(
+            User(id = "userA", name = "User A", email = "userA@example.com"),
+            User(id = "userB", name = "User B", email = "userB@example.com"))
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+          onSuccess(users)
+          null
+        }
+        .whenever(userRepository)
+        .fetchUsersByIds(eq(listOf("userA", "userB")), any(), anyOrNull())
+
+    var onSuccessCalled = false
+    userViewModel.getFriendRequests {
+      onSuccessCalled = true
+      assert(it == newFriendRequests)
+    }
+
+    verify(friendRequestRepository).getFriendRequests(eq(userId), any(), anyOrNull())
+    verify(userRepository).fetchUsersByIds(eq(listOf("userA", "userB")), any(), anyOrNull())
+
+    assert(onSuccessCalled)
+    assert(userViewModel.friendRequests.value == newFriendRequests)
+    assert(userViewModel.notificationUsers.value == users)
+  }
+
+  @Test
+  fun getFriendRequests_doesNotUpdateWhenSameData() = runTest {
+    val userId = "123"
+    val friendRequests =
+        listOf(
+            FriendRequest(id = "req1", from = "userA", to = userId),
+            FriendRequest(id = "req2", from = "userB", to = userId))
+    userViewModel._friendRequests.value = friendRequests
+
+    // Mock Firebase.auth.uid to return userId
+    whenever(Firebase.auth.uid).thenReturn(userId)
+
+    // Mock friendRequestRepository.getFriendRequests to return the same friendRequests
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
+          onSuccess(friendRequests)
+          null
+        }
+        .whenever(friendRequestRepository)
+        .getFriendRequests(eq(userId), any(), anyOrNull())
+
+    // Call getFriendRequests
+    var onSuccessCalled = false
+    userViewModel.getFriendRequests {
+      onSuccessCalled = true
+      assert(it == friendRequests)
+    }
+
+    // Verify that fetchUsersByIds is not called because data hasn't changed
+    verify(userRepository, never()).fetchUsersByIds(any(), any(), anyOrNull())
+
+    // Verify that friendRequestRepository.getFriendRequests was called
+    verify(friendRequestRepository).getFriendRequests(eq(userId), any(), anyOrNull())
+
+    assert(onSuccessCalled)
+    assert(userViewModel.friendRequests.value == friendRequests)
+  }
+
+  @Test
+  fun getFriendRequests_updatesWhenSizeChanges() = runTest {
+    val userId = "123"
+    val initialFriendRequests = listOf(FriendRequest(id = "req1", from = "userA", to = userId))
+    userViewModel._friendRequests.value = initialFriendRequests
+
+    // New friend requests from repository with different size
+    val newFriendRequests =
+        listOf(
+            FriendRequest(id = "req1", from = "userA", to = userId),
+            FriendRequest(id = "req2", from = "userB", to = userId),
+            FriendRequest(id = "req3", from = "userC", to = userId))
+
+    // Mock Firebase.auth.uid to return userId
+    whenever(Firebase.auth.uid).thenReturn(userId)
+
+    // Mock friendRequestRepository.getFriendRequests to return newFriendRequests
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
+          onSuccess(newFriendRequests)
+          null
+        }
+        .whenever(friendRequestRepository)
+        .getFriendRequests(eq(userId), any(), anyOrNull())
+
+    // Mock getUsersByIds to return users corresponding to newFriendRequests.from
+    val users =
+        listOf(
+            User(id = "userA", name = "User A", email = "userA@example.com"),
+            User(id = "userB", name = "User B", email = "userB@example.com"),
+            User(id = "userC", name = "User C", email = "userC@example.com"))
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+          onSuccess(users)
+          null
+        }
+        .whenever(userRepository)
+        .fetchUsersByIds(eq(listOf("userA", "userB", "userC")), any(), anyOrNull())
+
+    var onSuccessCalled = false
+    userViewModel.getFriendRequests {
+      onSuccessCalled = true
+      assert(it == newFriendRequests)
+    }
+
+    verify(friendRequestRepository).getFriendRequests(eq(userId), any(), anyOrNull())
+    verify(userRepository)
+        .fetchUsersByIds(eq(listOf("userA", "userB", "userC")), any(), anyOrNull())
+
+    assert(onSuccessCalled)
+    assert(userViewModel.friendRequests.value == newFriendRequests)
+    assert(userViewModel.notificationUsers.value == users)
+  }
 }

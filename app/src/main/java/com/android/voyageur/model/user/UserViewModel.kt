@@ -88,7 +88,7 @@ open class UserViewModel(
   private var debounceJob: Job? = null
 
   // Variable to hold the listener registration
-  private var userListenerRegistration: ListenerRegistration? = null
+  var userListenerRegistration: ListenerRegistration? = null
 
   // Listener to monitor authentication state changes
   private val authStateListener =
@@ -135,7 +135,7 @@ open class UserViewModel(
     getUsersByIds(contactIds) { users -> _contacts.value = users }
   }
 
-  override fun onCleared() {
+  public override fun onCleared() {
     super.onCleared()
     if (addAuthStateListener) {
       // Remove the authentication listener when ViewModel is destroyed
