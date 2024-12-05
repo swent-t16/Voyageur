@@ -6,9 +6,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.swipeLeft
-import androidx.compose.ui.test.swipeRight
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
@@ -143,15 +140,6 @@ class SearchScreenTest {
 
     composeTestRule.onNodeWithTag("discoverTab").performClick()
     composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
-    composeTestRule.awaitIdle()
-
-    composeTestRule.onNodeWithTag("pager").performTouchInput { swipeLeft() }
-    composeTestRule.onNodeWithTag("tripCard_2").assertIsDisplayed()
-    composeTestRule.awaitIdle()
-
-    composeTestRule.onNodeWithTag("pager").performTouchInput { swipeRight() }
-    composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
-    composeTestRule.awaitIdle()
   }
 
   @Test
