@@ -101,8 +101,6 @@ fun AddTripScreen(
   var endDate by remember { mutableStateOf<Long?>(null) }
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
   var imageUri by remember { mutableStateOf("") }
-  // Existing state variables
-  var addToCalendar by remember { mutableStateOf(false) }
 
   val contactsAndUsers by userViewModel.contacts.collectAsState()
   val userList =
@@ -399,18 +397,6 @@ fun AddTripScreen(
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
-                // Add the checkbox
-                /*Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                      Checkbox(
-                          checked = addToCalendar,
-                          onCheckedChange = { addToCalendar = it },
-                          modifier = Modifier.testTag("addToCalendarCheckbox"))
-                      Spacer(modifier = Modifier.width(8.dp))
-                      Text("Add to Google Calendar")
-                    }
-                */
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
