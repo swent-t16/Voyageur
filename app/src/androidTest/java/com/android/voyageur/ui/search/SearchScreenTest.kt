@@ -22,6 +22,7 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
 import com.google.android.libraries.places.api.model.Place
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -134,7 +135,7 @@ class SearchScreenTest {
   }
 
   @Test
-  fun testDiscoverContent() {
+  fun testDiscoverContent() = runTest{
     `when`(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
       val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
       onSuccess(listOf(Trip(id = "1", name = "Test Trip 1"), Trip(id = "2", name = "Test Trip 2")))
@@ -142,12 +143,15 @@ class SearchScreenTest {
 
     composeTestRule.onNodeWithTag("discoverTab").performClick()
     composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
+    composeTestRule.awaitIdle()
 
     composeTestRule.onNodeWithTag("pager").performTouchInput { swipeLeft() }
     composeTestRule.onNodeWithTag("tripCard_2").assertIsDisplayed()
+    composeTestRule.awaitIdle()
 
     composeTestRule.onNodeWithTag("pager").performTouchInput { swipeRight() }
     composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
+    composeTestRule.awaitIdle()
   }
 
   @Test
