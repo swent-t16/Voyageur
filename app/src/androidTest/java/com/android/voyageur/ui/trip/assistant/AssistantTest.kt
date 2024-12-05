@@ -196,12 +196,7 @@ class AssistantScreenTest {
     // check the call to sendActivitiesPrompt happens with provideFinalActivities = true
     composeTestRule.onNodeWithTag("AIRequestButton").performClick()
     verify(mockTripsViewModel)
-        .sendActivitiesPrompt(
-            sampleTrip,
-            "",
-            listOf("hiking", "cycling"),
-            provideFinalActivities = true,
-            useInterests = false)
+        .sendActivitiesPrompt(sampleTrip, "", emptyList(), provideFinalActivities = true)
   }
 
   @Test
@@ -221,10 +216,6 @@ class AssistantScreenTest {
     composeTestRule.onNodeWithTag("AIRequestButton").performClick()
     verify(mockTripsViewModel)
         .sendActivitiesPrompt(
-            sampleTrip,
-            "",
-            listOf("hiking", "cycling"),
-            provideFinalActivities = false,
-            useInterests = true)
+            sampleTrip, "", listOf("hiking", "cycling"), provideFinalActivities = false)
   }
 }
