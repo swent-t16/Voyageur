@@ -1280,4 +1280,108 @@ class UserViewModelTest {
     // No full success, so friendRequest is not cleared.
     assert(userViewModel.friendRequests.value.isEmpty())
   }
+
+  @Test
+  fun listenToFriendRequests_updatesStateOnNewRequests() = runTest {
+    val userId = "123"
+    val friendRequests =
+        listOf(
+            FriendRequest(id = "req1", from = "userA", to = userId),
+            FriendRequest(id = "req2", from = "userB", to = userId))
+
+    // Mock Firebase.auth.uid to return userId
+    whenever(Firebase.auth.uid).thenReturn(userId)
+
+    // Mock friendRequestRepository.listenToFriendRequests to return new friend requests
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
+          onSuccess(friendRequests)
+          null
+        }
+        .whenever(friendRequestRepository)
+        .listenToFriendRequests(eq(userId), any(), anyOrNull())
+
+    // Mock getUsersByIds to return user data for the incoming requests
+    val users =
+        listOf(
+            User(id = "userA", name = "User A", email = "userA@example.com"),
+            User(id = "userB", name = "User B", email = "userB@example.com"))
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+          onSuccess(users)
+          null
+        }
+        .whenever(userRepository)
+        .fetchUsersByIds(eq(listOf("userA", "userB")), any(), anyOrNull())
+
+    // Call the method under test
+    userViewModel.listenToFriendRequests()
+
+    // Verify repository method was called
+    verify(friendRequestRepository).listenToFriendRequests(eq(userId), any(), anyOrNull())
+
+    // Verify user data fetch
+    verify(userRepository).fetchUsersByIds(eq(listOf("userA", "userB")), any(), anyOrNull())
+
+    // Assert the state is updated correctly
+    assert(userViewModel.friendRequests.value == friendRequests)
+    assert(userViewModel.notificationUsers.value == users)
+    assert(userViewModel.notificationCount.value == friendRequests.size.toLong())
+  }
+
+  @Test
+  fun listenToFriendRequests_handlesFailureGracefully() = runTest {
+    val userId = "123"
+    val exception = Exception("Failed to listen to friend requests")
+
+    // Mock Firebase.auth.uid to return userId
+    whenever(Firebase.auth.uid).thenReturn(userId)
+
+    // Mock friendRequestRepository.listenToFriendRequests to call onFailure
+    doAnswer { invocation ->
+          val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+          onFailure(exception)
+          null
+        }
+        .whenever(friendRequestRepository)
+        .listenToFriendRequests(eq(userId), any(), anyOrNull())
+
+    // Call the method under test
+    userViewModel.listenToFriendRequests()
+
+    // Verify repository method was called
+    verify(friendRequestRepository).listenToFriendRequests(eq(userId), any(), anyOrNull())
+
+    // Assert that the state remains unchanged
+    assert(userViewModel.friendRequests.value.isEmpty())
+    assert(userViewModel.notificationUsers.value.isEmpty())
+    assert(userViewModel.notificationCount.value == 0L)
+  }
+
+  @Test
+  fun getUsersByIds_updatesStateOnSuccess() = runTest {
+    val userIds = listOf("userA", "userB")
+    val users =
+        listOf(
+            User(id = "userA", name = "User A", email = "userA@example.com"),
+            User(id = "userB", name = "User B", email = "userB@example.com"))
+
+    // Mock fetching users by IDs
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+          onSuccess(users)
+          null
+        }
+        .whenever(userRepository)
+        .fetchUsersByIds(eq(userIds), any(), anyOrNull())
+
+    var onSuccessCalled = false
+    userViewModel.getUsersByIds(userIds) { fetchedUsers ->
+      onSuccessCalled = true
+      assert(fetchedUsers == users)
+    }
+
+    verify(userRepository).fetchUsersByIds(eq(userIds), any(), anyOrNull())
+    assert(onSuccessCalled)
+  }
 }
