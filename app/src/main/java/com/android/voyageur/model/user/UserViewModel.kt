@@ -232,15 +232,13 @@ open class UserViewModel(
    * @param friendRequestId The ID of the friend request to delete after adding the contact.
    */
   fun addContact(userId: String, friendRequestId: String) {
-    val contacts = user.value?.contacts?.toMutableSet()
-    val newUser = user.value!!.copy()
+    val currentUser = user.value ?: return
+    val contacts = currentUser.contacts?.toMutableSet()
     contacts?.add(userId)
-    newUser.contacts = contacts?.toList().orEmpty()
-    if (user.value != null) {
-      updateUser(newUser)
-      // Deletes Friend Request since the user has been added as a contact
-      deleteFriendRequest(friendRequestId)
-    }
+    val newUser = currentUser.copy(contacts = contacts?.toList().orEmpty())
+    updateUser(newUser)
+    // Deletes Friend Request since the user has been added as a contact
+    deleteFriendRequest(friendRequestId)
   }
 
   /**

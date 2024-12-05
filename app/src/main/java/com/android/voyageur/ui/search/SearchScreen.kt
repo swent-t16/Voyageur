@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -62,6 +61,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import coil.compose.rememberAsyncImagePainter
+import com.android.voyageur.R
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.user.User
@@ -424,10 +425,6 @@ fun UserSearchResultItem(
   val isRequestPending = sentFriendRequests.any { it.to == user.id }
   val isRequestReceived = receivedFriendRequests.any { it.from == user.id }
 
-  LaunchedEffect(isContactAdded, isRequestPending, isRequestReceived) {
-    Log.d("UserSearchResultItem", "Recomposition triggered")
-  }
-
   Row(
       modifier =
           modifier
@@ -484,7 +481,7 @@ fun UserSearchResultItem(
                   shape = RoundedCornerShape(20.dp),
                   modifier = Modifier.width(100.dp).height(40.dp)) {
                     Text(
-                        text = "Accept",
+                        text = stringResource(R.string.accept),
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center)
@@ -517,9 +514,9 @@ fun UserSearchResultItem(
                     Text(
                         text =
                             when {
-                              isContactAdded -> "Remove"
-                              isRequestPending -> "Cancel"
-                              else -> "Add"
+                              isContactAdded -> stringResource(R.string.remove)
+                              isRequestPending -> stringResource(R.string.cancel)
+                              else -> stringResource(R.string.add)
                             },
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 14.sp,

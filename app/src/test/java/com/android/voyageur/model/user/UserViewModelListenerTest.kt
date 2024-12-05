@@ -1,6 +1,7 @@
 package com.android.voyageur.model.user
 
 import androidx.test.core.app.ApplicationProvider
+import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -233,5 +234,47 @@ class UserViewModelListenerTest {
 
     // The listenToUser should be called again because the user signed in again
     verify(userRepository, times(2)).listenToUser(eq(userId), any(), any())
+  }
+
+  @Test
+  fun listenToFriendRequests_withUserSignedIn_logsErrorOnFailure() = runTest {
+    val userId = "123"
+    val mockFirebaseUser = mock<FirebaseUser> { on { uid } doReturn userId }
+    whenever(firebaseAuth.currentUser).thenReturn(mockFirebaseUser)
+
+    var friendRequestsOnSuccess: ((List<FriendRequest>) -> Unit)? = null
+    var friendRequestsOnFailure: ((Exception) -> Unit)? = null
+    whenever(friendRequestRepository.listenToFriendRequests(eq(userId), any(), any())).thenAnswer {
+        invocation ->
+      friendRequestsOnSuccess = invocation.getArgument(1)
+      friendRequestsOnFailure = invocation.getArgument(2)
+      mock<ListenerRegistration>() // Return a mock ListenerRegistration
+    }
+
+    userViewModel.listenToFriendRequests()
+
+    // Simulate a failure
+    val exception = Exception("Failed to fetch friend requests")
+    friendRequestsOnFailure?.invoke(exception)
+
+    // Verify that friendRequests and notificationCount haven't been updated
+    delay(100)
+    assert(userViewModel.friendRequests.value.isEmpty())
+    assert(userViewModel.notificationCount.value == 0L)
+    // We rely on logs for the error, which we've no-oped here, but the state should remain
+    // unchanged
+  }
+
+  @Test
+  fun listenToFriendRequests_withNoUserSignedIn_doesNothing() = runTest {
+    whenever(firebaseAuth.currentUser).thenReturn(null)
+
+    // If no user is signed in, calling listenToFriendRequests should do nothing
+    userViewModel.listenToFriendRequests()
+
+    // Verify that friendRequestRepository.listenToFriendRequests was never called
+    verify(friendRequestRepository, never()).listenToFriendRequests(any(), any(), any())
+    assert(userViewModel.friendRequests.value.isEmpty())
+    assert(userViewModel.notificationCount.value == 0L)
   }
 }
