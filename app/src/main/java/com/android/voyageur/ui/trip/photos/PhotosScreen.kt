@@ -103,7 +103,7 @@ fun PhotosScreen(
           LazyColumn(
               verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
               horizontalAlignment = Alignment.CenterHorizontally,
-              modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
+              modifier = Modifier.padding(pd).padding(top = 16.dp, bottom = 60.dp).fillMaxSize().testTag("lazyColumn")) {
                 photos.forEach { photo ->
                   item {
                     PhotoItem(photoUri = photo, tripsViewModel = tripsViewModel)
@@ -123,34 +123,46 @@ fun PhotoItem(photoUri: String, tripsViewModel: TripsViewModel) {
   val context = LocalContext.current
   val status by connectivityState()
   val isConnected = status === ConnectionState.Available
-  Card(shape = RoundedCornerShape(8.dp), modifier = Modifier.padding(8.dp).fillMaxWidth()) {
-    Image(
-        painter = rememberAsyncImagePainter(photoUri),
-        contentDescription = "Trip Photo",
-        contentScale = ContentScale.Crop,
-        modifier = Modifier.fillMaxWidth().height(200.dp))
-    Box(modifier = Modifier.fillMaxWidth()) {
-      IconButton(
-          enabled = isConnected,
-          onClick = { isExpanded = !isExpanded },
-          modifier = Modifier.align(Alignment.TopEnd).testTag("expandIcon_${photoUri}")) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = if (isExpanded) "Collapse" else "Expand")
+  Card(shape = RoundedCornerShape(8.dp), modifier = Modifier.width(360.dp).padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 10.dp).fillMaxWidth()) {
+      Box(modifier = Modifier.fillMaxWidth()) {
+          Image(
+              painter = rememberAsyncImagePainter(photoUri),
+              contentDescription = "Trip Photo",
+              contentScale = ContentScale.Crop,
+              modifier = Modifier.fillMaxWidth().height(200.dp)
+          )
+          Box(
+              modifier = Modifier
+                  .align(Alignment.TopEnd)
+                  .padding(8.dp)
+          ) {
+              IconButton(
+                  enabled = isConnected,
+                  onClick = { isExpanded = !isExpanded },
+                  modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                      .testTag("expandIcon_${photoUri}")
+              ) {
+                  Icon(
+                      imageVector = Icons.Default.MoreVert,
+                      contentDescription = if (isExpanded) "Collapse" else "Expand"
+                  )
+              }
+              DropdownMenu(
+                  expanded = isExpanded,
+                  onDismissRequest = { isExpanded = false },
+                  modifier = Modifier.background(MaterialTheme.colorScheme.secondaryContainer)
+              ) {
+                  DropdownMenuItem(
+                      onClick = {
+                          isExpanded = false
+                          showDialog = true
+                      },
+                      text = { Text("Delete") },
+                      modifier = Modifier.testTag("deleteMenuItem_${photoUri}")
+                  )
+              }
           }
-      DropdownMenu(
-          expanded = isExpanded,
-          onDismissRequest = { isExpanded = false },
-          modifier = Modifier.background(MaterialTheme.colorScheme.secondaryContainer)) {
-            DropdownMenuItem(
-                onClick = {
-                  isExpanded = false
-                  showDialog = true
-                },
-                text = { Text("Delete") },
-                modifier = Modifier.testTag("deleteMenuItem_${photoUri}"))
-          }
-    }
+      }
   }
   // Confirmation Dialog
   if (showDialog) {
