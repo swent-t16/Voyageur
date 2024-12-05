@@ -2,6 +2,7 @@ package com.android.voyageur.model.trip
 
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -175,6 +176,51 @@ open class TripsViewModel(
             selectTrip(Trip())
             selectTrip(updatedTrip)
           })
+    }
+  }
+
+  open fun getPhotosForSelectedTrip(): List<String> {
+    return selectedTrip.value?.photos ?: emptyList()
+  }
+
+  open fun addPhotoToTrip(photo: String) {
+    if (selectedTrip.value != null) {
+      val trip = selectedTrip.value!!
+      val updatedTrip = trip.copy(photos = trip.photos + photo)
+      updateTrip(
+          updatedTrip,
+          onSuccess = {
+            /*
+                This is a trick to force a recompose, because the reference wouldn't
+                change and update the UI.
+            */
+            selectTrip(Trip())
+            selectTrip(updatedTrip)
+          },
+          onFailure = { error ->
+            Log.e("PhotosScreen", "Error adding photo: ${error.message}", error)
+          })
+    }
+  }
+
+  open fun removePhotoFromTrip(photo: String) {
+    if (selectedTrip.value != null) {
+      val trip = selectedTrip.value!!
+      val updatedTrip = trip.copy(photos = trip.photos - photo)
+      updateTrip(
+          updatedTrip,
+          onSuccess = {
+            /*
+                This is a trick to force a recompose, because the reference wouldn't
+                change and update the UI.
+            */
+            selectTrip(Trip())
+            selectTrip(updatedTrip)
+          },
+          onFailure = { error ->
+              Log.e("PhotoItem", "Error deleting photo: ${error.message}", error)
+          }
+          )
     }
   }
 

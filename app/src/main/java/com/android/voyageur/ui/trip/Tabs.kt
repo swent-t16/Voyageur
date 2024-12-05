@@ -71,7 +71,7 @@ fun TopTabs(
     when (navigationActions.getNavigationState().currentTabIndexForTrip) {
       0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel)
       1 -> ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
-      2 -> PhotosScreen(tripsViewModel, navigationActions)
+      2 -> PhotosScreen(tripsViewModel, navigationActions, userViewModel)
       3 ->
           SettingsScreen(
               selectedTrip,
