@@ -328,7 +328,7 @@ class TripsViewModelTest {
     val userPrompt = "Generate activities for the trip"
     val provideFinalActivities = true
 
-    tripsViewModel.sendActivitiesPrompt(trip, userPrompt, provideFinalActivities)
+    tripsViewModel.sendActivitiesPrompt(trip, userPrompt, emptyList(), provideFinalActivities)
     advanceUntilIdle()
 
     val uiState = tripsViewModel.uiState.value
