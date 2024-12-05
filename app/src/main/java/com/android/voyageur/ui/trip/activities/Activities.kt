@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -146,13 +147,20 @@ fun ActivitiesScreen(
               Box(
                   modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                   contentAlignment = Alignment.CenterStart) {
+                    val textStyle =
+                        MaterialTheme.typography.bodyLarge.copy(
+                            fontSize = 16.sp) // Define consistent style
                     TextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
                         placeholder = {
-                          Text(stringResource(R.string.activities_searchbar_placeholder))
+                          Text(
+                              text = stringResource(R.string.activities_searchbar_placeholder),
+                              style = textStyle,
+                              modifier = Modifier.fillMaxSize())
                         },
-                        modifier = Modifier.fillMaxWidth().testTag("searchField"),
+                        modifier = Modifier.fillMaxWidth().height(50.dp).testTag("searchField"),
+                        textStyle = textStyle, // Apply the same style to the search text
                         singleLine = true,
                         shape = RoundedCornerShape(10.dp))
                   }
@@ -174,8 +182,7 @@ fun ActivitiesScreen(
       floatingActionButton = { AddActivityButton(navigationActions) },
       content = { pd ->
         LazyColumn(
-            modifier =
-                Modifier.padding(pd).padding(top = 16.dp).fillMaxWidth().testTag("lazyColumn"),
+            modifier = Modifier.padding(pd).fillMaxWidth().testTag("lazyColumn"),
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
         ) {
           item {
