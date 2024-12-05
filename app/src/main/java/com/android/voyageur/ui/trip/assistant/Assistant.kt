@@ -1,7 +1,6 @@
 package com.android.voyageur.ui.trip.assistant
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,18 +74,18 @@ fun AssistantScreen(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel
 ) {
+  // State
   var result by rememberSaveable { mutableStateOf("placeholderResult") }
   val uiState by tripsViewModel.uiState.collectAsState()
-  var prompt by rememberSaveable { mutableStateOf("") }
   var activities by remember { mutableStateOf(emptyList<Activity>()) }
-  Log.d("AssistantScreen", userViewModel.user.toString())
-  Log.d("AssistantScreen", userViewModel.user.collectAsState().toString())
-  Log.d("AssistantScreen", userViewModel.user.collectAsState().value.toString())
-  Log.d("AssistantScreen", userViewModel.user.collectAsState().value?.interests.toString())
 
+  // User related data
+  var prompt by rememberSaveable { mutableStateOf("") }
   val interests = userViewModel.user.collectAsState().value?.interests ?: emptyList()
+
   val keyboardController = LocalSoftwareKeyboardController.current
 
+  // Settings
   var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
   var provideFinalActivities by rememberSaveable { mutableStateOf(false) }
   var useInterests by rememberSaveable { mutableStateOf(false) }

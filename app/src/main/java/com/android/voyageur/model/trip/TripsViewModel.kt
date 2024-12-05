@@ -188,6 +188,7 @@ open class TripsViewModel(
    *
    * @param trip the trip
    * @param userPrompt the prompt that the user provides in the app
+   * @param interests the interests to focus on
    * @param provideFinalActivities whether to provide final activities with date and time or just
    *   draft activities.
    */

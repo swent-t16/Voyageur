@@ -115,7 +115,6 @@ val generativeModel =
  * @param provideFinalActivities whether to provide final activities with date and time or just
  *   draft activities. In the case of draft activities, the prompt is a bit different to avoid
  *   recommending a lunch for each day more or less the same.
- *     @param useInterests whether to use the interests in the prompt
  * @return the prompt to send to use with the generative model
  */
 fun generatePrompt(
