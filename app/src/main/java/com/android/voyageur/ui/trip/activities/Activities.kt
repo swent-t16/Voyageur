@@ -144,12 +144,10 @@ fun ActivitiesScreen(
                     TextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        placeholder = { Text("Search activities...") },
+                        placeholder = { Text(stringResource(R.string.activities_searchbar_placeholder)) },
                         modifier = Modifier.fillMaxWidth().testTag("searchField"),
                         singleLine = true,
-                        shape = RoundedCornerShape(10.dp),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(onSearch = {}))
+                        shape = RoundedCornerShape(10.dp))
                   }
             },
             actions = {

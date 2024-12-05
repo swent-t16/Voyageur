@@ -56,6 +56,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -133,7 +134,7 @@ fun OverviewScreen(
                   contentAlignment = Alignment.CenterStart) {
                     if (!searchVisible) {
                       Text(
-                          text = "Your trips",
+                          text = stringResource( R.string.overview_header_text),
                           style =
                               MaterialTheme.typography.headlineMedium.copy(
                                   fontWeight = FontWeight.Bold),
@@ -142,12 +143,10 @@ fun OverviewScreen(
                       TextField(
                           value = searchQuery,
                           onValueChange = { searchQuery = it },
-                          placeholder = { Text("Search trips...") },
+                          placeholder = { Text(stringResource( R.string.overview_searchbar_placeholder)) },
                           modifier = Modifier.fillMaxWidth().testTag("searchField"),
                           singleLine = true,
-                          shape = RoundedCornerShape(10.dp),
-                          keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                          keyboardActions = KeyboardActions(onSearch = {}))
+                          shape = RoundedCornerShape(10.dp))
                     }
                   }
             },
