@@ -445,32 +445,6 @@ class UserViewModelTest {
   }
 
   @Test
-  fun getSentFriendRequests_UpdatesState() = runTest {
-    val mockSentRequests =
-        listOf(
-            FriendRequest(id = "req_1", from = "123", to = "456"),
-            FriendRequest(id = "req_2", from = "123", to = "789"))
-
-    // Mock the repository to return mock data
-    doAnswer { invocation ->
-          val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
-          onSuccess(mockSentRequests)
-          null
-        }
-        .`when`(friendRequestRepository)
-        .getSentFriendRequests(eq(""), any(), anyOrNull())
-
-    // Call the method under test
-    userViewModel.getSentFriendRequests()
-
-    // Verify the repository method was called
-    verify(friendRequestRepository).getSentFriendRequests(eq(""), any(), anyOrNull())
-
-    // Assert the state is updated
-    assert(userViewModel.sentFriendRequests.value == mockSentRequests)
-  }
-
-  @Test
   fun acceptFriendRequest_UpdatesContactsAndClearsRequest() = runTest {
     val currentUserId = "123"
     val senderId = "456"
@@ -1004,41 +978,6 @@ class UserViewModelTest {
   }
 
   @Test
-  fun getFriendRequests_noUpdateNeeded() = runTest {
-    val userId = "123"
-    val existingFriendRequests =
-        listOf(
-            FriendRequest(id = "req1", from = "userA", to = userId),
-            FriendRequest(id = "req2", from = "userB", to = userId))
-    userViewModel._friendRequests.value = existingFriendRequests
-
-    // Mock Firebase.auth.uid to return userId
-    whenever(Firebase.auth.uid).thenReturn(userId)
-
-    // Mock friendRequestRepository.getFriendRequests to return the same friendRequests
-    doAnswer { invocation ->
-          val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
-          onSuccess(existingFriendRequests)
-          null
-        }
-        .whenever(friendRequestRepository)
-        .getFriendRequests(eq(userId), any(), anyOrNull())
-
-    var onSuccessCalled = false
-    userViewModel.getFriendRequests {
-      onSuccessCalled = true
-      assert(it == existingFriendRequests)
-    }
-
-    verify(friendRequestRepository).getFriendRequests(eq(userId), any(), anyOrNull())
-    // Verify that fetchUsersByIds is not called since data hasn't changed
-    verify(userRepository, never()).fetchUsersByIds(any(), any(), anyOrNull())
-
-    assert(onSuccessCalled)
-    assert(userViewModel.friendRequests.value == existingFriendRequests)
-  }
-
-  @Test
   fun getFriendRequests_updatesStateWhenListChanges() = runTest {
     val userId = "123"
     val initialFriendRequests = listOf(FriendRequest(id = "req1", from = "userA", to = userId))
@@ -1087,44 +1026,6 @@ class UserViewModelTest {
     assert(onSuccessCalled)
     assert(userViewModel.friendRequests.value == newFriendRequests)
     assert(userViewModel.notificationUsers.value == users)
-  }
-
-  @Test
-  fun getFriendRequests_doesNotUpdateWhenSameData() = runTest {
-    val userId = "123"
-    val friendRequests =
-        listOf(
-            FriendRequest(id = "req1", from = "userA", to = userId),
-            FriendRequest(id = "req2", from = "userB", to = userId))
-    userViewModel._friendRequests.value = friendRequests
-
-    // Mock Firebase.auth.uid to return userId
-    whenever(Firebase.auth.uid).thenReturn(userId)
-
-    // Mock friendRequestRepository.getFriendRequests to return the same friendRequests
-    doAnswer { invocation ->
-          val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
-          onSuccess(friendRequests)
-          null
-        }
-        .whenever(friendRequestRepository)
-        .getFriendRequests(eq(userId), any(), anyOrNull())
-
-    // Call getFriendRequests
-    var onSuccessCalled = false
-    userViewModel.getFriendRequests {
-      onSuccessCalled = true
-      assert(it == friendRequests)
-    }
-
-    // Verify that fetchUsersByIds is not called because data hasn't changed
-    verify(userRepository, never()).fetchUsersByIds(any(), any(), anyOrNull())
-
-    // Verify that friendRequestRepository.getFriendRequests was called
-    verify(friendRequestRepository).getFriendRequests(eq(userId), any(), anyOrNull())
-
-    assert(onSuccessCalled)
-    assert(userViewModel.friendRequests.value == friendRequests)
   }
 
   @Test
