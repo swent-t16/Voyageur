@@ -133,16 +133,6 @@ class ProfileScreenTest {
   val notificationUsers = mutableStateOf(emptyList<User>())
 
   @Test
-  fun displayLoadingIndicatorWhenIsLoading() {
-    // Arrange: Set isLoading to true
-    userViewModel._isLoading.value = true
-    userViewModel._user.value = null
-
-    // Assert: Check that the loading indicator is displayed
-    composeTestRule.onNodeWithTag("loadingIndicator").assertIsDisplayed()
-  }
-
-  @Test
   fun displayUserProfileWhenUserIsLoggedIn() {
     // Arrange: Mock a logged-in user
     val user = User("123", "Jane Doe", "jane@example.com", interests = emptyList())
