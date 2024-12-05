@@ -94,6 +94,15 @@ open class PlacesViewModel(private val placesRepository: PlacesRepository) : Vie
     _selectedPlace.value = null
   }
 
+  /**
+   * Sets the list of searched places.
+   *
+   * @param places The list of places to set.
+   */
+  fun setSearchedPlaces(places: List<CustomPlace>) {
+    _searchedPlaces.value = places
+  }
+
   companion object {
     /**
      * Provides a factory to create an instance of PlacesViewModel.
