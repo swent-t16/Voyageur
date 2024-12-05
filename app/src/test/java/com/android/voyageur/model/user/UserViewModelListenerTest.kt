@@ -205,4 +205,33 @@ class UserViewModelListenerTest {
     // Assert that loading is no longer in progress
     assert(userViewModel.isLoading.value == false)
   }
+  // Test that when a user signs in again after signing out, the ViewModel reattaches listeners
+  @Test
+  fun reSignInUser_reRegistersListeners() = runTest {
+    val userId = "123"
+    val mockFirebaseUser = mock<FirebaseUser> { on { uid } doReturn userId }
+    val listenerRegistration = mock<ListenerRegistration>()
+
+    // Initially, user signs in
+    whenever(firebaseAuth.currentUser).thenReturn(mockFirebaseUser)
+    whenever(userRepository.listenToUser(eq(userId), any(), any())).thenReturn(listenerRegistration)
+    val authStateListener = authStateListenerCaptor.firstValue
+
+    // Simulate sign-in
+    authStateListener.onAuthStateChanged(firebaseAuth)
+    verify(userRepository).listenToUser(eq(userId), any(), any())
+
+    // Simulate sign-out
+    whenever(firebaseAuth.currentUser).thenReturn(null)
+    authStateListener.onAuthStateChanged(firebaseAuth)
+    verify(listenerRegistration).remove()
+    assert(userViewModel.user.value == null)
+
+    // Simulate re-sign-in
+    whenever(firebaseAuth.currentUser).thenReturn(mockFirebaseUser)
+    authStateListener.onAuthStateChanged(firebaseAuth)
+
+    // The listenToUser should be called again because the user signed in again
+    verify(userRepository, times(2)).listenToUser(eq(userId), any(), any())
+  }
 }
