@@ -28,7 +28,8 @@
     <string name="go">Go</string>
     <string name="settings">Settings</string>
     <string name="settings_subtitle">Remember to click on the \'go\' button after changing the settings</string>
-    <string name="provide_final_activities">"Provide final activities with date and time (recommended for trips shorter than a week)</string>
+    <string name="provide_final_activities">Provide final activities with date and time (recommended for trips shorter than a week)</string>
+    <string name="use_interests">Use your profile\'s interests to recommend activities</string>
     <string name="close">Close</string>
 
     <!-- OVERVIEW SCREEN -->
