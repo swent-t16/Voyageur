@@ -35,4 +35,10 @@ interface FriendRequestRepository {
       onSuccess: (List<FriendRequest>) -> Unit,
       onFailure: (Exception) -> Unit
   ): ListenerRegistration
+
+  fun listenToFriendRequests(
+      userId: String,
+      onSuccess: (List<FriendRequest>) -> Unit,
+      onFailure: (Exception) -> Unit
+  ): ListenerRegistration
 }

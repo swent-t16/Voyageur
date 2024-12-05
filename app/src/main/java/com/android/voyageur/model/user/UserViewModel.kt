@@ -93,6 +93,8 @@ open class UserViewModel(
   // Variable to hold the listener registration
   var userListenerRegistration: ListenerRegistration? = null
 
+  var friendRequestsListener: ListenerRegistration? = null
+
   // Listener to monitor authentication state changes
   private val authStateListener =
       FirebaseAuth.AuthStateListener { auth ->
@@ -100,10 +102,12 @@ open class UserViewModel(
         if (firebaseUser != null) {
           // User is signed in, start listening to user data
           loadUser(firebaseUser.uid, firebaseUser)
-          // Fetch sent friend requests
+          // Listen to friend requests (incoming)
+          listenToFriendRequests()
+          // Listen to friend requests (sent)
           getSentFriendRequests()
         } else {
-          // User is signed out, clear user data and remove listeners
+          // User is signed out, clear data and remove listeners
           userListenerRegistration?.remove()
           userListenerRegistration = null
           _user.value = null
@@ -111,6 +115,12 @@ open class UserViewModel(
           sentFriendRequestsListener?.remove()
           sentFriendRequestsListener = null
           _sentFriendRequests.value = emptyList()
+
+          // Remove friend requests listener
+          friendRequestsListener?.remove()
+          friendRequestsListener = null
+          _friendRequests.value = emptyList()
+          _notificationUsers.value = emptyList()
         }
       }
 
@@ -583,5 +593,27 @@ open class UserViewModel(
           Log.e("FRIEND_REQUEST", "Failed to delete friend request: ${exception.message}")
           // Optionally revert the state flow if needed
         })
+  }
+  /** Sets up a listener for incoming friend requests so that the UI updates in real-time. */
+  fun listenToFriendRequests() {
+    val userId = Firebase.auth.uid.orEmpty()
+    if (userId.isEmpty()) return
+
+    // Remove any existing listener to prevent duplicates
+    friendRequestsListener?.remove()
+
+    friendRequestsListener =
+        friendRequestRepository.listenToFriendRequests(
+            userId = userId,
+            onSuccess = { requests ->
+              _friendRequests.value = requests
+              // Update notification count based on the number of incoming friend requests
+              _notificationCount.value = requests.size.toLong()
+              // Fetch associated user data for notifications
+              getUsersByIds(requests.map { it.from }) { users -> _notificationUsers.value = users }
+            },
+            onFailure = { exception ->
+              Log.e("USER_VIEW_MODEL", "Failed to listen to friend requests: ${exception.message}")
+            })
   }
 }
