@@ -101,6 +101,7 @@ class SearchUserProfileScreenTest {
 
   @Test
   fun testUserProfileContentDisplaysCorrectly() {
+    composeTestRule.onNodeWithTag("userProfileScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("userProfileContent").assertIsDisplayed()
     composeTestRule.onNodeWithTag("userName").assertIsDisplayed()
     composeTestRule.onNodeWithTag("userEmail").assertIsDisplayed()
