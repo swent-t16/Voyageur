@@ -1,5 +1,6 @@
 package com.android.voyageur.model.assistant
 
+import android.util.Log
 import com.android.voyageur.BuildConfig
 import com.android.voyageur.model.trip.Trip
 import com.google.ai.client.generativeai.GenerativeModel
@@ -115,6 +116,7 @@ val generativeModel =
  * @param provideFinalActivities whether to provide final activities with date and time or just
  *   draft activities. In the case of draft activities, the prompt is a bit different to avoid
  *   recommending a lunch for each day more or less the same.
+ *     @param alreadyPresentActivities the activities that are already present in the trip
  * @return the prompt to send to use with the generative model
  */
 fun generatePrompt(
@@ -122,6 +124,7 @@ fun generatePrompt(
     userPrompt: String,
     interests: List<String>,
     provideFinalActivities: Boolean,
+    alreadyPresentActivities: List<String>
 ): String {
   val startDate = getYearMonthDay(trip.startDate)
   val endDate = getYearMonthDay(trip.endDate)
@@ -137,18 +140,26 @@ fun generatePrompt(
       } else {
         ""
       }
+  Log.d("AssistantUtils", "interestsPrompt: $interestsPrompt")
+  val alreadyPresentActivitiesPrompt =
+      if (alreadyPresentActivities.isNotEmpty()) {
+        "The following activities are already present in the trip: ${alreadyPresentActivities.joinToString(", ")}. Please avoid them."
+      } else {
+        ""
+      }
+  Log.d("AssistantUtils", "alreadyPresentActivitiesPrompt: $alreadyPresentActivitiesPrompt")
   val prompt =
       if (provideFinalActivities) {
         """
     Make a full schedule by listing activities, including separate activities for eating, transport, etc.
-    The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt
+    The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt $alreadyPresentActivitiesPrompt
     Recommend multiple activities for each day.
     """
             .trimIndent()
       } else {
         """
     List a lot of popular specific activities to do on a trip called ${trip.name}.
-    The trip takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt
+    The trip takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt $alreadyPresentActivitiesPrompt
     """
             .trimIndent()
       }
