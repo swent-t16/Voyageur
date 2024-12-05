@@ -234,7 +234,7 @@ fun ActivitiesScreen(
             }
           }
           item {
-            androidx.compose.foundation.layout.Box(
+            Box(
                 modifier =
                     Modifier.fillMaxWidth()
                         .padding(16.dp)

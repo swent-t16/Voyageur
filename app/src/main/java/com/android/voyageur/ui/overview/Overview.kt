@@ -20,16 +20,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,8 +35,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -77,7 +72,15 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
+/**
+ * Main overview screen that displays a list of trips. Includes a search bar, floating action button
+ * to add trips, and handles loading states.
+ *
+ * @param tripsViewModel ViewModel to manage trip data and operations
+ * @param navigationActions Handles navigation between screens
+ * @param userViewModel Manages user data and participants
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
@@ -85,14 +88,13 @@ fun OverviewScreen(
     userViewModel: UserViewModel,
 ) {
   val trips by tripsViewModel.trips.collectAsState()
-  var isLoading = false
-  var searchVisible by remember { mutableStateOf(false) }
-  var searchQuery by remember { mutableStateOf("") }
   val isLoadingUser by userViewModel.isLoading.collectAsState()
   val isLoadingTrip by tripsViewModel.isLoading.collectAsState()
+  var isLoading = false
   val status by connectivityState()
   val context = LocalContext.current
   val isConnected = status === ConnectionState.Available
+  var searchQuery by remember { mutableStateOf("") }
 
   Log.e("RECOMPOSE", "OverviewScreen recomposed")
   LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
@@ -124,53 +126,32 @@ fun OverviewScreen(
       },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        TopAppBar(
-            title = {
-              Box(
-                  modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                  contentAlignment = Alignment.CenterStart) {
-                    if (!searchVisible) {
-                      Text(
-                          text = stringResource(R.string.overview_header_text),
-                          style =
-                              MaterialTheme.typography.headlineMedium.copy(
-                                  fontWeight = FontWeight.Bold),
-                          modifier = Modifier.testTag("topBarTitle"))
-                    } else {
-                      TextField(
-                          value = searchQuery,
-                          onValueChange = { searchQuery = it },
-                          placeholder = {
-                            Text(stringResource(R.string.overview_searchbar_placeholder))
-                          },
-                          modifier = Modifier.fillMaxWidth().testTag("searchField"),
-                          singleLine = true,
-                          shape = RoundedCornerShape(10.dp))
-                    }
-                  }
-            },
-            actions = {
-              Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-                IconButton(
-                    onClick = {
-                      searchVisible = !searchVisible
-                      if (!searchVisible) searchQuery = ""
-                    },
-                    modifier = Modifier.testTag("searchButton")) {
-                      Icon(
-                          imageVector =
-                              if (searchVisible) Icons.Default.Close else Icons.Default.Search,
-                          contentDescription =
-                              if (searchVisible) "Close search" else "Search trips")
-                    }
-              }
-            },
-            modifier = Modifier.height(120.dp).testTag("topAppBar"),
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary))
+        Box(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 20.dp), // Increased padding
+            contentAlignment = Alignment.Center) {
+              TextField(
+                  value = searchQuery,
+                  onValueChange = { searchQuery = it },
+                  placeholder = {
+                    Text(
+                        text = stringResource(R.string.overview_searchbar_placeholder),
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
+                        modifier = Modifier.fillMaxWidth())
+                  },
+                  modifier =
+                      Modifier.height(56.dp) // Increased height
+                          .fillMaxWidth()
+                          .testTag("searchField"),
+                  textStyle =
+                      MaterialTheme.typography.bodyLarge.copy(
+                          fontSize = 16.sp, textAlign = TextAlign.Center // Center the input text
+                          ),
+                  singleLine = true,
+                  shape = RoundedCornerShape(12.dp), // Slightly increased corner radius
+              )
+            }
       },
       bottomBar = {
         BottomNavigationMenu(
@@ -226,6 +207,15 @@ fun OverviewScreen(
       })
 }
 
+/**
+ * Displays a single trip item as a card with image, details and participant info. Allows navigation
+ * to trip details and deletion of trips.
+ *
+ * @param tripsViewModel ViewModel managing trip operations
+ * @param trip Trip data to display
+ * @param navigationActions For handling navigation
+ * @param userViewModel For accessing participant data
+ */
 @Composable
 fun TripItem(
     tripsViewModel: TripsViewModel,
@@ -238,6 +228,8 @@ fun TripItem(
   var isExpanded by remember { mutableStateOf(false) }
   var showDialog by remember { mutableStateOf(false) }
   val context = LocalContext.current
+  val status by connectivityState()
+  val isConnected = status === ConnectionState.Available
   Card(
       onClick = {
         // When opening a trip, navigate to the Schedule screen, with the daily view enabled
@@ -301,6 +293,7 @@ fun TripItem(
                   }
               Box(modifier = Modifier.align(Alignment.Top)) {
                 IconButton(
+                    enabled = isConnected,
                     onClick = { isExpanded = !isExpanded },
                     modifier = Modifier.testTag("expandIcon_${trip.name}")) {
                       Icon(
@@ -342,6 +335,13 @@ fun TripItem(
   }
 }
 
+/**
+ * Displays participant information for a trip. Shows total count and up to 4 participant avatars
+ * with indicator for additional participants.
+ *
+ * @param trip Trip containing participant data
+ * @param userViewModel For accessing user details of participants
+ */
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
@@ -396,13 +396,22 @@ fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
   }
 }
 
-// Helper function to convert Timestamp to String format.
+/**
+ * Formats a Timestamp to "MMM dd yyyy" date string.
+ *
+ * @return Formatted date string
+ */
 fun Timestamp.toDateString(): String {
   val sdf = java.text.SimpleDateFormat("MMM dd yyyy", java.util.Locale.getDefault())
   return sdf.format(this.toDate())
 }
 
-// Helper function to generate the correct string
+/**
+ * Generates display text for number of participants.
+ *
+ * @param numberOfParticipants Number of participants to describe
+ * @return String describing participant count
+ */
 fun generateParticipantString(numberOfParticipants: Int): String {
   return when (numberOfParticipants) {
     0 -> "No participants."
