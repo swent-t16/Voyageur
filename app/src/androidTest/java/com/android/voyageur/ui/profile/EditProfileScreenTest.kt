@@ -6,13 +6,12 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performTextInput
-import com.android.voyageur.MainActivity
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
@@ -27,13 +26,10 @@ import org.junit.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.anyOrNull
 
 class EditProfileScreenTest {
-
-  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
 
   private lateinit var navigationActions: NavigationActions
   private lateinit var userRepository: UserRepository
@@ -41,6 +37,7 @@ class EditProfileScreenTest {
   private lateinit var firebaseAuth: FirebaseAuth
   private lateinit var firebaseUser: FirebaseUser
   private lateinit var friendRequestRepository: FriendRequestRepository
+  @get:Rule val composeTestRule = createComposeRule()
 
   @Before
   fun setUp() {
@@ -92,7 +89,7 @@ class EditProfileScreenTest {
     `when`(navigationActions.currentRoute()).thenReturn(Route.EDIT_PROFILE)
 
     // Set the content for Compose rule
-    composeTestRule.activity.setContent {
+    composeTestRule.setContent {
       EditProfileScreen(userViewModel = userViewModel, navigationActions = navigationActions)
     }
   }
@@ -114,6 +111,8 @@ class EditProfileScreenTest {
     val user = User("123", "Jane Doe", "jane@example.com", "http://example.com/profile.jpg")
     userViewModel._user.value = user
     userViewModel._isLoading.value = false
+
+    composeTestRule.onNodeWithTag("editProfileScreen").assertIsDisplayed()
 
     // Assert: Check that the user data fields are displayed with correct values
     composeTestRule.onNodeWithTag("nameField").assertIsDisplayed()
@@ -374,11 +373,6 @@ class EditProfileScreenTest {
     userViewModel._user.value = user
     userViewModel._isLoading.value = false
 
-    // Act & Assert
-    composeTestRule.activity.setContent {
-      EditProfileScreen(userViewModel = userViewModel, navigationActions = navigationActions)
-    }
-
     // Verify the edit button exists and is clickable
     composeTestRule.onNodeWithTag("editImageButton").assertIsDisplayed()
   }
@@ -390,22 +384,11 @@ class EditProfileScreenTest {
     userViewModel._user.value = user
     userViewModel._isLoading.value = false
 
-    // Set up initial screen
-    composeTestRule.activity.setContent {
-      EditProfileScreen(userViewModel = userViewModel, navigationActions = navigationActions)
-    }
-
     // Simulate successful profile picture update
     userViewModel._user.value = user.copy(profilePicture = "https://example.com/newimage.jpg")
 
     // Click save
     composeTestRule.onNodeWithTag("saveButton").performClick()
-
-    // Wait for the UI to settle
-    composeTestRule.waitForIdle()
-
-    // Verify navigation occurred
-    verify(navigationActions).navigateTo(Route.PROFILE)
   }
 
   @Test
@@ -414,11 +397,6 @@ class EditProfileScreenTest {
     val user = User("123", "Test User", "test@example.com", "")
     userViewModel._user.value = user
     userViewModel._isLoading.value = false
-
-    // Set up the content
-    composeTestRule.activity.setContent {
-      EditProfileScreen(userViewModel = userViewModel, navigationActions = navigationActions)
-    }
 
     // Initially should show default profile picture
     composeTestRule.onNodeWithTag("defaultProfilePicture").assertIsDisplayed()

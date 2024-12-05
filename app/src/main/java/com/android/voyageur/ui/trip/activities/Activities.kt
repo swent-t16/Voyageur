@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,8 +83,16 @@ fun ActivitiesScreen(
 
   var showDialog by remember { mutableStateOf(false) }
   var activityToDelete by remember { mutableStateOf<Activity?>(null) }
+  var totalEstimatedPrice by remember { mutableStateOf(0.0) }
 
-  val totalEstimatedPrice = final.sumOf { it.estimatedPrice }
+  LaunchedEffect(final, selectedFilters) {
+    totalEstimatedPrice =
+        final
+            .filter { activity ->
+              selectedFilters.isEmpty() || activity.activityType in selectedFilters
+            }
+            .sumOf { it.estimatedPrice }
+  }
 
   Scaffold(
       modifier = Modifier.testTag("activitiesScreen"),
@@ -94,11 +103,9 @@ fun ActivitiesScreen(
             selectedItem = navigationActions.currentRoute(),
             userViewModel = userViewModel)
       },
-      topBar = { // TODO: include the Search in TopAppBar
+      topBar = {
         TopAppBar(
-            title = {
-              Text("Activities bar")
-            }, // This is a hardcoded string, as it should be replaced by the search bar
+            title = { Text("Activities bar") }, // TODO: should be replaced by the search bar
             actions = {
               IconButton(
                   modifier = Modifier.testTag("filterButton"),
@@ -199,7 +206,6 @@ fun ActivitiesScreen(
                 drafts = drafts.filter { it != activityToDelete }
               })
         }
-        // Opens the filter menu dialog
         if (showFilterMenu) {
           FilterDialog(
               selectedFilters = selectedFilters,

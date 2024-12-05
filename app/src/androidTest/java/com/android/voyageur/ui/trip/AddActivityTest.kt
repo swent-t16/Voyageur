@@ -81,6 +81,8 @@ class AddActivityScreenTest {
       AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
     }
 
+    composeTestRule.onNodeWithTag("addActivity").assertIsDisplayed()
+
     composeTestRule.onNodeWithTag("addActivityTitle").assertTextEquals("Create a New Activity")
     composeTestRule.onNodeWithTag("inputActivityTitle").assertIsDisplayed()
     composeTestRule.onNodeWithTag("inputActivityDescription").assertIsDisplayed()
@@ -331,6 +333,8 @@ class AddActivityScreenTest {
     composeTestRule.setContent {
       EditActivityScreen(navigationActions, tripsViewModel, placesViewModel)
     }
+
+    composeTestRule.onNodeWithTag("editActivityScreen").assertIsDisplayed()
 
     composeTestRule.onNodeWithTag("inputActivityTitle").assertTextContains("Hiking")
     composeTestRule
