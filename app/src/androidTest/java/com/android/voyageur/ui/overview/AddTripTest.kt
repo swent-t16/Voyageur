@@ -69,6 +69,7 @@ class AddTripScreenTest {
       AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
     }
 
+    composeTestRule.onNodeWithTag("addTrip").assertExists()
     composeTestRule.onNodeWithTag("inputTripTitle").assertExists()
     composeTestRule.onNodeWithTag("inputTripDescription").assertExists()
     composeTestRule.onNodeWithTag("searchTextField").assertExists()
