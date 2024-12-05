@@ -16,4 +16,5 @@
     <string name="accept">Accept</string>
     <string name="reject">Reject</string>
     <string name="total_price">Total price: %.2f CHF</string>
+    <string name="make_trip_public">Allow others to discover this trip</string>
 </resources>

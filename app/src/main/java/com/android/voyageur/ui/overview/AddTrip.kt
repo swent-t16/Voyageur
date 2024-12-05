@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -426,7 +427,9 @@ fun AddTripScreen(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically) {
-                      Text("Make public", modifier = Modifier.padding(end = 16.dp))
+                      Text(
+                          stringResource(R.string.make_trip_public),
+                          modifier = Modifier.padding(end = 16.dp))
                       Checkbox(
                           checked = discoverable,
                           onCheckedChange = { discoverable = it },
