@@ -1,19 +1,25 @@
 package com.android.voyageur.model.user
 
+import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.auth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,6 +36,7 @@ import org.mockito.kotlin.argThat
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -528,5 +535,128 @@ class UserViewModelTest {
 
     // Verify the friend request was deleted
     verify(friendRequestRepository).deleteRequest(eq(friendRequest.id), any(), anyOrNull())
+  }
+
+  @Test
+  fun updateUserProfilePicture_success() = runTest {
+    val mockUri = mock(Uri::class.java)
+    val mockUrl = "http://example.com/new-profile.jpg"
+    val userId = "123"
+
+    userViewModel._user.value = User(id = userId, name = "Test User")
+
+    // Properly mock uploadProfilePicture to return a success
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(String) -> Unit>(2) // Correctly mock onSuccess
+          onSuccess(mockUrl)
+          null
+        }
+        .whenever(userRepository)
+        .uploadProfilePicture(eq(mockUri), eq(userId), any(), any())
+
+    var resultUrl: String? = null
+    userViewModel.updateUserProfilePicture(mockUri) { url -> resultUrl = url }
+
+    verify(userRepository).uploadProfilePicture(eq(mockUri), eq(userId), any(), any())
+    assert(resultUrl == mockUrl)
+    assert(!userViewModel.isLoading.value)
+  }
+
+  @Test
+  fun selectUser_updatesSelectedUser() {
+    val selectedUser = User("123", "Selected User", "selected@example.com")
+    userViewModel.selectUser(selectedUser)
+    assert(userViewModel.selectedUser.value == selectedUser)
+  }
+
+  @Test
+  fun deselectUser_resetsSelectedUser() {
+    userViewModel.deselectUser()
+    assert(userViewModel.selectedUser.value == null)
+  }
+
+  @Test
+  fun removeContact_success() = runTest {
+    val currentUser = User(id = "123", contacts = listOf("456"))
+    val contactUser = User(id = "456", contacts = listOf("123"))
+    userViewModel._user.value = currentUser
+
+    // Mock fetching the contact user
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+          onSuccess(listOf(contactUser))
+          null
+        }
+        .whenever(userRepository)
+        .fetchUsersByIds(any(), any(), anyOrNull())
+
+    // Mock updating the users
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<() -> Unit>(1)
+          onSuccess()
+          null
+        }
+        .whenever(userRepository)
+        .updateUser(any(), any(), anyOrNull())
+
+    var successCalled = false
+    userViewModel.removeContact(
+        "456", { successCalled = true }, { fail("Failure callback should not be called") })
+
+    verify(userRepository, times(2)).updateUser(any(), any(), anyOrNull())
+    assert(successCalled)
+  }
+
+  @Test
+  fun getNotificationsCount_updatesState() = runTest {
+    val notificationCount = 5L
+
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(Long) -> Unit>(1)
+          onSuccess(notificationCount)
+          null
+        }
+        .whenever(friendRequestRepository)
+        .getNotificationCount(anyString(), any(), anyOrNull())
+
+    var resultCount: Long? = null
+    userViewModel.getNotificationsCount { count -> resultCount = count }
+
+    verify(friendRequestRepository).getNotificationCount(anyString(), any(), anyOrNull())
+    assert(resultCount == notificationCount)
+    assert(userViewModel.notificationCount.value == notificationCount)
+  }
+
+  @Test
+  fun getMyContacts_updatesState() = runTest {
+    val mockContacts =
+        listOf(User(id = "123", name = "Contact 1"), User(id = "456", name = "Contact 2"))
+
+    // Mock Firebase.auth.uid to return a non-null value
+    whenever(Firebase.auth.uid).thenReturn("mockUserId")
+
+    // Mock userRepository.getContacts to return mock data
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+          onSuccess(mockContacts)
+          null
+        }
+        .whenever(userRepository)
+        .getContacts(eq("mockUserId"), any(), anyOrNull())
+
+    // Create a job to collect contacts and ensure state updates are captured
+    val job = launch { userViewModel.contacts.collect { /* No-op: Just observe the state */} }
+
+    // Call the method under test
+    userViewModel.getMyContacts { /* No-op */}
+
+    // Allow all coroutines to complete
+    advanceUntilIdle()
+
+    // Verify the repository method was called
+    verify(userRepository).getContacts(eq("mockUserId"), any(), anyOrNull())
+
+    // Cancel the collection job
+    job.cancel()
   }
 }
