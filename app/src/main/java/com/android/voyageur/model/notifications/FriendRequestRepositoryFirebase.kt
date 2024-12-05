@@ -2,6 +2,7 @@ package com.android.voyageur.model.notifications
 
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
 
 /**
@@ -10,6 +11,23 @@ import com.google.firebase.firestore.SetOptions
  */
 class FriendRequestRepositoryFirebase(private val db: FirebaseFirestore) : FriendRequestRepository {
   private val collectionPath = "friendRequests"
+
+    override fun listenToSentFriendRequests(
+        userId: String,
+        onSuccess: (List<FriendRequest>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ): ListenerRegistration {
+        return db.collection("friendRequests")
+            .whereEqualTo("from", userId)
+            .addSnapshotListener { snapshot, exception ->
+                if (exception != null) {
+                    onFailure(exception)
+                } else if (snapshot != null) {
+                    val requests = snapshot.toObjects(FriendRequest::class.java)
+                    onSuccess(requests)
+                }
+            }
+    }
 
   /**
    * @param userId the user for who to fetch the friend requests (to field)
