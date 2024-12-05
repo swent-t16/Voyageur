@@ -131,7 +131,7 @@ open class UserViewModel(
    *
    * @param contactIds List of contact IDs to update.
    */
-  private fun updateContacts(contactIds: List<String>) {
+  fun updateContacts(contactIds: List<String>) {
     getUsersByIds(contactIds) { users -> _contacts.value = users }
   }
 

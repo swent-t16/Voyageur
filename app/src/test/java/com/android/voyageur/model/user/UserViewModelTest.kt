@@ -1,6 +1,7 @@
 package com.android.voyageur.model.user
 
 import android.net.Uri
+import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
@@ -658,5 +659,106 @@ class UserViewModelTest {
 
     // Cancel the collection job
     job.cancel()
+  }
+
+  @Test
+  fun loadUser_userExistsButFailsToLoad() = runTest {
+    val userId = "123"
+    val exception = Exception("Database error")
+
+    // Mock listenToUser to call onFailure
+    doAnswer { invocation ->
+          val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+          onFailure(exception)
+          null
+        }
+        .whenever(userRepository)
+        .listenToUser(eq(userId), any(), anyOrNull())
+
+    userViewModel.loadUser(userId)
+
+    verify(userRepository).listenToUser(eq(userId), any(), anyOrNull())
+    assert(userViewModel.user.value == null)
+    assert(!userViewModel.isLoading.value)
+  }
+
+  @Test
+  fun loadUser_firebaseUserMissingFields() = runTest {
+    val userId = "123"
+    val mockFirebaseUser =
+        mock(FirebaseUser::class.java).apply {
+          `when`(uid).thenReturn(userId)
+          `when`(displayName).thenReturn(null)
+          `when`(email).thenReturn(null)
+        }
+
+    // Mock failure to load user from repository
+    doAnswer { invocation ->
+          val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+          onFailure(Exception("User not found"))
+          null
+        }
+        .whenever(userRepository)
+        .listenToUser(eq(userId), any(), anyOrNull())
+
+    userViewModel.loadUser(userId, mockFirebaseUser)
+
+    verify(userRepository).listenToUser(eq(userId), any(), anyOrNull())
+    verify(userRepository)
+        .createUser(
+            argThat { user -> user.name == "Unknown" && user.email == "No Email" },
+            any(),
+            anyOrNull())
+  }
+
+  @Test
+  fun updateContacts_invalidContactIds() = runTest {
+    val invalidIds = listOf("999", "888")
+
+    // Mock fetchUsersByIds to return an empty list
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+          onSuccess(emptyList())
+          null
+        }
+        .whenever(userRepository)
+        .fetchUsersByIds(eq(invalidIds), any(), anyOrNull())
+
+    userViewModel.updateContacts(invalidIds)
+
+    verify(userRepository).fetchUsersByIds(eq(invalidIds), any(), anyOrNull())
+    assert(userViewModel.contacts.value.isEmpty())
+  }
+
+  @Test
+  fun friendRequest_creation_validId() {
+    val mockId = "req_123"
+    whenever(friendRequestRepository.getNewId()).thenReturn(mockId)
+
+    val request = FriendRequest(id = mockId, from = "123", to = "456")
+
+    assert(request.id == mockId)
+    assert(request.from == "123")
+    assert(request.to == "456")
+  }
+
+  @Test
+  fun clearFriendRequestState_logsDeletedRequest() = runTest {
+    val mockLog = mockStatic(Log::class.java)
+    val friendRequest = FriendRequest(id = "req_123", from = "123", to = "456")
+    userViewModel._friendRequests.value = listOf(friendRequest)
+
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<() -> Unit>(1)
+          onSuccess()
+          null
+        }
+        .whenever(friendRequestRepository)
+        .deleteRequest(eq("req_123"), any(), anyOrNull())
+
+    userViewModel.clearFriendRequestState("456")
+
+    mockLog.verify { Log.d("FRIEND_REQUEST", "Deleted request: req_123") }
+    mockLog.close()
   }
 }
