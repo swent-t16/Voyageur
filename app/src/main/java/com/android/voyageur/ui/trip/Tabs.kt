@@ -16,6 +16,7 @@ import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.trip.activities.ActivitiesScreen
+import com.android.voyageur.ui.trip.photos.PhotosScreen
 import com.android.voyageur.ui.trip.schedule.ScheduleScreen
 import com.android.voyageur.ui.trip.schedule.TopBarWithImageAndText
 import com.android.voyageur.ui.trip.schedule.toDateWithYearString
@@ -30,7 +31,7 @@ fun TopTabs(
     placesViewModel: PlacesViewModel
 ) {
   // Define tab items
-  val tabs = listOf("Schedule", "Activities", "Settings")
+  val tabs = listOf("Schedule", "Activities", "Photos", "Settings")
 
   // Collect selectedTrip as state to avoid calling .value directly in composition
   val trip by tripsViewModel.selectedTrip.collectAsState()
@@ -70,7 +71,8 @@ fun TopTabs(
     when (navigationActions.getNavigationState().currentTabIndexForTrip) {
       0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel)
       1 -> ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
-      2 ->
+      2 -> PhotosScreen(tripsViewModel, navigationActions)
+      3 ->
           SettingsScreen(
               selectedTrip,
               navigationActions,
