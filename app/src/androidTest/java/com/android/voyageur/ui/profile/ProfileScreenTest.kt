@@ -3,6 +3,7 @@ package com.android.voyageur.ui.profile
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -133,21 +134,13 @@ class ProfileScreenTest {
   val notificationUsers = mutableStateOf(emptyList<User>())
 
   @Test
-  fun displayLoadingIndicatorWhenIsLoading() {
-    // Arrange: Set isLoading to true
-    userViewModel._isLoading.value = true
-    userViewModel._user.value = null
-
-    // Assert: Check that the loading indicator is displayed
-    composeTestRule.onNodeWithTag("loadingIndicator").assertIsDisplayed()
-  }
-
-  @Test
   fun displayUserProfileWhenUserIsLoggedIn() {
     // Arrange: Mock a logged-in user
     val user = User("123", "Jane Doe", "jane@example.com", interests = emptyList())
     userViewModel._user.value = user
     userViewModel._isLoading.value = false
+
+    composeTestRule.onNodeWithTag("profileScreen").assertIsDisplayed()
 
     // Assert: Check that the user profile information is displayed
     composeTestRule.onNodeWithTag("userName").assertIsDisplayed()
@@ -286,5 +279,30 @@ class ProfileScreenTest {
     // Assert: Check the accept and deny buttons are displayed
     composeTestRule.onNodeWithTag("acceptButton", useUnmergedTree = true).assertIsDisplayed()
     composeTestRule.onNodeWithTag("denyButton", useUnmergedTree = true).assertIsDisplayed()
+  }
+
+  @Test
+  fun notificationBadgeIsNotDisplayed() {
+    userViewModel._notificationCount.value = 0
+    composeTestRule.waitForIdle()
+    assert(userViewModel._notificationCount.value == 0L)
+    // Verify the notification badge is not displayed on the profile tab
+    composeTestRule.onNodeWithTag("notificationBadge").assertIsNotDisplayed()
+  }
+
+  @Test
+  fun notificationBadgeIsDisplayedWhenNotificationsExist() {
+    val user = User("123", "Jane Doe", "jane@example.com", interests = emptyList())
+    userViewModel._user.value = user
+    userViewModel._isLoading.value = false
+
+    composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
+    // Arrange: Set notification count to a non-zero value
+    userViewModel._notificationCount.value = 5
+    composeTestRule.waitForIdle()
+    assert(userViewModel._notificationCount.value == 5L)
+    // Assert: Verify the notification badge is displayed on the profile tab
+    composeTestRule.onNodeWithTag("notificationBadge", useUnmergedTree = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("5", useUnmergedTree = true).assertIsDisplayed()
   }
 }

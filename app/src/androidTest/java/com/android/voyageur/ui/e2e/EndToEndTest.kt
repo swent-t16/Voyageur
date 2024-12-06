@@ -140,7 +140,9 @@ class E2ETest {
       ) {
         composable(Route.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
         composable(Route.PROFILE) { ProfileScreen(userViewModel, navigation) }
-        composable(Route.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigation) }
+        composable(Route.SEARCH) {
+          SearchScreen(userViewModel, placesViewModel, tripsViewModel, navigation)
+        }
         composable(Route.TOP_TABS) {
           TopTabs(tripsViewModel, navigation, userViewModel, placesViewModel)
         }
@@ -149,7 +151,9 @@ class E2ETest {
         }
         composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
         composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigation) }
-        composable(Screen.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigation) }
+        composable(Screen.SEARCH) {
+          SearchScreen(userViewModel, placesViewModel, tripsViewModel, navigation)
+        }
         composable(Screen.TOP_TABS) {
           TopTabs(tripsViewModel, navigation, userViewModel, placesViewModel)
         }

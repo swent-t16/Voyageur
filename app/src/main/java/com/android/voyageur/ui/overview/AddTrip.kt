@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -79,6 +81,43 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+/**
+ * A composable function for adding or editing a trip in the travel planner app.
+ *
+ * This screen allows users to create or update a trip by filling out necessary details such as the
+ * trip name, description, participants, location, start and end dates, trip type, and an optional
+ * image. It also validates user inputs to ensure logical and meaningful trip data is provided.
+ *
+ * @param tripsViewModel The [TripsViewModel] instance to manage trip-related data and operations.
+ * @param navigationActions The [NavigationActions] instance to handle navigation actions.
+ * @param isEditMode A boolean indicating whether the screen is in edit mode or create mode. Default
+ *   is `false`.
+ * @param onUpdate A callback invoked after successfully updating a trip. Default is an empty
+ *   lambda.
+ * @param userViewModel The [UserViewModel] instance for managing user-related data.
+ * @param placesViewModel The [PlacesViewModel] instance for managing location search functionality.
+ *
+ * ## Features:
+ * - **Create or Edit Trips**: Allows users to input trip details like name, description,
+ *   participants, dates, and image.
+ * - **User-Friendly Validation**: Ensures valid dates and logical trip information (e.g., start
+ *   date before end date).
+ * - **Responsive UI**: Adapts to different screen sizes, providing a seamless user experience.
+ * - **Gallery Integration**: Lets users select an image from their gallery for the trip.
+ * - **Real-Time Feedback**: Displays success or error messages for trip creation or update actions.
+ *
+ * ## UI Components:
+ * - **Text Fields**: For trip name, description, and location search.
+ * - **Date Pickers**: To select trip start and end dates.
+ * - **User Dropdown**: To select participants from the user's contacts.
+ * - **Gallery Button**: For selecting or replacing the trip's image.
+ * - **Image Display**: Shows the selected or default trip image.
+ *
+ * ## Behavior:
+ * - **Validation**: Ensures start and end dates are not in the past and are logically ordered.
+ * - **Error Handling**: Displays appropriate messages for invalid inputs or operation failures.
+ * - **State Management**: Maintains form state during user interaction.
+ */
 @SuppressLint("StateFlowValueCalledInComposition", "UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -100,7 +139,7 @@ fun AddTripScreen(
   var endDate by remember { mutableStateOf<Long?>(null) }
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
   var imageUri by remember { mutableStateOf("") }
-
+  var discoverable by remember { mutableStateOf(false) }
   val contactsAndUsers by userViewModel.contacts.collectAsState()
   val userList =
       remember(contactsAndUsers, isEditMode) {
@@ -141,6 +180,7 @@ fun AddTripScreen(
         query = TextFieldValue(trip.location.name)
         startDate = trip.startDate.toDate().time
         endDate = trip.endDate.toDate().time
+        discoverable = trip.discoverable
       }
     } else {
       //      userList.clear()
@@ -208,7 +248,9 @@ fun AddTripScreen(
                 if (isEditMode) tripsViewModel.selectedTrip.value?.activities ?: listOf()
                 else listOf(),
             type = tripType,
-            imageUri = imageUrl)
+            imageUri = imageUrl,
+            discoverable = discoverable,
+        )
 
     if (!isEditMode) {
       isSaving = true
@@ -254,13 +296,15 @@ fun AddTripScreen(
       topBar = {
         if (!isEditMode)
             TopAppBar(
-                title = { Text("Create a New Trip", Modifier.testTag("addTripTitle")) },
+                title = {
+                  Text(stringResource(R.string.create_trip), Modifier.testTag("addTripTitle"))
+                },
                 navigationIcon = {
                   IconButton(
                       onClick = { navigationActions.goBack() }, Modifier.testTag("goBackButton")) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                         )
                       }
                 })
@@ -279,13 +323,13 @@ fun AddTripScreen(
                       if (imageUri.isNotEmpty()) {
                         Image(
                             painter = rememberAsyncImagePainter(model = imageUri),
-                            contentDescription = "Selected image",
+                            contentDescription = stringResource(R.string.selected_image),
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize())
                       } else {
                         Image(
                             painter = painterResource(id = imageId),
-                            contentDescription = "Default trip image",
+                            contentDescription = stringResource(R.string.default_image),
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize())
                       }
@@ -294,8 +338,8 @@ fun AddTripScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 PermissionButtonForGallery(
                     onUriSelected = { uri -> imageUri = uri.toString() },
-                    "Select Image from Gallery",
-                    "This app needs access to your photos to allow you to select an image for your trip.",
+                    stringResource(R.string.select_image_gallery),
+                    stringResource(R.string.access_gallery),
                     16,
                     9,
                     Modifier.fillMaxWidth())
@@ -304,8 +348,8 @@ fun AddTripScreen(
                     value = name,
                     onValueChange = { name = it },
                     isError = name.isEmpty(),
-                    label = { Text("Trip *") },
-                    placeholder = { Text("Name the trip") },
+                    label = { Text(stringResource(R.string.trip_title)) },
+                    placeholder = { Text(stringResource(R.string.name_trip)) },
                     modifier = Modifier.fillMaxWidth().testTag("inputTripTitle"),
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
@@ -320,8 +364,8 @@ fun AddTripScreen(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Description") },
-                    placeholder = { Text("Describe the trip") },
+                    label = { Text(stringResource(R.string.trip_description)) },
+                    placeholder = { Text(stringResource(R.string.describe_trip)) },
                     modifier = Modifier.fillMaxWidth().testTag("inputTripDescription"))
 
                 Spacer(modifier = Modifier.height(2.dp))
@@ -348,7 +392,7 @@ fun AddTripScreen(
                       onValueChange = {},
                       readOnly = true,
                       enabled = false,
-                      label = { Text("Start Date *") },
+                      label = { Text(stringResource(R.string.start_date)) },
                       colors =
                           TextFieldDefaults.colors(
                               disabledContainerColor = Color.Transparent,
@@ -364,7 +408,7 @@ fun AddTripScreen(
                       onValueChange = {},
                       readOnly = true,
                       enabled = false,
-                      label = { Text("End Date *") },
+                      label = { Text(stringResource(R.string.end_date)) },
                       colors =
                           TextFieldDefaults.colors(
                               disabledContainerColor = Color.Transparent,
@@ -408,7 +452,9 @@ fun AddTripScreen(
                                 onClick = { tripType = TripType.BUSINESS },
                                 selected = tripType == TripType.BUSINESS,
                                 modifier = Modifier.testTag("tripTypeBusiness"))
-                            Text("Business", modifier = Modifier.padding(start = 2.dp))
+                            Text(
+                                stringResource(R.string.business),
+                                modifier = Modifier.padding(start = 2.dp))
                           }
                       Row(
                           verticalAlignment = Alignment.CenterVertically,
@@ -417,10 +463,22 @@ fun AddTripScreen(
                                 onClick = { tripType = TripType.TOURISM },
                                 selected = tripType == TripType.TOURISM,
                                 modifier = Modifier.testTag("tripTypeTourism"))
-                            Text("Tourism", modifier = Modifier.padding(start = 2.dp))
+                            Text(
+                                stringResource(R.string.tourism),
+                                modifier = Modifier.padding(start = 2.dp))
                           }
                     }
-
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically) {
+                      Text(
+                          stringResource(R.string.make_trip_public),
+                          modifier = Modifier.padding(end = 16.dp))
+                      Checkbox(
+                          checked = discoverable,
+                          onCheckedChange = { discoverable = it },
+                          modifier = Modifier.testTag("discoverableCheckbox"))
+                    }
                 Spacer(modifier = Modifier.height(16.dp))
               }
 
@@ -449,12 +507,12 @@ fun AddTripScreen(
                       formattedEndDate.isNotBlank() &&
                       !isSaving,
               modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("tripSave")) {
-                Text("Save Trip")
+                Text(stringResource(R.string.save_trip))
               }
         }
       }
 }
-
+// enum for the two different dates: start and end
 enum class DateField {
   START,
   END

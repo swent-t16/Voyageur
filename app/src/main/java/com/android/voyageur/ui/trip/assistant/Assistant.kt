@@ -39,14 +39,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.android.voyageur.R
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.assistant.convertActivityFromAssistantToActivity
 import com.android.voyageur.model.assistant.extractActivitiesFromAssistantFromJson
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.trip.UiState
+import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
 import com.android.voyageur.ui.trip.activities.ActivityItem
@@ -54,17 +57,38 @@ import com.android.voyageur.ui.trip.activities.ButtonType
 import com.android.voyageur.ui.trip.schedule.TopBarWithImageAndText
 import com.google.firebase.Timestamp
 
+/**
+ * The assistant screen that allows the user to ask the assistant for activities for a trip. The
+ * user can provide a prompt and the assistant will generate activities based on that prompt. The
+ * user can also provide settings for the assistant. The user can also add the activities direrctly
+ * to the trip.
+ *
+ * @param tripsViewModel the view model for the trips
+ * @param navigationActions the navigation actions
+ * @param userViewModel the view model for the user
+ */
 @SuppressLint("StateFlowValueCalledInComposition", "UnrememberedMutableState")
 @Composable
-fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: NavigationActions) {
+fun AssistantScreen(
+    tripsViewModel: TripsViewModel,
+    navigationActions: NavigationActions,
+    userViewModel: UserViewModel
+) {
+  // State
   var result by rememberSaveable { mutableStateOf("placeholderResult") }
   val uiState by tripsViewModel.uiState.collectAsState()
-  var prompt by rememberSaveable { mutableStateOf("") }
   var activities by remember { mutableStateOf(emptyList<Activity>()) }
+
+  // User related data
+  var prompt by rememberSaveable { mutableStateOf("") }
+  val interests = userViewModel.user.collectAsState().value?.interests ?: emptyList()
+
   val keyboardController = LocalSoftwareKeyboardController.current
 
+  // Settings
   var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
   var provideFinalActivities by rememberSaveable { mutableStateOf(false) }
+  var useInterests by rememberSaveable { mutableStateOf(false) }
 
   val trip = tripsViewModel.selectedTrip.value
   if (trip == null) {
@@ -76,11 +100,12 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
       modifier = Modifier.testTag("assistantScreen"),
       content = { pd ->
         Column {
-          TopBarWithImageAndText(trip, navigationActions, "Ask the AI assistant!", trip.name)
+          TopBarWithImageAndText(
+              trip, navigationActions, stringResource(R.string.ask_assistant), trip.name)
           Row(modifier = Modifier.padding(all = 16.dp)) {
             TextField(
                 value = prompt,
-                label = { Text("prompt") },
+                label = { Text(stringResource(R.string.prompt)) },
                 onValueChange = { prompt = it },
                 modifier =
                     Modifier.testTag("AIRequestTextField")
@@ -94,17 +119,26 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
                           keyboardController?.hide()
                           if (uiState !is UiState.Loading) {
                             tripsViewModel.sendActivitiesPrompt(
-                                trip, prompt, provideFinalActivities)
+                                trip = trip,
+                                userPrompt = prompt,
+                                interests = if (useInterests) interests else emptyList(),
+                                provideFinalActivities = provideFinalActivities,
+                            )
                           }
                         }),
                 singleLine = true)
             Button(
                 onClick = {
-                  tripsViewModel.sendActivitiesPrompt(trip, prompt, provideFinalActivities)
+                  tripsViewModel.sendActivitiesPrompt(
+                      trip = trip,
+                      userPrompt = prompt,
+                      interests = if (useInterests) interests else emptyList(),
+                      provideFinalActivities = provideFinalActivities,
+                  )
                 },
                 enabled = uiState !is UiState.Loading, // Disable the button during loading
                 modifier = Modifier.testTag("AIRequestButton").align(Alignment.CenterVertically)) {
-                  Text(text = "go")
+                  Text(text = stringResource(R.string.go))
                 }
             IconButton(
                 onClick = { showSettingsDialog = true },
@@ -174,7 +208,9 @@ fun AssistantScreen(tripsViewModel: TripsViewModel, navigationActions: Navigatio
           SettingsDialog(
               onDismiss = { showSettingsDialog = false },
               provideDraftActivities = provideFinalActivities,
-              onProvideFinalActivitiesChanged = { provideFinalActivities = it })
+              onProvideFinalActivitiesChanged = { provideFinalActivities = it },
+              useInterests = useInterests,
+              onUseInterestsChanged = { useInterests = it })
         }
       })
 }
@@ -192,35 +228,43 @@ fun SettingsDialog(
     onDismiss: () -> Unit,
     provideDraftActivities: Boolean,
     onProvideFinalActivitiesChanged: (Boolean) -> Unit,
+    useInterests: Boolean,
+    onUseInterestsChanged: (Boolean) -> Unit
 ) {
   AlertDialog(
       modifier = Modifier.testTag("settingsDialog"),
       onDismissRequest = onDismiss,
-      title = { Text(text = "Settings") },
+      title = { Text(text = stringResource(R.string.settings)) },
       text = {
         Column {
           Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "Remember to click on the 'go' button after changing the settings",
+                stringResource(R.string.settings_subtitle),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyLarge)
           }
           Spacer(modifier = Modifier.height(16.dp)) // Add a spacer for some vertical space
 
           Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                "Provide final activities with date and time (recommended for trips shorter than a week)",
-                modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.provide_final_activities), modifier = Modifier.weight(1f))
             Switch(
                 checked = provideDraftActivities,
                 onCheckedChange = onProvideFinalActivitiesChanged,
                 modifier = Modifier.testTag("provideFinalActivitiesSwitch"))
           }
+          Spacer(modifier = Modifier.height(16.dp)) // Add a spacer for some vertical space
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.use_interests), modifier = Modifier.weight(1f))
+            Switch(
+                checked = useInterests,
+                onCheckedChange = onUseInterestsChanged,
+                modifier = Modifier.testTag("useInterestsSwitch"))
+          }
         }
       },
       confirmButton = {
         Button(onClick = onDismiss, modifier = Modifier.testTag("closeDialogButton")) {
-          Text("Close")
+          Text(stringResource(R.string.close))
         }
       })
 }

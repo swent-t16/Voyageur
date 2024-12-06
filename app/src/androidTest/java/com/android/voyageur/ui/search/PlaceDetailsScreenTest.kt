@@ -86,6 +86,7 @@ class PlaceDetailsScreenTest {
 
   @Test
   fun testInitialState() = runTest {
+    composeTestRule.onNodeWithTag("placeDetailsScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("PlaceDetailsContent").assertIsDisplayed()
     composeTestRule.onNodeWithTag("RatingText").assertIsDisplayed()
     composeTestRule.onNodeWithTag("PriceLevelText").assertIsDisplayed()

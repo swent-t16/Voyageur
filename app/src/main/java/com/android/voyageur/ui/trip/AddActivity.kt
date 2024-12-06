@@ -19,11 +19,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.android.voyageur.R
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
@@ -40,6 +42,42 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+/**
+ * A Composable function for creating or editing an activity within a trip.
+ *
+ * This screen allows users to input details about an activity, such as title, description,
+ * location, date, time, estimated price, and activity type. It validates inputs and saves the
+ * activity to the selected trip when all criteria are met.
+ *
+ * @param tripsViewModel The [TripsViewModel] instance to manage trip data and updates.
+ * @param navigationActions A set of actions to handle navigation between screens.
+ * @param placesViewModel The [PlacesViewModel] instance to manage location-related data and
+ *   queries.
+ * @param existingActivity An optional [Activity] to edit; if null, a new activity will be created.
+ *
+ * ## Features:
+ * - **Input Fields:** Users can enter a title, description, location, date, and time for the
+ *   activity.
+ * - **Date and Time Selection:** Includes a [DatePickerModal] for selecting a date and a
+ *   [TimePickerInput] dialog for specifying start and end times.
+ * - **Validation:** Ensures the selected date is within the trip's range, end time is after start
+ *   time, and required fields like the title are filled.
+ * - **Integration with Places API:** Provides location suggestions and lets users select from
+ *   search results.
+ * - **Dynamic UI Updates:** Automatically updates UI with new or edited activity details.
+ * - **Save Functionality:** Saves or updates the activity in the trip's activities list via
+ *   [TripsViewModel].
+ *
+ * ## Error Handling:
+ * Displays toast messages for validation errors, such as:
+ * - Missing or invalid date and time inputs.
+ * - Dates outside the trip's range.
+ * - End time earlier than start time.
+ *
+ * ## Navigation:
+ * - The screen navigates back to the previous screen after successfully saving the activity.
+ * - Uses [NavigationActions] for navigation commands.
+ */
 @SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -254,7 +292,8 @@ fun AddActivityScreen(
         TopAppBar(
             title = {
               Text(
-                  if (existingActivity == null) "Create a New Activity" else "Edit activity",
+                  if (existingActivity == null) stringResource(R.string.create_activity)
+                  else stringResource(R.string.edit_activity),
                   Modifier.testTag("addActivityTitle"))
             },
             navigationIcon = {
@@ -262,7 +301,7 @@ fun AddActivityScreen(
                   onClick = { navigationActions.goBack() }, Modifier.testTag("goBackButton")) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.back),
                     )
                   }
             })
@@ -275,8 +314,8 @@ fun AddActivityScreen(
                     value = title,
                     onValueChange = { title = it },
                     isError = title.isEmpty(),
-                    label = { Text("Title *") },
-                    placeholder = { Text("Name the activity") },
+                    label = { Text(stringResource(R.string.activity_title)) },
+                    placeholder = { Text(stringResource(R.string.name_activity)) },
                     modifier = Modifier.fillMaxWidth().testTag("inputActivityTitle"),
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
@@ -285,8 +324,8 @@ fun AddActivityScreen(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Description") },
-                    placeholder = { Text("Describe the activity") },
+                    label = { Text(stringResource(R.string.activity_description)) },
+                    placeholder = { Text(stringResource(R.string.describe_activity)) },
                     modifier = Modifier.fillMaxWidth().testTag("inputActivityDescription"))
 
                 Spacer(modifier = Modifier.height(2.dp))
@@ -308,7 +347,7 @@ fun AddActivityScreen(
                     onValueChange = {},
                     readOnly = true,
                     enabled = false,
-                    label = { Text("Date") },
+                    label = { Text(stringResource(R.string.activity_date)) },
                     colors =
                         TextFieldDefaults.colors(
                             disabledContainerColor = Color.Transparent,
@@ -335,7 +374,7 @@ fun AddActivityScreen(
                       onValueChange = {},
                       readOnly = true,
                       enabled = false,
-                      label = { Text("Start Time") },
+                      label = { Text(stringResource(R.string.start_time)) },
                       colors =
                           TextFieldDefaults.colors(
                               disabledContainerColor = Color.Transparent,
@@ -351,7 +390,7 @@ fun AddActivityScreen(
                       onValueChange = {},
                       readOnly = true,
                       enabled = false,
-                      label = { Text("End Time") },
+                      label = { Text(stringResource(R.string.end_time)) },
                       colors =
                           TextFieldDefaults.colors(
                               disabledContainerColor = Color.Transparent,
@@ -426,8 +465,8 @@ fun AddActivityScreen(
                         }
                       }
                     },
-                    label = { Text("Estimated Price (CHF)") },
-                    placeholder = { Text("Enter estimated price") },
+                    label = { Text(stringResource(R.string.estimated_price_CHF)) },
+                    placeholder = { Text(stringResource(R.string.enter_estimated_price)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth().testTag("inputActivityPrice"))
 
@@ -441,7 +480,7 @@ fun AddActivityScreen(
                           value = activityType.name,
                           onValueChange = {},
                           readOnly = true,
-                          label = { Text("Select Activity Type") },
+                          label = { Text(stringResource(R.string.select_activity_type)) },
                           trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                           },
@@ -469,7 +508,7 @@ fun AddActivityScreen(
               onClick = { createActivity() },
               enabled = title.isNotBlank() && !isSaving,
               modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("activitySave")) {
-                Text("Save")
+                Text(stringResource(R.string.save))
               }
         }
       }

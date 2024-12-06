@@ -44,6 +44,9 @@ open class TripsViewModel(
   private val _isLoading = MutableStateFlow(false)
   val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+  private val _feed = MutableStateFlow<List<Trip>>(emptyList())
+  val feed: StateFlow<List<Trip>> = _feed.asStateFlow()
+
   init {
     tripsRepository.init {
       _isLoading.value = true
@@ -178,6 +181,25 @@ open class TripsViewModel(
     }
   }
 
+  /**
+   * Gets the feed of trips for a user.
+   *
+   * @param userId the user ID
+   */
+  fun getFeed(userId: String) {
+    _isLoading.value = true
+    tripsRepository.getFeed(
+        userId,
+        onSuccess = { trips ->
+          _feed.value = trips
+          _isLoading.value = false
+        },
+        onFailure = {
+          _isLoading.value = false
+          Log.e("TripsViewModel", "Failed to get feed", it)
+        })
+  }
+
   // ****************************************************************************************************
   // AI assistant
   // ****************************************************************************************************
@@ -188,17 +210,23 @@ open class TripsViewModel(
    *
    * @param trip the trip
    * @param userPrompt the prompt that the user provides in the app
+   * @param interests the interests to focus on
    * @param provideFinalActivities whether to provide final activities with date and time or just
    *   draft activities.
    */
-  open fun sendActivitiesPrompt(trip: Trip, userPrompt: String, provideFinalActivities: Boolean) {
+  open fun sendActivitiesPrompt(
+      trip: Trip,
+      userPrompt: String,
+      interests: List<String> = emptyList(),
+      provideFinalActivities: Boolean,
+  ) {
     _uiState.value = UiState.Loading
 
     viewModelScope.launch(Dispatchers.IO) {
       try {
         val response =
             generativeModel.generateContent(
-                generatePrompt(trip, userPrompt, provideFinalActivities))
+                generatePrompt(trip, userPrompt, interests, provideFinalActivities))
         response.text?.let { outputContent -> _uiState.value = UiState.Success(outputContent) }
       } catch (e: Exception) {
         _uiState.value = UiState.Error(e.localizedMessage ?: "unknown error")

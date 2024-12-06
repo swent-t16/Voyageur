@@ -84,15 +84,12 @@ fun SearchUserProfileScreen(userViewModel: UserViewModel, navigationActions: Nav
 fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
   val currentUser by userViewModel.user.collectAsState()
   val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
-
-  // Fetch sent friend requests and contacts when the composable is first displayed
-  LaunchedEffect(Unit) {
-    userViewModel.getSentFriendRequests()
-    userViewModel.getMyContacts {}
-  }
+  val receivedFriendRequests by userViewModel.friendRequests.collectAsState()
 
   val isContactAdded = currentUser?.contacts?.contains(userData.id) ?: false
   val isRequestPending = sentFriendRequests.any { it.to == userData.id }
+  val isRequestReceived = receivedFriendRequests.any { it.from == userData.id }
+  val friendRequest = receivedFriendRequests.find { it.from == userData.id }
   val signedInUserId = currentUser?.id ?: ""
 
   UserProfileContent(
@@ -100,12 +97,18 @@ fun SearchUserProfileContent(userData: User, userViewModel: UserViewModel) {
       signedInUserId = signedInUserId,
       isContactAdded = isContactAdded,
       isRequestPending = isRequestPending,
+      isRequestReceived = isRequestReceived,
       onAddContact = { userViewModel.sendContactRequest(userData.id) },
       onRemoveContact = { userViewModel.removeContact(userData.id) },
       onCancelRequest = {
         val requestId = userViewModel.getSentRequestId(userData.id)
         if (requestId != null) {
           userViewModel.deleteFriendRequest(requestId)
+        }
+      },
+      onAcceptRequest = {
+        if (friendRequest != null) {
+          userViewModel.acceptFriendRequest(friendRequest)
         }
       })
 }

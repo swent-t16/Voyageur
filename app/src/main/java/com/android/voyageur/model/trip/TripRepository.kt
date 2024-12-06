@@ -28,4 +28,10 @@ interface TripRepository {
       onSuccess: () -> Unit,
       onFailure: (Exception) -> Unit,
   )
+
+  fun getFeed(
+      userId: String,
+      onSuccess: (List<Trip>) -> Unit,
+      onFailure: (Exception) -> Unit,
+  )
 }

@@ -51,6 +51,7 @@ class TopTabsTest {
       TopTabs(tripsViewModel, navigationActions, userViewModel, placesViewModel)
     }
 
+    composeTestRule.onNodeWithTag("topTabs").assertIsDisplayed()
     // Verify that the TopAppBar displays the trip name
     composeTestRule.onNodeWithTag("topBar").assertIsDisplayed()
     composeTestRule.onNodeWithText("Sample Trip").assertIsDisplayed()

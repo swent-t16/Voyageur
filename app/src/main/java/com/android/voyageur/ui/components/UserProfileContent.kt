@@ -59,11 +59,13 @@ fun UserProfileContent(
     showEditAndSignOutButtons: Boolean = false,
     isContactAdded: Boolean = false,
     isRequestPending: Boolean = false,
+    isRequestReceived: Boolean = false, // New parameter for received requests
     onSignOut: (() -> Unit)? = null,
     onEdit: (() -> Unit)? = null,
     onAddContact: (() -> Unit)? = null,
     onRemoveContact: (() -> Unit)? = null,
-    onCancelRequest: (() -> Unit)? = null // Add this line
+    onCancelRequest: (() -> Unit)? = null,
+    onAcceptRequest: (() -> Unit)? = null // New callback for accepting requests
 ) {
   val connectionStatus by connectivityState()
   val isConnected = connectionStatus == ConnectionState.Available
@@ -140,6 +142,7 @@ fun UserProfileContent(
             Button(
                 onClick = {
                   when {
+                    isRequestReceived -> onAcceptRequest?.invoke()
                     isContactAdded -> onRemoveContact?.invoke()
                     isRequestPending -> onCancelRequest?.invoke()
                     else -> onAddContact?.invoke()
@@ -150,6 +153,8 @@ fun UserProfileContent(
                     ButtonDefaults.buttonColors(
                         containerColor =
                             when {
+                              isRequestReceived ->
+                                  MaterialTheme.colorScheme.tertiary // Accept button color
                               isContactAdded -> MaterialTheme.colorScheme.error
                               isRequestPending -> MaterialTheme.colorScheme.secondary
                               else -> MaterialTheme.colorScheme.primary
@@ -158,6 +163,7 @@ fun UserProfileContent(
                   Text(
                       text =
                           when {
+                            isRequestReceived -> "Accept"
                             isContactAdded -> "Remove"
                             isRequestPending -> "Cancel"
                             else -> "Add"
