@@ -35,4 +35,40 @@
     <string name="provide_final_activities">Provide final activities with date and time (recommended for trips shorter than a week)</string>
     <string name="use_interests">Use your profile\'s interests to recommend activities</string>
     <string name="close">Close</string>
+
+ <!-- Add Activity -->
+    <string name="create_activity">Create a New Activity</string>
+    <string name="edit_activity">Edit Activity</string>
+    <string name="back">Back</string>
+    <string name="name_activity">Name the activity</string>
+    <string name="activity_title">Title *</string>
+    <string name="describe_activity">Describe the activity</string>
+    <string name="activity_description">Description</string>
+    <string name="activity_date">Date</string>
+    <string name="start_time">Start Time</string>
+    <string name="end_time">End Time</string>
+    <string name="estimated_price_CHF">Estimated Price (CHF)</string>
+    <string name="enter_estimated_price">Enter estimated price</string>
+    <string name="select_activity_type">Select Activity Type</string>
+    <string name="save">Save</string>
+
+ <!-- Time Pickers -->
+    <string name="ok">OK</string>
+    <string name="select_time">Select time</string>
+
+ <!-- Add Trip -->
+    <string name="create_trip">Create a New Trip</string>
+    <string name="selected_image">Selected Image</string>
+    <string name="default_image">Default trip image</string>
+    <string name="select_image_gallery">Select Image from Gallery</string>
+    <string name="access_gallery">This app needs access to your photos to allow you to select an image for your trip.</string>
+    <string name="name_trip">Name the trip</string>
+    <string name="trip_title">Trip *</string>
+    <string name="describe_trip">Describe the trip</string>
+    <string name="trip_description">Description</string>
+    <string name="start_date">Start Date *</string>
+    <string name="end_date">End Date *</string>
+    <string name="business">Business</string>
+    <string name="tourism">Tourism</string>
+    <string name="save_trip">Save Trip</string>
 </resources>
