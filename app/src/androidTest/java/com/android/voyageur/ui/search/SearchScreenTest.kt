@@ -19,8 +19,6 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
 import com.google.android.libraries.places.api.model.Place
-import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
