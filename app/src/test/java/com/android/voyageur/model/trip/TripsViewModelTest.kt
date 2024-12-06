@@ -448,4 +448,20 @@ class TripsViewModelTest {
     // Assert
     verify(tripsRepository).updateTrip(any(), any(), any())
   }
+  
+  fun testGetFeed() {
+    tripsViewModel.getFeed("userId")
+    verify(tripsRepository).getFeed(any(), any(), any())
+  }
+
+  @Test
+  fun testGetFeed_failure() {
+    `when`(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
+      val onFailure = it.arguments[2] as (Exception) -> Unit
+      onFailure(Exception("Failed to get feed"))
+    }
+    tripsViewModel.getFeed("userId")
+    verify(tripsRepository).getFeed(any(), any(), any())
+    assert(!tripsViewModel.isLoading.value)
+  }
 }
