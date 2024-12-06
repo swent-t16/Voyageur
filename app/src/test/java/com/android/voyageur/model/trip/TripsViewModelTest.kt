@@ -306,11 +306,11 @@ class TripsViewModelTest {
     assert(tripsViewModel.getActivitiesForSelectedTrip().isEmpty())
   }
 
-    @Test
-    fun testGetPhotosForSelectedTrip() {
-        tripsViewModel.selectTrip(trip)
-        assert(tripsViewModel.getPhotosForSelectedTrip() == trip.photos)
-    }
+  @Test
+  fun testGetPhotosForSelectedTrip() {
+    tripsViewModel.selectTrip(trip)
+    assert(tripsViewModel.getPhotosForSelectedTrip() == trip.photos)
+  }
 
   @Test
   fun testAddPhotoToTrip() {
@@ -323,7 +323,7 @@ class TripsViewModelTest {
   @Test
   fun testRemovePhotoFromTrip() {
     tripsViewModel.selectTrip(trip)
-      val photo = "http://example.com/image.jpg"
+    val photo = "http://example.com/image.jpg"
     // mock add and remove a photo
     tripsViewModel.addPhotoToTrip(photo)
     tripsViewModel.removePhotoFromTrip(photo)

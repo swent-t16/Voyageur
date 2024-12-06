@@ -1,6 +1,7 @@
 package com.android.voyageur.ui.trip.photos
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -71,9 +72,25 @@ fun PhotosScreen(
             onUriSelected = { uri ->
               uri?.let {
                 if (isConnected) {
-                  val newPhotoUri = uri.toString()
-                  tripsViewModel.addPhotoToTrip(newPhotoUri)
-                  Toast.makeText(context, "Photo successfully added", Toast.LENGTH_SHORT).show()
+                  val imageUriParsed = Uri.parse(uri.toString())
+                  tripsViewModel.uploadImageToFirebase(
+                      uri = imageUriParsed,
+                      onSuccess = { downloadUrl ->
+                        tripsViewModel.addPhotoToTrip(downloadUrl)
+                        Toast.makeText(context, "Photo successfully added", Toast.LENGTH_SHORT)
+                            .show()
+                      },
+                      onFailure = { exception ->
+                        Toast.makeText(
+                                context,
+                                "Failed to upload image: ${exception.message}",
+                                Toast.LENGTH_SHORT)
+                            .show()
+                      })
+                  //                  val newPhotoUri = uri.toString()
+                  //                  tripsViewModel.addPhotoToTrip(newPhotoUri)
+                  //                  Toast.makeText(context, "Photo successfully added",
+                  // Toast.LENGTH_SHORT).show()
                 } else {
                   Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
                 }
@@ -81,8 +98,7 @@ fun PhotosScreen(
             },
             messageToShow = "Add Photo",
             dialogMessage = "We need permission to access your gallery.",
-            modifier = Modifier.testTag("addPhotoButton")
-            )
+            modifier = Modifier.testTag("addPhotoButton"))
       },
       bottomBar = {
         BottomNavigationMenu(
@@ -92,10 +108,7 @@ fun PhotosScreen(
             userViewModel = userViewModel)
       },
       topBar = {
-        TopAppBar(
-            title = { Text("Photos") },
-            modifier = Modifier.testTag("photosTopBar")
-        )
+        TopAppBar(title = { Text("Photos") }, modifier = Modifier.testTag("photosTopBar"))
       },
       content = { pd ->
         if (photos.isEmpty()) {
@@ -139,7 +152,8 @@ fun PhotoThumbnail(photoUri: String, onClick: () -> Unit) {
   Box(
       Modifier.size(80.dp)
           .background(MaterialTheme.colorScheme.background, RoundedCornerShape(4.dp))
-          .clickable { onClick() }.testTag("photoThumbnail_${photoUri}"),
+          .clickable { onClick() }
+          .testTag("photoThumbnail_${photoUri}"),
       contentAlignment = Alignment.Center) {
         Image(
             painter = rememberAsyncImagePainter(photoUri),
@@ -167,9 +181,10 @@ fun PhotoDialog(
 
   Box(
       modifier =
-          Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.8f)).clickable {
-            onDismiss()
-          }.testTag("photoDialog"),
+          Modifier.fillMaxSize()
+              .background(Color.Black.copy(alpha = 0.8f))
+              .clickable { onDismiss() }
+              .testTag("photoDialog"),
       contentAlignment = Alignment.Center) {
         currentPhoto?.let {
           Column(
@@ -182,7 +197,11 @@ fun PhotoDialog(
                       painter = rememberAsyncImagePainter(it),
                       contentDescription = "Full-size photo",
                       contentScale = ContentScale.Fit,
-                      modifier = Modifier.fillMaxWidth().padding(16.dp).clickable {}.testTag("photoFull_${photoUri}"))
+                      modifier =
+                          Modifier.fillMaxWidth()
+                              .padding(16.dp)
+                              .clickable {}
+                              .testTag("photoFull_${photoUri}"))
 
                   // Row to position the left and right buttons at the middle of the height
                   Row(
@@ -190,7 +209,8 @@ fun PhotoDialog(
                       verticalAlignment = Alignment.CenterVertically,
                       modifier =
                           Modifier.fillMaxWidth()
-                              .align(Alignment.Center).testTag("photoRow") // Center the Row vertically
+                              .align(Alignment.Center)
+                              .testTag("photoRow") // Center the Row vertically
                       ) {
                         // Left Button ("<")
                         IconButton(
@@ -213,7 +233,10 @@ fun PhotoDialog(
                   // Delete button (bottom-right corner)
                   IconButton(
                       onClick = { showDialog = true },
-                      modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).testTag("deleteButton")) {
+                      modifier =
+                          Modifier.align(Alignment.BottomEnd)
+                              .padding(16.dp)
+                              .testTag("deleteButton")) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete Photo",
@@ -226,7 +249,10 @@ fun PhotoDialog(
                         // TODO: implement photo downloading functionality
                         Toast.makeText(context, "Photo downloaded", Toast.LENGTH_SHORT).show()
                       },
-                      modifier = Modifier.align(Alignment.TopEnd).padding(16.dp).testTag("downloadButton")) {
+                      modifier =
+                          Modifier.align(Alignment.TopEnd)
+                              .padding(16.dp)
+                              .testTag("downloadButton")) {
                         Icon(
                             imageVector = Icons.Default.Download,
                             contentDescription = "Download Photo",
