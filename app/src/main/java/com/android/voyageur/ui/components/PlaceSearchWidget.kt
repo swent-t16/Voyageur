@@ -15,9 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.PopupProperties
+import com.android.voyageur.R
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.utils.findMainActivityOrNull
@@ -85,7 +87,7 @@ fun PlaceSearchWidget(
           }
         })
     if (!locationPermissionState.status.isGranted) {
-      Text("Location permission is required to fetch your location.")
+      Text(stringResource(R.string.location_permission_required))
     }
     DropdownMenu(
         expanded = expanded,
@@ -96,7 +98,7 @@ fun PlaceSearchWidget(
             DropdownMenuItem(
                 text = {
                   Column {
-                    Row { Text(place.place.displayName ?: "Unknown Place") }
+                    Row { Text(place.place.displayName ?: stringResource(R.string.unknown_place)) }
                     place.place.formattedAddress?.let { Row { Text(it) } }
                   }
                 },
