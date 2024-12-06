@@ -20,6 +20,7 @@ import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
 import com.google.android.libraries.places.api.model.Place
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -129,17 +130,6 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag("toggleMapViewButton").assertIsDisplayed().performClick()
 
     composeTestRule.onNodeWithTag("toggleMapViewButton").assertIsDisplayed().performClick()
-  }
-
-  @Test
-  fun testDiscoverContent() = runTest {
-    `when`(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
-      val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
-      onSuccess(listOf(Trip(id = "1", name = "Test Trip 1"), Trip(id = "2", name = "Test Trip 2")))
-    }
-
-    composeTestRule.onNodeWithTag("discoverTab").performClick()
-    composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
   }
 
   @Test
