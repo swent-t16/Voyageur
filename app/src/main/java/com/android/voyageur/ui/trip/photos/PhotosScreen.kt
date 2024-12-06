@@ -38,8 +38,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.android.voyageur.R
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.gallery.PermissionButtonForGallery
@@ -103,8 +105,8 @@ fun PhotosScreen(
                 }
               }
             },
-            messageToShow = "Add Photo",
-            dialogMessage = "We need permission to access your gallery.",
+            messageToShow = stringResource(R.string.add_photo),
+            dialogMessage = stringResource(R.string.gallery_permission),
             modifier = Modifier.testTag("addPhotoButton"))
       },
       bottomBar = {
@@ -115,14 +117,16 @@ fun PhotosScreen(
             userViewModel = userViewModel)
       },
       topBar = {
-        TopAppBar(title = { Text("Photos") }, modifier = Modifier.testTag("photosTopBar"))
+        TopAppBar(
+            title = { Text(stringResource(R.string.photos)) },
+            modifier = Modifier.testTag("photosTopBar"))
       },
       content = { pd ->
         if (photos.isEmpty()) {
           Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 modifier = Modifier.testTag("emptyPhotosPrompt"),
-                text = "You have no photos yet.",
+                text = stringResource(R.string.no_photos),
             )
           }
         } else {
@@ -218,7 +222,7 @@ fun PhotoDialog(
                   // Image
                   Image(
                       painter = rememberAsyncImagePainter(it),
-                      contentDescription = "Full-size photo",
+                      contentDescription = stringResource(R.string.full_size_photo),
                       contentScale = ContentScale.Fit,
                       modifier = Modifier.fillMaxWidth().padding(16.dp).clickable {})
 
@@ -257,7 +261,7 @@ fun PhotoDialog(
                               .testTag("deleteButton_${photoUri}")) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete Photo",
+                            contentDescription = stringResource(R.string.delete_photo),
                             tint = Color.White)
                       }
 
@@ -273,7 +277,7 @@ fun PhotoDialog(
                               .testTag("downloadButton_${photoUri}")) {
                         Icon(
                             imageVector = Icons.Default.Download,
-                            contentDescription = "Download Photo",
+                            contentDescription = stringResource(R.string.download_photo),
                             tint = Color.White)
                       }
                 }
@@ -285,8 +289,8 @@ fun PhotoDialog(
     AlertDialog(
         modifier = Modifier.testTag("confirmDialog"),
         onDismissRequest = { showDialog = false },
-        title = { Text(text = "Remove Photo") },
-        text = { Text("Are you sure you want to remove this photo?") },
+        title = { Text(text = stringResource(R.string.remove_photo)) },
+        text = { Text(stringResource(R.string.confirmation_delete_photo)) },
         confirmButton = {
           TextButton(
               onClick = {
@@ -299,9 +303,11 @@ fun PhotoDialog(
                 }
                 showDialog = false
               }) {
-                Text("Remove")
+                Text(stringResource(R.string.remove))
               }
         },
-        dismissButton = { TextButton(onClick = { showDialog = false }) { Text("Cancel") } })
+        dismissButton = {
+          TextButton(onClick = { showDialog = false }) { Text(stringResource(R.string.cancel)) }
+        })
   }
 }
