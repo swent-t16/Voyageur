@@ -28,7 +28,8 @@ class TripTest {
             activities = activities,
             type = TripType.BUSINESS,
             imageUri = "http://example.com/image.jpg",
-            photos = photos)
+            photos = photos,
+            discoverable = false)
 
     val trip2 =
         Trip(
@@ -43,7 +44,8 @@ class TripTest {
             activities = activities,
             type = TripType.BUSINESS,
             imageUri = "http://example.com/image.jpg",
-            photos = photos)
+            photos = photos,
+            discoverable = false)
     assert(trip1.equals(trip2))
     assert(trip1.hashCode() == trip2.hashCode())
   }
@@ -99,5 +101,6 @@ class TripTest {
     assert(trip.type == TripType.TOURISM)
     assert(trip.imageUri.isEmpty())
     assert(trip.photos.isEmpty())
+    assert(!trip.discoverable)
   }
 }
