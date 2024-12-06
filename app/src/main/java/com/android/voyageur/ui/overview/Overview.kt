@@ -60,6 +60,7 @@ import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.components.NoResultsFound
 import com.android.voyageur.ui.formFields.UserIcon
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
@@ -144,10 +145,7 @@ fun OverviewScreen(
                       Modifier.height(56.dp) // Increased height
                           .fillMaxWidth()
                           .testTag("searchField"),
-                  textStyle =
-                      MaterialTheme.typography.bodyLarge.copy(
-                          fontSize = 16.sp, textAlign = TextAlign.Center // Center the input text
-                          ),
+                  textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
                   singleLine = true,
                   shape = RoundedCornerShape(12.dp), // Slightly increased corner radius
               )
@@ -186,21 +184,28 @@ fun OverviewScreen(
                         .sortedBy { it.startDate }
                   }
 
-              LazyColumn(
-                  verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
-                  horizontalAlignment = Alignment.CenterHorizontally,
-                  modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
-                    filteredTrips.forEach { trip ->
-                      item {
-                        TripItem(
-                            tripsViewModel = tripsViewModel,
-                            trip = trip,
-                            navigationActions = navigationActions,
-                            userViewModel = userViewModel)
-                        Spacer(modifier = Modifier.height(10.dp))
+              // Add this condition to check if filteredTrips is empty while searching
+              if (searchQuery.isNotEmpty() && filteredTrips.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                  NoResultsFound(modifier = Modifier.testTag("noSearchResults"))
+                }
+              } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
+                      filteredTrips.forEach { trip ->
+                        item {
+                          TripItem(
+                              tripsViewModel = tripsViewModel,
+                              trip = trip,
+                              navigationActions = navigationActions,
+                              userViewModel = userViewModel)
+                          Spacer(modifier = Modifier.height(10.dp))
+                        }
                       }
                     }
-                  }
+              }
             }
           }
         }

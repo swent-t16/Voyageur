@@ -1,7 +1,9 @@
 package com.android.voyageur.ui.overview
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -274,5 +276,84 @@ class OverviewScreenTest {
 
     // Check if only matching trip is shown
     composeTestRule.onNodeWithText("1").assertExists()
+  }
+
+  @Test
+  fun noResultsFound_isDisplayed_whenSearchHasNoMatches() {
+    // Given - Set up trips with specific names
+    val mockTrips =
+        listOf(
+            Trip(
+                id = "1",
+                name = "Paris Trip",
+                startDate = Timestamp.now(),
+                endDate = Timestamp.now()),
+            Trip(
+                id = "2",
+                name = "London Adventure",
+                startDate = Timestamp.now(),
+                endDate = Timestamp.now()))
+
+    // When - Set up trips in repository
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
+    }
+    tripViewModel.getTrips()
+
+    // Perform search with no matches
+    composeTestRule.onNodeWithTag("searchField").performTextInput("Berlin")
+
+    // Then - Verify NoResultsFound is displayed
+    composeTestRule.onNodeWithTag("noSearchResults").assertIsDisplayed()
+
+    // Verify trip cards are not shown
+    composeTestRule.onAllNodesWithTag("cardItem").assertCountEquals(0)
+  }
+
+  @Test
+  fun noResultsFound_isNotDisplayed_whenSearchHasMatches() {
+    // Given
+    val mockTrips =
+        listOf(
+            Trip(
+                id = "1",
+                name = "Paris Trip",
+                startDate = Timestamp.now(),
+                endDate = Timestamp.now()))
+
+    // When
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
+    }
+    tripViewModel.getTrips()
+
+    // Perform search with matches
+    composeTestRule.onNodeWithTag("searchField").performTextInput("Paris")
+
+    // Then
+    composeTestRule.onNodeWithTag("noResults").assertDoesNotExist()
+    composeTestRule.onAllNodesWithTag("cardItem").assertCountEquals(1)
+  }
+
+  @Test
+  fun noResultsFound_isNotDisplayed_whenSearchFieldIsEmpty() {
+    // Given
+    val mockTrips =
+        listOf(
+            Trip(
+                id = "1",
+                name = "Paris Trip",
+                startDate = Timestamp.now(),
+                endDate = Timestamp.now()))
+
+    // When
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
+    }
+    tripViewModel.getTrips()
+
+    // Then - verify NoResultsFound is not displayed with empty search
+    composeTestRule.onNodeWithTag("noResults").assertDoesNotExist()
+    composeTestRule.onAllNodesWithTag("cardItem").assertCountEquals(1)
   }
 }

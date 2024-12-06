@@ -177,7 +177,7 @@ fun ActivitiesScreen(
                     }
               }
             },
-            modifier = Modifier.height(120.dp).testTag("topAppBar"))
+            modifier = Modifier.height(80.dp).testTag("topAppBar"))
       },
       floatingActionButton = { AddActivityButton(navigationActions) },
       content = { pd ->

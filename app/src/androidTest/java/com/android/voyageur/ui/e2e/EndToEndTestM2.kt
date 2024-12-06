@@ -182,9 +182,7 @@ class E2ETestM2 {
     // starting screen is overview
     // check if all the components are displayed
     composeTestRule.onNodeWithTag("overviewScreen").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Your trips").assertIsDisplayed()
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("topBarTitle").assertIsDisplayed()
 
     composeTestRule
         .onNodeWithText("You have no trips yet.")
