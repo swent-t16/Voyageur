@@ -250,7 +250,7 @@ fun AddTripScreen(
             type = tripType,
             imageUri = imageUrl,
             photos = if (isEditMode) tripsViewModel.selectedTrip.value?.photos ?: listOf() else listOf(),
-            discoverable = discoverable)
+            discoverable = discoverable
         )
 
     if (!isEditMode) {
