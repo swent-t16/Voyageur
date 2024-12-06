@@ -2,6 +2,7 @@ package com.android.voyageur.ui.overview
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -436,7 +437,7 @@ fun generateParticipantString(numberOfParticipants: Int): String {
  * @param trip The trip data used to populate the calendar event details.
  */
 internal fun openGoogleCalendar(context: Context, trip: Trip) {
-  // Create an intent to insert into the calendar app
+  // Create intent to open calendar app
   val intent =
       Intent(Intent.ACTION_INSERT)
           .setData(CalendarContract.Events.CONTENT_URI)
@@ -444,7 +445,13 @@ internal fun openGoogleCalendar(context: Context, trip: Trip) {
           .putExtra(CalendarContract.Events.DESCRIPTION, trip.description)
           .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, trip.startDate.toDate().time)
           .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, trip.endDate.toDate().time)
+          .putExtra(CalendarContract.Events.EVENT_LOCATION, trip.location.name)
           .putExtra(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
-  // Start Activity and open calendar
-  context.startActivity(intent)
+
+  // Launch the calendar or throw toast if no app compatible
+  try {
+    context.startActivity(intent)
+  } catch (e: ActivityNotFoundException) {
+    Toast.makeText(context, R.string.no_compatible_calendar, Toast.LENGTH_LONG).show()
+  }
 }
