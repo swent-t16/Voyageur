@@ -1,6 +1,5 @@
 package com.android.voyageur.ui.trip.activities
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,11 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.android.voyageur.R
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -68,10 +62,10 @@ fun ActivitiesForOneDayScreen(
   var showDialog by remember { mutableStateOf(false) }
   var activityToDelete by remember { mutableStateOf<Activity?>(null) }
 
-  var totalEstimatedPrice by remember { mutableStateOf(0.0) }
+  var pricePerDay by remember { mutableStateOf(0.0) }
 
   // Calculate the total estimated price whenever the activities change
-  LaunchedEffect(activities) { totalEstimatedPrice = activities.sumOf { it.estimatedPrice } }
+  LaunchedEffect(activities) { pricePerDay = activities.sumOf { it.estimatedPrice } }
 
   Scaffold(
       modifier = Modifier.testTag("activitiesForOneDayScreen"),
@@ -109,25 +103,7 @@ fun ActivitiesForOneDayScreen(
                 Spacer(modifier = Modifier.height(10.dp))
               }
             }
-            item {
-              Box(
-                  modifier =
-                      Modifier.fillMaxWidth()
-                          .padding(16.dp)
-                          .background(
-                              color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
-                              shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                          .padding(16.dp)
-                          .testTag("totalEstimatedPriceBox"),
-                  contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.total_price, totalEstimatedPrice),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.align(Alignment.Center))
-                  }
-            }
+            item { EstimatedPriceBox(pricePerDay) }
           }
           if (showDialog) {
             DeleteActivityAlertDialog(
