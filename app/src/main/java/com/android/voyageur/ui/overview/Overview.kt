@@ -455,7 +455,7 @@ internal fun openGoogleCalendar(context: Context, trip: Trip) {
   // Handle endDate in try-catch safely
   try {
     val endTime = trip.endDate.toDate().time
-    intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, endTime)
+    intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime)
   } catch (e: Exception) {
     // Handle conversion exception gracefully
     Toast.makeText(context, "endDate is not valid.", Toast.LENGTH_LONG).show()

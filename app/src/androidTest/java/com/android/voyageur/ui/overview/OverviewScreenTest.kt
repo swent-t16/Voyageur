@@ -313,16 +313,14 @@ class OverviewScreenTest {
     assertEquals(mockTrip.name, capturedIntent.getStringExtra(CalendarContract.Events.TITLE))
     assertEquals(
         mockTrip.description, capturedIntent.getStringExtra(CalendarContract.Events.DESCRIPTION))
+    // Check startDate if it's added
+    val expectedStartTime = mockTrip.startDate.toDate().time
     assertEquals(
-        mockTrip.startDate.toDate().time,
-        capturedIntent.getLongExtra(
-            CalendarContract.EXTRA_EVENT_BEGIN_TIME,
-            -1)) // -1 is default value in case begin time is not found
+        expectedStartTime, capturedIntent.getLongExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, -1))
+    // Check endDate if it's added
+    val expectedEndTime = mockTrip.endDate.toDate().time
     assertEquals(
-        mockTrip.endDate.toDate().time,
-        capturedIntent.getLongExtra(
-            CalendarContract.EXTRA_EVENT_END_TIME,
-            -1)) // -1 is default value in case end time is not found
+        expectedEndTime, capturedIntent.getLongExtra(CalendarContract.EXTRA_EVENT_END_TIME, -1))
     assertEquals(
         TimeZone.getDefault().id,
         capturedIntent.getStringExtra(CalendarContract.Events.EVENT_TIMEZONE))
