@@ -233,6 +233,7 @@ open class TripsViewModel(
             Log.e("PhotoItem", "Error deleting photo: ${error.message}", error)
           })
     }
+  }
 
   /**
    * Gets the feed of trips for a user.

@@ -448,7 +448,7 @@ class TripsViewModelTest {
     // Assert
     verify(tripsRepository).updateTrip(any(), any(), any())
   }
-  
+
   fun testGetFeed() {
     tripsViewModel.getFeed("userId")
     verify(tripsRepository).getFeed(any(), any(), any())
