@@ -2,7 +2,6 @@ package com.android.voyageur.ui.search
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
@@ -135,21 +134,13 @@ class SearchScreenTest {
 
   @Test
   fun testDiscoverTab() = runTest {
-    // Mock the repository to return a sample feed
+    composeTestRule.awaitIdle()
     `when`(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
       val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
       onSuccess(listOf(Trip(id = "1"))) // Provide a valid Trip for testing
     }
-
-    // Click on the discover tab
     composeTestRule.onNodeWithTag("discoverTab").performClick()
-
-    // Wait until the trip card is displayed
-    composeTestRule.waitUntil(timeoutMillis = 10_000) {
-      composeTestRule.onAllNodesWithTag("tripCard_1").fetchSemanticsNodes().isNotEmpty()
-    }
-
-    // Assert the trip card is displayed
+    composeTestRule.awaitIdle()
     composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
   }
 

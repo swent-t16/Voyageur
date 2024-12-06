@@ -13,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,6 +29,13 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.overview.DisplayParticipants
 
+/**
+ * DiscoverContent composable displays the trips that the user can discover.
+ *
+ * @param tripsViewModel ViewModel that provides the trips to display.
+ * @param userViewModel ViewModel that provides the user information.
+ * @param modifier Modifier to apply to this layout node.
+ */
 @Composable
 fun DiscoverContent(
     tripsViewModel: TripsViewModel,
@@ -39,9 +45,8 @@ fun DiscoverContent(
   val userId = userViewModel.user.collectAsState().value?.id
   // Fetch trips
   tripsViewModel.getFeed(userId ?: "")
-  val trips = tripsViewModel.feed.collectAsState(initial = emptyList()).value
+  val trips = tripsViewModel.feed.collectAsState().value
   val pagerState = rememberPagerState(pageCount = { trips.size })
-  rememberCoroutineScope()
 
   if (trips.isEmpty()) {
     NoTripsFound()
@@ -53,6 +58,12 @@ fun DiscoverContent(
   }
 }
 
+/**
+ * TripCard composable displays a card with the trip information.
+ *
+ * @param trip Trip to display.
+ * @param userViewModel ViewModel that provides the user information.
+ */
 @Composable
 fun TripCard(trip: Trip, userViewModel: UserViewModel) {
   Box(
@@ -128,6 +139,7 @@ fun TripCard(trip: Trip, userViewModel: UserViewModel) {
       }
 }
 
+/** NoTripsFound composable displays a message when no trips are found. */
 @Composable
 fun NoTripsFound() {
   Column(
