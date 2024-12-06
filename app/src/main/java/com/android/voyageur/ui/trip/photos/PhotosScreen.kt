@@ -87,10 +87,6 @@ fun PhotosScreen(
                                 Toast.LENGTH_SHORT)
                             .show()
                       })
-                  //                  val newPhotoUri = uri.toString()
-                  //                  tripsViewModel.addPhotoToTrip(newPhotoUri)
-                  //                  Toast.makeText(context, "Photo successfully added",
-                  // Toast.LENGTH_SHORT).show()
                 } else {
                   Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
                 }
@@ -159,7 +155,7 @@ fun PhotoThumbnail(photoUri: String, onClick: () -> Unit) {
             painter = rememberAsyncImagePainter(photoUri),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize().testTag("photoSmall_${photoUri}"))
+            modifier = Modifier.fillMaxSize())
       }
 }
 
@@ -184,7 +180,7 @@ fun PhotoDialog(
           Modifier.fillMaxSize()
               .background(Color.Black.copy(alpha = 0.8f))
               .clickable { onDismiss() }
-              .testTag("photoDialog"),
+              .testTag("photoDialog_${photoUri}"),
       contentAlignment = Alignment.Center) {
         currentPhoto?.let {
           Column(
@@ -197,11 +193,7 @@ fun PhotoDialog(
                       painter = rememberAsyncImagePainter(it),
                       contentDescription = "Full-size photo",
                       contentScale = ContentScale.Fit,
-                      modifier =
-                          Modifier.fillMaxWidth()
-                              .padding(16.dp)
-                              .clickable {}
-                              .testTag("photoFull_${photoUri}"))
+                      modifier = Modifier.fillMaxWidth().padding(16.dp).clickable {})
 
                   // Row to position the left and right buttons at the middle of the height
                   Row(
@@ -209,8 +201,7 @@ fun PhotoDialog(
                       verticalAlignment = Alignment.CenterVertically,
                       modifier =
                           Modifier.fillMaxWidth()
-                              .align(Alignment.Center)
-                              .testTag("photoRow") // Center the Row vertically
+                              .align(Alignment.Center) // Center the Row vertically
                       ) {
                         // Left Button ("<")
                         IconButton(
@@ -236,7 +227,7 @@ fun PhotoDialog(
                       modifier =
                           Modifier.align(Alignment.BottomEnd)
                               .padding(16.dp)
-                              .testTag("deleteButton")) {
+                              .testTag("deleteButton_${photoUri}")) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete Photo",
@@ -252,7 +243,7 @@ fun PhotoDialog(
                       modifier =
                           Modifier.align(Alignment.TopEnd)
                               .padding(16.dp)
-                              .testTag("downloadButton")) {
+                              .testTag("downloadButton_${photoUri}")) {
                         Icon(
                             imageVector = Icons.Default.Download,
                             contentDescription = "Download Photo",
