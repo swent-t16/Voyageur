@@ -2,6 +2,7 @@ package com.android.voyageur.ui.search
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
@@ -19,6 +20,7 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
 import com.google.android.libraries.places.api.model.Place
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -71,6 +73,7 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag("tabRow").assertIsDisplayed()
     composeTestRule.onNodeWithTag("filterButton_USERS").assertIsDisplayed()
     composeTestRule.onNodeWithTag("filterButton_PLACES").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("discoverTab").assertIsDisplayed()
   }
 
   @Test
@@ -128,6 +131,20 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag("toggleMapViewButton").assertIsDisplayed().performClick()
 
     composeTestRule.onNodeWithTag("toggleMapViewButton").assertIsDisplayed().performClick()
+  }
+
+  @Test
+  fun testDiscoverTab() = runTest {
+    `when`(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
+      onSuccess(listOf(Trip(id = "1")))
+    }
+
+    composeTestRule.onNodeWithTag("discoverTab").performClick()
+    composeTestRule.waitUntil {
+      composeTestRule.onAllNodesWithTag("tripCard_1").fetchSemanticsNodes().isNotEmpty()
+    }
+    composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
   }
 
   @Test
