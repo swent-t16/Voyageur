@@ -256,7 +256,7 @@ fun FriendRequestItem(friendRequest: FriendRequest, fromUser: User, userViewMode
               modifier = Modifier.testTag("acceptButton"),
               onClick = {
                 // Accept user's friend request and add to contacts
-                userViewModel.addContact(fromUser.id, friendRequest.id)
+                userViewModel.acceptFriendRequest(friendRequest)
               }) {
                 Icon(
                     imageVector = Icons.Default.Check,

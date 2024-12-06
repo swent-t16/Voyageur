@@ -111,12 +111,18 @@ val generativeModel =
  *
  * @param trip the trip
  * @param userPrompt the prompt that the user provides in the app
+ * @param interests the interests to focus on
  * @param provideFinalActivities whether to provide final activities with date and time or just
  *   draft activities. In the case of draft activities, the prompt is a bit different to avoid
  *   recommending a lunch for each day more or less the same.
  * @return the prompt to send to use with the generative model
  */
-fun generatePrompt(trip: Trip, userPrompt: String, provideFinalActivities: Boolean): String {
+fun generatePrompt(
+    trip: Trip,
+    userPrompt: String,
+    interests: List<String>,
+    provideFinalActivities: Boolean,
+): String {
   val startDate = getYearMonthDay(trip.startDate)
   val endDate = getYearMonthDay(trip.endDate)
   val datePrompt =
@@ -125,20 +131,27 @@ fun generatePrompt(trip: Trip, userPrompt: String, provideFinalActivities: Boole
           and the end date year ${endDate.first} month ${endDate.second + 1} day ${endDate.third}
             """
           .trimIndent()
+  val interestsPrompt =
+      if (interests.isNotEmpty()) {
+        "The activities should focus on the following interests (if applicable): ${interests.joinToString(", ")}."
+      } else {
+        ""
+      }
   val prompt =
       if (provideFinalActivities) {
         """
     Make a full schedule by listing activities, including separate activities for eating, transport, etc.
-    The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt.
+    The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt
     Recommend multiple activities for each day.
     """
             .trimIndent()
       } else {
         """
     List a lot of popular specific activities to do on a trip called ${trip.name}.
-    The trip takes place $datePrompt with the following prompt: $userPrompt.
+    The trip takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt
     """
             .trimIndent()
       }
+
   return prompt
 }

@@ -3,13 +3,14 @@ package com.android.voyageur.model.assistant
 import com.android.voyageur.model.trip.Trip
 import com.google.firebase.Timestamp
 import java.util.Calendar
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class GeneratePromptTest {
 
   @Test
-  fun testGeneratePromptForFinalActivities() {
+  fun testGeneratePromptForFinalActivitiesWithoutInterests() {
     val trip =
         Trip(
             name = "Summer Adventure",
@@ -19,7 +20,12 @@ class GeneratePromptTest {
     val userPrompt = "Explore beaches and try local cuisine"
     val provideFinalActivities = true
 
-    val prompt = generatePrompt(trip, userPrompt, provideFinalActivities)
+    val prompt =
+        generatePrompt(
+            trip = trip,
+            userPrompt = userPrompt,
+            interests = emptyList(),
+            provideFinalActivities = provideFinalActivities)
     println(prompt)
 
     assertTrue(prompt.contains("Summer Adventure"))
@@ -27,10 +33,12 @@ class GeneratePromptTest {
     assertTrue(prompt.contains("end date year 2024 month 7 day 7"))
     assertTrue(prompt.contains("Make a full schedule by listing activities"))
     assertTrue(prompt.contains("Explore beaches and try local cuisine"))
+    assertFalse(prompt.contains("hiking"))
+    assertFalse(prompt.contains("cycling"))
   }
 
   @Test
-  fun testGeneratePromptForDraftActivities() {
+  fun testGeneratePromptForDraftActivitiesWithoutInterests() {
     val trip =
         Trip(
             name = "Winter Wonderland",
@@ -40,13 +48,66 @@ class GeneratePromptTest {
     val userPrompt = "Enjoy snowy landscapes and Christmas markets"
     val provideFinalActivities = false
 
-    val prompt = generatePrompt(trip, userPrompt, provideFinalActivities)
+    val prompt =
+        generatePrompt(
+            trip = trip,
+            userPrompt = userPrompt,
+            interests = emptyList(),
+            provideFinalActivities = provideFinalActivities)
 
     assertTrue(prompt.contains("Winter Wonderland"))
     assertTrue(prompt.contains("start date year 2024 month 12 day 20"))
     assertTrue(prompt.contains("end date year 2024 month 12 day 27"))
     assertTrue(prompt.contains("List a lot of popular specific activities"))
     assertTrue(prompt.contains("Enjoy snowy landscapes and Christmas markets"))
+    assertFalse(prompt.contains("hiking"))
+    assertFalse(prompt.contains("cycling"))
+  }
+
+  @Test
+  fun testGeneratePromptWithInterests() {
+    val trip =
+        Trip(
+            name = "Spring Break",
+            startDate = createTimestamp(2024, 3, 1),
+            endDate = createTimestamp(2024, 3, 7))
+
+    val userPrompt = "Relax and have fun"
+    val provideFinalActivities = false
+    val interests = listOf("hiking", "cycling")
+
+    val prompt = generatePrompt(trip, userPrompt, interests, provideFinalActivities)
+
+    assertTrue(prompt.contains("Spring Break"))
+    assertTrue(prompt.contains("start date year 2024 month 3 day 1"))
+    assertTrue(prompt.contains("end date year 2024 month 3 day 7"))
+    assertTrue(prompt.contains("List a lot of popular specific activities"))
+    assertTrue(prompt.contains("Relax and have fun"))
+    assertTrue(prompt.contains("hiking"))
+    assertTrue(prompt.contains("cycling"))
+  }
+
+  @Test
+  fun testGeneratePromptWithInterestsAndFinalActivities() {
+    val trip =
+        Trip(
+            name = "Spring Break",
+            startDate = createTimestamp(2024, 3, 1),
+            endDate = createTimestamp(2024, 3, 7))
+
+    val userPrompt = "Relax and have fun"
+    val provideFinalActivities = true
+    val interests = listOf("hiking", "cycling")
+
+    val prompt = generatePrompt(trip, userPrompt, interests, provideFinalActivities)
+
+    assertTrue(prompt.contains("Spring Break"))
+    assertTrue(prompt.contains("start date year 2024 month 3 day 1"))
+    assertTrue(prompt.contains("end date year 2024 month 3 day 7"))
+    assertTrue(prompt.contains("Make a full schedule by listing activities"))
+    assertTrue(prompt.contains("Relax and have fun"))
+    assertTrue(prompt.contains("hiking"))
+    assertTrue(prompt.contains("cycling"))
   }
 
   // Helper function to create a Timestamp from year, month, and day

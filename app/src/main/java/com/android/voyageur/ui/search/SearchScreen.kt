@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -52,7 +51,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,6 +61,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -72,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import coil.compose.rememberAsyncImagePainter
+import com.android.voyageur.R
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.user.User
@@ -418,21 +418,12 @@ fun UserSearchResultItem(
   val isConnected = connectionStatus == ConnectionState.Available
   val currentUser by userViewModel.user.collectAsState()
   val sentFriendRequests by userViewModel.sentFriendRequests.collectAsState()
-  // Determine if the user is the currently logged-in user
+  val receivedFriendRequests by userViewModel.friendRequests.collectAsState()
+
   val isCurrentUser = currentUser?.id == user.id
-
-  val isContactAdded by
-      remember(currentUser, user) {
-        derivedStateOf { currentUser?.contacts?.contains(user.id) ?: false }
-      }
-
-  val isRequestPending by
-      remember(sentFriendRequests, user) {
-        derivedStateOf { sentFriendRequests.any { it.to == user.id } }
-      }
-  LaunchedEffect(isContactAdded, isRequestPending) {
-    Log.d("UserSearchResultItem", "Recomposition triggered")
-  }
+  val isContactAdded = currentUser?.contacts?.contains(user.id) ?: false
+  val isRequestPending = sentFriendRequests.any { it.to == user.id }
+  val isRequestReceived = receivedFriendRequests.any { it.from == user.id }
 
   Row(
       modifier =
@@ -440,10 +431,9 @@ fun UserSearchResultItem(
               .fillMaxWidth()
               .padding(vertical = 12.dp, horizontal = 16.dp)
               .clickable {
-                // Navigate to the user profile screen with userId
                 userViewModel.selectUser(user)
                 navigationActions.navigateTo(Screen.SEARCH_USER_PROFILE)
-              } // Make the Row clickable
+              }
               .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp))
               .padding(16.dp),
       verticalAlignment = Alignment.CenterVertically) {
@@ -451,10 +441,7 @@ fun UserSearchResultItem(
             painter = rememberAsyncImagePainter(model = user.profilePicture),
             contentDescription = "${user.name}'s profile picture",
             modifier =
-                Modifier.size(60.dp)
-                    .clip(CircleShape)
-                    .background(fieldColor, shape = CircleShape)
-                    .testTag("userProfilePicture_${user.id}"))
+                Modifier.size(60.dp).clip(CircleShape).background(fieldColor, shape = CircleShape))
 
         Spacer(modifier = Modifier.width(16.dp))
 
@@ -465,8 +452,7 @@ fun UserSearchResultItem(
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onSurface,
               maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-              modifier = Modifier.testTag("userName_${user.id}"))
+              overflow = TextOverflow.Ellipsis)
 
           Spacer(modifier = Modifier.height(4.dp))
 
@@ -475,50 +461,69 @@ fun UserSearchResultItem(
               fontSize = 14.sp,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
               maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-              modifier = Modifier.testTag("userUsername_${user.id}"))
+              overflow = TextOverflow.Ellipsis)
         }
 
-        // Only show the button if the user is not the current user
         if (!isCurrentUser) {
-          Button(
-              onClick = {
-                when {
-                  isContactAdded -> userViewModel.removeContact(user.id)
-                  isRequestPending -> {
-                    // Remove the friend request
-                    val requestId = userViewModel.getSentRequestId(user.id)
-                    if (requestId != null) {
-                      userViewModel.deleteFriendRequest(requestId)
+          Row {
+            if (isRequestReceived) {
+              Button(
+                  onClick = {
+                    val friendRequest = receivedFriendRequests.find { it.from == user.id }
+                    if (friendRequest != null) {
+                      userViewModel.acceptFriendRequest(friendRequest)
                     }
+                  },
+                  enabled = isConnected,
+                  colors =
+                      ButtonDefaults.buttonColors(
+                          containerColor = MaterialTheme.colorScheme.tertiary),
+                  shape = RoundedCornerShape(20.dp),
+                  modifier = Modifier.width(100.dp).height(40.dp)) {
+                    Text(
+                        text = stringResource(R.string.accept),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center)
                   }
-                  else -> userViewModel.sendContactRequest(user.id)
-                }
-              },
-              enabled = isConnected,
-              colors =
-                  ButtonDefaults.buttonColors(
-                      containerColor =
-                          when {
-                            isContactAdded -> MaterialTheme.colorScheme.error
-                            isRequestPending -> MaterialTheme.colorScheme.secondary
-                            else -> MaterialTheme.colorScheme.primary
-                          }),
-              shape = RoundedCornerShape(20.dp),
-              modifier = Modifier.width(100.dp).height(40.dp).testTag("addRemoveContactButton")) {
-                Text(
-                    text =
-                        when {
-                          isContactAdded -> "Remove"
-                          isRequestPending -> "Cancel"
-                          else -> "Add"
-                        },
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = 14.sp,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth())
-              }
+            } else {
+              Button(
+                  onClick = {
+                    when {
+                      isContactAdded -> userViewModel.removeContact(user.id)
+                      isRequestPending -> {
+                        val requestId = userViewModel.getSentRequestId(user.id)
+                        if (requestId != null) {
+                          userViewModel.deleteFriendRequest(requestId)
+                        }
+                      }
+                      else -> userViewModel.sendContactRequest(user.id)
+                    }
+                  },
+                  enabled = isConnected,
+                  colors =
+                      ButtonDefaults.buttonColors(
+                          containerColor =
+                              when {
+                                isContactAdded -> MaterialTheme.colorScheme.error
+                                isRequestPending -> MaterialTheme.colorScheme.secondary
+                                else -> MaterialTheme.colorScheme.primary
+                              }),
+                  shape = RoundedCornerShape(20.dp),
+                  modifier = Modifier.width(100.dp).height(40.dp)) {
+                    Text(
+                        text =
+                            when {
+                              isContactAdded -> stringResource(R.string.remove)
+                              isRequestPending -> stringResource(R.string.cancel)
+                              else -> stringResource(R.string.add)
+                            },
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center)
+                  }
+            }
+          }
         }
       }
 }
