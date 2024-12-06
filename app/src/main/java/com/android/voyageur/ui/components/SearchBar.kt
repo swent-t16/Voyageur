@@ -29,35 +29,29 @@ import androidx.compose.ui.unit.sp
  * @param modifier Optional modifiers for the search bar
  */
 @Composable
-fun SearchBar(
-    placeholderId: Int,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var query by remember { mutableStateOf("") }
-    val textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)
+fun SearchBar(placeholderId: Int, onQueryChange: (String) -> Unit, modifier: Modifier = Modifier) {
+  var query by remember { mutableStateOf("") }
+  val textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)
 
-    TextField(
-        value = query,
-        onValueChange = {
-            query = it
-            onQueryChange(it)
-        },
-        placeholder = { Text(text = stringResource(placeholderId), style = textStyle) },
-        singleLine = true,
-        textStyle = textStyle,
-        shape = RoundedCornerShape(30.dp),
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        colors = TextFieldDefaults.colors(
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
-        ),
-        modifier = modifier.height(50.dp).fillMaxWidth()
-    )
+  TextField(
+      value = query,
+      onValueChange = {
+        query = it
+        onQueryChange(it)
+      },
+      placeholder = { Text(text = stringResource(placeholderId), style = textStyle) },
+      singleLine = true,
+      textStyle = textStyle,
+      shape = RoundedCornerShape(30.dp),
+      leadingIcon = {
+        Icon(
+            imageVector = Icons.Default.Search,
+            contentDescription = "Search",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+      },
+      colors =
+          TextFieldDefaults.colors(
+              focusedIndicatorColor = Color.Transparent,
+              unfocusedIndicatorColor = Color.Transparent),
+      modifier = modifier.height(50.dp).fillMaxWidth())
 }

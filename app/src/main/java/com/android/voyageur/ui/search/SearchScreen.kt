@@ -29,8 +29,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Place
@@ -42,7 +40,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -64,7 +61,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -251,20 +247,18 @@ fun SearchScreen(
           Spacer(modifier = Modifier.height(24.dp))
 
           // Search bar
-            SearchBar(
-                placeholderId = when(navigationActions.getNavigationState().currentTabForSearch) {
+          SearchBar(
+              placeholderId =
+                  when (navigationActions.getNavigationState().currentTabForSearch) {
                     FilterType.PLACES -> R.string.search_places
                     FilterType.USERS -> R.string.search_users
-                },
-                onQueryChange = { query ->
-                    searchQuery = TextFieldValue(query)
-                    userViewModel.setQuery(query)
-                    placesViewModel.setQuery(query, userLocation)
-                },
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .testTag("searchBar")
-            )
+                  },
+              onQueryChange = { query ->
+                searchQuery = TextFieldValue(query)
+                userViewModel.setQuery(query)
+                placesViewModel.setQuery(query, userLocation)
+              },
+              modifier = Modifier.padding(horizontal = 16.dp).testTag("searchBar"))
 
           // Tabs
           TabRow(
