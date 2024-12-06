@@ -443,12 +443,28 @@ internal fun openGoogleCalendar(context: Context, trip: Trip) {
           .setData(CalendarContract.Events.CONTENT_URI)
           .putExtra(CalendarContract.Events.TITLE, trip.name)
           .putExtra(CalendarContract.Events.DESCRIPTION, trip.description)
-          .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, trip.startDate.toDate().time)
-          .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, trip.endDate.toDate().time)
-          .putExtra(CalendarContract.Events.EVENT_LOCATION, trip.location.name)
-          .putExtra(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
 
-  // Launch the calendar or throw toast if no app compatible
+  // Handle endDate in try-catch safely
+  try {
+    val startTime = trip.startDate.toDate().time
+    intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startTime)
+  } catch (e: Exception) {
+    // Handle conversion exception gracefully
+    Toast.makeText(context, "startDate is not valid.", Toast.LENGTH_LONG).show()
+  }
+  // Handle endDate in try-catch safely
+  try {
+    val endTime = trip.endDate.toDate().time
+    intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, endTime)
+  } catch (e: Exception) {
+    // Handle conversion exception gracefully
+    Toast.makeText(context, "endDate is not valid.", Toast.LENGTH_LONG).show()
+  }
+  // Add location and timezone to intent
+  intent.putExtra(CalendarContract.Events.EVENT_LOCATION, trip.location.name)
+  intent.putExtra(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
+
+  // Launch the calendar intent or handle exceptions
   try {
     context.startActivity(intent)
   } catch (e: ActivityNotFoundException) {
