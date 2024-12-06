@@ -50,6 +50,15 @@ import com.android.voyageur.utils.ConnectionState
 import com.android.voyageur.utils.connectivityState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+/**
+ * Composable function to display the Photos screen of the app. This screen displays the photos
+ * associated with a selected trip and allows the user to add, view, and delete photos.
+ *
+ * @param tripsViewModel [TripsViewModel] The ViewModel responsible for managing trips and their
+ *   associated data.
+ * @param navigationActions [NavigationActions] Used for handling navigation between screens.
+ * @param userViewModel [UserViewModel] The ViewModel for managing user-related data.
+ */
 @SuppressLint("StateFlowValueCalledInComposition", "MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
 @Composable
@@ -68,10 +77,12 @@ fun PhotosScreen(
   Scaffold(
       modifier = Modifier.testTag("photosScreen"),
       floatingActionButton = {
+        // Button to allow the user to add photos from the gallery
         PermissionButtonForGallery(
             onUriSelected = { uri ->
               uri?.let {
                 if (isConnected) {
+                  // Upload the image to Firebase
                   val imageUriParsed = Uri.parse(uri.toString())
                   tripsViewModel.uploadImageToFirebase(
                       uri = imageUriParsed,
@@ -115,6 +126,7 @@ fun PhotosScreen(
             )
           }
         } else {
+          // Display photos in a grid layout
           LazyVerticalGrid(
               columns = GridCells.Fixed(4),
               contentPadding = PaddingValues(8.dp),
@@ -143,6 +155,12 @@ fun PhotosScreen(
       })
 }
 
+/**
+ * Composable function to display a photo thumbnail.
+ *
+ * @param photoUri The URI of the photo to display.
+ * @param onClick The callback when the thumbnail is clicked.
+ */
 @Composable
 fun PhotoThumbnail(photoUri: String, onClick: () -> Unit) {
   Box(
@@ -159,6 +177,15 @@ fun PhotoThumbnail(photoUri: String, onClick: () -> Unit) {
       }
 }
 
+/**
+ * Composable function to display a dialog for viewing a full-size photo.
+ *
+ * @param photoUri The URI of the photo being displayed.
+ * @param photoList The list of all photos associated with the trip.
+ * @param onDismiss The callback to dismiss the dialog.
+ * @param initialIndex The initial index of the photo in the list.
+ * @param tripsViewModel The [TripsViewModel] to manage photo actions like deletion.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun PhotoDialog(
@@ -253,6 +280,7 @@ fun PhotoDialog(
               }
         }
       }
+  // Alert dialog to confirm the deletion of the photo
   if (showDialog) {
     AlertDialog(
         modifier = Modifier.testTag("confirmDialog"),

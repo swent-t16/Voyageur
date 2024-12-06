@@ -23,6 +23,24 @@ import com.android.voyageur.ui.trip.schedule.toDateWithYearString
 import com.android.voyageur.ui.trip.schedule.toDateWithoutYearString
 import com.android.voyageur.ui.trip.settings.SettingsScreen
 
+/**
+ * A composable function that displays a tabbed interface for a selected trip, allowing users to
+ * switch between different views related to the trip, such as schedule, activities, photos, and
+ * settings.
+ *
+ * This composable includes:
+ * - A top bar displaying the trip name and its date range.
+ * - A `TabRow` with tabs for "Schedule", "Activities", "Photos", and "Settings".
+ * - Conditional rendering of the content based on the currently selected tab.
+ *
+ * The selected trip is retrieved from the `TripsViewModel` and displayed accordingly. If no trip is
+ * selected, the user is navigated to the "Overview" screen.
+ *
+ * @param tripsViewModel The `TripsViewModel` used to manage trip-related data and logic.
+ * @param navigationActions The `NavigationActions` used to navigate between screens.
+ * @param userViewModel The `UserViewModel` providing user-related data and functionality.
+ * @param placesViewModel The `PlacesViewModel` used to manage place-related data.
+ */
 @Composable
 fun TopTabs(
     tripsViewModel: TripsViewModel,
