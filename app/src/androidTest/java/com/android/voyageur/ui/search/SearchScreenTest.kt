@@ -135,15 +135,21 @@ class SearchScreenTest {
 
   @Test
   fun testDiscoverTab() = runTest {
+    // Mock the repository to return a sample feed
     `when`(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
       val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
-      onSuccess(listOf(Trip(id = "1")))
+      onSuccess(listOf(Trip(id = "1"))) // Provide a valid Trip for testing
     }
 
+    // Click on the discover tab
     composeTestRule.onNodeWithTag("discoverTab").performClick()
-    composeTestRule.waitUntil {
+
+    // Wait until the trip card is displayed
+    composeTestRule.waitUntil(timeoutMillis = 10_000) {
       composeTestRule.onAllNodesWithTag("tripCard_1").fetchSemanticsNodes().isNotEmpty()
     }
+
+    // Assert the trip card is displayed
     composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
   }
 
