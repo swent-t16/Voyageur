@@ -72,10 +72,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import coil.compose.rememberAsyncImagePainter
+import com.android.voyageur.R
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.components.SearchBar
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -247,37 +249,22 @@ fun SearchScreen(
 
         Column(modifier = Modifier.padding(pd).fillMaxSize().testTag("searchScreenContent")) {
           Spacer(modifier = Modifier.height(24.dp))
-          Text(
-              text = "Search",
-              style = MaterialTheme.typography.bodyLarge,
-              fontSize = 24.sp,
-              modifier = Modifier.padding(start = 16.dp, bottom = 8.dp))
 
           // Search bar
-          Row(
-              modifier =
-                  Modifier.padding(horizontal = 16.dp)
-                      .fillMaxWidth()
-                      .background(color = textFieldsColours, shape = MaterialTheme.shapes.medium)
-                      .padding(8.dp)
-                      .testTag("searchBar"),
-              verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Search, contentDescription = "Search Icon")
-                Spacer(modifier = Modifier.width(8.dp))
-                BasicTextField(
-                    value = searchQuery,
-                    onValueChange = {
-                      searchQuery = it
-                      userViewModel.setQuery(searchQuery.text)
-                      placesViewModel.setQuery(searchQuery.text, userLocation)
-                    },
-                    modifier = Modifier.weight(1f).padding(8.dp).testTag("searchTextField"),
-                    textStyle =
-                        LocalTextStyle.current.copy(
-                            fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    singleLine = true)
-              }
+            SearchBar(
+                placeholderId = when(navigationActions.getNavigationState().currentTabForSearch) {
+                    FilterType.PLACES -> R.string.search_places
+                    FilterType.USERS -> R.string.search_users
+                },
+                onQueryChange = { query ->
+                    searchQuery = TextFieldValue(query)
+                    userViewModel.setQuery(query)
+                    placesViewModel.setQuery(query, userLocation)
+                },
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .testTag("searchBar")
+            )
 
           // Tabs
           TabRow(
