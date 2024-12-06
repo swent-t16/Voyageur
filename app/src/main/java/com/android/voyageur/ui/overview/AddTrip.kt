@@ -377,10 +377,11 @@ fun AddTripScreen(
                       query = TextFieldValue(location.name)
                     },
                     query = query,
-                    onQueryChange = {
-                      placesViewModel.setQuery(it.text, null)
+                    onQueryChange = { it, location ->
+                      placesViewModel.setQuery(it.text, location)
                       query = it
-                    })
+                    },
+                )
 
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
