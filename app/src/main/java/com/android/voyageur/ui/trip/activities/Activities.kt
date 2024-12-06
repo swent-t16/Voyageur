@@ -3,6 +3,7 @@ package com.android.voyageur.ui.trip.activities
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -174,25 +175,7 @@ fun ActivitiesScreen(
               }
             }
           }
-          item {
-            androidx.compose.foundation.layout.Box(
-                modifier =
-                    Modifier.fillMaxWidth()
-                        .padding(16.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                        .padding(16.dp) // Inner padding for content within the box
-                        .testTag("totalEstimatedPriceBox"),
-                contentAlignment = Alignment.Center) {
-                  Text(
-                      text = stringResource(R.string.total_price, totalEstimatedPrice),
-                      fontSize = 20.sp,
-                      fontWeight = FontWeight.Medium,
-                      color = MaterialTheme.colorScheme.primary,
-                      modifier = Modifier.align(Alignment.Center))
-                }
-          }
+          item { EstimatedPriceBox(totalEstimatedPrice) }
         }
 
         if (showDialog) {
@@ -220,4 +203,31 @@ fun ActivitiesScreen(
               onDismiss = { showFilterMenu = false })
         }
       })
+}
+
+/**
+ * Composable that contains the total price of all activities and displays it in a box at the bottom
+ * of the screen.
+ *
+ * @param price The total estimated price of all activities.
+ */
+@Composable
+fun EstimatedPriceBox(price: Double) {
+  Box(
+      modifier =
+          Modifier.fillMaxWidth()
+              .padding(16.dp)
+              .background(
+                  color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
+                  shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+              .padding(16.dp)
+              .testTag("totalEstimatedPriceBox"),
+      contentAlignment = Alignment.Center) {
+        Text(
+            text = stringResource(R.string.total_price, price),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.align(Alignment.Center))
+      }
 }

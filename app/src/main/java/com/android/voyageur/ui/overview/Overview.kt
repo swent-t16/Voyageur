@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -285,13 +284,18 @@ fun TripItem(
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun DisplayParticipants(trip: Trip, userViewModel: UserViewModel) {
+fun DisplayParticipants(
+    trip: Trip,
+    userViewModel: UserViewModel,
+    modifier: Modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+    arrangement: Arrangement.Vertical = Arrangement.Bottom
+) {
   val numberOfParticipants = trip.participants.size - 1
   val numberToString = generateParticipantString(numberOfParticipants)
   val themeColor = MaterialTheme.colorScheme.onSurface
   Column(
-      modifier = Modifier.fillMaxHeight().padding(top = 8.dp),
-      verticalArrangement = Arrangement.Bottom, // Align top to bottom
+      modifier = modifier,
+      verticalArrangement = arrangement, // Align top to bottom
   ) {
     Text(
         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
