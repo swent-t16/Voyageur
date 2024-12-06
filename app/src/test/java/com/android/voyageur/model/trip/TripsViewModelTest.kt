@@ -48,7 +48,8 @@ class TripsViewModelTest {
           Timestamp.now(),
           emptyList(),
           TripType.TOURISM,
-          "")
+          "",
+          emptyList())
 
   @Before
   fun setUp() {
@@ -89,7 +90,8 @@ class TripsViewModelTest {
                 Timestamp.now(),
                 emptyList(),
                 TripType.TOURISM,
-                ""))
+                "",
+                emptyList()))
 
     doAnswer { invocation ->
           val onSuccess = invocation.arguments[1] as (List<Trip>) -> Unit
@@ -290,7 +292,7 @@ class TripsViewModelTest {
   fun testAddActivityToTrip() {
     tripsViewModel.selectTrip(trip)
     val activity = Activity(title = "Activity 1", description = "Description 1")
-    tripsViewModel.removeActivityFromTrip(activity)
+    tripsViewModel.addActivityToTrip(activity)
     assert(tripsViewModel.getActivitiesForSelectedTrip() == trip.activities)
   }
 
@@ -302,6 +304,30 @@ class TripsViewModelTest {
     tripsViewModel.addActivityToTrip(activity)
     tripsViewModel.removeActivityFromTrip(activity)
     assert(tripsViewModel.getActivitiesForSelectedTrip().isEmpty())
+  }
+
+    @Test
+    fun testGetPhotosForSelectedTrip() {
+        tripsViewModel.selectTrip(trip)
+        assert(tripsViewModel.getPhotosForSelectedTrip() == trip.photos)
+    }
+
+  @Test
+  fun testAddPhotoToTrip() {
+    tripsViewModel.selectTrip(trip)
+    val photo = "http://example.com/image.jpg"
+    tripsViewModel.addPhotoToTrip(photo)
+    assert(tripsViewModel.getPhotosForSelectedTrip() == trip.photos)
+  }
+
+  @Test
+  fun testRemovePhotoFromTrip() {
+    tripsViewModel.selectTrip(trip)
+      val photo = "http://example.com/image.jpg"
+    // mock add and remove a photo
+    tripsViewModel.addPhotoToTrip(photo)
+    tripsViewModel.removePhotoFromTrip(photo)
+    assert(tripsViewModel.getPhotosForSelectedTrip().isEmpty())
   }
 
   @Test

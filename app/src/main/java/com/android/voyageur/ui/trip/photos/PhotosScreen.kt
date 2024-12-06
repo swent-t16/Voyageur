@@ -65,6 +65,7 @@ fun PhotosScreen(
   val isConnected = status === ConnectionState.Available
 
   Scaffold(
+      modifier = Modifier.testTag("photosScreen"),
       floatingActionButton = {
         PermissionButtonForGallery(
             onUriSelected = { uri ->
@@ -79,7 +80,9 @@ fun PhotosScreen(
               }
             },
             messageToShow = "Add Photo",
-            dialogMessage = "We need permission to access your gallery.")
+            dialogMessage = "We need permission to access your gallery.",
+            modifier = Modifier.testTag("addPhotoButton")
+            )
       },
       bottomBar = {
         BottomNavigationMenu(
@@ -91,6 +94,7 @@ fun PhotosScreen(
       topBar = {
         TopAppBar(
             title = { Text("Photos") },
+            modifier = Modifier.testTag("photosTopBar")
         )
       },
       content = { pd ->
@@ -135,13 +139,13 @@ fun PhotoThumbnail(photoUri: String, onClick: () -> Unit) {
   Box(
       Modifier.size(80.dp)
           .background(MaterialTheme.colorScheme.background, RoundedCornerShape(4.dp))
-          .clickable { onClick() },
+          .clickable { onClick() }.testTag("photoThumbnail_${photoUri}"),
       contentAlignment = Alignment.Center) {
         Image(
             painter = rememberAsyncImagePainter(photoUri),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize())
+            modifier = Modifier.fillMaxSize().testTag("photoSmall_${photoUri}"))
       }
 }
 
@@ -165,7 +169,7 @@ fun PhotoDialog(
       modifier =
           Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.8f)).clickable {
             onDismiss()
-          },
+          }.testTag("photoDialog"),
       contentAlignment = Alignment.Center) {
         currentPhoto?.let {
           Column(
@@ -178,7 +182,7 @@ fun PhotoDialog(
                       painter = rememberAsyncImagePainter(it),
                       contentDescription = "Full-size photo",
                       contentScale = ContentScale.Fit,
-                      modifier = Modifier.fillMaxWidth().padding(16.dp).clickable {})
+                      modifier = Modifier.fillMaxWidth().padding(16.dp).clickable {}.testTag("photoFull_${photoUri}"))
 
                   // Row to position the left and right buttons at the middle of the height
                   Row(
@@ -186,10 +190,11 @@ fun PhotoDialog(
                       verticalAlignment = Alignment.CenterVertically,
                       modifier =
                           Modifier.fillMaxWidth()
-                              .align(Alignment.Center) // Center the Row vertically
+                              .align(Alignment.Center).testTag("photoRow") // Center the Row vertically
                       ) {
                         // Left Button ("<")
                         IconButton(
+                            modifier = Modifier.testTag("goLeftButton"),
                             onClick = {
                               currentIndex = (currentIndex - 1 + photoList.size) % photoList.size
                             },
@@ -199,6 +204,7 @@ fun PhotoDialog(
 
                         // Right Button (">")
                         IconButton(
+                            modifier = Modifier.testTag("goRightButton"),
                             onClick = { currentIndex = (currentIndex + 1) % photoList.size },
                             enabled = photoList.size > 1) {
                               Text(">", color = Color.White)
@@ -207,7 +213,7 @@ fun PhotoDialog(
                   // Delete button (bottom-right corner)
                   IconButton(
                       onClick = { showDialog = true },
-                      modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)) {
+                      modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).testTag("deleteButton")) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete Photo",
@@ -220,7 +226,7 @@ fun PhotoDialog(
                         // TODO: implement photo downloading functionality
                         Toast.makeText(context, "Photo downloaded", Toast.LENGTH_SHORT).show()
                       },
-                      modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)) {
+                      modifier = Modifier.align(Alignment.TopEnd).padding(16.dp).testTag("downloadButton")) {
                         Icon(
                             imageVector = Icons.Default.Download,
                             contentDescription = "Download Photo",
@@ -232,6 +238,7 @@ fun PhotoDialog(
       }
   if (showDialog) {
     AlertDialog(
+        modifier = Modifier.testTag("confirmDialog"),
         onDismissRequest = { showDialog = false },
         title = { Text(text = "Remove Photo") },
         text = { Text("Are you sure you want to remove this photo?") },
