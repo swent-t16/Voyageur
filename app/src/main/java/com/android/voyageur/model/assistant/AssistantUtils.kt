@@ -117,7 +117,7 @@ val generativeModel =
  * @param provideFinalActivities whether to provide final activities with date and time or just
  *   draft activities. In the case of draft activities, the prompt is a bit different to avoid
  *   recommending a lunch for each day more or less the same.
- *     @param alreadyPresentActivities the activities that are already present in the trip
+ * @param alreadyPresentActivities the activities that are already present in the trip
  * @return the prompt to send to use with the generative model
  */
 fun generatePrompt(
@@ -127,8 +127,8 @@ fun generatePrompt(
     provideFinalActivities: Boolean,
     alreadyPresentActivities: List<String>
 ): String {
-    val possibleEnumTypePrompt = "The activity type can only be ${ActivityType.entries.joinToString { ", " }}"
-    Log.d("AssistantUtils", "possibleEnumTypePrompt: $possibleEnumTypePrompt")
+  val possibleEnumTypePrompt =
+      "The activity type can only be ${ActivityType.entries.joinToString(", ")}, but you can recommend any activity and set the type to OTHER."
   val startDate = getYearMonthDay(trip.startDate)
   val endDate = getYearMonthDay(trip.endDate)
   val datePrompt =
@@ -143,29 +143,23 @@ fun generatePrompt(
       } else {
         ""
       }
-  Log.d("AssistantUtils", "interestsPrompt: $interestsPrompt")
   val alreadyPresentActivitiesPrompt =
       if (alreadyPresentActivities.isNotEmpty()) {
         "The following activities are already present in the trip: ${alreadyPresentActivities.joinToString(", ")}. Please avoid them."
       } else {
         ""
       }
-  Log.d("AssistantUtils", "alreadyPresentActivitiesPrompt: $alreadyPresentActivitiesPrompt")
-  val prompt =
+  val draftVsFinalPrompt =
       if (provideFinalActivities) {
-        """
-    Make a full schedule by listing activities, including separate activities for eating, transport, etc.
-    The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt $alreadyPresentActivitiesPrompt $possibleEnumTypePrompt
-    Recommend multiple activities for each day.
-    """
-            .trimIndent()
+        "Make a full schedule by listing activities, including separate activities for eating, transport, etc."
       } else {
-        """
-    List a lot of popular specific activities to do on a trip called ${trip.name}.
-    The trip takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt $alreadyPresentActivitiesPrompt $possibleEnumTypePrompt
-    """
-            .trimIndent()
+        "List a lot of popular specific activities to do on a trip."
       }
-
+  val prompt =
+      """
+    $draftVsFinalPrompt The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt $alreadyPresentActivitiesPrompt $possibleEnumTypePrompt
+      
+    """
+          .trimIndent()
   return prompt
 }
