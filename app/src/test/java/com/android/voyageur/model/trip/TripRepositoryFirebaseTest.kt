@@ -73,6 +73,7 @@ class TripRepositoryFirebaseTest {
     `when`(mockCollectionReference.whereEqualTo(eq("creator"), any())).thenReturn(mockQuery)
     `when`(mockCollectionReference.whereArrayContains(eq("participants"), eq("creator")))
         .thenReturn(mockQuery)
+    `when`(mockCollectionReference.whereEqualTo(eq("discoverable"), any())).thenReturn(mockQuery)
 
     `when`(mockCollectionReference.document()).thenReturn(mockDocumentReference)
     `when`(mockQuery.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
@@ -219,5 +220,51 @@ class TripRepositoryFirebaseTest {
     shadowOf(Looper.getMainLooper()).idle() // Ensure all asynchronous operations complete
 
     verify(mockDocumentReference).set(any())
+  }
+
+  @Test
+  fun getFeed_callsDocuments() {
+    `when`(mockCollectionReference.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
+    `when`(mockQuery.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
+
+    `when`(mockQuerySnapshot.documents).thenReturn(listOf())
+
+    tripRepository.getFeed("test", {}, {})
+
+    verify(mockCollectionReference).whereEqualTo("discoverable", true)
+
+    // Verify that get() was called on the query
+    verify(mockQuery).get()
+  }
+
+  @Test
+  fun getFeed() {
+    val exception = Exception("Firestore error")
+    val mockTask = mock(Task::class.java) as Task<QuerySnapshot>
+
+    `when`(mockQuery.get()).thenReturn(mockTask)
+    `when`(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
+      val listener = invocation.arguments[0] as OnSuccessListener<QuerySnapshot>
+      // Do not call onSuccess to simulate failure
+      mockTask
+    }
+    `when`(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
+      val listener = invocation.arguments[0] as OnFailureListener
+      listener.onFailure(exception) // Simulate failure callback
+      mockTask
+    }
+
+    val onSuccess: (List<Trip>) -> Unit = {
+      assert(false) { "Success should not be called in the failure test" }
+    }
+
+    val onFailure: (Exception) -> Unit = { e ->
+      TestCase.assertEquals("Firestore error", e.message)
+    }
+
+    tripRepository.getFeed("creator", onSuccess, onFailure)
+
+    verify(mockQuery).get()
+    verify(mockTask).addOnFailureListener(any())
   }
 }

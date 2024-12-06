@@ -64,6 +64,34 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
         }
   }
 
+  /**
+   * Fetches trips that are discoverable and not created by the user.
+   *
+   * @param userId The ID of the user.
+   * @param onSuccess The callback to be invoked when the trips are fetched successfully.
+   * @param onFailure The callback to be invoked when an error occurs.
+   */
+  override fun getFeed(
+      userId: String,
+      onSuccess: (List<Trip>) -> Unit,
+      onFailure: (Exception) -> Unit
+  ) {
+    db.collection(collectionPath)
+        .whereEqualTo("discoverable", true)
+        .get()
+        .addOnSuccessListener { result ->
+          val trips =
+              result
+                  .map { document -> document.toObject(Trip::class.java) }
+                  .filter { it.creator != userId && !it.participants.contains(userId) }
+          onSuccess(trips)
+        }
+        .addOnFailureListener { exception ->
+          Log.e("TripRepositoryFirebase", "Error getting feed: ", exception)
+          onFailure(exception)
+        }
+  }
+
   override fun updateTrip(trip: Trip, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
     db.collection(collectionPath)
         .document(trip.id)

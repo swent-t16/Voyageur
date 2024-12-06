@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -138,7 +139,7 @@ fun AddTripScreen(
   var endDate by remember { mutableStateOf<Long?>(null) }
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
   var imageUri by remember { mutableStateOf("") }
-
+  var discoverable by remember { mutableStateOf(false) }
   val contactsAndUsers by userViewModel.contacts.collectAsState()
   val userList =
       remember(contactsAndUsers, isEditMode) {
@@ -179,6 +180,7 @@ fun AddTripScreen(
         query = TextFieldValue(trip.location.name)
         startDate = trip.startDate.toDate().time
         endDate = trip.endDate.toDate().time
+        discoverable = trip.discoverable
       }
     } else {
       //      userList.clear()
@@ -246,7 +248,9 @@ fun AddTripScreen(
                 if (isEditMode) tripsViewModel.selectedTrip.value?.activities ?: listOf()
                 else listOf(),
             type = tripType,
-            imageUri = imageUrl)
+            imageUri = imageUrl,
+            discoverable = discoverable,
+        )
 
     if (!isEditMode) {
       isSaving = true
@@ -462,6 +466,17 @@ fun AddTripScreen(
                                 stringResource(R.string.tourism),
                                 modifier = Modifier.padding(start = 2.dp))
                           }
+                    }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically) {
+                      Text(
+                          stringResource(R.string.make_trip_public),
+                          modifier = Modifier.padding(end = 16.dp))
+                      Checkbox(
+                          checked = discoverable,
+                          onCheckedChange = { discoverable = it },
+                          modifier = Modifier.testTag("discoverableCheckbox"))
                     }
                 Spacer(modifier = Modifier.height(16.dp))
               }
