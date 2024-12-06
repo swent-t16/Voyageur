@@ -11,7 +11,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import com.android.voyageur.ui.search.FilterType
 
 object Route {
   const val OVERVIEW = "Overview"
@@ -78,12 +77,12 @@ open class NavigationState {
   var isDailyViewSelected by mutableStateOf(true) // Default to true (Daily view selected)
   /**
    * This is a mutable state that represents the current tab index for the search. (0 for Users, 1
-   * for Places) This is used to determine which tab is currently selected in the SearchScreen. It
-   * needs to be part of the navigation actions in order to remember which tab was selecting when
-   * opening another screen and trying to go back. For example, when we open SearchUserProfileScreen
-   * from the Users tab, we want to go back to this tab.
+   * for Places, 2 for the discover tab) This is used to determine which tab is currently selected
+   * in the SearchScreen. It needs to be part of the navigation actions in order to remember which
+   * tab was selecting when opening another screen and trying to go back. For example, when we open
+   * SearchUserProfileScreen from the Users tab, we want to go back to this tab.
    */
-  var currentTabForSearch by mutableStateOf(FilterType.USERS) // Default to Users tab
+  var currentTabForSearch by mutableIntStateOf(0) // Default to Users tab
 }
 
 open class NavigationActions(

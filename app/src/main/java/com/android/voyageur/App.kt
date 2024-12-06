@@ -64,7 +64,9 @@ fun VoyageurApp(placesClient: PlacesClient) {
         startDestination = Screen.SEARCH,
         route = Route.SEARCH,
     ) {
-      composable(Screen.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigationActions) }
+      composable(Screen.SEARCH) {
+        SearchScreen(userViewModel, placesViewModel, tripsViewModel, navigationActions)
+      }
       composable(Screen.SEARCH_USER_PROFILE) {
         SearchUserProfileScreen(userViewModel, navigationActions)
       }

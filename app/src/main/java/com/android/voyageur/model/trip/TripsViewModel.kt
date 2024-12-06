@@ -44,6 +44,9 @@ open class TripsViewModel(
   private val _isLoading = MutableStateFlow(false)
   val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+  private val _feed = MutableStateFlow<List<Trip>>(emptyList())
+  val feed: StateFlow<List<Trip>> = _feed.asStateFlow()
+
   init {
     tripsRepository.init {
       _isLoading.value = true
@@ -176,6 +179,25 @@ open class TripsViewModel(
             selectTrip(updatedTrip)
           })
     }
+  }
+
+  /**
+   * Gets the feed of trips for a user.
+   *
+   * @param userId the user ID
+   */
+  fun getFeed(userId: String) {
+    _isLoading.value = true
+    tripsRepository.getFeed(
+        userId,
+        onSuccess = { trips ->
+          _feed.value = trips
+          _isLoading.value = false
+        },
+        onFailure = {
+          _isLoading.value = false
+          Log.e("TripsViewModel", "Failed to get feed", it)
+        })
   }
 
   // ****************************************************************************************************
