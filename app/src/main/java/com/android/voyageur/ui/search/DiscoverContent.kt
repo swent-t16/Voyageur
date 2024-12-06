@@ -85,7 +85,7 @@ fun TripCard(trip: Trip, userViewModel: UserViewModel) {
               if (trip.imageUri.isNotEmpty()) {
                 Image(
                     painter = rememberAsyncImagePainter(trip.imageUri),
-                    contentDescription = "Trip Image",
+                    contentDescription = "Image of ${trip.name}",
                     contentScale = ContentScale.Crop,
                     modifier =
                         Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(8.dp)))
