@@ -161,8 +161,10 @@ fun generatePrompt(
       }
   val prompt =
       "$draftVsFinalPrompt The trip, called ${trip.name}, with description ${trip.description} " +
-              "and location ${trip.location.name}, takes place $datePrompt with the following prompt:"+
-          " $userPrompt. Descriptions should be detailed. "+ interestsPrompt +
-              alreadyPresentActivitiesPrompt + possibleEnumTypePrompt
+          "and location ${trip.location.name}, takes place $datePrompt with the following prompt:" +
+          " $userPrompt. Descriptions should be detailed. " +
+          interestsPrompt +
+          alreadyPresentActivitiesPrompt +
+          possibleEnumTypePrompt
   return prompt
 }
