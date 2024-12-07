@@ -258,8 +258,8 @@ fun SearchScreen(
                 SearchBar(
                     placeholderId =
                         when (navigationActions.getNavigationState().currentTabForSearch) {
-                          FilterType.PLACES -> R.string.search_places
-                          FilterType.USERS -> R.string.search_users
+                          FilterType.PLACES.ordinal -> R.string.search_places
+                          FilterType.USERS.ordinal -> R.string.search_users
                           else -> R.string.search_places
                         },
                     onQueryChange = { query ->
@@ -272,10 +272,8 @@ fun SearchScreen(
           // Tabs
           TabRow(
               modifier = Modifier.testTag("tabRow"),
-              selectedTabIndex =
-                  FilterType.entries.indexOf(
-                      navigationActions.getNavigationState().currentTabForSearch)) {
-                FilterType.entries.forEach { filterType ->
+              selectedTabIndex = navigationActions.getNavigationState().currentTabForSearch) {
+                FilterType.values().forEachIndexed { index, filterType ->
                   Tab(
                       modifier = Modifier.testTag("filterButton_${filterType.name}"),
                       selected =
