@@ -1,6 +1,5 @@
 package com.android.voyageur.model.assistant
 
-import android.util.Log
 import com.android.voyageur.BuildConfig
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.Trip
@@ -128,38 +127,44 @@ fun generatePrompt(
     alreadyPresentActivities: List<String>
 ): String {
   val possibleEnumTypePrompt =
-      "The activity type can only be ${ActivityType.entries.joinToString(", ")}, but you can recommend any activity and set the type to OTHER."
+      "The activity type can only be ${ActivityType.entries.joinToString(", ")}, " +
+          "but you can recommend any activity and set the type to OTHER."
   val startDate = getYearMonthDay(trip.startDate)
   val endDate = getYearMonthDay(trip.endDate)
   val datePrompt =
       """
           between the start date year ${startDate.first} month ${startDate.second + 1} day ${startDate.third} 
           and the end date year ${endDate.first} month ${endDate.second + 1} day ${endDate.third}
-            """
+      """
           .trimIndent()
   val interestsPrompt =
       if (interests.isNotEmpty()) {
-        "The activities should focus on the following interests (if applicable): ${interests.joinToString(", ")}."
+        "The activities should focus on the following interests (if applicable): " +
+            "${interests.joinToString(", ")}."
       } else {
         ""
       }
   val alreadyPresentActivitiesPrompt =
       if (alreadyPresentActivities.isNotEmpty()) {
-        "The following activities are already present in the trip: ${alreadyPresentActivities.joinToString(", ")}. Please avoid them."
+        "The following activities are already present in the trip: " +
+            "${alreadyPresentActivities.joinToString(", ")}. Please avoid them."
       } else {
         ""
       }
   val draftVsFinalPrompt =
       if (provideFinalActivities) {
-        "Make a full schedule by listing specific activities, including separate activities for eating, transport, etc. Instead of travel from airport, say just arrival n Paris in the afternoon, unless otherwise specified by the user."
+        "Make a full schedule by listing specific activities, including separate activities " +
+            "for eating, transport, etc. Instead of travel from airport, say just arrival in Paris " +
+            "in the afternoon, unless otherwise specified by the user."
       } else {
         "List a lot of popular specific activities to do on a trip."
       }
   val prompt =
       """
-    $draftVsFinalPrompt The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt. Descriptions should be detailed. $interestsPrompt $alreadyPresentActivitiesPrompt $possibleEnumTypePrompt
-      
-    """
+          $draftVsFinalPrompt The trip, called ${trip.name}, with description ${trip.description}, 
+          takes place $datePrompt with the following prompt: $userPrompt. Descriptions should be 
+          detailed. $interestsPrompt $alreadyPresentActivitiesPrompt $possibleEnumTypePrompt
+      """
           .trimIndent()
   return prompt
 }

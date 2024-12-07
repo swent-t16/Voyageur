@@ -10,111 +10,181 @@ import org.junit.Test
 class GeneratePromptTest {
 
   @Test
-  fun testGeneratePromptForFinalActivitiesWithoutInterests() {
+  fun testDatePromptGeneratesCorrectly() {
     val trip =
         Trip(
-            name = "Summer Adventure",
+            name = "Trip Name",
             startDate = createTimestamp(2024, 7, 1),
             endDate = createTimestamp(2024, 7, 7))
 
-    val userPrompt = "Explore beaches and try local cuisine"
-    val provideFinalActivities = true
-
     val prompt =
         generatePrompt(
             trip = trip,
-            userPrompt = userPrompt,
+            userPrompt = "",
             interests = emptyList(),
-            provideFinalActivities = provideFinalActivities,
-            alreadyPresentActivities = listOf("Explore beaches", "try local cuisine"))
-    println(prompt)
+            provideFinalActivities = false,
+            alreadyPresentActivities = emptyList())
 
-    assertTrue(prompt.contains("Summer Adventure"))
     assertTrue(prompt.contains("start date year 2024 month 7 day 1"))
     assertTrue(prompt.contains("end date year 2024 month 7 day 7"))
-    assertTrue(prompt.contains("Make a full schedule by listing activities"))
-    assertTrue(prompt.contains("Explore beaches", "try local cuisine"))
-    assertFalse(prompt.contains("hiking"))
-    assertFalse(prompt.contains("cycling"))
-    assertFalse(prompt.contains("Explore beaches"))
-    assertFalse(prompt.contains("try local cuisine"))
   }
 
   @Test
-  fun testGeneratePromptForDraftActivitiesWithoutInterests() {
+  fun testInterestsPromptGeneratesCorrectly() {
     val trip =
         Trip(
-            name = "Winter Wonderland",
-            startDate = createTimestamp(2024, 12, 20),
-            endDate = createTimestamp(2024, 12, 27))
-
-    val userPrompt = "Enjoy snowy landscapes and Christmas markets"
-    val provideFinalActivities = false
+            name = "Trip Name",
+            startDate = createTimestamp(2024, 7, 1),
+            endDate = createTimestamp(2024, 7, 7))
 
     val prompt =
         generatePrompt(
             trip = trip,
-            userPrompt = userPrompt,
+            userPrompt = "",
+            interests = listOf("hiking", "cycling"),
+            provideFinalActivities = false,
+            alreadyPresentActivities = emptyList())
+
+    assertTrue(
+        prompt.contains(
+            "The activities should focus on the following interests (if applicable): hiking, cycling."))
+  }
+
+  @Test
+  fun testEmptyInterestsIsNotGenerated() {
+    val trip =
+        Trip(
+            name = "Trip Name",
+            startDate = createTimestamp(2024, 7, 1),
+            endDate = createTimestamp(2024, 7, 7))
+
+    val prompt =
+        generatePrompt(
+            trip = trip,
+            userPrompt = "",
             interests = emptyList(),
-            provideFinalActivities = provideFinalActivities,
-            alreadyPresentActivities = listOf("Walk", "Visit museum"))
+            provideFinalActivities = false,
+            alreadyPresentActivities = emptyList())
 
-    assertTrue(prompt.contains("Winter Wonderland"))
-    assertTrue(prompt.contains("start date year 2024 month 12 day 20"))
-    assertTrue(prompt.contains("end date year 2024 month 12 day 27"))
-    assertTrue(prompt.contains("List a lot of popular specific activities"))
-    assertTrue(prompt.contains("Enjoy snowy landscapes and Christmas markets"))
-    assertFalse(prompt.contains("hiking"))
-    assertFalse(prompt.contains("cycling"))
-    assertTrue(prompt.contains("Walk"))
-    assertTrue(prompt.contains("Visit museum"))
-
+    assertFalse(
+        prompt.contains("The activities should focus on the following interests (if applicable):"))
   }
 
   @Test
-  fun testGeneratePromptWithInterests() {
+  fun testEnumTypePromptGeneratesCorrectly() {
     val trip =
         Trip(
-            name = "Spring Break",
-            startDate = createTimestamp(2024, 3, 1),
-            endDate = createTimestamp(2024, 3, 7))
+            name = "Trip Name",
+            startDate = createTimestamp(2024, 7, 1),
+            endDate = createTimestamp(2024, 7, 7))
 
-    val userPrompt = "Relax and have fun"
-    val provideFinalActivities = false
-    val interests = listOf("hiking", "cycling")
+    val prompt =
+        generatePrompt(
+            trip = trip,
+            userPrompt = "",
+            interests = emptyList(),
+            provideFinalActivities = false,
+            alreadyPresentActivities = emptyList())
 
-    val prompt = generatePrompt(trip, userPrompt, interests, provideFinalActivities, listOf("Walk"))
-
-    assertTrue(prompt.contains("Spring Break"))
-    assertTrue(prompt.contains("start date year 2024 month 3 day 1"))
-    assertTrue(prompt.contains("end date year 2024 month 3 day 7"))
-    assertTrue(prompt.contains("List a lot of popular specific activities"))
-    assertTrue(prompt.contains("Relax and have fun"))
-    assertTrue(prompt.contains("hiking"))
-    assertTrue(prompt.contains("cycling"))
+    assertTrue(prompt.contains("The activity type can only be"))
   }
 
   @Test
-  fun testGeneratePromptWithInterestsAndFinalActivities() {
+  fun testAlreadyPresentActivitiesPromptGeneratesCorrectly() {
     val trip =
         Trip(
-            name = "Spring Break",
-            startDate = createTimestamp(2024, 3, 1),
-            endDate = createTimestamp(2024, 3, 7))
+            name = "Trip Name",
+            startDate = createTimestamp(2024, 7, 1),
+            endDate = createTimestamp(2024, 7, 7))
 
-    val userPrompt = "Relax and have fun"
-    val provideFinalActivities = true
-    val interests = listOf("hiking", "cycling")
+    val prompt =
+        generatePrompt(
+            trip = trip,
+            userPrompt = "",
+            interests = emptyList(),
+            provideFinalActivities = false,
+            alreadyPresentActivities = listOf("activity1", "activity2"))
 
-    val prompt = generatePrompt(trip, userPrompt, interests, provideFinalActivities, listOf("Swimming"))
+    assertTrue(
+        prompt.contains(
+            "The following activities are already present in the trip: activity1, activity2. Please avoid them."))
+  }
 
-    assertTrue(prompt.contains("Spring Break"))
-    assertTrue(prompt.contains("start date year 2024 month 3 day 1"))
-    assertTrue(prompt.contains("end date year 2024 month 3 day 7"))
-    assertTrue(prompt.contains("Make a full schedule by listing activities"))
-    assertTrue(prompt.contains("Relax and have fun"))
-    assertTrue(prompt.contains("hiking"))
-    assertTrue(prompt.contains("cycling"))
+  @Test
+  fun testEmptyAlreadyPresentActivitiesIsNotGenerated() {
+    val trip =
+        Trip(
+            name = "Trip Name",
+            startDate = createTimestamp(2024, 7, 1),
+            endDate = createTimestamp(2024, 7, 7))
+
+    val prompt =
+        generatePrompt(
+            trip = trip,
+            userPrompt = "",
+            interests = emptyList(),
+            provideFinalActivities = false,
+            alreadyPresentActivities = emptyList())
+
+    assertFalse(prompt.contains("The following activities are already present in the trip:"))
+  }
+
+  @Test
+  fun testDraftActivitiesPromptGeneratesCorrectly() {
+    val trip =
+        Trip(
+            name = "Trip Name",
+            startDate = createTimestamp(2024, 7, 1),
+            endDate = createTimestamp(2024, 7, 7))
+
+    val prompt =
+        generatePrompt(
+            trip = trip,
+            userPrompt = "",
+            interests = emptyList(),
+            provideFinalActivities = false,
+            alreadyPresentActivities = emptyList())
+
+    assertTrue(prompt.contains("List a lot of popular specific activities"))
+  }
+
+  @Test
+  fun testFinalActivitiesPromptGeneratesCorrectly() {
+    val trip =
+        Trip(
+            name = "Trip Name",
+            startDate = createTimestamp(2024, 7, 1),
+            endDate = createTimestamp(2024, 7, 7))
+
+    val prompt =
+        generatePrompt(
+            trip = trip,
+            userPrompt = "",
+            interests = emptyList(),
+            provideFinalActivities = true,
+            alreadyPresentActivities = emptyList())
+
+    assertTrue(prompt.contains("Make a full schedule by listing specific activities"))
+  }
+
+  @Test
+  fun testTripTitleAndDescriptionAreIncluded() {
+    val trip =
+        Trip(
+            name = "Trip Name",
+            description = "Trip Description",
+            startDate = createTimestamp(2024, 7, 1),
+            endDate = createTimestamp(2024, 7, 7))
+
+    val prompt =
+        generatePrompt(
+            trip = trip,
+            userPrompt = "",
+            interests = emptyList(),
+            provideFinalActivities = false,
+            alreadyPresentActivities = emptyList())
+
+    assertTrue(prompt.contains("The trip, called Trip Name, with description Trip Description"))
   }
 
   // Helper function to create a Timestamp from year, month, and day
