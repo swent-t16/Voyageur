@@ -70,15 +70,9 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
       onFailure: (Exception) -> Unit
   ) {
     val token = AutocompleteSessionToken.newInstance()
-
-    // For now, we only want to search for restaurants, bars, and cafes
-    val filter = listOf("restaurant", "bar", "cafe")
     val bounds = location?.let { circularBounds(it, 10000.0) }
     var builder =
-        FindAutocompletePredictionsRequest.builder()
-            .setSessionToken(token)
-            .setQuery(query)
-            .setTypesFilter(filter)
+        FindAutocompletePredictionsRequest.builder().setSessionToken(token).setQuery(query)
     if (bounds != null) builder = builder.setLocationBias(bounds)
     val request = builder.build()
     placesClient

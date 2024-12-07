@@ -64,7 +64,9 @@ fun VoyageurApp(placesClient: PlacesClient) {
         startDestination = Screen.SEARCH,
         route = Route.SEARCH,
     ) {
-      composable(Screen.SEARCH) { SearchScreen(userViewModel, placesViewModel, navigationActions) }
+      composable(Screen.SEARCH) {
+        SearchScreen(userViewModel, placesViewModel, tripsViewModel, navigationActions)
+      }
       composable(Screen.SEARCH_USER_PROFILE) {
         SearchUserProfileScreen(userViewModel, navigationActions)
       }
@@ -92,7 +94,9 @@ fun VoyageurApp(placesClient: PlacesClient) {
       composable(Screen.ACTIVITIES_FOR_ONE_DAY) {
         ActivitiesForOneDayScreen(tripsViewModel, navigationActions)
       }
-      composable(Screen.ASSISTANT) { AssistantScreen(tripsViewModel, navigationActions) }
+      composable(Screen.ASSISTANT) {
+        AssistantScreen(tripsViewModel, navigationActions, userViewModel)
+      }
       composable(Screen.EDIT_ACTIVITY) {
         EditActivityScreen(navigationActions, tripsViewModel, placesViewModel)
       }
