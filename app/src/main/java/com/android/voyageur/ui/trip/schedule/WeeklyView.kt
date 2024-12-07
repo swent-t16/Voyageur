@@ -19,8 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -45,6 +43,15 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+/**
+ * A composable that displays a weekly view of a trip's schedule. Shows a calendar-like interface
+ * with weeks broken down into days, highlighting days with activities.
+ *
+ * @param tripsViewModel ViewModel handling trip-related data and operations
+ * @param trip The current trip being displayed
+ * @param navigationActions Handler for navigation between screens
+ * @param userViewModel ViewModel containing user-related data and operations
+ */
 @Composable
 fun WeeklyViewScreen(
     tripsViewModel: TripsViewModel,
@@ -71,8 +78,7 @@ fun WeeklyViewScreen(
                 contentAlignment = Alignment.Center) {
                   Text(
                       modifier = Modifier.testTag("emptyWeeksPrompt"),
-                      text = "You have no weeks scheduled yet.",
-                  )
+                      text = "You have no weeks scheduled yet.")
                 }
           } else {
             LazyColumn(
@@ -97,6 +103,18 @@ fun WeeklyViewScreen(
       }
 }
 
+/**
+ * A card component that displays a single week of the trip schedule. Shows the week's date range
+ * and individual days with their activities.
+ *
+ * @param tripsViewModel ViewModel handling trip-related data and operations
+ * @param trip The current trip being displayed
+ * @param weekStart First day of the week
+ * @param weekEnd Last day of the week
+ * @param activities List of activities for the trip
+ * @param weekIndex Index of the week in the overall schedule
+ * @param navigationActions Handler for navigation between screens
+ */
 @Composable
 private fun WeekCard(
     tripsViewModel: TripsViewModel,
@@ -144,69 +162,97 @@ private fun WeekCard(
                 }
             val isInTrip = isDateInTrip(currentDate, trip)
 
-            ActivityBox(
-                currentDate = currentDate,
-                activitiesForDay = activitiesForDay,
-                isEnabled = isInTrip,
-                onClick =
-                    if (isInTrip) {
-                      {
-                        tripsViewModel.selectDay(currentDate)
-                        navigationActions.navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
-                      }
-                    } else null)
+            val dayText = buildDayText(currentDate, activitiesForDay.size, isInTrip)
+            Box(
+                modifier =
+                    Modifier.width(130.dp)
+                        .height(19.dp)
+                        .background(
+                            color =
+                                ButtonDefaults.buttonColors()
+                                    .containerColor
+                                    .copy(alpha = if (isInTrip) 1f else 0.5f),
+                            shape = RoundedCornerShape(size = 25.dp))
+                        .then(
+                            if (isInTrip) {
+                              Modifier.clickable {
+                                tripsViewModel.selectDay(currentDate)
+                                navigationActions.navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
+                              }
+                            } else Modifier),
+                contentAlignment = Alignment.CenterStart) {
+                  Text(
+                      text = dayText,
+                      style =
+                          TextStyle(
+                              fontSize = 10.sp,
+                              lineHeight = 20.sp,
+                              fontWeight = FontWeight(500),
+                              color =
+                                  MaterialTheme.colorScheme.inverseOnSurface.copy(
+                                      alpha = if (isInTrip) 1f else 0.5f),
+                              letterSpacing = 0.1.sp,
+                          ),
+                      maxLines = 1,
+                      overflow = TextOverflow.Ellipsis,
+                      modifier = Modifier.padding(horizontal = 10.dp))
+                }
           }
         }
       }
 }
 
-@Composable
-private fun ActivityBox(
-    currentDate: LocalDate,
-    activitiesForDay: List<Activity>,
-    isEnabled: Boolean,
-    onClick: (() -> Unit)? = null
-) {
-  val backgroundColor = ButtonDefaults.buttonColors().containerColor
-  Box(
-      modifier =
-          Modifier.width(130.dp)
-              .height(19.dp)
-              .background(
-                  color = backgroundColor.copy(alpha = if (isEnabled) 1f else 0.5f),
-                  shape = RoundedCornerShape(size = 25.dp))
-              .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
-      contentAlignment = Alignment.CenterStart) {
-        Text(
-            text =
-                "${currentDate.dayOfWeek.toString().take(1)} ${currentDate.dayOfMonth}" +
-                    if (isEnabled) " - ${activitiesForDay.size} activities" else "",
-            style =
-                TextStyle(
-                    fontSize = 10.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight(500),
-                    color =
-                        MaterialTheme.colorScheme.inverseOnSurface.copy(
-                            alpha = if (isEnabled) 1f else 0.5f),
-                    letterSpacing = 0.1.sp,
-                ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = 10.dp))
-      }
+/**
+ * Builds the display text for a day in the weekly view. Format varies based on whether the day is
+ * within the trip dates and has activities.
+ *
+ * @param date The date to generate text for
+ * @param activityCount Number of activities on this date
+ * @param isInTrip Whether the date falls within the trip's date range
+ * @return Formatted string representation of the day (e.g., "M 15 - 2 activities" or "M 15")
+ */
+private fun buildDayText(date: LocalDate, activityCount: Int, isInTrip: Boolean): String {
+  val dayInitial = date.dayOfWeek.toString().take(1)
+  val dayNumber = date.dayOfMonth
+  return if (isInTrip && activityCount == 1) {
+    "$dayInitial $dayNumber - $activityCount activity"
+  } else if (isInTrip && activityCount > 1) {
+    "$dayInitial $dayNumber - $activityCount activity"
+  } else {
+    "$dayInitial $dayNumber"
+  }
 }
 
+/**
+ * Formats a date into a readable string representation. Converts the date to format "MMM d" (e.g.,
+ * "Oct 15")
+ *
+ * @param date The date to format
+ * @return Formatted date string
+ */
 fun formatDate(date: LocalDate): String {
   val month =
       date.format(DateTimeFormatter.ofPattern("MMM").withLocale(Locale.getDefault())).take(3)
   return "${capitalizeFirstLetter(month)} ${date.dayOfMonth}"
 }
 
+/**
+ * Capitalizes the first letter of a given text string.
+ *
+ * @param text The text to capitalize
+ * @return Text with first letter capitalized
+ */
 private fun capitalizeFirstLetter(text: String): String {
   return text.lowercase().replaceFirstChar { it.uppercase() }
 }
 
+/**
+ * Determines if a given date falls within the trip's date range.
+ *
+ * @param date The date to check
+ * @param trip The trip to check against
+ * @return true if the date is within the trip's start and end dates, false otherwise
+ */
 private fun isDateInTrip(date: LocalDate, trip: Trip): Boolean {
   val tripStartDate =
       trip.startDate.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
@@ -214,6 +260,14 @@ private fun isDateInTrip(date: LocalDate, trip: Trip): Boolean {
   return !date.isBefore(tripStartDate) && !date.isAfter(tripEndDate)
 }
 
+/**
+ * Generates a list of week ranges that cover the entire trip duration. Each week starts on Monday
+ * and ends on Sunday.
+ *
+ * @param startTimestamp The trip's start timestamp
+ * @param endTimestamp The trip's end timestamp
+ * @return List of DateRange objects representing each week
+ */
 fun generateWeeks(startTimestamp: Timestamp, endTimestamp: Timestamp): List<DateRange> {
   val startDate = startTimestamp.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
   val endDate = endTimestamp.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
@@ -231,4 +285,11 @@ fun generateWeeks(startTimestamp: Timestamp, endTimestamp: Timestamp): List<Date
   return weeks
 }
 
+/**
+ * Data class representing a range of dates from first to last. Used to represent a week in the
+ * schedule view.
+ *
+ * @property first The first date in the range
+ * @property last The last date in the range
+ */
 data class DateRange(val first: LocalDate, val last: LocalDate)

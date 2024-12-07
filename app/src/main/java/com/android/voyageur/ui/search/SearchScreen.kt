@@ -247,19 +247,22 @@ fun SearchScreen(
           Spacer(modifier = Modifier.height(24.dp))
 
           // Search bar
-          SearchBar(
-              placeholderId =
-                  when (navigationActions.getNavigationState().currentTabForSearch) {
-                    FilterType.PLACES -> R.string.search_places
-                    FilterType.USERS -> R.string.search_users
-                  },
-              onQueryChange = { query ->
-                searchQuery = TextFieldValue(query)
-                userViewModel.setQuery(query)
-                placesViewModel.setQuery(query, userLocation)
-              },
-              modifier = Modifier.padding(horizontal = 16.dp).testTag("searchBar"))
-
+          Row(
+              modifier = Modifier.testTag("searchBar"),
+              verticalAlignment = Alignment.CenterVertically) {
+                SearchBar(
+                    placeholderId =
+                        when (navigationActions.getNavigationState().currentTabForSearch) {
+                          FilterType.PLACES -> R.string.search_places
+                          FilterType.USERS -> R.string.search_users
+                        },
+                    onQueryChange = { query ->
+                      searchQuery = TextFieldValue(query)
+                      userViewModel.setQuery(query)
+                      placesViewModel.setQuery(query, userLocation)
+                    },
+                    modifier = Modifier.padding(horizontal = 16.dp).testTag("searchTextField"))
+              }
           // Tabs
           TabRow(
               modifier = Modifier.testTag("tabRow"),
