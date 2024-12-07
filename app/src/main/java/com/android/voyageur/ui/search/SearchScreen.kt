@@ -268,8 +268,9 @@ fun SearchScreen(
           TabRow(
               modifier = Modifier.testTag("tabRow"),
               selectedTabIndex =
-                  navigationActions.getNavigationState().currentTabForSearch.ordinal) {
-                FilterType.values().forEachIndexed { index, filterType ->
+                  FilterType.entries.indexOf(
+                      navigationActions.getNavigationState().currentTabForSearch)) {
+                FilterType.entries.forEach { filterType ->
                   Tab(
                       modifier = Modifier.testTag("filterButton_${filterType.name}"),
                       selected =
