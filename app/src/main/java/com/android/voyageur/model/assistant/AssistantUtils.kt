@@ -160,11 +160,9 @@ fun generatePrompt(
         "List a lot of popular specific activities to do on a trip."
       }
   val prompt =
-      """
-          $draftVsFinalPrompt The trip, called ${trip.name}, with description ${trip.description}, 
-          takes place $datePrompt with the following prompt: $userPrompt. Descriptions should be 
-          detailed. $interestsPrompt $alreadyPresentActivitiesPrompt $possibleEnumTypePrompt
-      """
-          .trimIndent()
+      "$draftVsFinalPrompt The trip, called ${trip.name}, with description ${trip.description} " +
+              "and location ${trip.location.name}, takes place $datePrompt with the following prompt:"+
+          " $userPrompt. Descriptions should be detailed. "+ interestsPrompt +
+              alreadyPresentActivitiesPrompt + possibleEnumTypePrompt
   return prompt
 }

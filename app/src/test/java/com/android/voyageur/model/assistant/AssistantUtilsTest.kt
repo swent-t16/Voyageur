@@ -1,5 +1,6 @@
 package com.android.voyageur.model.assistant
 
+import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
 import com.google.firebase.Timestamp
 import java.util.Calendar
@@ -168,11 +169,12 @@ class GeneratePromptTest {
   }
 
   @Test
-  fun testTripTitleAndDescriptionAreIncluded() {
+  fun testTripDetailsAreIncluded() {
     val trip =
         Trip(
             name = "Trip Name",
             description = "Trip Description",
+            location = Location(id = "", name ="Location Name"),
             startDate = createTimestamp(2024, 7, 1),
             endDate = createTimestamp(2024, 7, 7))
 
@@ -184,8 +186,31 @@ class GeneratePromptTest {
             provideFinalActivities = false,
             alreadyPresentActivities = emptyList())
 
-    assertTrue(prompt.contains("The trip, called Trip Name, with description Trip Description"))
+    assertTrue(prompt.contains("The trip, called Trip Name"))
+            assertTrue(prompt.contains("description Trip Description"))
+            assertTrue(prompt.contains("location Location Name"))
   }
+
+    @Test
+    fun testUserPromptIsIncluded() {
+        val trip =
+            Trip(
+                name = "Trip Name",
+                startDate = createTimestamp(2024, 7, 1),
+                endDate = createTimestamp(2024, 7, 7)
+            )
+
+        val prompt =
+            generatePrompt(
+                trip = trip,
+                userPrompt = "User Prompt",
+                interests = emptyList(),
+                provideFinalActivities = false,
+                alreadyPresentActivities = emptyList()
+            )
+
+        assertTrue(prompt.contains("with the following prompt: User Prompt"))
+    }
 
   // Helper function to create a Timestamp from year, month, and day
   private fun createTimestamp(year: Int, month: Int, day: Int): Timestamp {
