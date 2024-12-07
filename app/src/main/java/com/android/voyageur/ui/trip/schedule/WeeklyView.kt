@@ -127,79 +127,156 @@ private fun WeekCard(
 ) {
   Card(
       modifier =
-          Modifier.width(353.dp)
-              .height(285.dp)
-              .padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 10.dp)
-              .testTag("weekCard_$weekIndex"),
+          Modifier.width(353.dp).height(285.dp).padding(10.dp).testTag("weekCard_$weekIndex"),
       colors = CardDefaults.cardColors(),
       shape = RoundedCornerShape(16.dp)) {
-        Text(
-            text = "${formatDate(weekStart)} - ${formatDate(weekEnd)}",
-            style =
-                TextStyle(
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight(500),
-                    letterSpacing = 0.14.sp,
-                ),
-            modifier = Modifier.padding(horizontal = 30.dp, vertical = 10.dp))
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
-            modifier = Modifier.padding(horizontal = 30.dp, vertical = 10.dp).testTag("daysColumn"),
-        ) {
-          for (dayOffset in 0..6) {
-            val currentDate = weekStart.plusDays(dayOffset.toLong())
-            val activitiesForDay =
-                activities.filter { activity ->
-                  val activityDate =
-                      activity.startTime
-                          .toDate()
-                          .toInstant()
-                          .atZone(ZoneId.systemDefault())
-                          .toLocalDate()
-                  activityDate == currentDate
-                }
-            val isInTrip = isDateInTrip(currentDate, trip)
-
-            val dayText = buildDayText(currentDate, activitiesForDay.size, isInTrip)
-            Box(
-                modifier =
-                    Modifier.width(130.dp)
-                        .height(19.dp)
-                        .background(
-                            color =
-                                ButtonDefaults.buttonColors()
-                                    .containerColor
-                                    .copy(alpha = if (isInTrip) 1f else 0.5f),
-                            shape = RoundedCornerShape(size = 25.dp))
-                        .then(
-                            if (isInTrip) {
-                              Modifier.clickable {
-                                tripsViewModel.selectDay(currentDate)
-                                navigationActions.navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
-                              }
-                            } else Modifier),
-                contentAlignment = Alignment.CenterStart) {
-                  Text(
-                      text = dayText,
-                      style =
-                          TextStyle(
-                              fontSize = 10.sp,
-                              lineHeight = 20.sp,
-                              fontWeight = FontWeight(500),
-                              color =
-                                  MaterialTheme.colorScheme.inverseOnSurface.copy(
-                                      alpha = if (isInTrip) 1f else 0.5f),
-                              letterSpacing = 0.1.sp,
-                          ),
-                      maxLines = 1,
-                      overflow = TextOverflow.Ellipsis,
-                      modifier = Modifier.padding(horizontal = 10.dp))
-                }
-          }
-        }
+        WeekHeader(weekStart, weekEnd)
+        WeekDaysContent(
+            weekStart = weekStart,
+            activities = activities,
+            trip = trip,
+            tripsViewModel = tripsViewModel,
+            navigationActions = navigationActions)
       }
+}
+
+/**
+ * Displays the date range header for the week card.
+ *
+ * @param weekStart First day of the week
+ * @param weekEnd Last day of the week
+ */
+@Composable
+private fun WeekHeader(weekStart: LocalDate, weekEnd: LocalDate) {
+  Text(
+      text = "${formatDate(weekStart)} - ${formatDate(weekEnd)}",
+      style =
+          TextStyle(
+              fontSize = 14.sp,
+              lineHeight = 20.sp,
+              fontWeight = FontWeight(500),
+              letterSpacing = 0.14.sp,
+          ),
+      modifier = Modifier.padding(horizontal = 30.dp, vertical = 10.dp))
+}
+
+/**
+ * Displays a column of days for the week with their associated activities.
+ *
+ * @param weekStart First day of the week
+ * @param activities List of all activities for the trip
+ * @param trip The current trip being displayed
+ * @param tripsViewModel ViewModel handling trip-related data and operations
+ * @param navigationActions Handler for navigation between screens
+ */
+@Composable
+private fun WeekDaysContent(
+    weekStart: LocalDate,
+    activities: List<Activity>,
+    trip: Trip,
+    tripsViewModel: TripsViewModel,
+    navigationActions: NavigationActions
+) {
+  Column(
+      verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+      modifier = Modifier.padding(horizontal = 30.dp, vertical = 10.dp).testTag("daysColumn"),
+  ) {
+    repeat(7) { dayOffset ->
+      val currentDate = weekStart.plusDays(dayOffset.toLong())
+      DayRow(
+          currentDate = currentDate,
+          activities = activities,
+          trip = trip,
+          tripsViewModel = tripsViewModel,
+          navigationActions = navigationActions)
+    }
+  }
+}
+
+/**
+ * Displays a single day row with its activities and handles click interactions.
+ *
+ * @param currentDate The date being displayed
+ * @param activities List of all activities for the trip
+ * @param trip The current trip being displayed
+ * @param tripsViewModel ViewModel handling trip-related data and operations
+ * @param navigationActions Handler for navigation between screens
+ */
+@Composable
+private fun DayRow(
+    currentDate: LocalDate,
+    activities: List<Activity>,
+    trip: Trip,
+    tripsViewModel: TripsViewModel,
+    navigationActions: NavigationActions
+) {
+  val activitiesForDay = getActivitiesForDay(activities, currentDate)
+  val isInTrip = isDateInTrip(currentDate, trip)
+  val dayText = buildDayText(currentDate, activitiesForDay.size, isInTrip)
+
+  Box(
+      modifier =
+          Modifier.width(130.dp)
+              .height(19.dp)
+              .background(
+                  color =
+                      ButtonDefaults.buttonColors()
+                          .containerColor
+                          .copy(alpha = if (isInTrip) 1f else 0.5f),
+                  shape = RoundedCornerShape(size = 25.dp))
+              .then(
+                  if (isInTrip) {
+                    Modifier.clickable {
+                      tripsViewModel.selectDay(currentDate)
+                      navigationActions.navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
+                    }
+                  } else Modifier),
+      contentAlignment = Alignment.CenterStart) {
+        DayText(dayText, isInTrip)
+      }
+}
+
+/**
+ * Displays the formatted text for a day with appropriate styling based on trip status.
+ *
+ * @param dayText The formatted text to display for the day
+ * @param isInTrip Whether this day falls within the trip dates
+ */
+@Composable
+private fun DayText(dayText: String, isInTrip: Boolean) {
+  Text(
+      text = dayText,
+      style =
+          TextStyle(
+              fontSize = 10.sp,
+              lineHeight = 20.sp,
+              fontWeight = FontWeight(500),
+              color =
+                  MaterialTheme.colorScheme.inverseOnSurface.copy(
+                      alpha = if (isInTrip) 1f else 0.5f),
+              letterSpacing = 0.1.sp,
+          ),
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
+      modifier = Modifier.padding(horizontal = 10.dp))
+}
+
+/**
+ * Filters activities to find those occurring on a specific date.
+ *
+ * @param activities List of all activities to filter
+ * @param currentDate The date to filter activities for
+ * @return List of activities occurring on the specified date
+ */
+private fun getActivitiesForDay(
+    activities: List<Activity>,
+    currentDate: LocalDate
+): List<Activity> {
+  return activities.filter { activity ->
+    val activityDate =
+        activity.startTime.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+    activityDate == currentDate
+  }
 }
 
 /**
