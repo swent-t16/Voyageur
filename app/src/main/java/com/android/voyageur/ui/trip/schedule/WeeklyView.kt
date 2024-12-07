@@ -224,7 +224,7 @@ private fun buildDayText(date: LocalDate, activityCount: Int, isInTrip: Boolean)
 }
 
 /**
- * Formats a date into a readable string representation. Converts the date to format "MMM d" (e.g.,
+ * Formats a date into a readable string representation. Converts the date to format "MMM d" (e.g.
  * "Oct 15")
  *
  * @param date The date to format
