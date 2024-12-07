@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.components
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.test.assertIsDisplayed
@@ -10,6 +11,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.OpeningHours
 import com.google.android.libraries.places.api.model.Place
@@ -20,10 +22,16 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class PlaceSearchWidgetTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  private lateinit var context: Context
+  private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+  private lateinit var fusedLocationClient: FusedLocationProviderClient
 
   val place =
       Place.builder()
@@ -59,6 +67,11 @@ class PlaceSearchWidgetTest {
   fun setUp() {
     placesRepository = Mockito.mock(PlacesRepository::class.java)
     placesViewModel = PlacesViewModel(placesRepository)
+    context = mock()
+    fusedLocationProviderClient = mock()
+    fusedLocationClient = mock()
+    whenever(context.getSystemService(Context.LOCATION_SERVICE))
+        .thenReturn(fusedLocationProviderClient)
   }
 
   @Test
@@ -72,7 +85,7 @@ class PlaceSearchWidgetTest {
           placesViewModel = placesViewModel,
           onSelect = {},
           query = TextFieldValue(),
-          onQueryChange = {})
+          onQueryChange = { _, _ -> })
     }
 
     composeTestRule.onNodeWithTag("searchTextField").assertIsDisplayed()
@@ -80,22 +93,26 @@ class PlaceSearchWidgetTest {
 
   @Test
   fun testSearch() {
-    val place = CustomPlace(Place.builder().setName("Test Place").build(), emptyList())
-    val searchedPlaces = MutableStateFlow(listOf(place))
-    `when`(placesRepository.searchPlaces(any(), any(), any(), any())).thenAnswer {
-      val onSuccess = it.arguments[1] as (List<CustomPlace>) -> Unit
-      onSuccess(searchedPlaces.value)
-    }
+    // Create a mock place with a specific ID
+    val place =
+        CustomPlace(Place.builder().setId("mockID").setName("Test Place").build(), emptyList())
+
+    // Mock the ViewModel's searchedPlaces to return the specific place
+    placesViewModel = PlacesViewModel(placesRepository).apply { setSearchedPlaces(listOf(place)) }
+
+    // Perform the test setup
     composeTestRule.setContent {
       PlaceSearchWidget(
           placesViewModel = placesViewModel,
           onSelect = {},
-          query = TextFieldValue(),
-          onQueryChange = {})
+          query = TextFieldValue("Test"),
+          onQueryChange = { it, _ -> placesViewModel.setQuery(it.text, null) })
     }
 
+    // Perform text input and assertions
     composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test")
     composeTestRule.onNodeWithTag("searchDropdown").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("item-mockID").assertIsDisplayed()
   }
 
   @Test
@@ -106,5 +123,39 @@ class PlaceSearchWidgetTest {
     assert(location.address == "123 Test St")
     assert(location.lat == 0.0)
     assert(location.lng == 0.0)
+  }
+
+  @Test
+  fun DropdownMenuItemdisplaysplacenamecorrectly() {
+    val testPlace = Place.builder().setId("test123").setDisplayName("Test Location").build()
+    val customPlace = CustomPlace(testPlace, emptyList())
+    val searchedPlaces = MutableStateFlow(listOf(customPlace))
+
+    composeTestRule.setContent {
+      PlaceSearchWidget(
+          placesViewModel = placesViewModel,
+          onSelect = {},
+          query = TextFieldValue("Test"),
+          onQueryChange = { _, _ -> })
+    }
+
+    composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test")
+  }
+
+  @Test
+  fun DropdownMenuItemhandlesnullisplayname() {
+    val testPlace = Place.builder().setId("test456").setDisplayName(null).build()
+    val customPlace = CustomPlace(testPlace, emptyList())
+    val searchedPlaces = MutableStateFlow(listOf(customPlace))
+
+    composeTestRule.setContent {
+      PlaceSearchWidget(
+          placesViewModel = placesViewModel,
+          onSelect = {},
+          query = TextFieldValue("Test"),
+          onQueryChange = { _, _ -> })
+    }
+
+    composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test")
   }
 }

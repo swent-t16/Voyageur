@@ -328,11 +328,28 @@ class TripsViewModelTest {
     val userPrompt = "Generate activities for the trip"
     val provideFinalActivities = true
 
-    tripsViewModel.sendActivitiesPrompt(trip, userPrompt, provideFinalActivities)
+    tripsViewModel.sendActivitiesPrompt(trip, userPrompt, emptyList(), provideFinalActivities)
     advanceUntilIdle()
 
     val uiState = tripsViewModel.uiState.value
     tripsViewModel.setInitialUiState()
     assert(tripsViewModel.uiState.value is UiState.Initial)
+  }
+
+  @Test
+  fun testGetFeed() {
+    tripsViewModel.getFeed("userId")
+    verify(tripsRepository).getFeed(any(), any(), any())
+  }
+
+  @Test
+  fun testGetFeed_failure() {
+    `when`(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
+      val onFailure = it.arguments[2] as (Exception) -> Unit
+      onFailure(Exception("Failed to get feed"))
+    }
+    tripsViewModel.getFeed("userId")
+    verify(tripsRepository).getFeed(any(), any(), any())
+    assert(!tripsViewModel.isLoading.value)
   }
 }

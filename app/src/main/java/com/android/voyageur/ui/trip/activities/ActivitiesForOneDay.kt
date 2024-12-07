@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +62,11 @@ fun ActivitiesForOneDayScreen(
   var showDialog by remember { mutableStateOf(false) }
   var activityToDelete by remember { mutableStateOf<Activity?>(null) }
 
+  var pricePerDay by remember { mutableStateOf(0.0) }
+
+  // Calculate the total estimated price whenever the activities change
+  LaunchedEffect(activities) { pricePerDay = activities.sumOf { it.estimatedPrice } }
+
   Scaffold(
       modifier = Modifier.testTag("activitiesForOneDayScreen"),
       topBar = {
@@ -97,6 +103,7 @@ fun ActivitiesForOneDayScreen(
                 Spacer(modifier = Modifier.height(10.dp))
               }
             }
+            item { EstimatedPriceBox(pricePerDay) }
           }
           if (showDialog) {
             DeleteActivityAlertDialog(
