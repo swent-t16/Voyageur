@@ -255,6 +255,7 @@ fun SearchScreen(
                         when (navigationActions.getNavigationState().currentTabForSearch) {
                           FilterType.PLACES -> R.string.search_places
                           FilterType.USERS -> R.string.search_users
+                          else -> R.string.search_places
                         },
                     onQueryChange = { query ->
                       searchQuery = TextFieldValue(query)
