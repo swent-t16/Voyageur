@@ -151,13 +151,13 @@ fun generatePrompt(
       }
   val draftVsFinalPrompt =
       if (provideFinalActivities) {
-        "Make a full schedule by listing activities, including separate activities for eating, transport, etc."
+        "Make a full schedule by listing specific activities, including separate activities for eating, transport, etc. Instead of travel from airport, say just arrival n Paris in the afternoon, unless otherwise specified by the user."
       } else {
         "List a lot of popular specific activities to do on a trip."
       }
   val prompt =
       """
-    $draftVsFinalPrompt The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt $alreadyPresentActivitiesPrompt $possibleEnumTypePrompt
+    $draftVsFinalPrompt The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt. Descriptions should be detailed. $interestsPrompt $alreadyPresentActivitiesPrompt $possibleEnumTypePrompt
       
     """
           .trimIndent()
