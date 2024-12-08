@@ -234,7 +234,6 @@ fun AddTripScreen(
             id =
                 if (isEditMode) tripsViewModel.selectedTrip.value!!.id
                 else tripsViewModel.getNewTripId(),
-            creator = Firebase.auth.uid.orEmpty(),
             description = description,
             name = name,
             participants =
@@ -249,8 +248,9 @@ fun AddTripScreen(
                 else listOf(),
             type = tripType,
             imageUri = imageUrl,
-            discoverable = discoverable,
-        )
+            photos =
+                if (isEditMode) tripsViewModel.selectedTrip.value?.photos ?: listOf() else listOf(),
+            discoverable = discoverable)
 
     if (!isEditMode) {
       isSaving = true
