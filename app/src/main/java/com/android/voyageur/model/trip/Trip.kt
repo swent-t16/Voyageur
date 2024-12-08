@@ -23,7 +23,6 @@ import com.google.firebase.firestore.Exclude
  */
 data class Trip(
     val id: String = "",
-    val creator: String = "",
     val participants: List<String> = emptyList(),
     val description: String = "",
     val name: String = "",
@@ -56,7 +55,6 @@ data class Trip(
     if (other !is Trip) return false
 
     return id == other.id &&
-        creator == other.creator &&
         participants == other.participants &&
         description == other.description &&
         name == other.name &&
@@ -77,7 +75,6 @@ data class Trip(
    */
   override fun hashCode(): Int {
     var result = id.hashCode()
-    result = 31 * result + creator.hashCode()
     result = 31 * result + participants.hashCode()
     result = 31 * result + description.hashCode()
     result = 31 * result + name.hashCode()
