@@ -22,11 +22,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.voyageur.R
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
@@ -78,7 +80,7 @@ fun WeeklyViewScreen(
                 contentAlignment = Alignment.Center) {
                   Text(
                       modifier = Modifier.testTag("emptyWeeksPrompt"),
-                      text = "You have no weeks scheduled yet.")
+                      text = stringResource(R.string.no_weeks_weekly_view))
                 }
           } else {
             LazyColumn(
@@ -294,7 +296,7 @@ private fun buildDayText(date: LocalDate, activityCount: Int, isInTrip: Boolean)
   return if (isInTrip && activityCount == 1) {
     "$dayInitial $dayNumber - $activityCount activity"
   } else if (isInTrip && activityCount > 1) {
-    "$dayInitial $dayNumber - $activityCount activity"
+    "$dayInitial $dayNumber - $activityCount activities"
   } else {
     "$dayInitial $dayNumber"
   }
