@@ -244,7 +244,6 @@ class OverviewScreenTest {
     val mockTrip =
         Trip(
             id = "1",
-            creator = "Andreea",
             participants = listOf("Alex"),
             name = "Paris Trip",
             imageUri = "https://example.com/image.jpg",
