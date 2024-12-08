@@ -196,43 +196,39 @@ open class TripsViewModel(
   }
 
   open fun addPhotoToTrip(photo: String) {
-    if (selectedTrip.value != null) {
-      val trip = selectedTrip.value!!
-      val updatedTrip = trip.copy(photos = trip.photos + photo)
-      updateTrip(
-          updatedTrip,
-          onSuccess = {
-            /*
-                This is a trick to force a recompose, because the reference wouldn't
-                change and update the UI.
-            */
-            selectTrip(Trip())
-            selectTrip(updatedTrip)
-          },
-          onFailure = { error ->
-            Log.e("PhotosScreen", "Error adding photo: ${error.message}", error)
-          })
-    }
+    if (selectedTrip.value == null) return
+    val trip = selectedTrip.value!!
+    val updatedTrip = trip.copy(photos = trip.photos + photo)
+    updateTrip(
+        updatedTrip,
+        onSuccess = {
+          /*
+              This is a trick to force a recompose, because the reference wouldn't
+              change and update the UI.
+          */
+          selectTrip(updatedTrip)
+        },
+        onFailure = { error ->
+          Log.e("PhotosScreen", "Error adding photo: ${error.message}", error)
+        })
   }
 
   open fun removePhotoFromTrip(photo: String) {
-    if (selectedTrip.value != null) {
-      val trip = selectedTrip.value!!
-      val updatedTrip = trip.copy(photos = trip.photos - photo)
-      updateTrip(
-          updatedTrip,
-          onSuccess = {
-            /*
-                This is a trick to force a recompose, because the reference wouldn't
-                change and update the UI.
-            */
-            selectTrip(Trip())
-            selectTrip(updatedTrip)
-          },
-          onFailure = { error ->
-            Log.e("PhotoItem", "Error deleting photo: ${error.message}", error)
-          })
-    }
+    if (selectedTrip.value == null) return
+    val trip = selectedTrip.value!!
+    val updatedTrip = trip.copy(photos = trip.photos - photo)
+    updateTrip(
+        updatedTrip,
+        onSuccess = {
+          /*
+              This is a trick to force a recompose, because the reference wouldn't
+              change and update the UI.
+          */
+          selectTrip(updatedTrip)
+        },
+        onFailure = { error ->
+          Log.e("PhotoItem", "Error deleting photo: ${error.message}", error)
+        })
   }
 
   /**

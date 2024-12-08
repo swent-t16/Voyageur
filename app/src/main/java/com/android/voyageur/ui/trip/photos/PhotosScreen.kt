@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.AlertDialog
@@ -81,28 +83,26 @@ fun PhotosScreen(
       floatingActionButton = {
         // Button to allow the user to add photos from the gallery
         PermissionButtonForGallery(
+            enabled = isConnected,
             onUriSelected = { uri ->
               uri?.let {
-                if (isConnected) {
-                  // Upload the image to Firebase
-                  val imageUriParsed = Uri.parse(uri.toString())
-                  tripsViewModel.uploadImageToFirebase(
-                      uri = imageUriParsed,
-                      onSuccess = { downloadUrl ->
-                        tripsViewModel.addPhotoToTrip(downloadUrl)
-                        Toast.makeText(context, "Photo successfully added", Toast.LENGTH_SHORT)
-                            .show()
-                      },
-                      onFailure = { exception ->
-                        Toast.makeText(
-                                context,
-                                "Failed to upload image: ${exception.message}",
-                                Toast.LENGTH_SHORT)
-                            .show()
-                      })
-                } else {
-                  Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
-                }
+                // Upload the image to Firebase
+                val imageUriParsed = Uri.parse(uri.toString())
+                tripsViewModel.uploadImageToFirebase(
+                    uri = imageUriParsed,
+                    onSuccess = { downloadUrl ->
+                      tripsViewModel.addPhotoToTrip(downloadUrl)
+                      Toast.makeText(
+                              context, context.getString(R.string.photo_added), Toast.LENGTH_SHORT)
+                          .show()
+                    },
+                    onFailure = { exception ->
+                      Toast.makeText(
+                              context,
+                              "Failed to upload image: ${exception.message}",
+                              Toast.LENGTH_SHORT)
+                          .show()
+                    })
               }
             },
             messageToShow = stringResource(R.string.add_photo),
@@ -234,22 +234,28 @@ fun PhotoDialog(
                           Modifier.fillMaxWidth()
                               .align(Alignment.Center) // Center the Row vertically
                       ) {
-                        // Left Button ("<")
+                        // Left Button
                         IconButton(
                             modifier = Modifier.testTag("goLeftButton"),
                             onClick = {
                               currentIndex = (currentIndex - 1 + photoList.size) % photoList.size
                             },
                             enabled = photoList.size > 1) {
-                              Text("<", color = Color.White)
+                              Icon(
+                                  imageVector = Icons.Default.ChevronLeft,
+                                  contentDescription = stringResource(R.string.left_button),
+                                  tint = Color.White)
                             }
 
-                        // Right Button (">")
+                        // Right Button
                         IconButton(
                             modifier = Modifier.testTag("goRightButton"),
                             onClick = { currentIndex = (currentIndex + 1) % photoList.size },
                             enabled = photoList.size > 1) {
-                              Text(">", color = Color.White)
+                              Icon(
+                                  imageVector = Icons.Default.ChevronRight,
+                                  contentDescription = stringResource(R.string.right_button),
+                                  tint = Color.White)
                             }
                       }
                   // Delete button (bottom-right corner)
@@ -269,7 +275,11 @@ fun PhotoDialog(
                   IconButton(
                       onClick = {
                         // TODO: implement photo downloading functionality
-                        Toast.makeText(context, "Photo downloaded", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                                context,
+                                context.getString(R.string.photo_downloaded),
+                                Toast.LENGTH_SHORT)
+                            .show()
                       },
                       modifier =
                           Modifier.align(Alignment.TopEnd)
@@ -293,14 +303,13 @@ fun PhotoDialog(
         text = { Text(stringResource(R.string.confirmation_delete_photo)) },
         confirmButton = {
           TextButton(
+              enabled = isConnected,
               onClick = {
-                if (isConnected) {
-                  tripsViewModel.removePhotoFromTrip(photoUri)
-                  onDismiss()
-                  Toast.makeText(context, "Photo successfully deleted", Toast.LENGTH_SHORT).show()
-                } else {
-                  Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
-                }
+                tripsViewModel.removePhotoFromTrip(photoUri)
+                onDismiss()
+                Toast.makeText(
+                        context, context.getString(R.string.photo_deleted), Toast.LENGTH_SHORT)
+                    .show()
                 showDialog = false
               }) {
                 Text(stringResource(R.string.remove))

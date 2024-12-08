@@ -82,4 +82,9 @@
     <string name="download_photo">Download Photo</string>
     <string name="remove_photo">Remove Photo</string>
     <string name="confirmation_delete_photo">Are you sure you want to remove this photo?</string>
+    <string name="left_button">Go left button</string>
+    <string name="right_button">Go right button</string>
+    <string name="photo_downloaded">Photo downloaded</string>
+    <string name="photo_deleted">Photo successfully deleted</string>
+    <string name="photo_added">Photo successfully added</string>
 </resources>
