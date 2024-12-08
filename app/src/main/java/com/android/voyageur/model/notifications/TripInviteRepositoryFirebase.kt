@@ -9,13 +9,12 @@ import com.google.firebase.firestore.SetOptions
  * Used for displaying trip invites and notifications Appears as a parameter to the ${UserViewModel}
  *
  * @param db the firestore instance to use
- * @param collectionPath the path to the collection of trip invites
  * @constructor creates a new TripInviteRepositoryFirebase
  * @property db the firestore instance to use
  * @property collectionPath the path to the collection of trip invites
  */
 class TripInviteRepositoryFirebase(private val db: FirebaseFirestore) : TripInviteRepository {
-  private val collectionPath = "friendRequests"
+  private val collectionPath = "tripInvites"
 
   override fun init(onSuccess: () -> Unit) {
     db.collection(collectionPath).get().addOnSuccessListener { onSuccess() }
@@ -53,6 +52,7 @@ class TripInviteRepositoryFirebase(private val db: FirebaseFirestore) : TripInvi
       onSuccess: () -> Unit,
       onFailure: (Exception) -> Unit
   ) {
+    if (req.id.isEmpty()) return
     db.collection(collectionPath)
         .document(req.id)
         .set(req, SetOptions.merge())
