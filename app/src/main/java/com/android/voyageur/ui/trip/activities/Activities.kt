@@ -5,10 +5,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,25 +65,58 @@ fun ActivitiesScreen(
   // States for filtering
   var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
   var showFilterMenu by remember { mutableStateOf(false) }
+  var searchQuery by remember { mutableStateOf("") }
 
   var drafts by remember {
     mutableStateOf(
         tripsViewModel.getActivitiesForSelectedTrip().filter { activity ->
-          activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
+          val matchesTimestamp =
+              activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
+          val matchesSearch =
+              searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
+          matchesTimestamp && matchesSearch
         })
   }
+
   var final by remember {
     mutableStateOf(
         tripsViewModel
             .getActivitiesForSelectedTrip()
             .filter { activity ->
-              activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
+              val matchesTimestamp =
+                  activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
+              val matchesSearch =
+                  searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
+              matchesTimestamp && matchesSearch
+            }
+            .sortedWith(compareBy({ it.startTime }, { it.endTime })))
+  }
+
+  LaunchedEffect(searchQuery) {
+    drafts =
+        tripsViewModel.getActivitiesForSelectedTrip().filter { activity ->
+          val matchesTimestamp =
+              activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
+          val matchesSearch =
+              searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
+          matchesTimestamp && matchesSearch
+        }
+
+    final =
+        tripsViewModel
+            .getActivitiesForSelectedTrip()
+            .filter { activity ->
+              val matchesTimestamp =
+                  activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
+              val matchesSearch =
+                  searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
+              matchesTimestamp && matchesSearch
             }
             .sortedWith(
                 compareBy(
                     { it.startTime }, // First, sort by startTime
                     { it.endTime } // If startTime is equal, sort by endTime
-                    )))
+                    ))
   }
 
   var showDialog by remember { mutableStateOf(false) }
@@ -106,25 +143,46 @@ fun ActivitiesScreen(
       },
       topBar = {
         TopAppBar(
-            title = { Text("Activities bar") }, // TODO: should be replaced by the search bar
+            title = {
+              Box(
+                  modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                  contentAlignment = Alignment.CenterStart) {
+                    val textStyle =
+                        MaterialTheme.typography.bodyLarge.copy(
+                            fontSize = 16.sp) // Define consistent style
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = {
+                          Text(
+                              text = stringResource(R.string.activities_searchbar_placeholder),
+                              style = textStyle,
+                              modifier = Modifier.fillMaxSize())
+                        },
+                        modifier = Modifier.fillMaxWidth().height(50.dp).testTag("searchField"),
+                        textStyle = textStyle, // Apply the same style to the search text
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp))
+                  }
+            },
             actions = {
-              IconButton(
-                  modifier = Modifier.testTag("filterButton"),
-                  onClick = { showFilterMenu = true },
-                  content = {
-                    Icon(
-                        imageVector = Icons.Outlined.FilterAlt,
-                        contentDescription = stringResource(R.string.filter_activities),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                  })
-            })
+              Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
+                IconButton(
+                    modifier = Modifier.testTag("filterButton"),
+                    onClick = { showFilterMenu = true }) {
+                      Icon(
+                          imageVector = Icons.Outlined.FilterAlt,
+                          contentDescription = stringResource(R.string.filter_activities),
+                          tint = MaterialTheme.colorScheme.primary)
+                    }
+              }
+            },
+            modifier = Modifier.height(80.dp).testTag("topAppBar"))
       },
       floatingActionButton = { AddActivityButton(navigationActions) },
       content = { pd ->
         LazyColumn(
-            modifier =
-                Modifier.padding(pd).padding(top = 16.dp).fillMaxWidth().testTag("lazyColumn"),
+            modifier = Modifier.padding(pd).fillMaxWidth().testTag("lazyColumn"),
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
         ) {
           item {
