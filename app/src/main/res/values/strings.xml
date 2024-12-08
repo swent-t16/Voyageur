@@ -89,4 +89,5 @@
     <string name="photo_downloaded">Photo downloaded</string>
     <string name="photo_deleted">Photo successfully deleted</string>
     <string name="photo_added">Photo successfully added</string>
+    <string name="close_photo">Close Photo Dialog</string>
 </resources>
