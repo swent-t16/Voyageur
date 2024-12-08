@@ -80,6 +80,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 /**
  * A composable function for adding or editing a trip in the travel planner app.
@@ -199,13 +200,14 @@ fun AddTripScreen(
     val endTimestamp = Timestamp(Date(endDate!!))
     fun normalizeToMidnight(date: Date): Date {
       val calendar =
-          Calendar.getInstance().apply {
+          Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
             time = date
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
           }
+
       return calendar.time
     }
 
@@ -439,8 +441,7 @@ fun AddTripScreen(
                           })
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
+                Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
