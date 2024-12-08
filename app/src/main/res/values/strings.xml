@@ -73,4 +73,20 @@
     <string name="business">Business</string>
     <string name="tourism">Tourism</string>
     <string name="save_trip">Save Trip</string>
+
+ <!-- Photos Screen -->
+    <string name="add_photo">Add Photo</string>
+    <string name="gallery_permission">We need permission to access your gallery.</string>
+    <string name="photos">Photos</string>
+    <string name="no_photos">You have no photos yet.</string>
+    <string name="full_size_photo">Full-size photo</string>
+    <string name="delete_photo">Delete Photo</string>
+    <string name="download_photo">Download Photo</string>
+    <string name="remove_photo">Remove Photo</string>
+    <string name="confirmation_delete_photo">Are you sure you want to remove this photo?</string>
+    <string name="left_button">Go left button</string>
+    <string name="right_button">Go right button</string>
+    <string name="photo_downloaded">Photo downloaded</string>
+    <string name="photo_deleted">Photo successfully deleted</string>
+    <string name="photo_added">Photo successfully added</string>
 </resources>

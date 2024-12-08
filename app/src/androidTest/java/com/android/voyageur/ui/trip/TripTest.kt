@@ -13,6 +13,7 @@ class TripTest {
   fun tripInstancesWithIdenticalFieldsShouldBeEqual() {
     val participants = listOf("user1", "user2")
     val activities = listOf(Activity("Activity 1"), Activity("Activity 2"))
+    val photos = listOf("http://example.com/image.jpg")
 
     val trip1 =
         Trip(
@@ -26,7 +27,9 @@ class TripTest {
             endDate = Timestamp(0, 0),
             activities = activities,
             type = TripType.BUSINESS,
-            imageUri = "http://example.com/image.jpg")
+            imageUri = "http://example.com/image.jpg",
+            photos = photos,
+            discoverable = false)
 
     val trip2 =
         Trip(
@@ -40,7 +43,9 @@ class TripTest {
             endDate = Timestamp(0, 0),
             activities = activities,
             type = TripType.BUSINESS,
-            imageUri = "http://example.com/image.jpg")
+            imageUri = "http://example.com/image.jpg",
+            photos = photos,
+            discoverable = false)
     assert(trip1.equals(trip2))
     assert(trip1.hashCode() == trip2.hashCode())
   }
@@ -95,5 +100,7 @@ class TripTest {
     assert(trip.activities.isEmpty())
     assert(trip.type == TripType.TOURISM)
     assert(trip.imageUri.isEmpty())
+    assert(trip.photos.isEmpty())
+    assert(!trip.discoverable)
   }
 }

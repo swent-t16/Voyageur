@@ -28,6 +28,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
@@ -48,7 +49,8 @@ class TripsViewModelTest {
           Timestamp.now(),
           emptyList(),
           TripType.TOURISM,
-          "")
+          "",
+          emptyList())
 
   @Before
   fun setUp() {
@@ -89,7 +91,8 @@ class TripsViewModelTest {
                 Timestamp.now(),
                 emptyList(),
                 TripType.TOURISM,
-                ""))
+                "",
+                emptyList()))
 
     doAnswer { invocation ->
           val onSuccess = invocation.arguments[1] as (List<Trip>) -> Unit
@@ -290,7 +293,7 @@ class TripsViewModelTest {
   fun testAddActivityToTrip() {
     tripsViewModel.selectTrip(trip)
     val activity = Activity(title = "Activity 1", description = "Description 1")
-    tripsViewModel.removeActivityFromTrip(activity)
+    tripsViewModel.addActivityToTrip(activity)
     assert(tripsViewModel.getActivitiesForSelectedTrip() == trip.activities)
   }
 
@@ -302,6 +305,30 @@ class TripsViewModelTest {
     tripsViewModel.addActivityToTrip(activity)
     tripsViewModel.removeActivityFromTrip(activity)
     assert(tripsViewModel.getActivitiesForSelectedTrip().isEmpty())
+  }
+
+  @Test
+  fun testGetPhotosForSelectedTrip() {
+    tripsViewModel.selectTrip(trip)
+    assert(tripsViewModel.getPhotosForSelectedTrip() == trip.photos)
+  }
+
+  @Test
+  fun testAddPhotoToTrip() {
+    tripsViewModel.selectTrip(trip)
+    val photo = "http://example.com/image.jpg"
+    tripsViewModel.addPhotoToTrip(photo)
+    assert(tripsViewModel.getPhotosForSelectedTrip() == trip.photos)
+  }
+
+  @Test
+  fun testRemovePhotoFromTrip() {
+    tripsViewModel.selectTrip(trip)
+    val photo = "http://example.com/image.jpg"
+    // mock add and remove a photo
+    tripsViewModel.addPhotoToTrip(photo)
+    tripsViewModel.removePhotoFromTrip(photo)
+    assert(tripsViewModel.getPhotosForSelectedTrip().isEmpty())
   }
 
   @Test
@@ -337,6 +364,91 @@ class TripsViewModelTest {
   }
 
   @Test
+  fun addPhotoToTrip_onSuccess() {
+    // Arrange
+    val photoUrl = "https://example.com/photo.jpg"
+    val updatedTrip = trip.copy(photos = trip.photos + photoUrl)
+    doAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as () -> Unit
+          onSuccess()
+          null
+        }
+        .whenever(tripsRepository)
+        .updateTrip(any(), any(), any())
+
+    // Act
+    tripsViewModel.selectTrip(trip)
+    tripsViewModel.addPhotoToTrip(photoUrl)
+
+    // Assert
+    verify(tripsRepository).updateTrip(any(), any(), any())
+  }
+
+  @Test
+  fun addPhotoToTrip_onFailure() {
+    // Arrange
+    val photoUrl = "https://example.com/photo.jpg"
+    val exception = Exception("Failed to add photo")
+    doAnswer { invocation ->
+          val onFailure = invocation.arguments[2] as (Exception) -> Unit
+          onFailure(exception)
+          null
+        }
+        .whenever(tripsRepository)
+        .updateTrip(any(), any(), any())
+
+    // Act
+    tripsViewModel.selectTrip(trip)
+    tripsViewModel.addPhotoToTrip(photoUrl)
+
+    // Assert
+    verify(tripsRepository).updateTrip(any(), any(), any())
+    assert(tripsViewModel.selectedTrip.value?.photos?.contains(photoUrl) == false)
+  }
+
+  @Test
+  fun removePhotoFromTrip_onSuccess() {
+    // Arrange
+    val photoUrl = "https://example.com/photo.jpg"
+    val initialTrip = trip.copy(photos = trip.photos + photoUrl)
+    val updatedTrip = trip.copy(photos = trip.photos - photoUrl)
+    doAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as () -> Unit
+          onSuccess()
+          null
+        }
+        .whenever(tripsRepository)
+        .updateTrip(any(), any(), any())
+
+    // Act
+    tripsViewModel.selectTrip(initialTrip)
+    tripsViewModel.removePhotoFromTrip(photoUrl)
+
+    // Assert
+    verify(tripsRepository).updateTrip(any(), any(), any())
+  }
+
+  @Test
+  fun removePhotoFromTrip_onFailure() {
+    // Arrange
+    val photoUrl = "https://example.com/photo.jpg"
+    val exception = Exception("Failed to remove photo")
+    doAnswer { invocation ->
+          val onFailure = invocation.arguments[2] as (Exception) -> Unit
+          onFailure(exception)
+          null
+        }
+        .whenever(tripsRepository)
+        .updateTrip(any(), any(), any())
+
+    // Act
+    tripsViewModel.selectTrip(trip)
+    tripsViewModel.removePhotoFromTrip(photoUrl)
+
+    // Assert
+    verify(tripsRepository).updateTrip(any(), any(), any())
+  }
+
   fun testGetFeed() {
     tripsViewModel.getFeed("userId")
     verify(tripsRepository).getFeed(any(), any(), any())
