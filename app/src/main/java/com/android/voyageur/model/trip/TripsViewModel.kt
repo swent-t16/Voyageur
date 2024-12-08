@@ -276,7 +276,12 @@ open class TripsViewModel(
       try {
         val response =
             generativeModel.generateContent(
-                generatePrompt(trip, userPrompt, interests, provideFinalActivities))
+                generatePrompt(
+                    trip,
+                    userPrompt,
+                    interests,
+                    provideFinalActivities,
+                    getActivitiesForSelectedTrip().map { it.title }))
         response.text?.let { outputContent -> _uiState.value = UiState.Success(outputContent) }
       } catch (e: Exception) {
         _uiState.value = UiState.Error(e.localizedMessage ?: "unknown error")
