@@ -33,6 +33,7 @@
 <!-- Search bar -->
     <string name="search_places">Search places…</string>
     <string name="search_users">Search users…</string>
+    <string name="empty"> </string>
 
 <!--    AI ASSISTANT    -->
     <string name="ask_assistant">Ask the AI assistant!</string>

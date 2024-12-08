@@ -260,7 +260,7 @@ fun SearchScreen(
                         when (navigationActions.getNavigationState().currentTabForSearch) {
                           FilterType.PLACES.ordinal -> R.string.search_places
                           FilterType.USERS.ordinal -> R.string.search_users
-                          else -> R.string.search_places
+                          else -> R.string.empty
                         },
                     onQueryChange = { query ->
                       searchQuery = TextFieldValue(query)
