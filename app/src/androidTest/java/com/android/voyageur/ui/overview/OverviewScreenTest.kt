@@ -249,7 +249,6 @@ class OverviewScreenTest {
     val mockTrip =
         Trip(
             id = "1",
-            creator = "Andreea",
             participants = listOf("Alex"),
             name = "Paris Trip",
             imageUri = "",
@@ -274,7 +273,6 @@ class OverviewScreenTest {
     val mockTrip =
         Trip(
             id = "1",
-            creator = "Andreea",
             participants = listOf("Alex"),
             name = "Paris Trip",
             startDate = Timestamp.now(),
