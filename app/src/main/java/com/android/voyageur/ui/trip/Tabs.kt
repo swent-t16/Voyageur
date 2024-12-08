@@ -16,12 +16,31 @@ import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.trip.activities.ActivitiesScreen
+import com.android.voyageur.ui.trip.photos.PhotosScreen
 import com.android.voyageur.ui.trip.schedule.ScheduleScreen
 import com.android.voyageur.ui.trip.schedule.TopBarWithImageAndText
 import com.android.voyageur.ui.trip.schedule.toDateWithYearString
 import com.android.voyageur.ui.trip.schedule.toDateWithoutYearString
 import com.android.voyageur.ui.trip.settings.SettingsScreen
 
+/**
+ * A composable function that displays a tabbed interface for a selected trip, allowing users to
+ * switch between different views related to the trip, such as schedule, activities, photos, and
+ * settings.
+ *
+ * This composable includes:
+ * - A top bar displaying the trip name and its date range.
+ * - A `TabRow` with tabs for "Schedule", "Activities", "Photos", and "Settings".
+ * - Conditional rendering of the content based on the currently selected tab.
+ *
+ * The selected trip is retrieved from the `TripsViewModel` and displayed accordingly. If no trip is
+ * selected, the user is navigated to the "Overview" screen.
+ *
+ * @param tripsViewModel The `TripsViewModel` used to manage trip-related data and logic.
+ * @param navigationActions The `NavigationActions` used to navigate between screens.
+ * @param userViewModel The `UserViewModel` providing user-related data and functionality.
+ * @param placesViewModel The `PlacesViewModel` used to manage place-related data.
+ */
 @Composable
 fun TopTabs(
     tripsViewModel: TripsViewModel,
@@ -30,7 +49,7 @@ fun TopTabs(
     placesViewModel: PlacesViewModel
 ) {
   // Define tab items
-  val tabs = listOf("Schedule", "Activities", "Settings")
+  val tabs = listOf("Schedule", "Activities", "Photos", "Settings")
 
   // Collect selectedTrip as state to avoid calling .value directly in composition
   val trip by tripsViewModel.selectedTrip.collectAsState()
@@ -70,7 +89,8 @@ fun TopTabs(
     when (navigationActions.getNavigationState().currentTabIndexForTrip) {
       0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel)
       1 -> ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
-      2 ->
+      2 -> PhotosScreen(tripsViewModel, navigationActions, userViewModel)
+      3 ->
           SettingsScreen(
               selectedTrip,
               navigationActions,
@@ -79,7 +99,7 @@ fun TopTabs(
               placesViewModel = placesViewModel,
               onUpdate = {
                 navigationActions.getNavigationState().currentTabIndexForTrip = 0
-                navigationActions.getNavigationState().currentTabIndexForTrip = 2
+                navigationActions.getNavigationState().currentTabIndexForTrip = 3
               })
     }
   }

@@ -44,6 +44,30 @@
     <string name="use_interests">Use your profile\'s interests to recommend activities</string>
     <string name="close">Close</string>
 
+    <!-- OVERVIEW SCREEN -->
+    <string name="your_trips_text">Your trips</string>
+    <string name="floating_button">"Floating action button"</string>
+    <string name="empty_trip_prompt">You have no trips yet.</string>
+    <string name="denied_calendar_permission">Permission denied. Cannot open calendar.</string>
+    <string name="selected_image_description">Selected image</string>
+    <string name="trip_image_overview_description">Trip image overview</string>
+    <string name="collapse_text">Collapse</string>
+    <string name="expand_text">Expand</string>
+    <string name="delete_text">Delete</string>
+    <string name="add_to_calendar_text">Add to calendar</string>
+    <string name="remove_trip_text">Remove Trip</string>
+    <string name="cancel_text">Cancel</string>
+    <string name="remove_text">Remove</string>
+    <string name="no_participants_text">No participants.</string>
+    <string name="one_participant_text">1 Participant:</string>
+    <string name="remove_trip_confirmation">Are you sure you want to remove %1$s from your trips?</string>
+    <string name="deleted_trip_text">Trip successfully deleted</string>
+    <string name="additional_participants">and %1$d more</string>
+    <string name="participants_count">%1$d Participants:</string>
+    <string name="no_compatible_calendar">No compatible calendar app found.</string>
+
+
+
  <!-- Add Activity -->
     <string name="create_activity">Create a New Activity</string>
     <string name="edit_activity">Edit Activity</string>
@@ -79,4 +103,20 @@
     <string name="business">Business</string>
     <string name="tourism">Tourism</string>
     <string name="save_trip">Save Trip</string>
+
+ <!-- Photos Screen -->
+    <string name="add_photo">Add Photo</string>
+    <string name="gallery_permission">We need permission to access your gallery.</string>
+    <string name="photos">Photos</string>
+    <string name="no_photos">You have no photos yet.</string>
+    <string name="full_size_photo">Full-size photo</string>
+    <string name="delete_photo">Delete Photo</string>
+    <string name="download_photo">Download Photo</string>
+    <string name="remove_photo">Remove Photo</string>
+    <string name="confirmation_delete_photo">Are you sure you want to remove this photo?</string>
+    <string name="left_button">Go left button</string>
+    <string name="right_button">Go right button</string>
+    <string name="photo_downloaded">Photo downloaded</string>
+    <string name="photo_deleted">Photo successfully deleted</string>
+    <string name="photo_added">Photo successfully added</string>
 </resources>

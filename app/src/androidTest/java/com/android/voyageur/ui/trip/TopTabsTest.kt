@@ -68,6 +68,7 @@ class TopTabsTest {
     composeTestRule.onNodeWithTag("tabRow").assertIsDisplayed()
     composeTestRule.onNodeWithText("Schedule").assertIsDisplayed()
     composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Photos").assertIsDisplayed()
     composeTestRule.onNodeWithText("Settings").assertIsDisplayed()
   }
 
@@ -89,6 +90,10 @@ class TopTabsTest {
     composeTestRule.onNodeWithText("Activities").assertIsSelected()
     composeTestRule.onNodeWithTag("activitiesScreen").assertIsDisplayed()
 
+    // Switch to the "Photos" tab and verify
+    composeTestRule.onNodeWithText("Photos").performClick()
+    composeTestRule.onNodeWithTag("photosScreen").assertIsDisplayed()
+
     // Switch to the "Settings" tab and verify
     composeTestRule.onNodeWithText("Settings").performClick()
     composeTestRule.onNodeWithText("Settings").assertIsSelected()
@@ -108,6 +113,7 @@ class TopTabsTest {
     // Verify that each tab is displayed with the correct title
     composeTestRule.onNodeWithText("Schedule").assertExists()
     composeTestRule.onNodeWithText("Activities").assertExists()
+    composeTestRule.onNodeWithText("Photos").assertExists()
     composeTestRule.onNodeWithText("Settings").assertExists()
 
     // Click on "Activities" tab
@@ -116,11 +122,17 @@ class TopTabsTest {
     // Assert that the currentTabIndexForTrip has been updated to 1 (Activities tab)
     assert(navigationActions.getNavigationState().currentTabIndexForTrip == 1)
 
+    // Click on "Photos" tab
+    composeTestRule.onNodeWithText("Photos").performClick()
+
+    // Assert that the currentTabIndexForTrip has been updated to 2 (Photos tab)
+    assert(navigationActions.getNavigationState().currentTabIndexForTrip == 2)
+
     // Click on "Settings" tab
     composeTestRule.onNodeWithText("Settings").performClick()
 
-    // Assert that the currentTabIndexForTrip has been updated to 2 (Settings tab)
-    assert(navigationActions.getNavigationState().currentTabIndexForTrip == 2)
+    // Assert that the currentTabIndexForTrip has been updated to 3 (Settings tab)
+    assert(navigationActions.getNavigationState().currentTabIndexForTrip == 3)
 
     // Click on "Schedule" tab
     composeTestRule.onNodeWithText("Schedule").performClick()
