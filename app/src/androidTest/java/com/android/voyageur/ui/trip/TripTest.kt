@@ -18,7 +18,6 @@ class TripTest {
     val trip1 =
         Trip(
             id = "1",
-            creator = "creator1",
             participants = participants,
             description = "Trip Description",
             name = "Trip Name",
@@ -34,7 +33,6 @@ class TripTest {
     val trip2 =
         Trip(
             id = "1",
-            creator = "creator1",
             participants = participants,
             description = "Trip Description",
             name = "Trip Name",
@@ -52,15 +50,9 @@ class TripTest {
 
   @Test
   fun tripInstancesWithDifferentFieldsShouldNotBeEqual() {
-    val trip1 =
-        Trip(id = "1", creator = "creator1", description = "Trip Description", name = "Trip Name")
+    val trip1 = Trip(id = "1", description = "Trip Description", name = "Trip Name")
 
-    val trip2 =
-        Trip(
-            id = "2",
-            creator = "creator2",
-            description = "Different Description",
-            name = "Different Name")
+    val trip2 = Trip(id = "2", description = "Different Description", name = "Different Name")
 
     assert(!trip1.equals(trip2))
   }
@@ -73,15 +65,14 @@ class TripTest {
 
   @Test
   fun equalsShouldHandleNullAndDifferentObjectTypes() {
-    val trip = Trip(id = "1", creator = "creator1")
+    val trip = Trip(id = "1")
 
     assert(!trip.equals(null))
   }
 
   @Test
   fun hashCodeShouldBeConsistentForTheSameObject() {
-    val trip =
-        Trip(id = "1", creator = "creator1", description = "Trip Description", name = "Trip Name")
+    val trip = Trip(id = "1", description = "Trip Description", name = "Trip Name")
 
     val initialHashCode = trip.hashCode()
     assert(trip.hashCode() == initialHashCode)
@@ -92,7 +83,6 @@ class TripTest {
     val trip = Trip()
 
     assert(trip.id.isEmpty())
-    assert(trip.creator.isEmpty())
     assert(trip.participants.isEmpty())
     assert(trip.description.isEmpty())
     assert(trip.name.isEmpty())

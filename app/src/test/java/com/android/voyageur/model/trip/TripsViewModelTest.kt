@@ -40,7 +40,6 @@ class TripsViewModelTest {
   private val trip =
       Trip(
           "1",
-          "creator",
           emptyList(),
           "description",
           "name",
@@ -82,7 +81,6 @@ class TripsViewModelTest {
         listOf(
             Trip(
                 "1",
-                "creator",
                 emptyList(),
                 "description",
                 "name",
@@ -342,7 +340,6 @@ class TripsViewModelTest {
     val trip =
         Trip(
             id = "1",
-            creator = "creator",
             participants = emptyList(),
             description = "Trip description",
             name = "Trip name",

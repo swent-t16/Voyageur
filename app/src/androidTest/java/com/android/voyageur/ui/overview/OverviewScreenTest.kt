@@ -91,7 +91,6 @@ class OverviewScreenTest {
         listOf(
             Trip(
                 id = "1",
-                creator = "Andreea",
                 participants = listOf("Alex", "Mihai", "Ioana", "Andrei", "Maria", "Matei"),
                 name = "Paris Trip"))
     `when`(tripRepository.getTrips(any(), any(), any())).then {
@@ -109,9 +108,7 @@ class OverviewScreenTest {
 
   @Test
   fun noParticipantsDisplaysNoAvatars() {
-    val mockTrips =
-        listOf(
-            Trip(id = "23", creator = "Andreea", participants = emptyList(), name = "Paris Trip"))
+    val mockTrips = listOf(Trip(id = "23", participants = emptyList(), name = "Paris Trip"))
     `when`(tripRepository.getTrips(any(), any(), any())).then {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
@@ -124,12 +121,7 @@ class OverviewScreenTest {
 
   @Test
   fun clickingTripCardNavigatesToTripDetails() {
-    val mockTrip =
-        Trip(
-            id = "1",
-            creator = "Andreea",
-            participants = listOf("Alex", "Mihai"),
-            name = "Paris Trip")
+    val mockTrip = Trip(id = "1", participants = listOf("Alex", "Mihai"), name = "Paris Trip")
     val mockTrips = listOf(mockTrip)
 
     `when`(tripRepository.getTrips(any(), any(), any())).then {
@@ -145,12 +137,7 @@ class OverviewScreenTest {
 
   @Test
   fun clickingTripCardUpdatesNavigationState() {
-    val mockTrip =
-        Trip(
-            id = "1",
-            creator = "Andreea",
-            participants = listOf("Alex", "Mihai"),
-            name = "Paris Trip")
+    val mockTrip = Trip(id = "1", participants = listOf("Alex", "Mihai"), name = "Paris Trip")
     val mockTrips = listOf(mockTrip)
 
     // Simulate getting the mock trip from the repository
@@ -196,7 +183,6 @@ class OverviewScreenTest {
     val mockTrip =
         Trip(
             id = "1",
-            creator = "Andreea",
             participants = listOf("Alex"),
             name = "Paris Trip",
             imageUri = "https://example.com/image.jpg",
@@ -216,7 +202,6 @@ class OverviewScreenTest {
     val mockTrip =
         Trip(
             id = "1",
-            creator = "Andreea",
             participants = listOf("Alex"),
             name = "Paris Trip",
             imageUri = "",
@@ -236,7 +221,6 @@ class OverviewScreenTest {
     val mockTrip =
         Trip(
             id = "1",
-            creator = "Andreea",
             participants = listOf("Alex"),
             name = "Paris Trip",
             imageUri = "",

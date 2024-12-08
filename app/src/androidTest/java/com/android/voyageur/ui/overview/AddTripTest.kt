@@ -192,7 +192,6 @@ class AddTripScreenTest {
     val expectedTrip =
         Trip(
             id = "mockTripId",
-            creator = "mockUserId",
             description = "Description for trip with unknown location",
             name = "Trip with Unknown Location",
             location = Location(name = "Big Ben Cafe"),
@@ -232,7 +231,6 @@ class AddTripScreenTest {
     val trip =
         Trip(
             id = "editTripId",
-            creator = "mockUserId",
             description = "Existing trip",
             name = "Existing Trip",
             location = Location(name = "Big Ben Cafe"),
@@ -258,7 +256,6 @@ class AddTripScreenTest {
     val trip =
         Trip(
             id = "editTripId",
-            creator = "mockUserId",
             description = "Existing trip",
             name = "Existing Trip",
             location = Location(name = "Big Ben Cafe"),
