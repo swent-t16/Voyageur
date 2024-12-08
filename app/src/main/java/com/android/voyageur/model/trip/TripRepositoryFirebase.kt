@@ -83,7 +83,7 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
           val trips =
               result
                   .map { document -> document.toObject(Trip::class.java) }
-                  .filter { it.creator != userId && !it.participants.contains(userId) }
+                  .filter { !it.participants.contains(userId) }
           onSuccess(trips)
         }
         .addOnFailureListener { exception ->

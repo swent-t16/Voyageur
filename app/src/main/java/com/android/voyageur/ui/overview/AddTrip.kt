@@ -234,7 +234,6 @@ fun AddTripScreen(
             id =
                 if (isEditMode) tripsViewModel.selectedTrip.value!!.id
                 else tripsViewModel.getNewTripId(),
-            creator = Firebase.auth.uid.orEmpty(),
             description = description,
             name = name,
             participants =
