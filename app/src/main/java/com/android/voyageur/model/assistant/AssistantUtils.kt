@@ -126,17 +126,22 @@ fun generatePrompt(
     provideFinalActivities: Boolean,
     alreadyPresentActivities: List<String>
 ): String {
+  // specifies which enum types are possible
   val possibleEnumTypePrompt =
       "The activity type can only be ${ActivityType.entries.joinToString(", ")}, " +
           "but you can recommend any activity and set the type to OTHER."
+
   val startDate = getYearMonthDay(trip.startDate)
   val endDate = getYearMonthDay(trip.endDate)
+  // specifies the date range of the trip
   val datePrompt =
       """
           between the start date year ${startDate.first} month ${startDate.second + 1} day ${startDate.third} 
           and the end date year ${endDate.first} month ${endDate.second + 1} day ${endDate.third}
       """
           .trimIndent()
+
+  // specifies the interests of the user (if non-empty)
   val interestsPrompt =
       if (interests.isNotEmpty()) {
         "The activities should focus on the following interests (if applicable): " +
@@ -144,6 +149,8 @@ fun generatePrompt(
       } else {
         ""
       }
+
+  // specifies the titles of the activities that are already present in the trip
   val alreadyPresentActivitiesPrompt =
       if (alreadyPresentActivities.isNotEmpty()) {
         "The following activities are already present in the trip: " +
@@ -151,6 +158,8 @@ fun generatePrompt(
       } else {
         ""
       }
+
+  // specifies whether the prompt is for recommending draft or final activities
   val draftVsFinalPrompt =
       if (provideFinalActivities) {
         "Make a full schedule by listing specific activities, including separate activities " +
@@ -159,6 +168,9 @@ fun generatePrompt(
       } else {
         "List a lot of popular specific activities to do on a trip."
       }
+
+  // combines all the prompts into a single prompt and mentions the trip name, description, and
+  // location
   val prompt =
       "$draftVsFinalPrompt The trip, called ${trip.name}, with description ${trip.description} " +
           "and location ${trip.location.name}, takes place $datePrompt with the following prompt:" +
