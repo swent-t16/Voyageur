@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,7 +21,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.twotone.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -78,13 +82,15 @@ fun OverviewScreen(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
 ) {
-  val trips by tripsViewModel.trips.collectAsState()
+  val unfilteredTrips by tripsViewModel.trips.collectAsState()
   val isLoadingUser by userViewModel.isLoading.collectAsState()
   val isLoadingTrip by tripsViewModel.isLoading.collectAsState()
   var isLoading = false
   val status by connectivityState()
   val context = LocalContext.current
   val isConnected = status === ConnectionState.Available
+  var showOnlyFavorites by remember { mutableStateOf(false) }
+  val trips = if (showOnlyFavorites) unfilteredTrips.filter { it.isFavorite } else unfilteredTrips
 
   Log.e("RECOMPOSE", "OverviewScreen recomposed")
   LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
@@ -116,7 +122,22 @@ fun OverviewScreen(
       },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        TopAppBar(title = { Text(text = "Your trips") }, modifier = Modifier.testTag("topBarTitle"))
+        TopAppBar(
+            title = { Text(text = "Your trips") },
+            modifier = Modifier.testTag("topBarTitle"),
+            actions = {
+              IconButton(onClick = { showOnlyFavorites = !showOnlyFavorites }) {
+                Icon(
+                    imageVector =
+                        if (showOnlyFavorites) Icons.Default.Star else Icons.Default.StarBorder,
+                    contentDescription =
+                        if (showOnlyFavorites) "Show all trips" else "Show favorite trips",
+                    tint =
+                        if (showOnlyFavorites) Color.DarkGray
+                        else MaterialTheme.colorScheme.onSurface,
+                )
+              }
+            })
       },
       bottomBar = {
         BottomNavigationMenu(
@@ -197,20 +218,43 @@ fun TripItem(
             modifier = Modifier.fillMaxSize().testTag("cardRow"),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-              // modifier.weight(1f) is used here to set the image for 1/3 of the card
-              if (trip.imageUri.isNotEmpty()) {
-                Image(
-                    painter = rememberAsyncImagePainter(model = trip.imageUri),
-                    contentDescription = "Selected image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.width(120.dp).height(217.dp).testTag("tripImage"))
-              } else {
-                Image(
-                    painter = painterResource(id = R.drawable.default_trip_image),
-                    contentDescription = "Trip image overview",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.width(120.dp).height(217.dp).testTag("defaultTripImage"))
-              } // modifier.weight(2f) is used here to set the column to 2/3 of the card
+              Box(modifier = Modifier.aspectRatio(0.55f).fillMaxSize().testTag("tripImageBox")) {
+                // Display image or default image
+                if (trip.imageUri.isNotEmpty()) {
+                  Image(
+                      painter = rememberAsyncImagePainter(model = trip.imageUri),
+                      contentDescription = "Selected image",
+                      contentScale = ContentScale.Crop,
+                      modifier = Modifier.fillMaxSize().testTag("tripImage"))
+                } else {
+                  Image(
+                      painter = painterResource(id = R.drawable.default_trip_image),
+                      contentDescription = "Trip image overview",
+                      contentScale = ContentScale.Crop,
+                      modifier = Modifier.fillMaxSize().testTag("defaultTripImage"))
+                }
+
+                // Star icon on top of the image
+                IconButton(
+                    onClick = {
+                      trip.isFavorite = !trip.isFavorite
+                      tripsViewModel.updateTrip(trip) // Call to update the trip in ViewModel
+                    },
+                    modifier =
+                        Modifier.align(Alignment.TopStart)
+                            .padding(8.dp)
+                            .testTag("favoriteButton_${trip.name}")) {
+                      Icon(
+                          imageVector =
+                              if (trip.isFavorite) Icons.TwoTone.Star else Icons.Default.StarBorder,
+                          contentDescription =
+                              if (trip.isFavorite) "Unmark as Favorite" else "Mark as Favorite",
+                          tint =
+                              if (trip.isFavorite) Color.Yellow
+                              else MaterialTheme.colorScheme.onSurface)
+                    }
+              }
+              // modifier.weight(2f) is used here to set the column to 2/3 of the card
               Column(
                   modifier = Modifier.fillMaxSize().padding(16.dp).weight(2f),
                   verticalArrangement = Arrangement.Top) {
@@ -239,6 +283,7 @@ fun TripItem(
                             ))
                     DisplayParticipants(trip, userViewModel)
                   }
+
               Box(modifier = Modifier.align(Alignment.Top)) {
                 IconButton(
                     enabled = isConnected,

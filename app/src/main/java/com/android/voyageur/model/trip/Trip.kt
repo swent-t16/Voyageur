@@ -20,6 +20,8 @@ import com.google.firebase.firestore.Exclude
  * @property activities A list of [Activity] instances planned for the trip.
  * @property type The type of the trip, as defined by the [TripType] enum.
  * @property imageUri A URI string pointing to an image associated with the trip.
+ * @property discoverable A flag indicating whether the trip is discoverable by other users.
+ * @property isFavorite A flag indicating whether the trip is marked as a favorite by the user.
  */
 data class Trip(
     val id: String = "",
@@ -33,7 +35,8 @@ data class Trip(
     var activities: List<Activity> = emptyList(),
     val type: TripType = TripType.TOURISM,
     val imageUri: String = "", // default image for trip
-    val discoverable: Boolean = false
+    val discoverable: Boolean = false,
+    var isFavorite: Boolean = false
 ) {
   /**
    * A computed property that retrieves the [TripType] of the trip, excluding it from Firestore
