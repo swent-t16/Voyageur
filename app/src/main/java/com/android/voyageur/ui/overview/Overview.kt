@@ -41,7 +41,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -69,12 +68,12 @@ import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.components.NoResultsFound
+import com.android.voyageur.ui.components.SearchBar
 import com.android.voyageur.ui.formFields.UserIcon
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
-import com.android.voyageur.ui.search.NoResultsFound
 import com.android.voyageur.utils.ConnectionState
 import com.android.voyageur.utils.connectivityState
 import com.google.firebase.Firebase
@@ -100,51 +99,45 @@ fun OverviewScreen(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
 ) {
-    val trips by tripsViewModel.trips.collectAsState()
-    val isLoadingUser by userViewModel.isLoading.collectAsState()
-    val isLoadingTrip by tripsViewModel.isLoading.collectAsState()
-    var isLoading = false
-    val status by connectivityState()
-    val isConnected = status === ConnectionState.Available
-    var searchQuery by remember { mutableStateOf("") }
+  val trips by tripsViewModel.trips.collectAsState()
+  val isLoadingUser by userViewModel.isLoading.collectAsState()
+  val isLoadingTrip by tripsViewModel.isLoading.collectAsState()
+  var isLoading = false
+  val status by connectivityState()
+  val isConnected = status === ConnectionState.Available
+  var searchQuery by remember { mutableStateOf("") }
 
-    LaunchedEffect(isLoadingUser, isLoadingTrip) {
-        isLoading = isLoadingUser || isLoadingTrip
-    }
+  LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
 
-    LoadParticipantsEffect(trips, userViewModel)
+  LoadParticipantsEffect(trips, userViewModel)
 
-    Scaffold(
-        floatingActionButton = {
-            AddTripFAB(isConnected, navigationActions)
-        },
-        modifier = Modifier.testTag("overviewScreen"),
-        topBar = {
-            SearchBar(
-                searchQuery = searchQuery,
-                onQueryChange = { searchQuery = it }
-            )
-        },
-        bottomBar = {
-            BottomNavigationMenu(
-                onTabSelect = { route -> navigationActions.navigateTo(route) },
-                tabList = LIST_TOP_LEVEL_DESTINATION,
-                selectedItem = navigationActions.currentRoute(),
-                userViewModel
-            )
-        },
-        content = { pd ->
-            OverviewContent(
-                isLoading = isLoading,
-                trips = trips,
-                searchQuery = searchQuery,
-                padding = pd,
-                tripsViewModel = tripsViewModel,
-                navigationActions = navigationActions,
-                userViewModel = userViewModel
-            )
-        }
-    )
+  Scaffold(
+      floatingActionButton = { AddTripFAB(isConnected, navigationActions) },
+      modifier = Modifier.testTag("overviewScreen"),
+      topBar = {
+        SearchBar(
+            placeholderId = R.string.overview_searchbar_placeholder,
+            onQueryChange = { searchQuery = it },
+            modifier =
+                Modifier.padding(horizontal = 16.dp, vertical = 24.dp).testTag("searchField"))
+      },
+      bottomBar = {
+        BottomNavigationMenu(
+            onTabSelect = { route -> navigationActions.navigateTo(route) },
+            tabList = LIST_TOP_LEVEL_DESTINATION,
+            selectedItem = navigationActions.currentRoute(),
+            userViewModel)
+      },
+      content = { pd ->
+        OverviewContent(
+            isLoading = isLoading,
+            trips = trips,
+            searchQuery = searchQuery,
+            padding = pd,
+            tripsViewModel = tripsViewModel,
+            navigationActions = navigationActions,
+            userViewModel = userViewModel)
+      })
 }
 
 /**
@@ -158,103 +151,53 @@ fun OverviewScreen(
  */
 @Composable
 private fun LoadParticipantsEffect(trips: List<Trip>, userViewModel: UserViewModel) {
-    LaunchedEffect(trips) {
-        if (trips.isNotEmpty()) {
-            userViewModel.getUsersByIds(
-                trips
-                    .map { it.participants + (userViewModel._user.value?.contacts ?: listOf()) }
-                    .flatten()
-                    .toSet()
-                    .toList()
-            ) {
-                userViewModel._contacts.value = it
-            }
-        }
+  LaunchedEffect(trips) {
+    if (trips.isNotEmpty()) {
+      userViewModel.getUsersByIds(
+          trips
+              .map { it.participants + (userViewModel._user.value?.contacts ?: listOf()) }
+              .flatten()
+              .toSet()
+              .toList()) {
+            userViewModel._contacts.value = it
+          }
     }
-}
-
-/**
- * Composable that renders the search bar for filtering trips.
- *
- * Displays a text field that allows users to search through their trips by name.
- *
- * @param searchQuery The current search query string
- * @param onQueryChange Callback invoked when the search query changes
- */
-@Composable
-private fun SearchBar(
-    searchQuery: String,
-    onQueryChange: (String) -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 20.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        TextField(
-            value = searchQuery,
-            onValueChange = onQueryChange,
-            placeholder = {
-                Text(
-                    text = stringResource(R.string.overview_searchbar_placeholder),
-                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            modifier = Modifier
-                .height(56.dp)
-                .fillMaxWidth()
-                .testTag("searchField"),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp)
-        )
-    }
+  }
 }
 
 /**
  * Composable that renders the Floating Action Button for adding new trips.
  *
- * This button is disabled when there's no internet connection and shows a toast message
- * informing the user about the connectivity requirement.
+ * This button is disabled when there's no internet connection and shows a toast message informing
+ * the user about the connectivity requirement.
  *
  * @param isConnected Boolean indicating whether the device has internet connectivity
  * @param navigationActions Actions to handle navigation between screens
  */
 @Composable
-private fun AddTripFAB(
-    isConnected: Boolean,
-    navigationActions: NavigationActions
-) {
-    val context = LocalContext.current
-    FloatingActionButton(
-        onClick = {
-            if (isConnected) {
-                navigationActions.navigateTo(Screen.ADD_TRIP)
-            } else {
-                Toast.makeText(
-                    context,
-                    R.string.notification_no_internet_text,
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        },
-        modifier = Modifier.testTag("createTripButton")
-    ) {
+private fun AddTripFAB(isConnected: Boolean, navigationActions: NavigationActions) {
+  val context = LocalContext.current
+  FloatingActionButton(
+      onClick = {
+        if (isConnected) {
+          navigationActions.navigateTo(Screen.ADD_TRIP)
+        } else {
+          Toast.makeText(context, R.string.notification_no_internet_text, Toast.LENGTH_SHORT).show()
+        }
+      },
+      modifier = Modifier.testTag("createTripButton")) {
         Icon(
             Icons.Outlined.Add,
             stringResource(R.string.floating_button),
-            modifier = Modifier.testTag("addIcon")
-        )
-    }
+            modifier = Modifier.testTag("addIcon"))
+      }
 }
 
 /**
  * Composable that renders the main content of the overview screen.
  *
- * Handles the display of loading indicator, empty state, and the list of trips
- * based on the current state of the app.
+ * Handles the display of loading indicator, empty state, and the list of trips based on the current
+ * state of the app.
  *
  * @param isLoading Boolean indicating whether data is currently being loaded
  * @param trips List of all available trips
@@ -274,27 +217,25 @@ private fun OverviewContent(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel
 ) {
-    if (isLoading) {
-        CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
-        return
-    }
+  if (isLoading) {
+    CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
+    return
+  }
 
-    Column(
-        modifier = Modifier
-            .padding(padding)
-            .testTag("overviewColumn"),
-    ) {
-        when {
-            trips.isEmpty() -> EmptyTripsMessage()
-            else -> TripsList(
-                trips = trips,
-                searchQuery = searchQuery,
-                tripsViewModel = tripsViewModel,
-                navigationActions = navigationActions,
-                userViewModel = userViewModel
-            )
-        }
+  Column(
+      modifier = Modifier.padding(padding).testTag("overviewColumn"),
+  ) {
+    when {
+      trips.isEmpty() -> EmptyTripsMessage()
+      else ->
+          TripsList(
+              trips = trips,
+              searchQuery = searchQuery,
+              tripsViewModel = tripsViewModel,
+              navigationActions = navigationActions,
+              userViewModel = userViewModel)
     }
+  }
 }
 
 /**
@@ -304,22 +245,19 @@ private fun OverviewContent(
  */
 @Composable
 private fun EmptyTripsMessage() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            modifier = Modifier.testTag("emptyTripPrompt"),
-            text = stringResource(R.string.empty_trip_prompt),
-        )
-    }
+  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Text(
+        modifier = Modifier.testTag("emptyTripPrompt"),
+        text = stringResource(R.string.empty_trip_prompt),
+    )
+  }
 }
 
 /**
  * Composable that renders the list of trips.
  *
- * Displays a scrollable list of trip items, filtered according to the search query.
- * Shows a "no results" message when the search yields no matches.
+ * Displays a scrollable list of trip items, filtered according to the search query. Shows a "no
+ * results" message when the search yields no matches.
  *
  * @param trips List of all available trips
  * @param searchQuery Current search query for filtering trips
@@ -335,53 +273,46 @@ private fun TripsList(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel
 ) {
-    val filteredTrips = filterTrips(trips, searchQuery)
+  val filteredTrips = filterTrips(trips, searchQuery)
 
-    if (searchQuery.isNotEmpty() && filteredTrips.isEmpty()) {
-        NoResultsFound(modifier = Modifier.testTag("noSearchResults"))
-        return
-    }
+  if (searchQuery.isNotEmpty() && filteredTrips.isEmpty()) {
+    NoResultsFound(modifier = Modifier.testTag("noSearchResults"))
+    return
+  }
 
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxSize()
-            .testTag("lazyColumn")
-    ) {
+  LazyColumn(
+      verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
         filteredTrips.forEach { trip ->
-            item {
-                TripItem(
-                    tripsViewModel = tripsViewModel,
-                    trip = trip,
-                    navigationActions = navigationActions,
-                    userViewModel = userViewModel
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-            }
+          item {
+            TripItem(
+                tripsViewModel = tripsViewModel,
+                trip = trip,
+                navigationActions = navigationActions,
+                userViewModel = userViewModel)
+            Spacer(modifier = Modifier.height(10.dp))
+          }
         }
-    }
+      }
 }
 
 /**
  * Filters and sorts the list of trips based on a search query.
  *
- * If no search query is provided, returns all trips sorted by start date.
- * If a search query exists, returns trips whose names contain the query (case-insensitive),
- * sorted by start date.
+ * If no search query is provided, returns all trips sorted by start date. If a search query exists,
+ * returns trips whose names contain the query (case-insensitive), sorted by start date.
  *
  * @param trips List of trips to filter
  * @param searchQuery Search query to filter trips by
  * @return Filtered and sorted list of trips
  */
 private fun filterTrips(trips: List<Trip>, searchQuery: String): List<Trip> {
-    return if (searchQuery.isEmpty()) {
-        trips.sortedBy { it.startDate }
-    } else {
-        trips
-            .filter { it.name.contains(searchQuery, ignoreCase = true) }
-            .sortedBy { it.startDate }
-    }
+  return if (searchQuery.isEmpty()) {
+    trips.sortedBy { it.startDate }
+  } else {
+    trips.filter { it.name.contains(searchQuery, ignoreCase = true) }.sortedBy { it.startDate }
+  }
 }
 
 /**
