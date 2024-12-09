@@ -11,6 +11,8 @@ import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
@@ -23,6 +25,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.MockedStatic
 import org.mockito.Mockito.*
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -36,6 +39,10 @@ class TripsViewModelTest {
   private lateinit var tripsRepository: TripRepository
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var mockTripsViewModel: TripsViewModel
+
+  private lateinit var firebaseAuth: FirebaseAuth
+  private lateinit var firebaseUser: FirebaseUser
+  private lateinit var firebaseAuthMockStatic: MockedStatic<FirebaseAuth>
 
   private val trip =
       Trip(
@@ -54,12 +61,19 @@ class TripsViewModelTest {
   @Before
   fun setUp() {
     tripsRepository = mock(TripRepository::class.java)
-    tripsViewModel = TripsViewModel(tripsRepository)
-    mockTripsViewModel = mock(TripsViewModel::class.java)
     // Initialize Firebase if necessary
     if (FirebaseApp.getApps(ApplicationProvider.getApplicationContext()).isEmpty()) {
       FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
     }
+    firebaseAuth = mock(FirebaseAuth::class.java)
+    firebaseUser = mock(FirebaseUser::class.java)
+    `when`(firebaseAuth.currentUser).thenReturn(firebaseUser)
+    `when`(firebaseUser.uid).thenReturn("123")
+    `when`(firebaseUser.displayName).thenReturn("Test User")
+    `when`(firebaseUser.email).thenReturn("test@example.com")
+    `when`(firebaseUser.photoUrl).thenReturn(null)
+
+    tripsViewModel = TripsViewModel(tripsRepository, false, firebaseAuth)
   }
 
   @Test
