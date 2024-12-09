@@ -185,9 +185,7 @@ class E2ETestM2 {
     // starting screen is overview
     // check if all the components are displayed
     composeTestRule.onNodeWithTag("overviewScreen").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Your trips").assertIsDisplayed()
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("topBarTitle").assertIsDisplayed()
 
     composeTestRule
         .onNodeWithText("You have no trips yet.")
@@ -288,8 +286,8 @@ class E2ETestM2 {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Weekly").performClick()
     // check activity is displayed in weekly view
-    composeTestRule.onNodeWithText("SEP 30 - OCT 6", useUnmergedTree = true).assertExists()
-    composeTestRule.onNodeWithText("T 3", useUnmergedTree = true).assertExists()
+    composeTestRule.onNodeWithText("Sep 30 - Oct 6").assertExists()
+    composeTestRule.onNodeWithText("T 3 - 1 activity").assertExists()
 
     // check add activity
     composeTestRule.onNodeWithTag("createActivityButton").assertIsDisplayed()

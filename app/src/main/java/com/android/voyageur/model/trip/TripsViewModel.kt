@@ -20,6 +20,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel for managing trip-related data and operations in the app.
+ *
+ * This ViewModel interacts with the [TripRepository] to fetch, create, update, and delete trips. It
+ * also handles the management of trip-related states such as the selected trip, selected day,
+ * activities, and UI state. Additionally, this ViewModel is responsible for handling file uploads
+ * to Firebase Storage and integrating with the AI assistant to generate trip activities.
+ *
+ * @property tripsRepository The repository used to perform CRUD operations on trips.
+ */
 open class TripsViewModel(
     private val tripsRepository: TripRepository,
 ) : ViewModel() {
@@ -181,6 +191,46 @@ open class TripsViewModel(
     }
   }
 
+  open fun getPhotosForSelectedTrip(): List<String> {
+    return selectedTrip.value?.photos ?: emptyList()
+  }
+
+  open fun addPhotoToTrip(photo: String) {
+    if (selectedTrip.value == null) return
+    val trip = selectedTrip.value!!
+    val updatedTrip = trip.copy(photos = trip.photos + photo)
+    updateTrip(
+        updatedTrip,
+        onSuccess = {
+          /*
+              This is a trick to force a recompose, because the reference wouldn't
+              change and update the UI.
+          */
+          selectTrip(updatedTrip)
+        },
+        onFailure = { error ->
+          Log.e("PhotosScreen", "Error adding photo: ${error.message}", error)
+        })
+  }
+
+  open fun removePhotoFromTrip(photo: String) {
+    if (selectedTrip.value == null) return
+    val trip = selectedTrip.value!!
+    val updatedTrip = trip.copy(photos = trip.photos - photo)
+    updateTrip(
+        updatedTrip,
+        onSuccess = {
+          /*
+              This is a trick to force a recompose, because the reference wouldn't
+              change and update the UI.
+          */
+          selectTrip(updatedTrip)
+        },
+        onFailure = { error ->
+          Log.e("PhotoItem", "Error deleting photo: ${error.message}", error)
+        })
+  }
+
   /**
    * Gets the feed of trips for a user.
    *
@@ -226,7 +276,12 @@ open class TripsViewModel(
       try {
         val response =
             generativeModel.generateContent(
-                generatePrompt(trip, userPrompt, interests, provideFinalActivities))
+                generatePrompt(
+                    trip,
+                    userPrompt,
+                    interests,
+                    provideFinalActivities,
+                    getActivitiesForSelectedTrip().map { it.title }))
         response.text?.let { outputContent -> _uiState.value = UiState.Success(outputContent) }
       } catch (e: Exception) {
         _uiState.value = UiState.Error(e.localizedMessage ?: "unknown error")

@@ -307,7 +307,6 @@ class AddActivityScreenTest {
     val trip =
         Trip(
             id = "editTripId",
-            creator = "mockUserId",
             description = "Existing trip",
             name = "Existing Trip",
             location = Location(name = "Paris"),

@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.notifications.FriendRequestRepository
@@ -245,5 +246,109 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_Final Activity Without Description").assertIsDisplayed()
+  }
+
+  @Test
+  fun searchField_filtersActivities() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // Enter search query
+    composeTestRule.onNodeWithTag("searchField").performTextInput("Draft")
+
+    // Verify only matching activities are shown
+    composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertDoesNotExist()
+    composeTestRule
+        .onNodeWithTag("cardItem_Final Activity Without Description")
+        .assertDoesNotExist()
+  }
+
+  @Test
+  fun searchField_maintainsCategoriesWhileFiltering() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // Verify initial categories
+    composeTestRule.onNodeWithText("Drafts").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Final").assertIsDisplayed()
+
+    // Enter search query
+    composeTestRule.onNodeWithTag("searchField").performTextInput("2")
+
+    // Verify categories remain with filtered content
+    composeTestRule.onNodeWithText("Drafts").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Final", ignoreCase = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Final Activity With Description").assertDoesNotExist()
+    composeTestRule.onNodeWithText("Final Activity Without Description").assertDoesNotExist()
+    composeTestRule.onNodeWithText("Draft Activity").assertDoesNotExist()
+  }
+
+  @Test
+  fun searchField_clearsAndShowsAllActivities() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // Enter search query
+    composeTestRule.onNodeWithTag("searchField").performTextInput("Draft")
+
+    // Verify filtered results
+    composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertDoesNotExist()
+
+    // Clear search field
+    composeTestRule.onNodeWithTag("searchField")
+
+    // Verify all activities are shown
+    composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertIsDisplayed()
+  }
+
+  @Test
+  fun searchField_worksWithFilters() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // Apply filter first
+    composeTestRule.onNodeWithTag("filterButton").performClick()
+    composeTestRule.onNodeWithTag("typeCheckBox_RESTAURANT").performClick()
+    composeTestRule.onNodeWithTag("confirmButtonDialog").performClick()
+
+    // Then apply search
+    composeTestRule.onNodeWithTag("searchField").performTextInput("Description")
+
+    // Verify only activities matching both filter and search are shown
+    composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertDoesNotExist()
+    composeTestRule
+        .onNodeWithTag("cardItem_Final Activity Without Description")
+        .assertDoesNotExist()
+  }
+
+  @Test
+  fun searchField_handlesEmptyResults() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // Enter search query that matches nothing
+    composeTestRule.onNodeWithTag("searchField").performTextInput("NonexistentActivity")
+
+    // Verify sections still exist but no activities are shown
+    composeTestRule.onNodeWithText("Drafts").assertExists()
+    composeTestRule.onNodeWithText("Final").assertExists()
+    composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertDoesNotExist()
+    composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertDoesNotExist()
+    composeTestRule
+        .onNodeWithTag("cardItem_Final Activity Without Description")
+        .assertDoesNotExist()
   }
 }

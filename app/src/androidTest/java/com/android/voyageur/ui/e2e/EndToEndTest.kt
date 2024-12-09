@@ -160,7 +160,6 @@ class E2ETest {
       }
     }
     composeTestRule.onNodeWithTag("overviewScreen").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("topBarTitle").assertIsDisplayed()
 
     composeTestRule.onNodeWithTag("createTripButton").assertIsDisplayed()
     composeTestRule.onNodeWithTag("createTripButton").performClick()

@@ -5,6 +5,7 @@ activityKtx = "1.9.3"
 coilCompose = "2.4.0"
 fragmentKtxVersion = "1.6.1"
 materialIconsCore = "<latest_version>"
+materialIconsExtended = "1.5.4"
 places = "4.0.0"
 robolectricVersion = "4.10"
 sonar = "4.4.1.3373"
@@ -101,6 +102,7 @@ androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtim
 androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
 androidx-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "materialIconsCore" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsCore" }
+androidx-material-icons-extended-v154 = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigationCompose" }

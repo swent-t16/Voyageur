@@ -47,7 +47,8 @@ fun PermissionButtonForGallery(
     dialogMessage: String,
     aspectRatioX: Int = 1,
     aspectRatioY: Int = 1,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
   val context = LocalContext.current
   val compActivity = context.findActivity()
@@ -90,6 +91,7 @@ fun PermissionButtonForGallery(
       }
 
   Button(
+      enabled = enabled,
       onClick = {
         when {
           checkFullPermission(context) || checkLimitedPermission(context) -> {

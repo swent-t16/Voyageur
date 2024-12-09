@@ -46,7 +46,6 @@ class TripRepositoryFirebaseTest {
   private val trip =
       Trip(
           "1",
-          "creator",
           listOf("creator"),
           "description",
           "name",
