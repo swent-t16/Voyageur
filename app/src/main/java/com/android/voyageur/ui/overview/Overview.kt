@@ -20,11 +20,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.twotone.Star
+import androidx.compose.material.icons.twotone.Favorite
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -48,11 +48,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -126,17 +128,20 @@ fun OverviewScreen(
             title = { Text(text = "Your trips") },
             modifier = Modifier.testTag("topBarTitle"),
             actions = {
-              IconButton(onClick = { showOnlyFavorites = !showOnlyFavorites }) {
-                Icon(
-                    imageVector =
-                        if (showOnlyFavorites) Icons.Default.Star else Icons.Default.StarBorder,
-                    contentDescription =
-                        if (showOnlyFavorites) "Show all trips" else "Show favorite trips",
-                    tint =
-                        if (showOnlyFavorites) Color.DarkGray
-                        else MaterialTheme.colorScheme.onSurface,
-                )
-              }
+              IconButton(
+                  onClick = { showOnlyFavorites = !showOnlyFavorites },
+                  modifier = Modifier.testTag("favoriteFilterButton")) {
+                    Icon(
+                        imageVector =
+                            if (showOnlyFavorites) Icons.Filled.Favorite
+                            else Icons.Default.FavoriteBorder,
+                        contentDescription =
+                            if (showOnlyFavorites) "Show all trips" else "Show favorite trips",
+                        tint =
+                            if (showOnlyFavorites) MaterialTheme.colorScheme.onSurface
+                            else MaterialTheme.colorScheme.onSurface,
+                    )
+                  }
             })
       },
       bottomBar = {
@@ -159,7 +164,9 @@ fun OverviewScreen(
                   contentAlignment = Alignment.Center) {
                     Text(
                         modifier = Modifier.testTag("emptyTripPrompt"),
-                        text = "You have no trips yet.",
+                        text =
+                            if (showOnlyFavorites) stringResource(R.string.no_favorite_trips)
+                            else stringResource(R.string.no_trips),
                     )
                   }
             } else {
@@ -234,7 +241,7 @@ fun TripItem(
                       modifier = Modifier.fillMaxSize().testTag("defaultTripImage"))
                 }
 
-                // Star icon on top of the image
+                // Heart icon on top of the image
                 IconButton(
                     onClick = {
                       trip.isFavorite = !trip.isFavorite
@@ -246,12 +253,19 @@ fun TripItem(
                             .testTag("favoriteButton_${trip.name}")) {
                       Icon(
                           imageVector =
-                              if (trip.isFavorite) Icons.TwoTone.Star else Icons.Default.StarBorder,
+                              if (trip.isFavorite) Icons.TwoTone.Favorite
+                              else Icons.Default.FavoriteBorder,
                           contentDescription =
                               if (trip.isFavorite) "Unmark as Favorite" else "Mark as Favorite",
-                          tint =
-                              if (trip.isFavorite) Color.Yellow
-                              else MaterialTheme.colorScheme.onSurface)
+                          tint = if (trip.isFavorite) Color.Red else Color.DarkGray,
+                          modifier =
+                              Modifier.drawBehind {
+                                // Draw white outline for the heart button
+                                drawCircle(
+                                    color = Color.White.copy(alpha = 0.5f),
+                                    radius = size.minDimension / 2 + 4.dp.toPx(),
+                                    center = center)
+                              })
                     }
               }
               // modifier.weight(2f) is used here to set the column to 2/3 of the card

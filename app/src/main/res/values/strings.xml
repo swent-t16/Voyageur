@@ -73,4 +73,8 @@
     <string name="business">Business</string>
     <string name="tourism">Tourism</string>
     <string name="save_trip">Save Trip</string>
+
+<!-- Overview -->
+    <string name="no_favorite_trips">You have no favorite trips yet.</string>
+    <string name="no_trips">You have no trips yet.</string>
 </resources>

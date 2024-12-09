@@ -1,6 +1,8 @@
 package com.android.voyageur.ui.overview
 
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -252,5 +254,83 @@ class OverviewScreenTest {
     composeTestRule.onNodeWithText("Remove").performClick()
 
     verify(tripRepository).deleteTripById(eq(mockTrip.id), any(), any())
+  }
+
+  @Test
+  fun favoriteButtons_exist() {
+    val mockTrips =
+        listOf(
+            Trip(id = "1", name = "Trip 1", isFavorite = true),
+            Trip(id = "2", name = "Trip 2", isFavorite = false))
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
+    }
+    tripViewModel.getTrips()
+
+    composeTestRule.onNodeWithTag("favoriteFilterButton").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("favoriteButton_Trip 1").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("favoriteButton_Trip 2").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("favoriteButton_Trip 3").assertDoesNotExist()
+  }
+
+  @Test
+  fun clickingOnFavoriteButton_addsTripToFavorites() {
+    val mockTrips =
+        listOf(
+            Trip(id = "1", name = "Trip 1", isFavorite = false),
+            Trip(id = "2", name = "Trip 2", isFavorite = false))
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
+    }
+    tripViewModel.getTrips()
+
+    composeTestRule.onNodeWithTag("favoriteFilterButton").performClick()
+    composeTestRule.onNodeWithText("Trip 1").assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag("favoriteFilterButton").performClick()
+    composeTestRule.onNodeWithTag("favoriteButton_Trip 1").performClick()
+    composeTestRule.onNodeWithTag("favoriteFilterButton").performClick()
+    composeTestRule.onNodeWithText("Trip 1").assertIsDisplayed()
+  }
+
+  @Test
+  fun toggleFavoriteFilter_updatesTripsDisplay() {
+    val mockTrips =
+        listOf(
+            Trip(id = "1", name = "Trip 1", isFavorite = true),
+            Trip(id = "2", name = "Trip 2", isFavorite = false))
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
+    }
+    tripViewModel.getTrips()
+
+    composeTestRule.onNodeWithText("Trip 1").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Trip 2").assertIsDisplayed()
+
+    composeTestRule.onNodeWithTag("favoriteFilterButton").performClick()
+
+    composeTestRule.onNodeWithText("Trip 1").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Trip 2").assertIsNotDisplayed()
+
+    composeTestRule.onNodeWithTag("favoriteFilterButton").performClick()
+
+    composeTestRule.onNodeWithText("Trip 1").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Trip 2").assertIsDisplayed()
+  }
+
+  @Test
+  fun favoriteFilter_noFavorites_showsEmptyState() {
+    val mockTrips =
+        listOf(
+            Trip(id = "1", name = "Trip 1", isFavorite = false),
+            Trip(id = "2", name = "Trip 2", isFavorite = false))
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
+    }
+    tripViewModel.getTrips()
+
+    composeTestRule.onNodeWithTag("favoriteFilterButton").performClick()
+
+    composeTestRule.onNodeWithTag("emptyTripPrompt").assertIsDisplayed()
+    composeTestRule.onNodeWithText("You have no favorite trips yet.").assertIsDisplayed()
   }
 }
