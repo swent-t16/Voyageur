@@ -100,9 +100,6 @@ fun TopTabs(
         when (navigationActions.getNavigationState().currentTabIndexForTrip) {
           0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel)
           1 -> ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
-          else -> {
-            /* Handle unexpected case or provide default */
-          }
         }
       }
       false -> {
@@ -121,9 +118,6 @@ fun TopTabs(
                     navigationActions.getNavigationState().currentTabIndexForTrip = 0
                     navigationActions.getNavigationState().currentTabIndexForTrip = 3
                   })
-          else -> {
-            /* Handle unexpected case or provide default */
-          }
         }
       }
     }

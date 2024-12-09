@@ -12,10 +12,12 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.NavigationState
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.doReturn
 
 class TopTabsTest {
   val sampleTrip = Trip(name = "Sample Trip")
@@ -29,6 +31,7 @@ class TopTabsTest {
   private lateinit var friendRequestRepository: FriendRequestRepository
   private lateinit var placesRepository: PlacesRepository
   private lateinit var placesViewModel: PlacesViewModel
+  private lateinit var mockNavigationActions: NavigationActions
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
@@ -42,6 +45,7 @@ class TopTabsTest {
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
     placesRepository = mock(PlacesRepository::class.java)
     placesViewModel = PlacesViewModel(placesRepository)
+    mockNavigationActions = mock(NavigationActions::class.java)
   }
 
   @Test
@@ -139,5 +143,36 @@ class TopTabsTest {
 
     // Assert that the currentTabIndexForTrip has been updated to 0 (Schedule tab)
     assert(navigationActions.getNavigationState().currentTabIndexForTrip == 0)
+  }
+
+  @Test
+  fun tabRow_SwitchesContentOnTabClickInROV() {
+    // Mock NavigationActions to return a NavigationState with isReadOnlyView = true
+    val navigationState = NavigationState()
+    navigationState.isReadOnlyView = true
+    doReturn(navigationState).`when`(mockNavigationActions).getNavigationState()
+    tripsViewModel.selectTrip(sampleTrip)
+    composeTestRule.setContent {
+      TopTabs(tripsViewModel, mockNavigationActions, userViewModel, placesViewModel)
+    }
+
+    // Initially, the first tab (Schedule) should be selected
+    composeTestRule.onNodeWithText("Schedule").assertIsSelected()
+
+    // Verify that ByDayScreen content is shown initially
+    composeTestRule.onNodeWithTag("byDayScreen").assertIsDisplayed()
+
+    // Switch to the "Activities" tab and verify
+    composeTestRule.onNodeWithText("Activities").performClick()
+    composeTestRule.onNodeWithText("Activities").assertIsSelected()
+    composeTestRule.onNodeWithTag("activitiesScreen").assertIsDisplayed()
+
+    // Assert "Photos" tab does not exist
+    composeTestRule.onNodeWithText("Photos").assertDoesNotExist()
+    composeTestRule.onNodeWithTag("photosScreen").assertDoesNotExist()
+
+    // Assert "Settings" tab does not exist
+    composeTestRule.onNodeWithText("Settings").assertDoesNotExist()
+    composeTestRule.onNodeWithTag("settingsScreen").assertDoesNotExist()
   }
 }
