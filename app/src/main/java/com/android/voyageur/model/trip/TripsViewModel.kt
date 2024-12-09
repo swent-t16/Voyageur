@@ -9,7 +9,9 @@ import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.assistant.generatePrompt
 import com.android.voyageur.model.assistant.generativeModel
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import java.time.LocalDate
@@ -32,6 +34,8 @@ import kotlinx.coroutines.launch
  */
 open class TripsViewModel(
     private val tripsRepository: TripRepository,
+    private val addAuthStateListener: Boolean = false,
+    public val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance(),
 ) : ViewModel() {
   private val _trips = MutableStateFlow<List<Trip>>(emptyList())
   val trips: StateFlow<List<Trip>> = _trips.asStateFlow()
@@ -55,7 +59,28 @@ open class TripsViewModel(
   val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
   private val _feed = MutableStateFlow<List<Trip>>(emptyList())
+
+  private var _tripListenerRegistration: ListenerRegistration? = null
   val feed: StateFlow<List<Trip>> = _feed.asStateFlow()
+  val authStateListener =
+      FirebaseAuth.AuthStateListener { auth ->
+        val firebaseUser = auth.currentUser
+        if (firebaseUser != null) {
+          _tripListenerRegistration =
+              tripsRepository.listenForTripUpdates(
+                  Firebase.auth?.uid.orEmpty(),
+                  onSuccess = {
+                    _trips.value = it
+                    if (selectedTrip.value != null)
+                        it.find { trip -> trip.id == selectedTrip.value?.id }
+                            ?.let { it1 -> selectTrip(it1) }
+                  },
+                  onFailure = { Log.e("TripsViewModel", "Failed to listen for trip updates", it) })
+        } else {
+          _tripListenerRegistration?.remove()
+          _tripListenerRegistration = null
+        }
+      }
 
   init {
     tripsRepository.init {
@@ -68,6 +93,9 @@ open class TripsViewModel(
           },
           onFailure = { _isLoading.value = false })
     }
+    if (addAuthStateListener) {
+      firebaseAuth.addAuthStateListener(authStateListener)
+    }
   }
 
   companion object {
@@ -75,7 +103,9 @@ open class TripsViewModel(
         object : ViewModelProvider.Factory {
           @Suppress("UNCHECKED CAST")
           override fun <T : ViewModel> create(modelClass: Class<T>): T =
-              TripsViewModel(TripRepositoryFirebase(Firebase.firestore)) as T
+              TripsViewModel(
+                  TripRepositoryFirebase(Firebase.firestore), addAuthStateListener = true)
+                  as T
         }
   }
 

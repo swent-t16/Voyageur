@@ -1,5 +1,7 @@
 package com.android.voyageur.model.trip
 
+import com.google.firebase.firestore.ListenerRegistration
+
 interface TripRepository {
   fun getNewTripId(): String
 
@@ -34,4 +36,10 @@ interface TripRepository {
       onSuccess: (List<Trip>) -> Unit,
       onFailure: (Exception) -> Unit,
   )
+
+  fun listenForTripUpdates(
+      userId: String,
+      onSuccess: (List<Trip>) -> Unit,
+      onFailure: (Exception) -> Unit,
+  ): ListenerRegistration
 }
