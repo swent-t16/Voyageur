@@ -33,6 +33,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 
 class OverviewScreenTest {
@@ -250,7 +251,7 @@ class OverviewScreenTest {
     val mockTrip =
         Trip(
             id = "1",
-            participants = listOf("Alex"),
+            participants = emptyList(),
             name = "Paris Trip",
             imageUri = "",
             startDate = Timestamp.now(),
@@ -265,6 +266,27 @@ class OverviewScreenTest {
     composeTestRule.onNodeWithText("Leave Trip").performClick()
     composeTestRule.onNodeWithText("Leave").performClick()
     composeTestRule.waitForIdle()
+    tripViewModel.selectedTrip.value?.participants?.isEmpty()?.let { assert(it) }
+  }
+
+  @Test
+  fun leaveTripUserNotAParticipant() {
+    val userId = "mockUserId"
+    val trip =
+        Trip(id = "1", participants = listOf("anotherUserId")) // User is not in participants list
+
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(listOf(trip))
+    }
+    tripViewModel.getTrips()
+
+    composeTestRule.onNodeWithTag("expandIcon_${trip.name}").performClick()
+    composeTestRule.onNodeWithText("Leave Trip").performClick()
+    composeTestRule.onNodeWithText("Leave").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify no update is triggered
+    verify(tripRepository, never()).updateTrip(any(), any(), any())
   }
 
   @Test
