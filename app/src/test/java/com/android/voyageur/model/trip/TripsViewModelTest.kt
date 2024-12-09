@@ -508,4 +508,71 @@ class TripsViewModelTest {
     verify(tripsRepository).getFeed(any(), any(), any())
     assert(!tripsViewModel.isLoading.value)
   }
+
+  @Test
+  fun testAuthStateListener_onSuccess() {
+    // Arrange
+    val mockAuthStateListener = tripsViewModel.authStateListener
+    val mockFirebaseUser = mock(FirebaseUser::class.java)
+    val userId = "123"
+    val tripsList =
+        listOf(
+            Trip(
+                id = "1",
+                participants = emptyList(),
+                description = "Test Trip",
+                name = "Trip 1",
+                location = Location("", "", "", 0.0, 0.0),
+                startDate = Timestamp.now(),
+                endDate = Timestamp.now(),
+                activities = emptyList(),
+                type = TripType.TOURISM,
+                imageUri = ""))
+
+    // Stub FirebaseAuth and tripsRepository behavior
+    `when`(firebaseAuth.currentUser).thenReturn(mockFirebaseUser)
+    `when`(mockFirebaseUser.uid).thenReturn(userId)
+
+    doAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as (List<Trip>) -> Unit
+          onSuccess(tripsList) // Simulate a successful callback
+          null
+        }
+        .whenever(tripsRepository)
+        .listenForTripUpdates(any(), any(), any())
+
+    // Act
+    mockAuthStateListener.onAuthStateChanged(firebaseAuth)
+
+    // Assert - Verify trips were updated
+    assert(tripsViewModel.trips.value == tripsList)
+  }
+
+  @Test
+  fun testAuthStateListener_onFailure() {
+    // Arrange
+    val mockAuthStateListener = tripsViewModel.authStateListener
+    val mockFirebaseUser = mock(FirebaseUser::class.java)
+    val userId = "123"
+    val exception = Exception("Failed to listen for trip updates")
+
+    // Stub FirebaseAuth and tripsRepository behavior
+    `when`(firebaseAuth.currentUser).thenReturn(mockFirebaseUser)
+    `when`(mockFirebaseUser.uid).thenReturn(userId)
+
+    doAnswer { invocation ->
+          val onFailure = invocation.arguments[2] as (Exception) -> Unit
+          onFailure(exception) // Simulate a failure callback
+          null
+        }
+        .whenever(tripsRepository)
+        .listenForTripUpdates(any(), any(), any())
+
+    // Act
+    mockAuthStateListener.onAuthStateChanged(firebaseAuth)
+
+    // Assert - Verify trips were not updated and error is handled
+    assert(tripsViewModel.trips.value.isEmpty()) // Trips should remain empty on failure
+    verify(tripsRepository).listenForTripUpdates(any(), any(), any())
+  }
 }
