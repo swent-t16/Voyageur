@@ -60,7 +60,7 @@ import com.google.firebase.Timestamp
 fun ActivitiesScreen(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
-    tripsViewModel: TripsViewModel
+    tripsViewModel: TripsViewModel,
 ) {
   // States for filtering
   var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
@@ -179,8 +179,14 @@ fun ActivitiesScreen(
             },
             modifier = Modifier.height(80.dp).testTag("topAppBar"))
       },
-      floatingActionButton = { AddActivityButton(navigationActions) },
+      floatingActionButton = {
+        if (!navigationActions.getNavigationState().isReadOnlyView) {
+          AddActivityButton(navigationActions)
+        }
+      },
       content = { pd ->
+        val isEditable = !navigationActions.getNavigationState().isReadOnlyView
+        val buttonType = if (isEditable) ButtonType.DELETE else ButtonType.NOTHING
         LazyColumn(
             modifier = Modifier.padding(pd).fillMaxWidth().testTag("lazyColumn"),
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
@@ -197,12 +203,12 @@ fun ActivitiesScreen(
               if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
                 ActivityItem(
                     activity,
-                    true,
+                    isEditable,
                     onClickButton = {
                       activityToDelete = activity
                       showDialog = true
                     },
-                    ButtonType.DELETE,
+                    buttonType,
                     navigationActions,
                     tripsViewModel)
                 Spacer(modifier = Modifier.height(10.dp))
@@ -221,12 +227,12 @@ fun ActivitiesScreen(
               if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
                 ActivityItem(
                     activity,
-                    true,
+                    isEditable,
                     onClickButton = {
                       activityToDelete = activity
                       showDialog = true
                     },
-                    ButtonType.DELETE,
+                    buttonType,
                     navigationActions,
                     tripsViewModel)
                 Spacer(modifier = Modifier.height(10.dp))

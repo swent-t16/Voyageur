@@ -64,7 +64,11 @@ fun WeeklyViewScreen(
   val weeks = generateWeeks(trip.startDate, trip.endDate)
 
   Scaffold(
-      floatingActionButton = { AddActivityButton(navigationActions) },
+      floatingActionButton = {
+        if (!navigationActions.getNavigationState().isReadOnlyView) {
+          AddActivityButton(navigationActions)
+        }
+      },
       modifier = Modifier.fillMaxSize().testTag("weeklyViewScreen"),
       bottomBar = {
         BottomNavigationMenu(

@@ -27,6 +27,8 @@ import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.Screen
 import com.android.voyageur.ui.overview.DisplayParticipants
 
 /**
@@ -40,6 +42,7 @@ import com.android.voyageur.ui.overview.DisplayParticipants
 fun DiscoverContent(
     tripsViewModel: TripsViewModel,
     userViewModel: UserViewModel,
+    navigationActions: NavigationActions,
     modifier: Modifier = Modifier
 ) {
   val userId = userViewModel.user.collectAsState().value?.id
@@ -53,7 +56,7 @@ fun DiscoverContent(
   } else {
     HorizontalPager(state = pagerState, modifier = modifier.fillMaxSize().testTag("pager")) { page
       ->
-      TripCard(trip = trips[page], userViewModel = userViewModel)
+      TripCard(trip = trips[page], tripsViewModel, navigationActions, userViewModel = userViewModel)
     }
   }
 }
@@ -65,7 +68,12 @@ fun DiscoverContent(
  * @param userViewModel ViewModel that provides the user information.
  */
 @Composable
-fun TripCard(trip: Trip, userViewModel: UserViewModel) {
+fun TripCard(
+    trip: Trip,
+    tripsViewModel: TripsViewModel,
+    navigationActions: NavigationActions,
+    userViewModel: UserViewModel
+) {
   Box(
       modifier =
           Modifier.fillMaxSize()
@@ -130,7 +138,13 @@ fun TripCard(trip: Trip, userViewModel: UserViewModel) {
                         modifier = Modifier.weight(1f),
                         arrangement = Arrangement.Bottom)
                     TextButton(
-                        onClick = { /* TODO: Navigate to trip details screen */},
+                        onClick = {
+                          navigationActions.getNavigationState().currentTabIndexForTrip = 0
+                          navigationActions.getNavigationState().isDailyViewSelected = true
+                          navigationActions.getNavigationState().isReadOnlyView = true
+                          navigationActions.navigateTo(Screen.TOP_TABS)
+                          tripsViewModel.selectTrip(trip)
+                        },
                         modifier = Modifier.testTag("viewTripDetailsButton")) {
                           Text(text = "View Details")
                         }
