@@ -69,10 +69,12 @@
     <string name="additional_participants">and %1$d more</string>
     <string name="participants_count">%1$d Participants:</string>
     <string name="no_compatible_calendar">No compatible calendar app found.</string>
+    <string name="leave_trip_text">Leave Trip</string>
+    <string name="leave_trip_confirmation">Are you sure you want to leave %1$s?</string>
+    <string name="trip_left_text">You have left the trip successfully</string>
+    <string name="leave">Leave</string>
 
-
-
- <!-- Add Activity -->
+    <!-- Add Activity -->
     <string name="create_activity">Create a New Activity</string>
     <string name="edit_activity">Edit Activity</string>
     <string name="back">Back</string>

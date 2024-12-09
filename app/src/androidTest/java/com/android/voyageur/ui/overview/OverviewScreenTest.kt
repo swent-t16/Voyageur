@@ -246,6 +246,28 @@ class OverviewScreenTest {
   }
 
   @Test
+  fun leaveTripMethod() {
+    val mockTrip =
+        Trip(
+            id = "1",
+            participants = listOf("Alex"),
+            name = "Paris Trip",
+            imageUri = "",
+            startDate = Timestamp.now(),
+            endDate = Timestamp.now())
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(listOf(mockTrip))
+    }
+    tripViewModel.getTrips()
+
+    composeTestRule.onNodeWithTag("expandIcon_${mockTrip.name}").performClick()
+    composeTestRule.onNodeWithTag("leaveMenuItem_${mockTrip.name}").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Leave Trip").performClick()
+    composeTestRule.onNodeWithText("Leave").performClick()
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
   fun searchField_filtersTrips() {
     val mockTrip =
         Trip(
