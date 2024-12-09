@@ -1,6 +1,9 @@
 package com.android.voyageur.ui.overview
 
 import androidx.compose.ui.test.assertCountEquals
+import android.content.Context
+import android.content.Intent
+import android.provider.CalendarContract
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -20,9 +23,12 @@ import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
+import java.util.TimeZone
+import junit.framework.TestCase.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
@@ -338,5 +344,67 @@ class OverviewScreenTest {
     // Then - verify NoResultsFound is not displayed with empty search
     composeTestRule.onNodeWithTag("noResults").assertDoesNotExist()
     composeTestRule.onAllNodesWithTag("cardItem").assertCountEquals(1)
+  @Test
+  fun addTripToCalendarItemIsDisplayed() {
+    val mockTrip =
+        Trip(
+            id = "1",
+            participants = listOf("Alex"),
+            name = "Paris Trip",
+            imageUri = "",
+            startDate = Timestamp.now(),
+            endDate = Timestamp.now())
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(listOf(mockTrip))
+    }
+    tripViewModel.getTrips()
+    composeTestRule.onNodeWithTag("expandIcon_${mockTrip.name}").performClick()
+    composeTestRule
+        .onNodeWithTag("addToCalendarMenuItem_${mockTrip.name}")
+        .assertIsDisplayed() // Assert the item is displayed
+    composeTestRule
+        .onNodeWithTag("addToCalendarMenuItem_${mockTrip.name}")
+        .performClick() // Click on adding a calendar
+  }
+
+  @Test
+  fun openGoogleCalendarCreatesCorrectIntent() {
+    val mockTrip =
+        Trip(
+            id = "1",
+            participants = listOf("Alex"),
+            name = "Paris Trip",
+            startDate = Timestamp.now(),
+            endDate = Timestamp.now())
+
+    // Mock context
+    val context = mock(Context::class.java)
+
+    openGoogleCalendar(context, mockTrip)
+
+    // Capture the intent passed to startActivity
+    val intentCaptor = ArgumentCaptor.forClass(Intent::class.java)
+    verify(context).startActivity(intentCaptor.capture())
+
+    val capturedIntent = intentCaptor.value
+
+    // Assert the intent properties correspond to trip values
+    assertEquals(Intent.ACTION_INSERT, capturedIntent.action)
+    assertEquals(CalendarContract.Events.CONTENT_URI, capturedIntent.data)
+    assertEquals(mockTrip.name, capturedIntent.getStringExtra(CalendarContract.Events.TITLE))
+    assertEquals(
+        mockTrip.startDate.toDate().time,
+        capturedIntent.getLongExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, -1))
+    assertEquals(
+        mockTrip.description, capturedIntent.getStringExtra(CalendarContract.Events.DESCRIPTION))
+    assertEquals(
+        mockTrip.startDate.toDate().time,
+        capturedIntent.getLongExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, -1))
+    assertEquals(
+        mockTrip.endDate.toDate().time,
+        capturedIntent.getLongExtra(CalendarContract.EXTRA_EVENT_END_TIME, -1))
+    assertEquals(
+        TimeZone.getDefault().id,
+        capturedIntent.getStringExtra(CalendarContract.Events.EVENT_TIMEZONE))
   }
 }

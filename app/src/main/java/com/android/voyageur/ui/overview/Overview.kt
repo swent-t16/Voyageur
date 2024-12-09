@@ -1,8 +1,15 @@
 package com.android.voyageur.ui.overview
 
+import android.Manifest
 import android.annotation.SuppressLint
-import android.util.Log
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.provider.CalendarContract
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +60,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
@@ -69,17 +77,20 @@ import com.android.voyageur.utils.connectivityState
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
+import java.util.TimeZone
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /**
- * Main overview screen that displays a list of trips. Includes a search bar, floating action button
- * to add trips, and handles loading states.
+ * Composable function that renders the main overview screen of the app.
  *
- * @param tripsViewModel ViewModel to manage trip data and operations
- * @param navigationActions Handles navigation between screens
- * @param userViewModel Manages user data and participants
+ * This screen displays a list of trips and allows the user to add a new trip or navigate to other
+ * parts of the app. If no trips are available, it displays an appropriate message.
+ *
+ * @param tripsViewModel The ViewModel containing the state and logic for handling trips.
+ * @param navigationActions Actions to handle navigation between screens.
+ * @param userViewModel The ViewModel containing the state and logic for user data.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
@@ -95,7 +106,6 @@ fun OverviewScreen(
   val isConnected = status === ConnectionState.Available
   var searchQuery by remember { mutableStateOf("") }
 
-  Log.e("RECOMPOSE", "OverviewScreen recomposed")
   LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
   LaunchedEffect(trips) {
     if (trips.isNotEmpty()) {
@@ -114,40 +124,23 @@ fun OverviewScreen(
         FloatingActionButton(
             onClick = {
               if (isConnected) navigationActions.navigateTo(Screen.ADD_TRIP)
-              else Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+              else
+                  Toast.makeText(
+                          context, R.string.notification_no_internet_text, Toast.LENGTH_SHORT)
+                      .show()
             },
             modifier = Modifier.testTag("createTripButton")) {
               Icon(
                   Icons.Outlined.Add,
-                  "Floating action button",
+                  stringResource(R.string.floating_button),
                   modifier = Modifier.testTag("addIcon"))
             }
       },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        Box(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 20.dp), // Increased padding
-            contentAlignment = Alignment.Center) {
-              TextField(
-                  value = searchQuery,
-                  onValueChange = { searchQuery = it },
-                  placeholder = {
-                    Text(
-                        text = stringResource(R.string.overview_searchbar_placeholder),
-                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-                        modifier = Modifier.fillMaxWidth())
-                  },
-                  modifier =
-                      Modifier.height(56.dp) // Increased height
-                          .fillMaxWidth()
-                          .testTag("searchField"),
-                  textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-                  singleLine = true,
-                  shape = RoundedCornerShape(12.dp), // Slightly increased corner radius
-              )
-            }
+        TopAppBar(
+            title = { Text(stringResource(R.string.your_trips_text)) },
+            modifier = Modifier.testTag("topBarTitle"))
       },
       bottomBar = {
         BottomNavigationMenu(
@@ -169,7 +162,7 @@ fun OverviewScreen(
                   contentAlignment = Alignment.Center) {
                     Text(
                         modifier = Modifier.testTag("emptyTripPrompt"),
-                        text = "You have no trips yet.",
+                        text = stringResource(R.string.empty_trip_prompt),
                     )
                   }
             } else {
@@ -211,13 +204,15 @@ fun OverviewScreen(
 }
 
 /**
- * Displays a single trip item as a card with image, details and participant info. Allows navigation
- * to trip details and deletion of trips.
+ * Composable function that renders an individual trip item card in the overview screen.
  *
- * @param tripsViewModel ViewModel managing trip operations
- * @param trip Trip data to display
- * @param navigationActions For handling navigation
- * @param userViewModel For accessing participant data
+ * Each card displays the trip's name, date range, and participants. The user can expand the card to
+ * see additional options such as adding the trip to the calendar or deleting it.
+ *
+ * @param tripsViewModel The ViewModel containing the state and logic for handling trips.
+ * @param trip The trip data to display in this card.
+ * @param navigationActions Actions to handle navigation between screens.
+ * @param userViewModel The ViewModel containing the state and logic for user data.
  */
 @Composable
 fun TripItem(
@@ -233,6 +228,19 @@ fun TripItem(
   val context = LocalContext.current
   val status by connectivityState()
   val isConnected = status === ConnectionState.Available
+  // Permission launcher to access calendar
+  val requestPermissionLauncher =
+      rememberLauncherForActivityResult(
+          ActivityResultContracts.RequestPermission(),
+      ) { isGranted: Boolean ->
+        if (isGranted) {
+          // Launch the calendar when permission is granted
+          openGoogleCalendar(context, trip)
+        } else {
+          // Inform the user that the permission is required
+          Toast.makeText(context, R.string.denied_calendar_permission, Toast.LENGTH_SHORT).show()
+        }
+      }
   Card(
       onClick = {
         // When opening a trip, navigate to the Schedule screen, with the daily view enabled
@@ -256,13 +264,13 @@ fun TripItem(
               if (trip.imageUri.isNotEmpty()) {
                 Image(
                     painter = rememberAsyncImagePainter(model = trip.imageUri),
-                    contentDescription = "Selected image",
+                    contentDescription = stringResource(R.string.selected_image_description),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.width(120.dp).height(217.dp).testTag("tripImage"))
               } else {
                 Image(
                     painter = painterResource(id = R.drawable.default_trip_image),
-                    contentDescription = "Trip image overview",
+                    contentDescription = stringResource(R.string.trip_image_overview_description),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.width(120.dp).height(217.dp).testTag("defaultTripImage"))
               } // modifier.weight(2f) is used here to set the column to 2/3 of the card
@@ -301,7 +309,9 @@ fun TripItem(
                     modifier = Modifier.testTag("expandIcon_${trip.name}")) {
                       Icon(
                           imageVector = Icons.Default.MoreVert,
-                          contentDescription = if (isExpanded) "Collapse" else "Expand")
+                          contentDescription =
+                              if (isExpanded) stringResource(R.string.collapse_text)
+                              else stringResource(R.string.expand_text))
                     }
                 DropdownMenu(
                     expanded = isExpanded,
@@ -312,8 +322,22 @@ fun TripItem(
                             isExpanded = false
                             showDialog = true
                           },
-                          text = { Text("Delete") },
+                          text = { Text(stringResource(R.string.delete_text)) },
                           modifier = Modifier.testTag("deleteMenuItem_${trip.name}"))
+                      DropdownMenuItem(
+                          onClick = {
+                            isExpanded = false
+                            if (ContextCompat.checkSelfPermission(
+                                context, Manifest.permission.WRITE_CALENDAR) ==
+                                PackageManager.PERMISSION_GRANTED) {
+                              // Permission is already granted
+                              openGoogleCalendar(context, trip)
+                            } else { // Request calendar permission to user
+                              requestPermissionLauncher.launch(Manifest.permission.WRITE_CALENDAR)
+                            }
+                          },
+                          text = { Text(stringResource(R.string.add_to_calendar_text)) },
+                          modifier = Modifier.testTag("addToCalendarMenuItem_${trip.name}"))
                     }
               }
             }
@@ -322,28 +346,33 @@ fun TripItem(
   if (showDialog) {
     AlertDialog(
         onDismissRequest = { showDialog = false },
-        title = { Text(text = "Remove Trip") },
-        text = { Text("Are you sure you want to remove \"${trip.name}\" from your trips?") },
+        title = { Text(text = stringResource(R.string.remove_trip_text)) },
+        text = { Text(stringResource(R.string.remove_trip_confirmation, trip.name)) },
         confirmButton = {
           TextButton(
               onClick = {
                 tripsViewModel.deleteTripById(trip.id)
-                Toast.makeText(context, "Trip successfully deleted", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, R.string.deleted_trip_text, Toast.LENGTH_SHORT).show()
                 showDialog = false
               }) {
-                Text("Remove")
+                Text(stringResource(R.string.remove_text))
               }
         },
-        dismissButton = { TextButton(onClick = { showDialog = false }) { Text("Cancel") } })
+        dismissButton = {
+          TextButton(onClick = { showDialog = false }) {
+            Text(stringResource(R.string.cancel_text))
+          }
+        })
   }
 }
-
 /**
- * Displays participant information for a trip. Shows total count and up to 4 participant avatars
- * with indicator for additional participants.
+ * Composable function that displays the list of participants in a trip.
  *
- * @param trip Trip containing participant data
- * @param userViewModel For accessing user details of participants
+ * If there are more than four participants, the text "and X more" is displayed instead of showing
+ * all participant avatars. If no participants are present, a message indicates this.
+ *
+ * @param trip The trip data containing the list of participants.
+ * @param userViewModel The ViewModel containing the state and logic for user data.
  */
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
@@ -392,7 +421,7 @@ fun DisplayParticipants(
                 }
             if (numberOfParticipants > 4) {
               Text(
-                  text = "and ${numberOfParticipants - 4} more",
+                  text = stringResource(R.string.additional_participants, numberOfParticipants - 4),
                   fontSize = 8.sp,
                   color = Color.Gray,
                   modifier =
@@ -425,5 +454,32 @@ fun generateParticipantString(numberOfParticipants: Int): String {
     0 -> "No participants."
     1 -> "1 Participant:"
     else -> "$numberOfParticipants Participants:"
+  }
+}
+/**
+ * Opens the default calendar app on the device with pre-filled details for a new event.
+ *
+ * This method creates an `Intent` to insert a calendar event using the trip's details such as name,
+ * description, start time, and end time.
+ *
+ * @param context The context used to launch the intent.
+ * @param trip The trip data used to populate the calendar event details.
+ */
+internal fun openGoogleCalendar(context: Context, trip: Trip) {
+  val intent =
+      Intent(Intent.ACTION_INSERT)
+          .setData(CalendarContract.Events.CONTENT_URI)
+          .putExtra(CalendarContract.Events.TITLE, trip.name)
+          .putExtra(CalendarContract.Events.DESCRIPTION, trip.description)
+          .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, trip.startDate.toDate().time)
+          .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, trip.endDate.toDate().time)
+          .putExtra(CalendarContract.Events.EVENT_LOCATION, trip.location.name)
+          .putExtra(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
+
+  // Handle ActivityNotFoundException
+  try {
+    context.startActivity(intent)
+  } catch (e: ActivityNotFoundException) {
+    Toast.makeText(context, R.string.no_compatible_calendar, Toast.LENGTH_LONG).show()
   }
 }
