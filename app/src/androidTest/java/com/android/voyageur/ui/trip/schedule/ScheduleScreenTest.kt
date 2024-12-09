@@ -199,7 +199,7 @@ class ScheduleScreenTest {
     composeTestRule.onNodeWithText("Weekly").performClick()
 
     // Verify the date range is displayed
-    composeTestRule.onNodeWithText("SEP 30 - OCT 6", useUnmergedTree = true).assertExists()
+    composeTestRule.onNodeWithText("Sep 30 - Oct 6", useUnmergedTree = true).assertExists()
 
     // Verify the day with activity is shown
     composeTestRule.onNodeWithText("T 3", useUnmergedTree = true).assertExists()
