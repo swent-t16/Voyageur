@@ -174,6 +174,7 @@ dependencies {
     // Icons
     implementation (libs.androidx.material.icons.core)
     implementation (libs.androidx.material.icons.extended)
+    implementation (libs.androidx.material.icons.extended.v154)
 
     // Firebase
     implementation(libs.firebase.database.ktx)

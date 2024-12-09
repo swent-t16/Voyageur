@@ -40,7 +40,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -67,6 +67,7 @@ import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.components.NoResultsFound
 import com.android.voyageur.ui.formFields.UserIcon
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
@@ -90,7 +91,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
@@ -104,6 +105,7 @@ fun OverviewScreen(
   val status by connectivityState()
   val context = LocalContext.current
   val isConnected = status === ConnectionState.Available
+  var searchQuery by remember { mutableStateOf("") }
 
   LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
   LaunchedEffect(trips) {
@@ -137,9 +139,29 @@ fun OverviewScreen(
       },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        TopAppBar(
-            title = { Text(stringResource(R.string.your_trips_text)) },
-            modifier = Modifier.testTag("topBarTitle"))
+        Box(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 20.dp), // Increased padding
+            contentAlignment = Alignment.Center) {
+              TextField(
+                  value = searchQuery,
+                  onValueChange = { searchQuery = it },
+                  placeholder = {
+                    Text(
+                        text = stringResource(R.string.overview_searchbar_placeholder),
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
+                        modifier = Modifier.fillMaxWidth())
+                  },
+                  modifier =
+                      Modifier.height(56.dp) // Increased height
+                          .fillMaxWidth()
+                          .testTag("searchField"),
+                  textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
+                  singleLine = true,
+                  shape = RoundedCornerShape(12.dp), // Slightly increased corner radius
+              )
+            }
       },
       bottomBar = {
         BottomNavigationMenu(
@@ -165,22 +187,37 @@ fun OverviewScreen(
                     )
                   }
             } else {
-              val sortedTrips = trips.sortedBy { trip -> trip.startDate }
-              LazyColumn(
-                  verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
-                  horizontalAlignment = Alignment.CenterHorizontally, // Center items horizontally
-                  modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
-                    sortedTrips.forEach { trip ->
-                      item {
-                        TripItem(
-                            tripsViewModel = tripsViewModel,
-                            trip = trip,
-                            navigationActions = navigationActions,
-                            userViewModel = userViewModel)
-                        Spacer(modifier = Modifier.height(10.dp))
+              val filteredTrips =
+                  if (searchQuery.isEmpty()) {
+                    trips.sortedBy { it.startDate }
+                  } else {
+                    trips
+                        .filter { it.name.contains(searchQuery, ignoreCase = true) }
+                        .sortedBy { it.startDate }
+                  }
+
+              // Add this condition to check if filteredTrips is empty while searching
+              if (searchQuery.isNotEmpty() && filteredTrips.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                  NoResultsFound(modifier = Modifier.testTag("noSearchResults"))
+                }
+              } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
+                      filteredTrips.forEach { trip ->
+                        item {
+                          TripItem(
+                              tripsViewModel = tripsViewModel,
+                              trip = trip,
+                              navigationActions = navigationActions,
+                              userViewModel = userViewModel)
+                          Spacer(modifier = Modifier.height(10.dp))
+                        }
                       }
                     }
-                  }
+              }
             }
           }
         }
@@ -198,6 +235,7 @@ fun OverviewScreen(
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun TripItem(
     tripsViewModel: TripsViewModel,
@@ -417,13 +455,22 @@ fun DisplayParticipants(
   }
 }
 
-/** Helper function to convert Timestamp to String format. */
+/**
+ * Formats a Timestamp to "MMM dd yyyy" date string.
+ *
+ * @return Formatted date string
+ */
 fun Timestamp.toDateString(): String {
   val sdf = java.text.SimpleDateFormat("MMM dd yyyy", java.util.Locale.getDefault())
   return sdf.format(this.toDate())
 }
 
-/** Helper function to generate the correct string for the number of participants */
+/**
+ * Generates display text for number of participants.
+ *
+ * @param numberOfParticipants Number of participants to describe
+ * @return String describing participant count
+ */
 fun generateParticipantString(numberOfParticipants: Int): String {
   return when (numberOfParticipants) {
     0 -> "No participants."

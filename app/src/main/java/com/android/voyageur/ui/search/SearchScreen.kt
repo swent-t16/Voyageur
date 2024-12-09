@@ -31,7 +31,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -73,6 +72,7 @@ import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.components.NoResultsFound
 import com.android.voyageur.ui.components.SearchBar
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
@@ -362,7 +362,7 @@ fun SearchScreen(
                           .background(textFieldsColours, shape = MaterialTheme.shapes.large)
                           .testTag("searchResultsPlaces")) {
                     if (searchedPlaces.isEmpty()) {
-                      item { NoResultsFound() }
+                      item { NoResultsFound(modifier = Modifier.testTag("noResults")) }
                     } else {
                       items(searchedPlaces) { place ->
                         PlaceSearchResultItem(
@@ -384,7 +384,7 @@ fun SearchScreen(
                         .background(textFieldsColours, shape = MaterialTheme.shapes.large)
                         .testTag("searchResultsUsers")) {
                   if (searchedUsers.isEmpty()) {
-                    item { NoResultsFound() }
+                    item { NoResultsFound(modifier = Modifier.testTag("noResults")) }
                   } else {
                     items(searchedUsers) { user ->
                       UserSearchResultItem(
@@ -566,50 +566,6 @@ fun PlaceSearchResultItem(customPlace: CustomPlace, modifier: Modifier = Modifie
               fontSize = 14.sp,
               color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-      }
-}
-
-@Composable
-fun NoResultsFound() {
-  Row(
-      modifier =
-          Modifier.fillMaxWidth()
-              .padding(vertical = 16.dp, horizontal = 16.dp)
-              .background(
-                  MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(12.dp))
-              .padding(24.dp)
-              .testTag("noResults"), // Additional padding for spacing
-      horizontalArrangement = Arrangement.Center,
-      verticalAlignment = Alignment.CenterVertically) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()) {
-              // Icon for visual appeal
-              Icon(
-                  imageVector = Icons.Default.Search,
-                  contentDescription = "No results found",
-                  tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                  modifier = Modifier.size(48.dp))
-
-              Spacer(modifier = Modifier.height(16.dp))
-
-              // Main message text
-              Text(
-                  text = "No results found",
-                  fontSize = 18.sp,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.onSurface)
-
-              Spacer(modifier = Modifier.height(8.dp))
-
-              // Additional guidance text
-              Text(
-                  text = "Try adjusting your search or check for typos.",
-                  fontSize = 14.sp,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  textAlign = TextAlign.Center)
-            }
       }
 }
 
