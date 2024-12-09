@@ -62,7 +62,7 @@ open class TripsViewModel(
 
   private var _tripListenerRegistration: ListenerRegistration? = null
   val feed: StateFlow<List<Trip>> = _feed.asStateFlow()
-  private val authStateListener =
+  val authStateListener =
       FirebaseAuth.AuthStateListener { auth ->
         val firebaseUser = auth.currentUser
         if (firebaseUser != null) {
