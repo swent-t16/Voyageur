@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.navigation.NavHostController
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.Trip
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -47,6 +49,7 @@ class ActivitiesForOneDayScreenTest {
               ))
 
   private lateinit var navigationActions: NavigationActions
+  private lateinit var navHostController: NavHostController
   private lateinit var tripsViewModel: TripsViewModel
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -54,7 +57,8 @@ class ActivitiesForOneDayScreenTest {
   @Before
   fun setUp() {
     tripsViewModel = mock(TripsViewModel::class.java)
-    navigationActions = mock(NavigationActions::class.java)
+    navHostController = Mockito.mock(NavHostController::class.java)
+    navigationActions = NavigationActions(navHostController)
     val selectedTripFlow = MutableStateFlow(sampleTrip)
     `when`(tripsViewModel.selectedTrip).thenReturn(selectedTripFlow)
     val selectedDayFlow = MutableStateFlow<LocalDate?>(LocalDate.of(2022, 1, 1))

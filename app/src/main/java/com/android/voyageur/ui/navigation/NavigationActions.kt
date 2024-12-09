@@ -75,6 +75,7 @@ open class NavigationState {
    * which view was selected when opening another screen and trying to go back.
    */
   var isDailyViewSelected by mutableStateOf(true) // Default to true (Daily view selected)
+  var isReadOnlyView by mutableStateOf(false) // Default to false
   /**
    * This is a mutable state that represents the current tab index for the search. (0 for Users, 1
    * for Places, 2 for the discover tab) This is used to determine which tab is currently selected

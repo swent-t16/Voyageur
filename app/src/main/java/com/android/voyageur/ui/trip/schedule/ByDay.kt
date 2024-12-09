@@ -52,7 +52,11 @@ fun ByDayScreen(
     userViewModel: UserViewModel
 ) {
   Scaffold(
-      floatingActionButton = { AddActivityButton(navigationActions) },
+      floatingActionButton = {
+        if (!navigationActions.getNavigationState().isReadOnlyView) {
+          AddActivityButton(navigationActions)
+        }
+      },
       modifier = Modifier.testTag("byDayScreen"),
       bottomBar = {
         BottomNavigationMenu(

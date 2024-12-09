@@ -12,6 +12,7 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
@@ -51,6 +52,7 @@ class WeeklyViewScreenTest {
 
     // Mock current route for navigation actions
     `when`(navigationActions.currentRoute()).thenReturn(Route.TOP_TABS)
+    doReturn(NavigationState()).`when`(navigationActions).getNavigationState()
 
     // Create mock trip with activities
     mockTrip =

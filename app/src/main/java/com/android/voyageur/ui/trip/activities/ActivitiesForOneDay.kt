@@ -83,6 +83,8 @@ fun ActivitiesForOneDayScreen(
             )
           }
         } else {
+          val isEditable = !navigationActions.getNavigationState().isReadOnlyView
+          val buttonType = if (isEditable) ButtonType.DELETE else ButtonType.NOTHING
           LazyColumn(
               modifier =
                   Modifier.padding(pd).padding(top = 16.dp).fillMaxWidth().testTag("lazyColumn"),
@@ -92,12 +94,12 @@ fun ActivitiesForOneDayScreen(
               item {
                 ActivityItem(
                     activity,
-                    true,
+                    isEditable,
                     onClickButton = {
                       activityToDelete = activity
                       showDialog = true
                     },
-                    ButtonType.DELETE,
+                    buttonType,
                     navigationActions,
                     tripsViewModel)
                 Spacer(modifier = Modifier.height(10.dp))

@@ -25,7 +25,7 @@ fun ScheduleScreen(
     tripsViewModel: TripsViewModel,
     trip: Trip,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
 ) {
 
   Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
@@ -34,17 +34,19 @@ fun ScheduleScreen(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically) {
           // "Ask Assistant" button on the left
-          TextButton(
-              onClick = {
-                tripsViewModel.setInitialUiState()
-                navigationActions.navigateTo(Screen.ASSISTANT)
-              }) {
-                Text(
-                    text = "Ask Assistant",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold)
-              }
+          if (!navigationActions.getNavigationState().isReadOnlyView) {
+            TextButton(
+                onClick = {
+                  tripsViewModel.setInitialUiState()
+                  navigationActions.navigateTo(Screen.ASSISTANT)
+                }) {
+                  Text(
+                      text = "Ask Assistant",
+                      style = MaterialTheme.typography.bodyMedium,
+                      color = MaterialTheme.colorScheme.primary,
+                      fontWeight = FontWeight.Bold)
+                }
+          }
           Row(
               modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp, end = 16.dp),
               horizontalArrangement = Arrangement.End,

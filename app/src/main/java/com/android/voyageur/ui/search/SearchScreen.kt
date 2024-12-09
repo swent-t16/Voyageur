@@ -397,7 +397,7 @@ fun SearchScreen(
                   }
                 }
           } else {
-            DiscoverContent(tripsViewModel, userViewModel)
+            DiscoverContent(tripsViewModel, userViewModel, navigationActions)
           }
         }
       }
