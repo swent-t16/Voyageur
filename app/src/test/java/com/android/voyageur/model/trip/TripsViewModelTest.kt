@@ -87,42 +87,39 @@ class TripsViewModelTest {
     `when`(tripsRepository.getNewTripId()).thenReturn("uid")
     assertThat(tripsViewModel.getNewTripId(), `is`("uid"))
   }
-    @Test
-    fun testAuthStateListener() {
-        // Arrange
-        val mockAuthStateListener = tripsViewModel.authStateListener
-        val mockFirebaseUser = mock(FirebaseUser::class.java)
-        val userId = "123"
 
-        // Stub the FirebaseAuth behavior
-        `when`(firebaseAuth.currentUser).thenReturn(mockFirebaseUser)
-        `when`(mockFirebaseUser.uid).thenReturn(userId)
+  @Test
+  fun testAuthStateListener() {
+    // Arrange
+    val mockAuthStateListener = tripsViewModel.authStateListener
+    val mockFirebaseUser = mock(FirebaseUser::class.java)
+    val userId = "123"
 
-        // Simulate adding the listener and a change in auth state
-        mockAuthStateListener.onAuthStateChanged(firebaseAuth)
+    // Stub the FirebaseAuth behavior
+    `when`(firebaseAuth.currentUser).thenReturn(mockFirebaseUser)
+    `when`(mockFirebaseUser.uid).thenReturn(userId)
 
-        // Assert - Verify tripsRepository listens for trip updates
-        verify(tripsRepository).listenForTripUpdates(
-            any(),
-            any(),
-            any()
-        )
-    }
+    // Simulate adding the listener and a change in auth state
+    mockAuthStateListener.onAuthStateChanged(firebaseAuth)
 
-    @Test
-    fun testAuthStateListener_noUser() {
-        // Arrange
-        val mockAuthStateListener = tripsViewModel.authStateListener
+    // Assert - Verify tripsRepository listens for trip updates
+    verify(tripsRepository).listenForTripUpdates(any(), any(), any())
+  }
 
-        // Stub FirebaseAuth to return no current user
-        `when`(firebaseAuth.currentUser).thenReturn(null)
+  @Test
+  fun testAuthStateListener_noUser() {
+    // Arrange
+    val mockAuthStateListener = tripsViewModel.authStateListener
 
-        // Simulate adding the listener and a change in auth state
-        mockAuthStateListener.onAuthStateChanged(firebaseAuth)
+    // Stub FirebaseAuth to return no current user
+    `when`(firebaseAuth.currentUser).thenReturn(null)
 
-        // Assert - Verify tripsRepository does not listen for trip updates
-        verify(tripsRepository, never()).listenForTripUpdates(any(), any(), any())
-    }
+    // Simulate adding the listener and a change in auth state
+    mockAuthStateListener.onAuthStateChanged(firebaseAuth)
+
+    // Assert - Verify tripsRepository does not listen for trip updates
+    verify(tripsRepository, never()).listenForTripUpdates(any(), any(), any())
+  }
 
   @Test
   fun getTripsCallsRepository() {
