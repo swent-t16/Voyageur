@@ -31,6 +31,13 @@
     <string name="notification_no_internet_title">No Internet Connection</string>
     <string name="notification_no_internet_text">Please check your network settings.</string>
 
+    <string name="no_weeks_weekly_view">You have no weeks scheduled yet.</string>
+
+<!-- Search bar -->
+    <string name="search_places">Search places…</string>
+    <string name="search_users">Search users…</string>
+    <string name="empty"> </string>
+
 <!--    AI ASSISTANT    -->
     <string name="ask_assistant">Ask the AI assistant!</string>
     <string name="prompt">Prompt</string>
