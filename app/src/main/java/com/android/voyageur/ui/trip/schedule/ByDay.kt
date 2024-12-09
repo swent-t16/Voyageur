@@ -23,11 +23,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.voyageur.R
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.isDraft
 import com.android.voyageur.model.trip.Trip
@@ -44,6 +46,17 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @SuppressLint("StateFlowValueCalledInComposition")
+/**
+ * Displays the ByDayScreen, which organizes and displays activities grouped by the day in which
+ * they take place. Each card corresponds to a single day, and activities for that day are displayed
+ * in a scrollable list. Users can view activities, navigate to a detailed screen, or add new
+ * activities (if not in read-only mode).
+ *
+ * @param tripsViewModel The ViewModel responsible for managing the trip's activities and data.
+ * @param trip The trip whose activities are being displayed and organized by date.
+ * @param navigationActions Handles navigation actions such as switching to other screens.
+ * @param userViewModel The ViewModel responsible for user-specific data and state.
+ */
 @Composable
 fun ByDayScreen(
     tripsViewModel: TripsViewModel,
@@ -82,7 +95,7 @@ fun ByDayScreen(
           Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 modifier = Modifier.testTag("emptyByDayPrompt"),
-                text = "You have no activities yet.",
+                text = stringResource(R.string.empty_activities_prompt),
             )
           }
         } else {
@@ -124,7 +137,14 @@ fun groupActivitiesByDate(activities: List<Activity>): Map<LocalDate, List<Activ
 }
 
 @Composable
-/** Day Card which displays the date and a column with activities for the corresponding days. */
+/**
+ * Day Card which displays the date and a column with activities for the corresponding days.
+ *
+ * @param tripsViewModel The ViewModel responsible for managing the trip's activities and state.
+ * @param day The date for which the card is displayed.
+ * @param activitiesForDay A list of activities that occur on the given date.
+ * @param navigationActions Handles navigation to other screens, such as the detailed activity view.
+ */
 private fun DayActivityCard(
     tripsViewModel: TripsViewModel,
     day: LocalDate,
@@ -167,7 +187,7 @@ private fun DayActivityCard(
           if (numberOfActivities > 4) {
             // Displays additional text in case of too many activities
             Text(
-                text = "and ${numberOfActivities - 4} more",
+                text = stringResource(R.string.additional_activities, (numberOfActivities - 4)),
                 style =
                     TextStyle(fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(top = 4.dp))
@@ -177,7 +197,11 @@ private fun DayActivityCard(
 }
 
 @Composable
-/** Activity box which displays activity title. */
+/**
+ * Activity box which displays activity title.
+ *
+ * @param activity The activity whose title should be displayed
+ */
 private fun ActivityBox(activity: Activity) {
   // Appropriate background for both Light and Dark Themes
   val backgroundColor = ButtonDefaults.buttonColors().containerColor
@@ -204,6 +228,7 @@ private fun ActivityBox(activity: Activity) {
       }
 }
 
+/** Formats the date of the day */
 fun formatDailyDate(date: LocalDate?): String {
   // Wrap in a try-catch to avoid an exception crashing the app
   return try {

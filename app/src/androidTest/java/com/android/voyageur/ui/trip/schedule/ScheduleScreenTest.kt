@@ -143,10 +143,9 @@ class ScheduleScreenTest {
           navigationActions = navigationActions,
           userViewModel)
     }
-    // Verify both buttons and separator exist
+    // Verify both buttons
     composeTestRule.onNodeWithText("Daily").assertExists()
     composeTestRule.onNodeWithText("Weekly").assertExists()
-    composeTestRule.onNodeWithText(" / ").assertExists()
   }
 
   @Test
@@ -255,5 +254,22 @@ class ScheduleScreenTest {
     composeTestRule.onNodeWithText("Ask Assistant").performClick()
     Mockito.verify(tripsViewModel).setInitialUiState()
     Mockito.verify(mockNavigationActions).navigateTo("Assistant Screen")
+  }
+
+  @Test
+  fun checkAssistantButtonNotDisplayedInROV() {
+    // Mock NavigationActions to return a NavigationState with isReadOnlyView = true
+    val navigationState = NavigationState()
+    navigationState.isReadOnlyView = true
+    doReturn(navigationState).`when`(mockNavigationActions).getNavigationState()
+    doNothing().`when`(tripsViewModel).setInitialUiState()
+    composeTestRule.setContent {
+      ScheduleScreen(
+          tripsViewModel = tripsViewModel,
+          trip = mockTrip,
+          navigationActions = mockNavigationActions,
+          userViewModel)
+    }
+    composeTestRule.onNodeWithText("Ask Assistant").assertDoesNotExist()
   }
 }

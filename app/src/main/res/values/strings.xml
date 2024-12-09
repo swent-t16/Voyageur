@@ -70,6 +70,16 @@
     <string name="participants_count">%1$d Participants:</string>
     <string name="no_compatible_calendar">No compatible calendar app found.</string>
 
+<!-- BY DAY/ WEEkLY Screens -->
+    <string name="invalid_date">No compatible calendar app found.</string>
+    <string name="additional_activities">and %1$d more</string>
+    <string name="weekly_text">Weekly</string>
+    <string name="daily_text">Daily</string>
+    <string name="slash_text"> / </string>
+    <string name="empty_activities_prompt">There are no activities scheduled.</string>
+    <string name="ask_assistant_button">Ask Assistant</string>
+
+
 
 
  <!-- Add Activity -->

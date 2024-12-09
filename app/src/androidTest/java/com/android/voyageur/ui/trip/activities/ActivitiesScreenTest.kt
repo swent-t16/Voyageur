@@ -359,4 +359,48 @@ class ActivitiesScreenTest {
         .onNodeWithTag("cardItem_Final Activity Without Description")
         .assertDoesNotExist()
   }
+
+  @Test
+  fun createActivityButton_notDisplayedInROV() {
+    // Mock NavigationActions to return a NavigationState with isReadOnlyView = true
+    val navigationState = NavigationState()
+    navigationState.isReadOnlyView = true
+    doReturn(navigationState).`when`(mockNavigationActions).getNavigationState()
+    composeTestRule.setContent {
+      ActivitiesScreen(mockNavigationActions, userViewModel, tripsViewModel)
+    }
+
+    composeTestRule.onNodeWithTag("createActivityButton").assertDoesNotExist()
+  }
+
+  @Test
+  fun deleteAndEditButtons_NotDisplayedInROV() {
+    // Mock NavigationActions to return a NavigationState with isReadOnlyView = true
+    val navigationState = NavigationState()
+    navigationState.isReadOnlyView = true
+    doReturn(navigationState).`when`(mockNavigationActions).getNavigationState()
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+
+    composeTestRule.setContent {
+      ActivitiesScreen(mockNavigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // test with draft activity
+    composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[0].title}").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("expandIcon_${sampleTrip.activities[0].title}").performClick()
+    composeTestRule
+        .onNodeWithTag("deleteIcon_${sampleTrip.activities[0].title}")
+        .assertDoesNotExist()
+    // Assert the edit button is not displayed
+    composeTestRule.onNodeWithTag("editIcon_${sampleTrip.activities[0].title}").assertDoesNotExist()
+
+    // test with final activity
+    composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[1].title}").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("expandIcon_${sampleTrip.activities[1].title}").performClick()
+    composeTestRule
+        .onNodeWithTag("deleteIcon_${sampleTrip.activities[1].title}")
+        .assertDoesNotExist()
+    // Assert the edit button is not displayed
+    composeTestRule.onNodeWithTag("editIcon_${sampleTrip.activities[1].title}").assertDoesNotExist()
+  }
 }

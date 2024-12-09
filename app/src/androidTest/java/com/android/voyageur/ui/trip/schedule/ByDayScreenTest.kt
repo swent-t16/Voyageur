@@ -157,7 +157,7 @@ class ByDayScreenTest {
 
     // Check that the empty state message is displayed
     composeTestRule.onNodeWithTag("emptyByDayPrompt").assertIsDisplayed()
-    composeTestRule.onNodeWithText("You have no activities yet.").assertIsDisplayed()
+    composeTestRule.onNodeWithText("There are no activities scheduled.").assertIsDisplayed()
   }
 
   @Test
@@ -323,5 +323,18 @@ class ByDayScreenTest {
     composeTestRule.onNodeWithTag("cardItem").performClick()
     verify(navigationActions).navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
     verify(tripsViewModel).selectDay(LocalDate.of(2022, 1, 1))
+  }
+
+  @Test
+  fun floatingActionButtonNotDisplayedInROV() {
+    // Mock NavigationActions to return a NavigationState with isReadOnlyView = true
+    val navigationState = NavigationState()
+    navigationState.isReadOnlyView = true
+    doReturn(navigationState).`when`(navigationActions).getNavigationState()
+    composeTestRule.setContent {
+      ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions, userViewModel)
+    }
+    // Test floating button is displayed
+    composeTestRule.onNodeWithTag("createActivityButton").assertDoesNotExist()
   }
 }
