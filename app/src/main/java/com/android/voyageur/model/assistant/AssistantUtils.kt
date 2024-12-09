@@ -1,6 +1,7 @@
 package com.android.voyageur.model.assistant
 
 import com.android.voyageur.BuildConfig
+import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.Trip
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.FunctionType
@@ -115,6 +116,7 @@ val generativeModel =
  * @param provideFinalActivities whether to provide final activities with date and time or just
  *   draft activities. In the case of draft activities, the prompt is a bit different to avoid
  *   recommending a lunch for each day more or less the same.
+ * @param alreadyPresentActivities the activities that are already present in the trip
  * @return the prompt to send to use with the generative model
  */
 fun generatePrompt(
@@ -122,36 +124,59 @@ fun generatePrompt(
     userPrompt: String,
     interests: List<String>,
     provideFinalActivities: Boolean,
+    alreadyPresentActivities: List<String>
 ): String {
+  // specifies which enum types are possible
+  val possibleEnumTypePrompt =
+      "The activity type can only be ${ActivityType.entries.joinToString(", ")}, " +
+          "but you can recommend any activity and set the type to OTHER."
+
   val startDate = getYearMonthDay(trip.startDate)
   val endDate = getYearMonthDay(trip.endDate)
+  // specifies the date range of the trip
   val datePrompt =
       """
           between the start date year ${startDate.first} month ${startDate.second + 1} day ${startDate.third} 
           and the end date year ${endDate.first} month ${endDate.second + 1} day ${endDate.third}
-            """
+      """
           .trimIndent()
+
+  // specifies the interests of the user (if non-empty)
   val interestsPrompt =
       if (interests.isNotEmpty()) {
-        "The activities should focus on the following interests (if applicable): ${interests.joinToString(", ")}."
+        "The activities should focus on the following interests (if applicable): " +
+            "${interests.joinToString(", ")}."
       } else {
         ""
       }
-  val prompt =
-      if (provideFinalActivities) {
-        """
-    Make a full schedule by listing activities, including separate activities for eating, transport, etc.
-    The trip, called ${trip.name}, takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt
-    Recommend multiple activities for each day.
-    """
-            .trimIndent()
+
+  // specifies the titles of the activities that are already present in the trip
+  val alreadyPresentActivitiesPrompt =
+      if (alreadyPresentActivities.isNotEmpty()) {
+        "The following activities are already present in the trip: " +
+            "${alreadyPresentActivities.joinToString(", ")}. Please avoid them."
       } else {
-        """
-    List a lot of popular specific activities to do on a trip called ${trip.name}.
-    The trip takes place $datePrompt with the following prompt: $userPrompt. $interestsPrompt
-    """
-            .trimIndent()
+        ""
       }
 
+  // specifies whether the prompt is for recommending draft or final activities
+  val draftVsFinalPrompt =
+      if (provideFinalActivities) {
+        "Make a full schedule by listing specific activities, including separate activities " +
+            "for eating, transport, etc. Instead of travel from airport, say just arrival in Paris " +
+            "in the afternoon, unless otherwise specified by the user."
+      } else {
+        "List a lot of popular specific activities to do on a trip."
+      }
+
+  // combines all the prompts into a single prompt and mentions the trip name, description, and
+  // location
+  val prompt =
+      "$draftVsFinalPrompt The trip, called ${trip.name}, with description ${trip.description} " +
+          "and location ${trip.location.name}, takes place $datePrompt with the following prompt:" +
+          " $userPrompt. Descriptions should be detailed. " +
+          interestsPrompt +
+          alreadyPresentActivitiesPrompt +
+          possibleEnumTypePrompt
   return prompt
 }
