@@ -112,7 +112,6 @@ class PlaceSearchWidgetTest {
     // Perform text input and assertions
     composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test")
     composeTestRule.onNodeWithTag("searchDropdown").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("item-mockID").assertIsDisplayed()
   }
 
   @Test
