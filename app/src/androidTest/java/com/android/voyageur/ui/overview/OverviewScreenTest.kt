@@ -1,9 +1,9 @@
 package com.android.voyageur.ui.overview
 
-import androidx.compose.ui.test.assertCountEquals
 import android.content.Context
 import android.content.Intent
 import android.provider.CalendarContract
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -344,6 +344,8 @@ class OverviewScreenTest {
     // Then - verify NoResultsFound is not displayed with empty search
     composeTestRule.onNodeWithTag("noResults").assertDoesNotExist()
     composeTestRule.onAllNodesWithTag("cardItem").assertCountEquals(1)
+  }
+
   @Test
   fun addTripToCalendarItemIsDisplayed() {
     val mockTrip =

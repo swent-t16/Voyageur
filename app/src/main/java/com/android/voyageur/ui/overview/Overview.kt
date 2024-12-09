@@ -32,6 +32,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -90,7 +91,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
@@ -138,9 +139,29 @@ fun OverviewScreen(
       },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        TopAppBar(
-            title = { Text(stringResource(R.string.your_trips_text)) },
-            modifier = Modifier.testTag("topBarTitle"))
+        Box(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 20.dp), // Increased padding
+            contentAlignment = Alignment.Center) {
+              TextField(
+                  value = searchQuery,
+                  onValueChange = { searchQuery = it },
+                  placeholder = {
+                    Text(
+                        text = stringResource(R.string.overview_searchbar_placeholder),
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
+                        modifier = Modifier.fillMaxWidth())
+                  },
+                  modifier =
+                      Modifier.height(56.dp) // Increased height
+                          .fillMaxWidth()
+                          .testTag("searchField"),
+                  textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
+                  singleLine = true,
+                  shape = RoundedCornerShape(12.dp), // Slightly increased corner radius
+              )
+            }
       },
       bottomBar = {
         BottomNavigationMenu(
@@ -214,6 +235,7 @@ fun OverviewScreen(
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun TripItem(
     tripsViewModel: TripsViewModel,
