@@ -16,7 +16,7 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
-import com.android.voyageur.ui.trip.activities.ActivitiesMapScreen
+import com.android.voyageur.ui.trip.activities.ActivitiesMapTab
 import com.android.voyageur.ui.trip.activities.ActivitiesScreen
 import com.android.voyageur.ui.trip.photos.PhotosScreen
 import com.android.voyageur.ui.trip.schedule.ScheduleScreen
@@ -91,7 +91,7 @@ fun TopTabs(
     when (navigationActions.getNavigationState().currentTabIndexForTrip) {
       0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel)
       1 -> ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
-      2 -> ActivitiesMapScreen(tripsViewModel)
+      2 -> ActivitiesMapTab(tripsViewModel)
       3 -> PhotosScreen(tripsViewModel, navigationActions, userViewModel)
       4 ->
           SettingsScreen(

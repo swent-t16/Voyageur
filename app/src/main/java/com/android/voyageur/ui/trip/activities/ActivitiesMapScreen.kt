@@ -27,6 +27,9 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import java.util.*
 
+// Default location for Lausanne, Switzerland
+val LAUSANNE_COORDINATES = LatLng(46.519962, 6.633597)
+
 /**
  * A screen that displays a map of activities for the selected trip. Users can search for activities
  * and filter them by date and type.
@@ -36,7 +39,7 @@ import java.util.*
  *   As we cannot put testTags on google map markers
  */
 @Composable
-fun ActivitiesMapScreen(
+fun ActivitiesMapTab(
     tripsViewModel: TripsViewModel,
     onActivitiesChanged: (List<Activity>) -> Unit = {}
 ) {
@@ -45,8 +48,8 @@ fun ActivitiesMapScreen(
     position =
         com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
             LatLng(
-                activities.firstOrNull()?.location?.lat ?: 0.0,
-                activities.firstOrNull()?.location?.lng ?: 0.0),
+                activities.firstOrNull()?.location?.lat ?: LAUSANNE_COORDINATES.latitude,
+                activities.firstOrNull()?.location?.lng ?: LAUSANNE_COORDINATES.longitude),
             10f)
   }
 

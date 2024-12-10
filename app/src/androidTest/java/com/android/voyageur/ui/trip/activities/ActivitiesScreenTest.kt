@@ -354,7 +354,7 @@ class ActivitiesScreenTest {
 
   @Test
   fun activitiesMapTab_displaysSearchBarAndFilterButton() {
-    composeTestRule.setContent { ActivitiesMapScreen(tripsViewModel) }
+    composeTestRule.setContent { ActivitiesMapTab(tripsViewModel) }
 
     composeTestRule.onNodeWithTag("searchBar").assertIsDisplayed()
     composeTestRule.onNodeWithTag("filterButton").assertIsDisplayed()
@@ -362,7 +362,7 @@ class ActivitiesScreenTest {
 
   @Test
   fun activitiesMapTab_displaysFilterDialogs() {
-    composeTestRule.setContent { ActivitiesMapScreen(tripsViewModel) }
+    composeTestRule.setContent { ActivitiesMapTab(tripsViewModel) }
 
     composeTestRule.onNodeWithTag("filterButton").performClick()
     composeTestRule.onNodeWithTag("mainFilterActivityAlertDialog").assertIsDisplayed()
@@ -375,9 +375,7 @@ class ActivitiesScreenTest {
   fun activitiesMapTab_appliesSearchQuery() {
     `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
     var filteredActivities: List<Activity> = emptyList()
-    composeTestRule.setContent {
-      ActivitiesMapScreen(mockTripsViewModel) { filteredActivities = it }
-    }
+    composeTestRule.setContent { ActivitiesMapTab(mockTripsViewModel) { filteredActivities = it } }
 
     composeTestRule.onNodeWithTag("searchBar").performTextInput("Final Activity With Description")
     assert(filteredActivities.size == 1)
@@ -388,9 +386,7 @@ class ActivitiesScreenTest {
   fun activitiesMapTab_appliesFilters() {
     `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
     var filteredActivities: List<Activity> = emptyList()
-    composeTestRule.setContent {
-      ActivitiesMapScreen(mockTripsViewModel) { filteredActivities = it }
-    }
+    composeTestRule.setContent { ActivitiesMapTab(mockTripsViewModel) { filteredActivities = it } }
 
     composeTestRule.onNodeWithTag("filterButton").performClick()
     composeTestRule.onNodeWithTag("filterByTypeButton").performClick()
@@ -411,9 +407,7 @@ class ActivitiesScreenTest {
   fun activitiesMapTab_testClearFilters() {
     `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
     var filteredActivities: List<Activity> = emptyList()
-    composeTestRule.setContent {
-      ActivitiesMapScreen(mockTripsViewModel) { filteredActivities = it }
-    }
+    composeTestRule.setContent { ActivitiesMapTab(mockTripsViewModel) { filteredActivities = it } }
 
     composeTestRule.onNodeWithTag("filterButton").performClick()
     composeTestRule.onNodeWithTag("filterByTypeButton").performClick()
