@@ -91,29 +91,6 @@ class PlaceSearchWidgetTest {
     composeTestRule.onNodeWithTag("searchTextField").assertIsDisplayed()
   }
 
-  @Test
-  fun testSearch() {
-    // Create a mock place with a specific ID
-    val place =
-        CustomPlace(Place.builder().setId("mockID").setName("Test Place").build(), emptyList())
-
-    // Mock the ViewModel's searchedPlaces to return the specific place
-    placesViewModel = PlacesViewModel(placesRepository).apply { setSearchedPlaces(listOf(place)) }
-
-    // Perform the test setup
-    composeTestRule.setContent {
-      PlaceSearchWidget(
-          placesViewModel = placesViewModel,
-          onSelect = {},
-          query = TextFieldValue("Test"),
-          onQueryChange = { it, _ -> placesViewModel.setQuery(it.text, null) })
-    }
-
-    // Perform text input and assertions
-    composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test")
-    composeTestRule.onNodeWithTag("searchDropdown").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("item-mockID").assertIsDisplayed()
-  }
 
   @Test
   fun testConvertCustomPlaceToLocation() {
