@@ -124,7 +124,7 @@ class PhotosScreenTest {
     // Navigate photo list in dialog
     composeTestRule.onNodeWithTag("goRightButton").performClick()
     composeTestRule.onNodeWithTag("goLeftButton").performClick()
-    composeTestRule.onNodeWithTag("downloadButton_photo1_url").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("closeButton_photo1_url").assertIsDisplayed()
     composeTestRule.onNodeWithTag("deleteButton_photo1_url").assertIsDisplayed()
 
     composeTestRule.onNodeWithTag("photoDialog_photo1_url").performClick()
