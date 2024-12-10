@@ -91,7 +91,6 @@ class PlaceSearchWidgetTest {
     composeTestRule.onNodeWithTag("searchTextField").assertIsDisplayed()
   }
 
-
   @Test
   fun testConvertCustomPlaceToLocation() {
     val location = mockCustomPlace.toLocation()
