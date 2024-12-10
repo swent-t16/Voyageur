@@ -11,6 +11,8 @@ import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
@@ -23,6 +25,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.MockedStatic
 import org.mockito.Mockito.*
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -36,6 +39,10 @@ class TripsViewModelTest {
   private lateinit var tripsRepository: TripRepository
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var mockTripsViewModel: TripsViewModel
+
+  private lateinit var firebaseAuth: FirebaseAuth
+  private lateinit var firebaseUser: FirebaseUser
+  private lateinit var firebaseAuthMockStatic: MockedStatic<FirebaseAuth>
 
   private val trip =
       Trip(
@@ -54,12 +61,19 @@ class TripsViewModelTest {
   @Before
   fun setUp() {
     tripsRepository = mock(TripRepository::class.java)
-    tripsViewModel = TripsViewModel(tripsRepository)
-    mockTripsViewModel = mock(TripsViewModel::class.java)
     // Initialize Firebase if necessary
     if (FirebaseApp.getApps(ApplicationProvider.getApplicationContext()).isEmpty()) {
       FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
     }
+    firebaseAuth = mock(FirebaseAuth::class.java)
+    firebaseUser = mock(FirebaseUser::class.java)
+    `when`(firebaseAuth.currentUser).thenReturn(firebaseUser)
+    `when`(firebaseUser.uid).thenReturn("123")
+    `when`(firebaseUser.displayName).thenReturn("Test User")
+    `when`(firebaseUser.email).thenReturn("test@example.com")
+    `when`(firebaseUser.photoUrl).thenReturn(null)
+
+    tripsViewModel = TripsViewModel(tripsRepository, true, firebaseAuth)
   }
 
   @Test
@@ -72,6 +86,39 @@ class TripsViewModelTest {
   fun testGetNewTripId() {
     `when`(tripsRepository.getNewTripId()).thenReturn("uid")
     assertThat(tripsViewModel.getNewTripId(), `is`("uid"))
+  }
+
+  @Test
+  fun testAuthStateListener() {
+    // Arrange
+    val mockAuthStateListener = tripsViewModel.authStateListener
+    val mockFirebaseUser = mock(FirebaseUser::class.java)
+    val userId = "123"
+
+    // Stub the FirebaseAuth behavior
+    `when`(firebaseAuth.currentUser).thenReturn(mockFirebaseUser)
+    `when`(mockFirebaseUser.uid).thenReturn(userId)
+
+    // Simulate adding the listener and a change in auth state
+    mockAuthStateListener.onAuthStateChanged(firebaseAuth)
+
+    // Assert - Verify tripsRepository listens for trip updates
+    verify(tripsRepository).listenForTripUpdates(any(), any(), any())
+  }
+
+  @Test
+  fun testAuthStateListener_noUser() {
+    // Arrange
+    val mockAuthStateListener = tripsViewModel.authStateListener
+
+    // Stub FirebaseAuth to return no current user
+    `when`(firebaseAuth.currentUser).thenReturn(null)
+
+    // Simulate adding the listener and a change in auth state
+    mockAuthStateListener.onAuthStateChanged(firebaseAuth)
+
+    // Assert - Verify tripsRepository does not listen for trip updates
+    verify(tripsRepository, never()).listenForTripUpdates(any(), any(), any())
   }
 
   @Test
@@ -460,5 +507,72 @@ class TripsViewModelTest {
     tripsViewModel.getFeed("userId")
     verify(tripsRepository).getFeed(any(), any(), any())
     assert(!tripsViewModel.isLoading.value)
+  }
+
+  @Test
+  fun testAuthStateListener_onSuccess() {
+    // Arrange
+    val mockAuthStateListener = tripsViewModel.authStateListener
+    val mockFirebaseUser = mock(FirebaseUser::class.java)
+    val userId = "123"
+    val tripsList =
+        listOf(
+            Trip(
+                id = "1",
+                participants = emptyList(),
+                description = "Test Trip",
+                name = "Trip 1",
+                location = Location("", "", "", 0.0, 0.0),
+                startDate = Timestamp.now(),
+                endDate = Timestamp.now(),
+                activities = emptyList(),
+                type = TripType.TOURISM,
+                imageUri = ""))
+
+    // Stub FirebaseAuth and tripsRepository behavior
+    `when`(firebaseAuth.currentUser).thenReturn(mockFirebaseUser)
+    `when`(mockFirebaseUser.uid).thenReturn(userId)
+
+    doAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as (List<Trip>) -> Unit
+          onSuccess(tripsList) // Simulate a successful callback
+          null
+        }
+        .whenever(tripsRepository)
+        .listenForTripUpdates(any(), any(), any())
+
+    // Act
+    mockAuthStateListener.onAuthStateChanged(firebaseAuth)
+
+    // Assert - Verify trips were updated
+    assert(tripsViewModel.trips.value == tripsList)
+  }
+
+  @Test
+  fun testAuthStateListener_onFailure() {
+    // Arrange
+    val mockAuthStateListener = tripsViewModel.authStateListener
+    val mockFirebaseUser = mock(FirebaseUser::class.java)
+    val userId = "123"
+    val exception = Exception("Failed to listen for trip updates")
+
+    // Stub FirebaseAuth and tripsRepository behavior
+    `when`(firebaseAuth.currentUser).thenReturn(mockFirebaseUser)
+    `when`(mockFirebaseUser.uid).thenReturn(userId)
+
+    doAnswer { invocation ->
+          val onFailure = invocation.arguments[2] as (Exception) -> Unit
+          onFailure(exception) // Simulate a failure callback
+          null
+        }
+        .whenever(tripsRepository)
+        .listenForTripUpdates(any(), any(), any())
+
+    // Act
+    mockAuthStateListener.onAuthStateChanged(firebaseAuth)
+
+    // Assert - Verify trips were not updated and error is handled
+    assert(tripsViewModel.trips.value.isEmpty()) // Trips should remain empty on failure
+    verify(tripsRepository).listenForTripUpdates(any(), any(), any())
   }
 }
