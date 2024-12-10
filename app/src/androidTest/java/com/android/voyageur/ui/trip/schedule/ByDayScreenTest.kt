@@ -327,12 +327,9 @@ class ByDayScreenTest {
 
   @Test
   fun floatingActionButtonNotDisplayedInROV() {
-    // Mock NavigationActions to return a NavigationState with isReadOnlyView = true
-    val navigationState = NavigationState()
-    navigationState.isReadOnlyView = true
-    doReturn(navigationState).`when`(navigationActions).getNavigationState()
+    // set the isReadOnlyView parameter as true
     composeTestRule.setContent {
-      ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions, userViewModel)
+      ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions, userViewModel, true)
     }
     // Test floating button is displayed
     composeTestRule.onNodeWithTag("createActivityButton").assertDoesNotExist()

@@ -56,11 +56,14 @@ import com.google.firebase.Timestamp
  * @param navigationActions Provides actions for navigating between screens.
  * @param userViewModel The [UserViewModel] instance for managing user-related data.
  * @param tripsViewModel The [TripsViewModel] instance for accessing trip and activity data.
+ * @param isReadOnly Boolean which determines if the user is in Read Only View and cannot
+ *   edit/add/delete activities.
  */
 fun ActivitiesScreen(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
     tripsViewModel: TripsViewModel,
+    isReadOnly: Boolean = false
 ) {
   // States for filtering
   var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
@@ -180,12 +183,12 @@ fun ActivitiesScreen(
             modifier = Modifier.height(80.dp).testTag("topAppBar"))
       },
       floatingActionButton = {
-        if (!navigationActions.getNavigationState().isReadOnlyView) {
+        if (!isReadOnly) {
           AddActivityButton(navigationActions)
         }
       },
       content = { pd ->
-        val isEditable = !navigationActions.getNavigationState().isReadOnlyView
+        val isEditable = !isReadOnly
         val buttonType = if (isEditable) ButtonType.DELETE else ButtonType.NOTHING
         LazyColumn(
             modifier = Modifier.padding(pd).fillMaxWidth().testTag("lazyColumn"),

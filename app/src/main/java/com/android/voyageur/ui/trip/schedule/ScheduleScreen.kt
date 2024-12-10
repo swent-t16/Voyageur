@@ -37,6 +37,8 @@ import com.android.voyageur.ui.navigation.Screen
  * @param trip The trip whose schedule is being displayed, including activities and details.
  * @param navigationActions Handles navigation actions such as switching screens or views.
  * @param userViewModel The ViewModel responsible for user-specific data and state.
+ * @param isReadOnly Boolean which determines if the user is in Read Only View and cannot access the
+ *   AI assistant.
  */
 @Composable
 fun ScheduleScreen(
@@ -44,6 +46,7 @@ fun ScheduleScreen(
     trip: Trip,
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
+    isReadOnly: Boolean = false
 ) {
 
   Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
@@ -52,7 +55,7 @@ fun ScheduleScreen(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically) {
           // "Ask Assistant" button on the left
-          if (!navigationActions.getNavigationState().isReadOnlyView) {
+          if (!isReadOnly) {
             TextButton(
                 onClick = {
                   tripsViewModel.setInitialUiState()
@@ -110,13 +113,15 @@ fun ScheduleScreen(
 
     // Conditionally show content based on isDailySelected
     if (navigationActions.getNavigationState().isDailyViewSelected) {
-      ByDayScreen(tripsViewModel, trip, navigationActions, userViewModel = userViewModel)
+      ByDayScreen(
+          tripsViewModel, trip, navigationActions, userViewModel = userViewModel, isReadOnly)
     } else {
       WeeklyViewScreen(
           tripsViewModel = tripsViewModel,
           trip = trip,
           navigationActions = navigationActions,
-          userViewModel)
+          userViewModel,
+          isReadOnly)
     }
   }
 }

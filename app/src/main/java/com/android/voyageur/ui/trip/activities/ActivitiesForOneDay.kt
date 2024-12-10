@@ -37,8 +37,9 @@ import java.util.Locale
 @Composable
 fun ActivitiesForOneDayScreen(
     tripsViewModel: TripsViewModel,
-    navigationActions: NavigationActions
+    navigationActions: NavigationActions,
 ) {
+  val isReadOnlyView = navigationActions.getNavigationState().isReadOnlyView
   val trip =
       tripsViewModel.selectedTrip.value
           ?: return Text(text = "No trip selected. Should not happen", color = Color.Red)
@@ -72,7 +73,11 @@ fun ActivitiesForOneDayScreen(
       topBar = {
         TopBarWithImageAndText(trip, navigationActions, day.toDateWithYearString(), trip.name)
       },
-      floatingActionButton = { AddActivityButton(navigationActions) },
+      floatingActionButton = {
+        if (!isReadOnlyView) {
+          AddActivityButton(navigationActions)
+        }
+      },
       content = { pd ->
         if (activities.isEmpty()) {
           // Display empty prompt if there are no activities
@@ -83,7 +88,7 @@ fun ActivitiesForOneDayScreen(
             )
           }
         } else {
-          val isEditable = !navigationActions.getNavigationState().isReadOnlyView
+          val isEditable = !isReadOnlyView
           val buttonType = if (isEditable) ButtonType.DELETE else ButtonType.NOTHING
           LazyColumn(
               modifier =

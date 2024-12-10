@@ -56,17 +56,20 @@ import java.util.Locale
  * @param trip The trip whose activities are being displayed and organized by date.
  * @param navigationActions Handles navigation actions such as switching to other screens.
  * @param userViewModel The ViewModel responsible for user-specific data and state.
+ * @param isReadOnlyView Boolean which determines if the user is in Read Only View and cannot add
+ *   new activities.
  */
 @Composable
 fun ByDayScreen(
     tripsViewModel: TripsViewModel,
     trip: Trip,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    isReadOnlyView: Boolean = false
 ) {
   Scaffold(
       floatingActionButton = {
-        if (!navigationActions.getNavigationState().isReadOnlyView) {
+        if (!isReadOnlyView) {
           AddActivityButton(navigationActions)
         }
       },

@@ -258,17 +258,15 @@ class ScheduleScreenTest {
 
   @Test
   fun checkAssistantButtonNotDisplayedInROV() {
-    // Mock NavigationActions to return a NavigationState with isReadOnlyView = true
-    val navigationState = NavigationState()
-    navigationState.isReadOnlyView = true
-    doReturn(navigationState).`when`(mockNavigationActions).getNavigationState()
+    // Set isReadOnlyView to true
     doNothing().`when`(tripsViewModel).setInitialUiState()
     composeTestRule.setContent {
       ScheduleScreen(
           tripsViewModel = tripsViewModel,
           trip = mockTrip,
-          navigationActions = mockNavigationActions,
-          userViewModel)
+          navigationActions = navigationActions,
+          userViewModel,
+          isReadOnly = true)
     }
     composeTestRule.onNodeWithText("Ask Assistant").assertDoesNotExist()
   }

@@ -98,8 +98,9 @@ fun TopTabs(
     when (navigationActions.getNavigationState().isReadOnlyView) {
       true -> {
         when (navigationActions.getNavigationState().currentTabIndexForTrip) {
-          0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel)
-          1 -> ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
+          // Pass true for the isReadOnly parameters
+          0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel, true)
+          1 -> ActivitiesScreen(navigationActions, userViewModel, tripsViewModel, true)
         }
       }
       false -> {

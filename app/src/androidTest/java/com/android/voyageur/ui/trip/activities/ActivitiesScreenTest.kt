@@ -362,12 +362,8 @@ class ActivitiesScreenTest {
 
   @Test
   fun createActivityButton_notDisplayedInROV() {
-    // Mock NavigationActions to return a NavigationState with isReadOnlyView = true
-    val navigationState = NavigationState()
-    navigationState.isReadOnlyView = true
-    doReturn(navigationState).`when`(mockNavigationActions).getNavigationState()
     composeTestRule.setContent {
-      ActivitiesScreen(mockNavigationActions, userViewModel, tripsViewModel)
+      ActivitiesScreen(mockNavigationActions, userViewModel, tripsViewModel, true)
     }
 
     composeTestRule.onNodeWithTag("createActivityButton").assertDoesNotExist()
@@ -375,14 +371,10 @@ class ActivitiesScreenTest {
 
   @Test
   fun deleteAndEditButtons_NotDisplayedInROV() {
-    // Mock NavigationActions to return a NavigationState with isReadOnlyView = true
-    val navigationState = NavigationState()
-    navigationState.isReadOnlyView = true
-    doReturn(navigationState).`when`(mockNavigationActions).getNavigationState()
     `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
 
     composeTestRule.setContent {
-      ActivitiesScreen(mockNavigationActions, userViewModel, mockTripsViewModel)
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel, true)
     }
 
     // test with draft activity
