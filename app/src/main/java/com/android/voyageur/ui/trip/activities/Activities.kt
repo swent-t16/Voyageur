@@ -278,7 +278,7 @@ fun EstimatedPriceBox(price: Double) {
               .padding(16.dp)
               .background(
                   color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
-                  shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                  shape = RoundedCornerShape(8.dp))
               .padding(16.dp)
               .testTag("totalEstimatedPriceBox"),
       contentAlignment = Alignment.Center) {
