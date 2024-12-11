@@ -116,6 +116,7 @@ fun OverviewScreen(
   if (user == null) {
     // Reload screen if the user is null
     navigationActions.navigateTo(Screen.OVERVIEW)
+    return
   }
   val trips =
       if (showOnlyFavorites) unfilteredTrips.filter { user!!.favoriteTrips.contains(it.id) }
