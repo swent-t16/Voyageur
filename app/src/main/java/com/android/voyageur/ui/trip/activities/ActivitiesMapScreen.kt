@@ -130,19 +130,16 @@ fun ActivitiesMapTab(
         onFilterByDay = { date ->
           selectedDate = date
           applyFilters()
-          showFilterDialog = false
         },
         onFilterByType = { filters ->
           selectedFilters = filters
           applyFilters()
-          showFilterDialog = false
         },
         onClearFilters = {
           activities = tripsViewModel.getActivitiesForSelectedTrip()
           selectedFilters = emptySet()
           searchQuery = ""
           selectedDate = null
-          showFilterDialog = false
           onActivitiesChanged(activities)
         },
         onDismiss = { showFilterDialog = false },
