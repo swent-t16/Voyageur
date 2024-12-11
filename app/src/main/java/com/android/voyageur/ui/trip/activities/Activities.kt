@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,7 +19,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +39,7 @@ import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.components.SearchBar
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -148,22 +147,10 @@ fun ActivitiesScreen(
               Box(
                   modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                   contentAlignment = Alignment.CenterStart) {
-                    val textStyle =
-                        MaterialTheme.typography.bodyLarge.copy(
-                            fontSize = 16.sp) // Define consistent style
-                    TextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        placeholder = {
-                          Text(
-                              text = stringResource(R.string.activities_searchbar_placeholder),
-                              style = textStyle,
-                              modifier = Modifier.fillMaxSize())
-                        },
-                        modifier = Modifier.fillMaxWidth().height(50.dp).testTag("searchField"),
-                        textStyle = textStyle, // Apply the same style to the search text
-                        singleLine = true,
-                        shape = RoundedCornerShape(10.dp))
+                    SearchBar(
+                        placeholderId = R.string.activities_searchbar_placeholder,
+                        onQueryChange = { searchQuery = it },
+                        modifier = Modifier.fillMaxWidth().height(50.dp).testTag("searchField"))
                   }
             },
             actions = {
