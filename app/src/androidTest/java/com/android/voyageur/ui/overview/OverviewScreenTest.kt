@@ -63,8 +63,6 @@ class OverviewScreenTest {
     navigationActions = mock(NavigationActions::class.java)
     userRepository = mock(UserRepository::class.java)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
-    // userViewModel = UserViewModel(userRepository, friendRequestRepository =
-    // friendRequestRepository)
     tripViewModel = TripsViewModel(tripRepository)
     firebaseAuth = mock(FirebaseAuth::class.java)
     firebaseUser = mock(FirebaseUser::class.java)
@@ -142,23 +140,6 @@ class OverviewScreenTest {
     // Mocking initial navigation state
 
     `when`(navigationActions.currentRoute()).thenReturn(Route.OVERVIEW)
-    //    val mockUsers =
-    //        listOf(
-    //            com.android.voyageur.model.user.User(
-    //                id = "1",
-    //                name = "John Doe",
-    //                email = "john@example.com",
-    //            ),
-    //            com.android.voyageur.model.user.User(
-    //                id = "2",
-    //                name = "Jane Doe",
-    //                email = "jane@example.com",
-    //            ))
-    //
-    //    `when`(userRepository.fetchUsersByIds(any(), any(), any())).then {
-    //      val onSuccess = it.getArgument<(List<com.android.voyageur.model.user.User>) -> Unit>(1)
-    //      onSuccess(mockUsers) // Simulate a successful callback
-    //    }
     `when`(navigationActions.getNavigationState()).thenReturn(NavigationState())
     composeTestRule.setContent { OverviewScreen(tripViewModel, navigationActions, userViewModel) }
   }
@@ -355,12 +336,8 @@ class OverviewScreenTest {
     composeTestRule.onNodeWithText("Leave Trip").performClick()
     composeTestRule.onNodeWithText("Leave").performClick()
     composeTestRule.waitForIdle()
-    tripViewModel.getTrips()
-    composeTestRule.waitForIdle()
-    Thread.sleep(10000)
     val updatedParticipants = mockTrip.participants.filter { it != user.id }
     val updatedTrip = mockTrip.copy(participants = updatedParticipants)
-    // verify(tripRepository).updateTrip(eq(updatedTrip), any(), any())
     tripViewModel.selectedTrip.value?.participants?.isEmpty()?.let { assert(it) }
   }
 
