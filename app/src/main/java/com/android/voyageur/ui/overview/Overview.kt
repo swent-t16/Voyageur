@@ -73,6 +73,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.components.NoResultsFound
 import com.android.voyageur.ui.formFields.UserIcon
@@ -99,7 +100,7 @@ import okhttp3.internal.toImmutableList
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
  */
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
@@ -115,11 +116,13 @@ fun OverviewScreen(
   val isConnected = status === ConnectionState.Available
   var searchQuery by remember { mutableStateOf("") }
   var showOnlyFavorites by remember { mutableStateOf(false) }
-    val user = userViewModel.user.collectAsState()
-    if (user.value == null) {
+    val user by userViewModel.user.collectAsState()
+    if (user == null) {
+        // Navigate to the authentication screen if the user is null
+        navigationActions.navigateTo(Screen.AUTH)
         return
     }
-    val trips = if (showOnlyFavorites) user.value!!.favoriteTrips.toImmutableList() else unfilteredTrips
+    val trips = if (showOnlyFavorites) user!!.favoriteTrips.toImmutableList() else unfilteredTrips
 
   LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
   LaunchedEffect(trips) {
@@ -256,7 +259,8 @@ fun OverviewScreen(
                               tripsViewModel = tripsViewModel,
                               trip = trip,
                               navigationActions = navigationActions,
-                              userViewModel = userViewModel)
+                              userViewModel = userViewModel,
+                              user = user!!)
                           Spacer(modifier = Modifier.height(10.dp))
                         }
                       }
@@ -286,7 +290,8 @@ fun TripItem(
     tripsViewModel: TripsViewModel,
     trip: Trip,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    user: User
 ) {
   val dateRange = trip.startDate.toDateString() + " - " + trip.endDate.toDateString()
   val themeColor = MaterialTheme.colorScheme.onSurface
@@ -295,8 +300,6 @@ fun TripItem(
   val context = LocalContext.current
   val status by connectivityState()
   val isConnected = status === ConnectionState.Available
-    val user by userViewModel.user.collectAsState()
-    var favoriteTrips by remember { mutableStateOf(user!!.favoriteTrips) }
 
     // Permission launcher to access calendar
   val requestPermissionLauncher =
@@ -349,23 +352,14 @@ fun TripItem(
                 // Heart icon on top of the image
                 IconButton(
                     onClick = {
-                        Log.d("TripItem", "favoriteTrips: ${user!!.favoriteTrips}")
-                        Log.d("TripItem", user!!.favoriteTrips.size.toString())
-                        if (!user!!.favoriteTrips.contains(trip)) {
-                            favoriteTrips=favoriteTrips.toMutableList().apply { add(trip) }
-                        user!!.addFavoriteTrip(trip)
-                          Log.d("TripItem", "Added trip to favorites")
-                      } else {
-                            favoriteTrips=favoriteTrips.toMutableList().apply { remove(trip) }
-                        user!!.removeFavoriteTrip(trip)
-                            Log.d("TripItem", "Removed trip from favorites")
-                      }
-//                        userViewModel.user.value!!.copy(favoriteTrips = userViewModel.user.value!!.favoriteTrips)
-//                        tripsViewModel.updateTrip(trip) // Call to update the trip in ViewModel?
-                        val updatedUser = user!!.copy(favoriteTrips = user!!.favoriteTrips)
-
+                        val updatedFavoriteTrips = if (user.favoriteTrips.contains(trip)) {
+                            user.favoriteTrips.toMutableList().apply { remove(trip) }
+                        } else {
+                            user.favoriteTrips.toMutableList().apply { add(trip) }
+                        }
+                        val updatedUser = user.copy(favoriteTrips = updatedFavoriteTrips)
                         userViewModel.updateUser(updatedUser)
-                        Log.d("TripItem", "favoriteTrips: ${userViewModel.user.value!!.favoriteTrips}")
+
                     },
                     modifier =
                         Modifier.align(Alignment.TopStart)
@@ -373,11 +367,11 @@ fun TripItem(
                             .testTag("favoriteButton_${trip.name}")) {
                       Icon(
                           imageVector =
-                              if (favoriteTrips.contains(trip)) Icons.TwoTone.Favorite
+                              if (user.favoriteTrips.contains(trip)) Icons.TwoTone.Favorite
                               else Icons.Default.FavoriteBorder,
                           contentDescription =
-                              if (favoriteTrips.contains(trip)) "Unmark as Favorite" else "Mark as Favorite",
-                          tint = if (favoriteTrips.contains(trip)) Color.Red else Color.DarkGray,
+                              if (user.favoriteTrips.contains(trip)) "Unmark as Favorite" else "Mark as Favorite",
+                          tint = if (user.favoriteTrips.contains(trip)) Color.Red else Color.DarkGray,
                           modifier =
                               Modifier.drawBehind {
                                 // Draw white outline for the heart button

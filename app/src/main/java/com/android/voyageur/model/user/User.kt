@@ -11,7 +11,7 @@ data class User(
     var contacts: List<String> = mutableListOf(),
     var interests: List<String> = mutableListOf(),
     var username: String = "",
-    var favoriteTrips: List<Trip> = mutableListOf()
+    val favoriteTrips: List<Trip> = mutableListOf()
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -46,11 +46,4 @@ data class User(
     result = 31 * result + favoriteTrips.toSet().hashCode()
     return result
   }
-
-    fun addFavoriteTrip(trip: Trip) {
-        favoriteTrips = favoriteTrips.toMutableList().apply { add(trip) }
-    }
-    fun removeFavoriteTrip(trip: Trip) {
-        favoriteTrips = favoriteTrips.toMutableList().apply { remove(trip) }
-    }
 }
