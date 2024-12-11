@@ -3,7 +3,6 @@ package com.android.voyageur.ui.overview
 import android.content.Context
 import android.content.Intent
 import android.provider.CalendarContract
-import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
@@ -484,5 +483,21 @@ class OverviewScreenTest {
 
     composeTestRule.onNodeWithTag("emptyTripPrompt").assertIsDisplayed()
     composeTestRule.onNodeWithText("You have no favorite trips yet.").assertIsDisplayed()
+  }
+
+  @Test
+  fun nonExistentTrip_doNotAppearInFavoriteList() {
+    val mockTrips = listOf(Trip(id = "1", name = "Trip 1"), Trip(id = "2", name = "Trip 2"))
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
+    }
+    tripViewModel.getTrips()
+
+    // Set user with favorite trips
+    userViewModel._user.value = User(favoriteTrips = listOf("3", "2"))
+
+    composeTestRule.onNodeWithTag("favoriteFilterButton").performClick()
+
+    verify(userRepository).updateUser(eq(User().copy(favoriteTrips = listOf("2"))), any(), any())
   }
 }

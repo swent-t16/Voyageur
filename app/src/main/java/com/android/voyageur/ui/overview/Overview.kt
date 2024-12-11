@@ -118,6 +118,17 @@ fun OverviewScreen(
     navigationActions.navigateTo(Screen.OVERVIEW)
     return
   }
+  LaunchedEffect(user) {
+    //   update favorite trips by removing deleted trips or trips that the user is no longer a
+    // participant of
+    val updatedFavoriteTrips =
+        user!!.favoriteTrips.filter { tripId -> unfilteredTrips.any { trip -> trip.id == tripId } }
+    if (updatedFavoriteTrips.size != user!!.favoriteTrips.size) {
+      val updatedUser = user!!.copy(favoriteTrips = updatedFavoriteTrips)
+      userViewModel.updateUser(updatedUser)
+    }
+  }
+
   val trips =
       if (showOnlyFavorites) unfilteredTrips.filter { user!!.favoriteTrips.contains(it.id) }
       else unfilteredTrips
