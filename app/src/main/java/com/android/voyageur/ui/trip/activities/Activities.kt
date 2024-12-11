@@ -25,6 +25,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -121,7 +122,7 @@ fun ActivitiesScreen(
 
   var showDialog by remember { mutableStateOf(false) }
   var activityToDelete by remember { mutableStateOf<Activity?>(null) }
-  var totalEstimatedPrice by remember { mutableStateOf(0.0) }
+  var totalEstimatedPrice by remember { mutableDoubleStateOf(0.0) }
 
   LaunchedEffect(final, selectedFilters) {
     totalEstimatedPrice =
@@ -277,7 +278,7 @@ fun EstimatedPriceBox(price: Double) {
               .padding(16.dp)
               .background(
                   color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
-                  shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                  shape = RoundedCornerShape(8.dp))
               .padding(16.dp)
               .testTag("totalEstimatedPriceBox"),
       contentAlignment = Alignment.Center) {

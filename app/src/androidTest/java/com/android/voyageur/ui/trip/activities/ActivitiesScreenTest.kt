@@ -351,4 +351,73 @@ class ActivitiesScreenTest {
         .onNodeWithTag("cardItem_Final Activity Without Description")
         .assertDoesNotExist()
   }
+
+  @Test
+  fun activitiesMapTab_displaysSearchBarAndFilterButton() {
+    composeTestRule.setContent { ActivitiesMapTab(tripsViewModel) }
+
+    composeTestRule.onNodeWithTag("searchBar").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("filterButton").assertIsDisplayed()
+  }
+
+  @Test
+  fun activitiesMapTab_displaysFilterDialogs() {
+    composeTestRule.setContent { ActivitiesMapTab(tripsViewModel) }
+
+    composeTestRule.onNodeWithTag("filterButton").performClick()
+    composeTestRule.onNodeWithTag("mainFilterActivityAlertDialog").assertIsDisplayed()
+
+    composeTestRule.onNodeWithTag("filterByTypeButton").performClick()
+    composeTestRule.onNodeWithTag("typeFilterActivityAlertDialog").assertIsDisplayed()
+  }
+
+  @Test
+  fun activitiesMapTab_appliesSearchQuery() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+    var filteredActivities: List<Activity> = emptyList()
+    composeTestRule.setContent { ActivitiesMapTab(mockTripsViewModel) { filteredActivities = it } }
+
+    composeTestRule.onNodeWithTag("searchBar").performTextInput("Final Activity With Description")
+    assert(filteredActivities.size == 1)
+    assert(filteredActivities[0].title == "Final Activity With Description")
+  }
+
+  @Test
+  fun activitiesMapTab_appliesFilters() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+    var filteredActivities: List<Activity> = emptyList()
+    composeTestRule.setContent { ActivitiesMapTab(mockTripsViewModel) { filteredActivities = it } }
+
+    composeTestRule.onNodeWithTag("filterButton").performClick()
+    composeTestRule.onNodeWithTag("filterByTypeButton").performClick()
+    composeTestRule.onNodeWithTag("checkbox_MUSEUM").performClick()
+    composeTestRule.onNodeWithTag("applyTypeFilterButton").performClick()
+    assert(filteredActivities.size == 1)
+    assert(filteredActivities[0].title == "Final Activity Without Description")
+
+    // Deselect the filter
+    composeTestRule.onNodeWithTag("filterButton").performClick()
+    composeTestRule.onNodeWithTag("filterByTypeButton").performClick()
+    composeTestRule.onNodeWithTag("checkbox_MUSEUM").performClick()
+    composeTestRule.onNodeWithTag("applyTypeFilterButton").performClick()
+    assert(filteredActivities.size > 1)
+  }
+
+  @Test
+  fun activitiesMapTab_testClearFilters() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
+    var filteredActivities: List<Activity> = emptyList()
+    composeTestRule.setContent { ActivitiesMapTab(mockTripsViewModel) { filteredActivities = it } }
+
+    composeTestRule.onNodeWithTag("filterButton").performClick()
+    composeTestRule.onNodeWithTag("filterByTypeButton").performClick()
+    composeTestRule.onNodeWithTag("checkbox_MUSEUM").performClick()
+    composeTestRule.onNodeWithTag("applyTypeFilterButton").performClick()
+    assert(filteredActivities.size == 1)
+    assert(filteredActivities[0].title == "Final Activity Without Description")
+
+    composeTestRule.onNodeWithTag("filterButton").performClick()
+    composeTestRule.onNodeWithTag("clearFiltersButton").performClick()
+    assert(filteredActivities.size > 1)
+  }
 }

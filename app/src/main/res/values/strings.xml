@@ -123,5 +123,12 @@
     <string name="photo_downloaded">Photo downloaded</string>
     <string name="photo_deleted">Photo successfully deleted</string>
     <string name="photo_added">Photo successfully added</string>
+    <string name="search_activities">Search activities...</string>
+    <string name="select_activities_by_type">Select Activity Types</string>
+    <string name="apply">Apply</string>
+    <string name="filter_activities_button">Filter Activities</string>
+    <string name="filter_activities_by_date">Filter by Date</string>
+    <string name="filter_activities_by_type">Filter by Type</string>
+    <string name="clear_filters">Clear Filters</string>
     <string name="close_photo">Close Photo Dialog</string>
 </resources>
