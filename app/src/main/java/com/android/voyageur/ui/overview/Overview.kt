@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,14 +26,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.twotone.Favorite
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -66,6 +70,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.components.NoResultsFound
 import com.android.voyageur.ui.formFields.UserIcon
@@ -91,14 +96,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
  */
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
 ) {
-  val trips by tripsViewModel.trips.collectAsState()
+  val unfilteredTrips by tripsViewModel.trips.collectAsState()
   val isLoadingUser by userViewModel.isLoading.collectAsState()
   val isLoadingTrip by tripsViewModel.isLoading.collectAsState()
   var isLoading = false
@@ -106,6 +111,27 @@ fun OverviewScreen(
   val context = LocalContext.current
   val isConnected = status === ConnectionState.Available
   var searchQuery by remember { mutableStateOf("") }
+  var showOnlyFavorites by remember { mutableStateOf(false) }
+  val user by userViewModel.user.collectAsState()
+  if (user == null) {
+    // Reload screen if the user is null
+    navigationActions.navigateTo(Screen.OVERVIEW)
+    return
+  }
+  LaunchedEffect(user) {
+    //   update favorite trips by removing deleted trips or trips that the user is no longer a
+    // participant of
+    val updatedFavoriteTrips =
+        user!!.favoriteTrips.filter { tripId -> unfilteredTrips.any { trip -> trip.id == tripId } }
+    if (updatedFavoriteTrips.size != user!!.favoriteTrips.size) {
+      val updatedUser = user!!.copy(favoriteTrips = updatedFavoriteTrips)
+      userViewModel.updateUser(updatedUser)
+    }
+  }
+
+  val trips =
+      if (showOnlyFavorites) unfilteredTrips.filter { user!!.favoriteTrips.contains(it.id) }
+      else unfilteredTrips
 
   LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
   LaunchedEffect(trips) {
@@ -142,25 +168,50 @@ fun OverviewScreen(
         Box(
             modifier =
                 Modifier.fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 20.dp), // Increased padding
-            contentAlignment = Alignment.Center) {
-              TextField(
-                  value = searchQuery,
-                  onValueChange = { searchQuery = it },
-                  placeholder = {
-                    Text(
-                        text = stringResource(R.string.overview_searchbar_placeholder),
-                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-                        modifier = Modifier.fillMaxWidth())
-                  },
-                  modifier =
-                      Modifier.height(56.dp) // Increased height
-                          .fillMaxWidth()
-                          .testTag("searchField"),
-                  textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-                  singleLine = true,
-                  shape = RoundedCornerShape(12.dp), // Slightly increased corner radius
-              )
+                    .padding(horizontal = 24.dp, vertical = 20.dp) // Increased padding
+            ) {
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  verticalAlignment = Alignment.CenterVertically) {
+                    // TextField on the left
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = {
+                          Text(
+                              text = stringResource(R.string.overview_searchbar_placeholder),
+                              style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
+                              modifier = Modifier.fillMaxWidth())
+                        },
+                        modifier =
+                            Modifier.weight(
+                                    1f) // Forces TextField to take up all available horizontal
+                                // space
+                                .height(56.dp) // Increased height
+                                .testTag("searchField"),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp) // Slightly increased corner radius
+                        )
+
+                    Spacer(modifier = Modifier.width(8.dp)) // Optional spacing
+
+                    // IconButton explicitly aligned to the right
+                    IconButton(
+                        onClick = { showOnlyFavorites = !showOnlyFavorites },
+                        modifier = Modifier.testTag("favoriteFilterButton")) {
+                          Icon(
+                              imageVector =
+                                  if (showOnlyFavorites) Icons.Filled.Favorite
+                                  else Icons.Default.FavoriteBorder,
+                              contentDescription =
+                                  if (showOnlyFavorites) "Show all trips"
+                                  else "Show favorite trips",
+                              tint =
+                                  if (showOnlyFavorites) MaterialTheme.colorScheme.onSurface
+                                  else MaterialTheme.colorScheme.onSurface)
+                        }
+                  }
             }
       },
       bottomBar = {
@@ -183,7 +234,9 @@ fun OverviewScreen(
                   contentAlignment = Alignment.Center) {
                     Text(
                         modifier = Modifier.testTag("emptyTripPrompt"),
-                        text = stringResource(R.string.empty_trip_prompt),
+                        text =
+                            if (showOnlyFavorites) stringResource(R.string.no_favorite_trips)
+                            else stringResource(R.string.empty_trip_prompt),
                     )
                   }
             } else {
@@ -212,7 +265,8 @@ fun OverviewScreen(
                               tripsViewModel = tripsViewModel,
                               trip = trip,
                               navigationActions = navigationActions,
-                              userViewModel = userViewModel)
+                              userViewModel = userViewModel,
+                              user = user!!)
                           Spacer(modifier = Modifier.height(10.dp))
                         }
                       }
@@ -235,13 +289,15 @@ fun OverviewScreen(
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
  */
+@SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun TripItem(
     tripsViewModel: TripsViewModel,
     trip: Trip,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    user: User
 ) {
   val dateRange = trip.startDate.toDateString() + " - " + trip.endDate.toDateString()
   val themeColor = MaterialTheme.colorScheme.onSurface
@@ -250,6 +306,7 @@ fun TripItem(
   val context = LocalContext.current
   val status by connectivityState()
   val isConnected = status === ConnectionState.Available
+
   // Permission launcher to access calendar
   val requestPermissionLauncher =
       rememberLauncherForActivityResult(
@@ -282,20 +339,59 @@ fun TripItem(
             modifier = Modifier.fillMaxSize().testTag("cardRow"),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-              // modifier.weight(1f) is used here to set the image for 1/3 of the card
-              if (trip.imageUri.isNotEmpty()) {
-                Image(
-                    painter = rememberAsyncImagePainter(model = trip.imageUri),
-                    contentDescription = stringResource(R.string.selected_image_description),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.width(120.dp).height(217.dp).testTag("tripImage"))
-              } else {
-                Image(
-                    painter = painterResource(id = R.drawable.default_trip_image),
-                    contentDescription = stringResource(R.string.trip_image_overview_description),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.width(120.dp).height(217.dp).testTag("defaultTripImage"))
-              } // modifier.weight(2f) is used here to set the column to 2/3 of the card
+              Box(modifier = Modifier.aspectRatio(0.55f).fillMaxSize().testTag("tripImageBox")) {
+                // Display image or default image
+                if (trip.imageUri.isNotEmpty()) {
+                  Image(
+                      painter = rememberAsyncImagePainter(model = trip.imageUri),
+                      contentDescription = stringResource(R.string.selected_image_description),
+                      contentScale = ContentScale.Crop,
+                      modifier = Modifier.fillMaxSize().testTag("tripImage"))
+                } else {
+                  Image(
+                      painter = painterResource(id = R.drawable.default_trip_image),
+                      contentDescription = stringResource(R.string.trip_image_overview_description),
+                      contentScale = ContentScale.Crop,
+                      modifier = Modifier.fillMaxSize().testTag("defaultTripImage"))
+                }
+
+                // Heart icon on top of the image
+                IconButton(
+                    onClick = {
+                      val updatedFavoriteTrips =
+                          if (user.favoriteTrips.contains(trip.id)) {
+                            user.favoriteTrips.toMutableList().apply { remove(trip.id) }
+                          } else {
+                            user.favoriteTrips.toMutableList().apply { add(trip.id) }
+                          }
+                      val updatedUser = user.copy(favoriteTrips = updatedFavoriteTrips)
+                      userViewModel.updateUser(updatedUser)
+                    },
+                    modifier =
+                        Modifier.align(Alignment.TopStart)
+                            .padding(8.dp)
+                            .testTag("favoriteButton_${trip.name}")) {
+                      Icon(
+                          imageVector =
+                              if (user.favoriteTrips.contains(trip.id)) Icons.TwoTone.Favorite
+                              else Icons.Default.FavoriteBorder,
+                          contentDescription =
+                              if (user.favoriteTrips.contains(trip.id)) "Unmark as Favorite"
+                              else "Mark as Favorite",
+                          tint =
+                              if (user.favoriteTrips.contains(trip.id)) Color.Red
+                              else Color.DarkGray,
+                          modifier =
+                              Modifier.drawBehind {
+                                // Draw white outline for the heart button
+                                drawCircle(
+                                    color = Color.White.copy(alpha = 0.5f),
+                                    radius = size.minDimension / 2 + 4.dp.toPx(),
+                                    center = center)
+                              })
+                    }
+              }
+              // modifier.weight(2f) is used here to set the column to 2/3 of the card
               Column(
                   modifier = Modifier.fillMaxSize().padding(16.dp).weight(2f),
                   verticalArrangement = Arrangement.Top) {
@@ -324,6 +420,7 @@ fun TripItem(
                             ))
                     DisplayParticipants(trip, userViewModel)
                   }
+
               Box(modifier = Modifier.align(Alignment.Top)) {
                 IconButton(
                     enabled = isConnected,
