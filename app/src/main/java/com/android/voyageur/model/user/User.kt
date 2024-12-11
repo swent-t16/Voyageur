@@ -1,5 +1,7 @@
 package com.android.voyageur.model.user
 
+import com.android.voyageur.model.trip.Trip
+
 data class User(
     val id: String = "",
     var name: String = "",
@@ -8,7 +10,8 @@ data class User(
     var bio: String = "",
     var contacts: List<String> = mutableListOf(),
     var interests: List<String> = mutableListOf(),
-    var username: String = ""
+    var username: String = "",
+    var favoriteTrips: List<Trip> = mutableListOf()
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -25,6 +28,8 @@ data class User(
     if (!interests.containsAll(other.interests) || !other.interests.containsAll(interests))
         return false
     if (username != other.username) return false
+      if (!favoriteTrips.containsAll(other.favoriteTrips) || !other.favoriteTrips.containsAll(favoriteTrips))
+          return false
 
     return true
   }
@@ -38,6 +43,14 @@ data class User(
     result = 31 * result + contacts.toSet().hashCode()
     result = 31 * result + interests.toSet().hashCode()
     result = 31 * result + username.hashCode()
+    result = 31 * result + favoriteTrips.toSet().hashCode()
     return result
   }
+
+    fun addFavoriteTrip(trip: Trip) {
+        favoriteTrips = favoriteTrips.toMutableList().apply { add(trip) }
+    }
+    fun removeFavoriteTrip(trip: Trip) {
+        favoriteTrips = favoriteTrips.toMutableList().apply { remove(trip) }
+    }
 }

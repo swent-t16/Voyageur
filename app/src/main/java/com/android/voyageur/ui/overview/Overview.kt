@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.CalendarContract
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -67,6 +68,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewModelScope
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
@@ -85,6 +87,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import java.util.TimeZone
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import okhttp3.internal.toImmutableList
 
 /**
  * Composable function that renders the main overview screen of the app.
@@ -112,7 +115,11 @@ fun OverviewScreen(
   val isConnected = status === ConnectionState.Available
   var searchQuery by remember { mutableStateOf("") }
   var showOnlyFavorites by remember { mutableStateOf(false) }
-  val trips = if (showOnlyFavorites) unfilteredTrips.filter { it.isFavorite } else unfilteredTrips
+    val user = userViewModel.user.collectAsState()
+    if (user.value == null) {
+        return
+    }
+    val trips = if (showOnlyFavorites) user.value!!.favoriteTrips.toImmutableList() else unfilteredTrips
 
   LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
   LaunchedEffect(trips) {
@@ -146,44 +153,56 @@ fun OverviewScreen(
       },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        Box(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 20.dp), // Increased padding
-            contentAlignment = Alignment.Center) {
-              TextField(
-                  value = searchQuery,
-                  onValueChange = { searchQuery = it },
-                  placeholder = {
-                    Text(
-                        text = stringResource(R.string.overview_searchbar_placeholder),
-                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-                        modifier = Modifier.fillMaxWidth())
-                  },
-                  modifier =
-                      Modifier.height(56.dp) // Increased height
-                          .fillMaxWidth()
+          Box(
+              modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(horizontal = 24.dp, vertical = 20.dp) // Increased padding
+          ) {
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  verticalAlignment = Alignment.CenterVertically
+              ) {
+                  // TextField on the left
+                  TextField(
+                      value = searchQuery,
+                      onValueChange = { searchQuery = it },
+                      placeholder = {
+                          Text(
+                              text = stringResource(R.string.overview_searchbar_placeholder),
+                              style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
+                              modifier = Modifier.fillMaxWidth()
+                          )
+                      },
+                      modifier = Modifier
+                          .weight(1f) // Forces TextField to take up all available horizontal space
+                          .height(56.dp) // Increased height
                           .testTag("searchField"),
-                  textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-                  singleLine = true,
-                  shape = RoundedCornerShape(12.dp), // Slightly increased corner radius
-              )
-            }
+                      textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
+                      singleLine = true,
+                      shape = RoundedCornerShape(12.dp) // Slightly increased corner radius
+                  )
 
-              IconButton(
-                  onClick = { showOnlyFavorites = !showOnlyFavorites },
-                  modifier = Modifier.testTag("favoriteFilterButton")) {
-                    Icon(
-                        imageVector =
-                            if (showOnlyFavorites) Icons.Filled.Favorite
-                            else Icons.Default.FavoriteBorder,
-                        contentDescription =
-                            if (showOnlyFavorites) "Show all trips" else "Show favorite trips",
-                        tint =
-                            if (showOnlyFavorites) MaterialTheme.colorScheme.onSurface
-                            else MaterialTheme.colorScheme.onSurface,
-                    )
+                  Spacer(modifier = Modifier.width(8.dp)) // Optional spacing
+
+                  // IconButton explicitly aligned to the right
+                  IconButton(
+                      onClick = { showOnlyFavorites = !showOnlyFavorites },
+                      modifier = Modifier.testTag("favoriteFilterButton")
+                  ) {
+                      Icon(
+                          imageVector =
+                          if (showOnlyFavorites) Icons.Filled.Favorite
+                          else Icons.Default.FavoriteBorder,
+                          contentDescription =
+                          if (showOnlyFavorites) "Show all trips" else "Show favorite trips",
+                          tint =
+                          if (showOnlyFavorites) MaterialTheme.colorScheme.onSurface
+                          else MaterialTheme.colorScheme.onSurface
+                      )
                   }
+              }
+          }
+
 
       },
       bottomBar = {
@@ -260,6 +279,7 @@ fun OverviewScreen(
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
  */
+@SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun TripItem(
@@ -275,7 +295,10 @@ fun TripItem(
   val context = LocalContext.current
   val status by connectivityState()
   val isConnected = status === ConnectionState.Available
-  // Permission launcher to access calendar
+    val user by userViewModel.user.collectAsState()
+    var favoriteTrips by remember { mutableStateOf(user!!.favoriteTrips) }
+
+    // Permission launcher to access calendar
   val requestPermissionLauncher =
       rememberLauncherForActivityResult(
           ActivityResultContracts.RequestPermission(),
@@ -326,8 +349,23 @@ fun TripItem(
                 // Heart icon on top of the image
                 IconButton(
                     onClick = {
-                      trip.isFavorite = !trip.isFavorite
-                      tripsViewModel.updateTrip(trip) // Call to update the trip in ViewModel
+                        Log.d("TripItem", "favoriteTrips: ${user!!.favoriteTrips}")
+                        Log.d("TripItem", user!!.favoriteTrips.size.toString())
+                        if (!user!!.favoriteTrips.contains(trip)) {
+                            favoriteTrips=favoriteTrips.toMutableList().apply { add(trip) }
+                        user!!.addFavoriteTrip(trip)
+                          Log.d("TripItem", "Added trip to favorites")
+                      } else {
+                            favoriteTrips=favoriteTrips.toMutableList().apply { remove(trip) }
+                        user!!.removeFavoriteTrip(trip)
+                            Log.d("TripItem", "Removed trip from favorites")
+                      }
+//                        userViewModel.user.value!!.copy(favoriteTrips = userViewModel.user.value!!.favoriteTrips)
+//                        tripsViewModel.updateTrip(trip) // Call to update the trip in ViewModel?
+                        val updatedUser = user!!.copy(favoriteTrips = user!!.favoriteTrips)
+
+                        userViewModel.updateUser(updatedUser)
+                        Log.d("TripItem", "favoriteTrips: ${userViewModel.user.value!!.favoriteTrips}")
                     },
                     modifier =
                         Modifier.align(Alignment.TopStart)
@@ -335,11 +373,11 @@ fun TripItem(
                             .testTag("favoriteButton_${trip.name}")) {
                       Icon(
                           imageVector =
-                              if (trip.isFavorite) Icons.TwoTone.Favorite
+                              if (favoriteTrips.contains(trip)) Icons.TwoTone.Favorite
                               else Icons.Default.FavoriteBorder,
                           contentDescription =
-                              if (trip.isFavorite) "Unmark as Favorite" else "Mark as Favorite",
-                          tint = if (trip.isFavorite) Color.Red else Color.DarkGray,
+                              if (favoriteTrips.contains(trip)) "Unmark as Favorite" else "Mark as Favorite",
+                          tint = if (favoriteTrips.contains(trip)) Color.Red else Color.DarkGray,
                           modifier =
                               Modifier.drawBehind {
                                 // Draw white outline for the heart button
