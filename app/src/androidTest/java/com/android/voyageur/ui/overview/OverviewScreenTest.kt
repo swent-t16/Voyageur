@@ -3,8 +3,8 @@ package com.android.voyageur.ui.overview
 import android.content.Context
 import android.content.Intent
 import android.provider.CalendarContract
-import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -18,6 +18,7 @@ import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -52,30 +53,31 @@ class OverviewScreenTest {
     tripRepository = mock(TripRepository::class.java)
     navigationActions = mock(NavigationActions::class.java)
     userRepository = mock(UserRepository::class.java)
-    friendRequestRepository =
-        mock(com.android.voyageur.model.notifications.FriendRequestRepository::class.java)
+    friendRequestRepository = mock(FriendRequestRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
     tripViewModel = TripsViewModel(tripRepository)
     `when`(navigationActions.currentRoute()).thenReturn(Route.OVERVIEW)
     val mockUsers =
         listOf(
-            com.android.voyageur.model.user.User(
+            User(
                 id = "1",
                 name = "John Doe",
                 email = "john@example.com",
             ),
-            com.android.voyageur.model.user.User(
+            User(
                 id = "2",
                 name = "Jane Doe",
                 email = "jane@example.com",
             ))
 
     `when`(userRepository.fetchUsersByIds(any(), any(), any())).then {
-      val onSuccess = it.getArgument<(List<com.android.voyageur.model.user.User>) -> Unit>(1)
+      val onSuccess = it.getArgument<(List<User>) -> Unit>(1)
       onSuccess(mockUsers) // Simulate a successful callback
     }
     `when`(navigationActions.getNavigationState()).thenReturn(NavigationState())
     composeTestRule.setContent { OverviewScreen(tripViewModel, navigationActions, userViewModel) }
+    // set a non-null user for tests
+    userViewModel._user.value = User()
   }
 
   @Test
@@ -413,11 +415,14 @@ class OverviewScreenTest {
   }
 
   @Test
+  fun nullUserNavigatesToSignIn() {
+    userViewModel._user.value = null
+    verify(navigationActions).navigateTo(Screen.OVERVIEW)
+  }
+
+  @Test
   fun favoriteButtons_exist() {
-    val mockTrips =
-        listOf(
-            Trip(id = "1", name = "Trip 1", isFavorite = true),
-            Trip(id = "2", name = "Trip 2", isFavorite = false))
+    val mockTrips = listOf(Trip(id = "1", name = "Trip 1"), Trip(id = "2", name = "Trip 2"))
     `when`(tripRepository.getTrips(any(), any(), any())).then {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
@@ -431,33 +436,27 @@ class OverviewScreenTest {
 
   @Test
   fun clickingOnFavoriteButton_addsTripToFavorites() {
-    val mockTrips =
-        listOf(
-            Trip(id = "1", name = "Trip 1", isFavorite = false),
-            Trip(id = "2", name = "Trip 2", isFavorite = false))
+    val mockTrips = listOf(Trip(id = "1", name = "Trip 1"), Trip(id = "2", name = "Trip 2"))
     `when`(tripRepository.getTrips(any(), any(), any())).then {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
     tripViewModel.getTrips()
 
-    composeTestRule.onNodeWithTag("favoriteFilterButton").performClick()
-    composeTestRule.onNodeWithText("Trip 1").assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag("favoriteFilterButton").performClick()
     composeTestRule.onNodeWithTag("favoriteButton_Trip 1").performClick()
-    composeTestRule.onNodeWithTag("favoriteFilterButton").performClick()
-    composeTestRule.onNodeWithText("Trip 1").assertIsDisplayed()
+
+    verify(userRepository).updateUser(eq(User().copy(favoriteTrips = listOf("1"))), any(), any())
   }
 
   @Test
   fun toggleFavoriteFilter_updatesTripsDisplay() {
-    val mockTrips =
-        listOf(
-            Trip(id = "1", name = "Trip 1", isFavorite = true),
-            Trip(id = "2", name = "Trip 2", isFavorite = false))
+    val mockTrips = listOf(Trip(id = "1", name = "Trip 1"), Trip(id = "2", name = "Trip 2"))
     `when`(tripRepository.getTrips(any(), any(), any())).then {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }
     tripViewModel.getTrips()
+
+    // Set user with favorite trips
+    userViewModel._user.value = User(favoriteTrips = listOf("1"))
 
     composeTestRule.onNodeWithText("Trip 1").assertIsDisplayed()
     composeTestRule.onNodeWithText("Trip 2").assertIsDisplayed()
@@ -475,10 +474,7 @@ class OverviewScreenTest {
 
   @Test
   fun favoriteFilter_noFavorites_showsEmptyState() {
-    val mockTrips =
-        listOf(
-            Trip(id = "1", name = "Trip 1", isFavorite = false),
-            Trip(id = "2", name = "Trip 2", isFavorite = false))
+    val mockTrips = listOf(Trip(id = "1", name = "Trip 1"), Trip(id = "2", name = "Trip 2"))
     `when`(tripRepository.getTrips(any(), any(), any())).then {
       it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
     }

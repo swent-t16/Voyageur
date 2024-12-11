@@ -1,7 +1,5 @@
 package com.android.voyageur.model.user
 
-import com.android.voyageur.model.trip.Trip
-
 data class User(
     val id: String = "",
     var name: String = "",
@@ -11,7 +9,7 @@ data class User(
     var contacts: List<String> = mutableListOf(),
     var interests: List<String> = mutableListOf(),
     var username: String = "",
-    val favoriteTrips: List<Trip> = mutableListOf()
+    val favoriteTrips: List<String> = emptyList()
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -28,8 +26,9 @@ data class User(
     if (!interests.containsAll(other.interests) || !other.interests.containsAll(interests))
         return false
     if (username != other.username) return false
-      if (!favoriteTrips.containsAll(other.favoriteTrips) || !other.favoriteTrips.containsAll(favoriteTrips))
-          return false
+    if (!favoriteTrips.containsAll(other.favoriteTrips) ||
+        !other.favoriteTrips.containsAll(favoriteTrips))
+        return false
 
     return true
   }
