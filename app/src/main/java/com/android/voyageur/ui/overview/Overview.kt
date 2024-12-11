@@ -419,7 +419,7 @@ fun TripItem(
                       onFailure = { error ->
                         Toast.makeText(
                                 context,
-                                "Failed to leave the trip: ${error.message}",
+                                context.getString(R.string.fail_leave_trip, error.message),
                                 Toast.LENGTH_SHORT)
                             .show()
                       })
