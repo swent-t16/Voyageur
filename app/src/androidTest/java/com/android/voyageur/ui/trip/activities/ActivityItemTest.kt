@@ -247,10 +247,12 @@ class ActivityItemTest {
     verify(navigationActions).navigateTo(Screen.EDIT_ACTIVITY)
     assert(tripsViewModel.selectedActivity.value == sampleActivityWithDescription)
   }
-    @Test
-    fun activityCard_displaysCorrectLocationName() {
-        // Create a sample activity with a location name
-       val sampleActivityWithLocation = Activity(
+
+  @Test
+  fun activityCard_displaysCorrectLocationName() {
+    // Create a sample activity with a location name
+    val sampleActivityWithLocation =
+        Activity(
             title = "Final Activity Without Description",
             estimatedPrice = 10.0,
             startTime = createTimestamp(2022, 1, 2, 12, 0),
@@ -258,21 +260,20 @@ class ActivityItemTest {
             location = Location(name = "EPFL Lausanne"),
             activityType = ActivityType.MUSEUM)
 
-        composeTestRule.setContent {
-            ActivityItem(
-                activity = sampleActivityWithLocation,
-                navigationActions = navigationActions,
-                tripsViewModel = tripsViewModel
-            )
-        }
-        // Expand the activity card
-        composeTestRule
-            .onNodeWithTag("expandIcon_${sampleActivityWithLocation.title}")
-            .assertIsDisplayed()
-            .performClick()
-
-        // Check if the location section is displayed
-        composeTestRule.onNodeWithText("Location").assertIsDisplayed()
-        composeTestRule.onNodeWithText("EPFL Lausanne").assertIsDisplayed()
+    composeTestRule.setContent {
+      ActivityItem(
+          activity = sampleActivityWithLocation,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel)
     }
+    // Expand the activity card
+    composeTestRule
+        .onNodeWithTag("expandIcon_${sampleActivityWithLocation.title}")
+        .assertIsDisplayed()
+        .performClick()
+
+    // Check if the location section is displayed
+    composeTestRule.onNodeWithText("Location").assertIsDisplayed()
+    composeTestRule.onNodeWithText("EPFL Lausanne").assertIsDisplayed()
+  }
 }

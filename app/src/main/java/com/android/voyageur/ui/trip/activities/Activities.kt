@@ -63,235 +63,215 @@ fun ActivitiesScreen(
     userViewModel: UserViewModel,
     tripsViewModel: TripsViewModel
 ) {
-    // States for filtering
-    var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
-    var showFilterMenu by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
+  // States for filtering
+  var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
+  var showFilterMenu by remember { mutableStateOf(false) }
+  var searchQuery by remember { mutableStateOf("") }
 
-    var drafts by remember {
-        mutableStateOf(
-            tripsViewModel.getActivitiesForSelectedTrip().filter { activity ->
-                val matchesTimestamp =
-                    activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
-                val matchesSearch =
-                    searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
-                matchesTimestamp && matchesSearch
-            })
-    }
-
-    var final by remember {
-        mutableStateOf(
-            tripsViewModel
-                .getActivitiesForSelectedTrip()
-                .filter { activity ->
-                    val matchesTimestamp =
-                        activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
-                    val matchesSearch =
-                        searchQuery.isEmpty() || activity.title.contains(
-                            searchQuery,
-                            ignoreCase = true
-                        )
-                    matchesTimestamp && matchesSearch
-                }
-                .sortedWith(compareBy({ it.startTime }, { it.endTime }))
-        )
-    }
-
-    LaunchedEffect(searchQuery) {
-        drafts =
-            tripsViewModel.getActivitiesForSelectedTrip().filter { activity ->
-                val matchesTimestamp =
-                    activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
-                val matchesSearch =
-                    searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
-                matchesTimestamp && matchesSearch
-            }
-
-        final =
-            tripsViewModel
-                .getActivitiesForSelectedTrip()
-                .filter { activity ->
-                    val matchesTimestamp =
-                        activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
-                    val matchesSearch =
-                        searchQuery.isEmpty() || activity.title.contains(
-                            searchQuery,
-                            ignoreCase = true
-                        )
-                    matchesTimestamp && matchesSearch
-                }
-                .sortedWith(
-                    compareBy(
-                        { it.startTime }, // First, sort by startTime
-                        { it.endTime } // If startTime is equal, sort by endTime
-                    ))
-    }
-
-    var showDialog by remember { mutableStateOf(false) }
-    var activityToDelete by remember { mutableStateOf<Activity?>(null) }
-    var totalEstimatedPrice by remember { mutableDoubleStateOf(0.0) }
-
-    LaunchedEffect(final, selectedFilters) {
-        totalEstimatedPrice =
-            final
-                .filter { activity ->
-                    selectedFilters.isEmpty() || activity.activityType in selectedFilters
-                }
-                .sumOf { it.estimatedPrice }
-    }
-
-    Scaffold(
-        modifier = Modifier.testTag("activitiesScreen"),
-        bottomBar = {
-            BottomNavigationMenu(
-                onTabSelect = { route -> navigationActions.navigateTo(route) },
-                tabList = LIST_TOP_LEVEL_DESTINATION,
-                selectedItem = navigationActions.currentRoute(),
-                userViewModel = userViewModel
-            )
-        },
-        topBar = {
-            TopAppBar(
-                title = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        val textStyle =
-                            MaterialTheme.typography.bodyLarge.copy(
-                                fontSize = 16.sp
-                            ) // Define consistent style
-                        TextField(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            placeholder = {
-                                Text(
-                                    text = stringResource(R.string.activities_searchbar_placeholder),
-                                    style = textStyle,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            },
-                            modifier = Modifier.fillMaxWidth().height(50.dp).testTag("searchField"),
-                            textStyle = textStyle, // Apply the same style to the search text
-                            singleLine = true,
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                    }
-                },
-                actions = {
-                    Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-                        IconButton(
-                            modifier = Modifier.testTag("filterButton"),
-                            onClick = { showFilterMenu = true }) {
-                            Icon(
-                                imageVector = Icons.Outlined.FilterAlt,
-                                contentDescription = stringResource(R.string.filter_activities),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                },
-                modifier = Modifier.height(80.dp).testTag("topAppBar")
-            )
-        },
-        floatingActionButton = { AddActivityButton(navigationActions) },
-        content = { pd ->
-            if (drafts.isEmpty() && final.isEmpty()) {
-                // Display empty prompt if there are no activities
-                Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        modifier = Modifier.testTag("emptyActivitiesPrompt"),
-                        text = stringResource(R.string.no_activities_scheduled),
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.padding(pd).fillMaxWidth().testTag("lazyColumn"),
-                    verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
-                ) {
-                    item {
-                        Text(
-                            text = stringResource(R.string.drafts),
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = 10.dp)
-                        )
-                    }
-                    drafts.forEach { activity ->
-                        item {
-                            if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
-                                ActivityItem(
-                                    activity,
-                                    true,
-                                    onClickButton = {
-                                        activityToDelete = activity
-                                        showDialog = true
-                                    },
-                                    ButtonType.DELETE,
-                                    navigationActions,
-                                    tripsViewModel
-                                )
-                                Spacer(modifier = Modifier.height(10.dp))
-                            }
-                        }
-                    }
-                    item {
-                        Text(
-                            text = stringResource(R.string.final_activities),
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = 10.dp)
-                        )
-                    }
-                    final.forEach { activity ->
-                        item {
-                            if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
-                                ActivityItem(
-                                    activity,
-                                    true,
-                                    onClickButton = {
-                                        activityToDelete = activity
-                                        showDialog = true
-                                    },
-                                    ButtonType.DELETE,
-                                    navigationActions,
-                                    tripsViewModel
-                                )
-                                Spacer(modifier = Modifier.height(10.dp))
-                            }
-                        }
-                    }
-                    item { EstimatedPriceBox(totalEstimatedPrice) }
-                }
-
-
-                if (showDialog) {
-                    DeleteActivityAlertDialog(
-                        onDismissRequest = { showDialog = false },
-                        activityToDelete = activityToDelete,
-                        tripsViewModel = tripsViewModel,
-                        confirmButtonOnClick = {
-                            showDialog = false
-                            final = final.filter { it != activityToDelete }
-                            drafts = drafts.filter { it != activityToDelete }
-                        })
-                }
-                if (showFilterMenu) {
-                    FilterDialog(
-                        selectedFilters = selectedFilters,
-                        onFilterChanged = { filter, isSelected ->
-                            selectedFilters =
-                                if (isSelected) {
-                                    selectedFilters + filter
-                                } else {
-                                    selectedFilters - filter
-                                }
-                        },
-                        onDismiss = { showFilterMenu = false })
-                }
-            }
+  var drafts by remember {
+    mutableStateOf(
+        tripsViewModel.getActivitiesForSelectedTrip().filter { activity ->
+          val matchesTimestamp =
+              activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
+          val matchesSearch =
+              searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
+          matchesTimestamp && matchesSearch
         })
+  }
 
+  var final by remember {
+    mutableStateOf(
+        tripsViewModel
+            .getActivitiesForSelectedTrip()
+            .filter { activity ->
+              val matchesTimestamp =
+                  activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
+              val matchesSearch =
+                  searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
+              matchesTimestamp && matchesSearch
+            }
+            .sortedWith(compareBy({ it.startTime }, { it.endTime })))
+  }
+
+  LaunchedEffect(searchQuery) {
+    drafts =
+        tripsViewModel.getActivitiesForSelectedTrip().filter { activity ->
+          val matchesTimestamp =
+              activity.startTime == Timestamp(0, 0) || activity.endTime == Timestamp(0, 0)
+          val matchesSearch =
+              searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
+          matchesTimestamp && matchesSearch
+        }
+
+    final =
+        tripsViewModel
+            .getActivitiesForSelectedTrip()
+            .filter { activity ->
+              val matchesTimestamp =
+                  activity.startTime != Timestamp(0, 0) && activity.endTime != Timestamp(0, 0)
+              val matchesSearch =
+                  searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
+              matchesTimestamp && matchesSearch
+            }
+            .sortedWith(
+                compareBy(
+                    { it.startTime }, // First, sort by startTime
+                    { it.endTime } // If startTime is equal, sort by endTime
+                    ))
+  }
+
+  var showDialog by remember { mutableStateOf(false) }
+  var activityToDelete by remember { mutableStateOf<Activity?>(null) }
+  var totalEstimatedPrice by remember { mutableDoubleStateOf(0.0) }
+
+  LaunchedEffect(final, selectedFilters) {
+    totalEstimatedPrice =
+        final
+            .filter { activity ->
+              selectedFilters.isEmpty() || activity.activityType in selectedFilters
+            }
+            .sumOf { it.estimatedPrice }
+  }
+
+  Scaffold(
+      modifier = Modifier.testTag("activitiesScreen"),
+      bottomBar = {
+        BottomNavigationMenu(
+            onTabSelect = { route -> navigationActions.navigateTo(route) },
+            tabList = LIST_TOP_LEVEL_DESTINATION,
+            selectedItem = navigationActions.currentRoute(),
+            userViewModel = userViewModel)
+      },
+      topBar = {
+        TopAppBar(
+            title = {
+              Box(
+                  modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                  contentAlignment = Alignment.CenterStart) {
+                    val textStyle =
+                        MaterialTheme.typography.bodyLarge.copy(
+                            fontSize = 16.sp) // Define consistent style
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = {
+                          Text(
+                              text = stringResource(R.string.activities_searchbar_placeholder),
+                              style = textStyle,
+                              modifier = Modifier.fillMaxSize())
+                        },
+                        modifier = Modifier.fillMaxWidth().height(50.dp).testTag("searchField"),
+                        textStyle = textStyle, // Apply the same style to the search text
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp))
+                  }
+            },
+            actions = {
+              Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
+                IconButton(
+                    modifier = Modifier.testTag("filterButton"),
+                    onClick = { showFilterMenu = true }) {
+                      Icon(
+                          imageVector = Icons.Outlined.FilterAlt,
+                          contentDescription = stringResource(R.string.filter_activities),
+                          tint = MaterialTheme.colorScheme.primary)
+                    }
+              }
+            },
+            modifier = Modifier.height(80.dp).testTag("topAppBar"))
+      },
+      floatingActionButton = { AddActivityButton(navigationActions) },
+      content = { pd ->
+        if (drafts.isEmpty() && final.isEmpty()) {
+          // Display empty prompt if there are no activities
+          Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                modifier = Modifier.testTag("emptyActivitiesPrompt"),
+                text = stringResource(R.string.no_activities_scheduled),
+            )
+          }
+        } else {
+          LazyColumn(
+              modifier = Modifier.padding(pd).fillMaxWidth().testTag("lazyColumn"),
+              verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+          ) {
+            item {
+              Text(
+                  text = stringResource(R.string.drafts),
+                  fontSize = 24.sp,
+                  fontWeight = FontWeight.Bold,
+                  modifier = Modifier.padding(start = 10.dp))
+            }
+            drafts.forEach { activity ->
+              item {
+                if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
+                  ActivityItem(
+                      activity,
+                      true,
+                      onClickButton = {
+                        activityToDelete = activity
+                        showDialog = true
+                      },
+                      ButtonType.DELETE,
+                      navigationActions,
+                      tripsViewModel)
+                  Spacer(modifier = Modifier.height(10.dp))
+                }
+              }
+            }
+            item {
+              Text(
+                  text = stringResource(R.string.final_activities),
+                  fontSize = 24.sp,
+                  fontWeight = FontWeight.Bold,
+                  modifier = Modifier.padding(start = 10.dp))
+            }
+            final.forEach { activity ->
+              item {
+                if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
+                  ActivityItem(
+                      activity,
+                      true,
+                      onClickButton = {
+                        activityToDelete = activity
+                        showDialog = true
+                      },
+                      ButtonType.DELETE,
+                      navigationActions,
+                      tripsViewModel)
+                  Spacer(modifier = Modifier.height(10.dp))
+                }
+              }
+            }
+            item { EstimatedPriceBox(totalEstimatedPrice) }
+          }
+
+          if (showDialog) {
+            DeleteActivityAlertDialog(
+                onDismissRequest = { showDialog = false },
+                activityToDelete = activityToDelete,
+                tripsViewModel = tripsViewModel,
+                confirmButtonOnClick = {
+                  showDialog = false
+                  final = final.filter { it != activityToDelete }
+                  drafts = drafts.filter { it != activityToDelete }
+                })
+          }
+          if (showFilterMenu) {
+            FilterDialog(
+                selectedFilters = selectedFilters,
+                onFilterChanged = { filter, isSelected ->
+                  selectedFilters =
+                      if (isSelected) {
+                        selectedFilters + filter
+                      } else {
+                        selectedFilters - filter
+                      }
+                },
+                onDismiss = { showFilterMenu = false })
+          }
+        }
+      })
 }
 
 /**

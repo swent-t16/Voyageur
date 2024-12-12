@@ -420,6 +420,7 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("clearFiltersButton").performClick()
     assert(filteredActivities.size > 1)
   }
+
   @Test
   fun displaysEmptyPromptWhenNoActivities() {
     // Arrange: Return an empty list of activities
