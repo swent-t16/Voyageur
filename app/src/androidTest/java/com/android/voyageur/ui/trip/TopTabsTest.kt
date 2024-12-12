@@ -117,6 +117,7 @@ class TopTabsTest {
     // Verify that each tab is displayed with the correct title
     composeTestRule.onNodeWithText("Schedule").assertExists()
     composeTestRule.onNodeWithText("Activities").assertExists()
+    composeTestRule.onNodeWithText("Map").assertExists()
     composeTestRule.onNodeWithText("Photos").assertExists()
     composeTestRule.onNodeWithText("Settings").assertExists()
 
@@ -126,17 +127,23 @@ class TopTabsTest {
     // Assert that the currentTabIndexForTrip has been updated to 1 (Activities tab)
     assert(navigationActions.getNavigationState().currentTabIndexForTrip == 1)
 
+    // Click on "Map" tab
+    composeTestRule.onNodeWithText("Map").performClick()
+
+    // Assert that the currentTabIndexForTrip has been updated to 2 (Map tab)
+    assert(navigationActions.getNavigationState().currentTabIndexForTrip == 2)
+
     // Click on "Photos" tab
     composeTestRule.onNodeWithText("Photos").performClick()
 
     // Assert that the currentTabIndexForTrip has been updated to 2 (Photos tab)
-    assert(navigationActions.getNavigationState().currentTabIndexForTrip == 2)
+    assert(navigationActions.getNavigationState().currentTabIndexForTrip == 3)
 
     // Click on "Settings" tab
     composeTestRule.onNodeWithText("Settings").performClick()
 
     // Assert that the currentTabIndexForTrip has been updated to 3 (Settings tab)
-    assert(navigationActions.getNavigationState().currentTabIndexForTrip == 3)
+    assert(navigationActions.getNavigationState().currentTabIndexForTrip == 4)
 
     // Click on "Schedule" tab
     composeTestRule.onNodeWithText("Schedule").performClick()

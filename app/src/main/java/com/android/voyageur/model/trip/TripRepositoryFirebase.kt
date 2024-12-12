@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
 class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository {
   private val collectionPath = "trips"
@@ -89,6 +90,35 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
         .addOnFailureListener { exception ->
           Log.e("TripRepositoryFirebase", "Error getting feed: ", exception)
           onFailure(exception)
+        }
+  }
+
+  /**
+   * Listens for updates to trips that the user is a participant of.
+   *
+   * @param userId The ID of the user.
+   * @param onSuccess The callback to be invoked when the trips are updated.
+   * @param onFailure The callback to be invoked when an error occurs.
+   * @return A ListenerRegistration object that can be used to stop listening for updates.
+   * @see ListenerRegistration
+   */
+  override fun listenForTripUpdates(
+      userId: String,
+      onSuccess: (List<Trip>) -> Unit,
+      onFailure: (Exception) -> Unit
+  ): ListenerRegistration {
+    return db.collection(collectionPath)
+        .whereArrayContains("participants", userId)
+        .addSnapshotListener { value, error ->
+          if (error != null) {
+            Log.e("TripRepositoryFirebase", "Error listening for trip updates: ", error)
+            onFailure(error)
+          }
+
+          if (value != null) {
+            val trips = value.map { document -> document.toObject(Trip::class.java) }
+            onSuccess(trips)
+          }
         }
   }
 

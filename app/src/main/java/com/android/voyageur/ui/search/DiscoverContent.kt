@@ -56,7 +56,11 @@ fun DiscoverContent(
   } else {
     HorizontalPager(state = pagerState, modifier = modifier.fillMaxSize().testTag("pager")) { page
       ->
-      TripCard(trip = trips[page], tripsViewModel = tripsViewModel, navigationActions = navigationActions, userViewModel = userViewModel)
+      TripCard(
+          trip = trips[page],
+          tripsViewModel = tripsViewModel,
+          navigationActions = navigationActions,
+          userViewModel = userViewModel)
     }
   }
 }

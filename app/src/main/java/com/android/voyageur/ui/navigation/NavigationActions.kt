@@ -61,11 +61,11 @@ val LIST_TOP_LEVEL_DESTINATION =
 open class NavigationState {
   /**
    * This is a mutable state that represents the current tab index for the trip. (0 for Schedule, 1
-   * for Activities, 2 for Settings) This is used to determine which tab is currently selected in
-   * the TobTabs composable for a trip. It needs to be part of the navigation actions in order to
-   * remember which tab was selecting when opening another screen and trying to go back. For
-   * example, when we open AddActivityScreen from the Activities tab, we want to go back to this
-   * tab.
+   * for Activities, 2 for Activities Map, 3 for Photos Screen and 4 for Settings) This is used to
+   * determine which tab is currently selected in the TobTabs composable for a trip. It needs to be
+   * part of the navigation actions in order to remember which tab was selecting when opening
+   * another screen and trying to go back. For example, when we open AddActivityScreen from the
+   * Activities tab, we want to go back to this tab.
    */
   var currentTabIndexForTrip by mutableIntStateOf(0) // Default to 0 (Schedule tab)
   /**

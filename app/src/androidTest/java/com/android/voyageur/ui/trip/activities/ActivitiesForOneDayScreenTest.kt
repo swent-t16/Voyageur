@@ -137,4 +137,14 @@ class ActivitiesForOneDayScreenTest {
     // Assert the edit button is not displayed
     composeTestRule.onNodeWithTag("editIcon_${sampleTrip.activities[1].title}").assertDoesNotExist()
   }
+
+  @Test
+  fun createActivityButton_notDisplayedInROV() {
+    val navigationState = NavigationState()
+    navigationState.isReadOnlyView = true
+    doReturn(navigationState).`when`(mockNavigationActions).getNavigationState()
+    composeTestRule.setContent { ActivitiesForOneDayScreen(tripsViewModel, mockNavigationActions) }
+
+    composeTestRule.onNodeWithTag("createActivityButton").assertDoesNotExist()
+  }
 }
