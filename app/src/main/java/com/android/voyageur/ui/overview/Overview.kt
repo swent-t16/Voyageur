@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -225,15 +226,15 @@ private fun OverviewContent(
   Column(
       modifier = Modifier.padding(padding).testTag("overviewColumn"),
   ) {
-    when {
-      trips.isEmpty() -> EmptyTripsMessage()
-      else ->
-          TripsList(
-              trips = trips,
-              searchQuery = searchQuery,
-              tripsViewModel = tripsViewModel,
-              navigationActions = navigationActions,
-              userViewModel = userViewModel)
+    if (trips.isEmpty()) {
+      EmptyTripsMessage()
+    } else {
+      TripsList(
+          trips = trips,
+          searchQuery = searchQuery,
+          tripsViewModel = tripsViewModel,
+          navigationActions = navigationActions,
+          userViewModel = userViewModel)
     }
   }
 }
@@ -284,15 +285,12 @@ private fun TripsList(
       verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
       horizontalAlignment = Alignment.CenterHorizontally,
       modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
-        filteredTrips.forEach { trip ->
-          item {
-            TripItem(
-                tripsViewModel = tripsViewModel,
-                trip = trip,
-                navigationActions = navigationActions,
-                userViewModel = userViewModel)
-            Spacer(modifier = Modifier.height(10.dp))
-          }
+        items(filteredTrips) { trip ->
+          TripItem(
+              tripsViewModel = tripsViewModel,
+              trip = trip,
+              navigationActions = navigationActions,
+              userViewModel = userViewModel)
         }
       }
 }
@@ -309,9 +307,11 @@ private fun TripsList(
  */
 private fun filterTrips(trips: List<Trip>, searchQuery: String): List<Trip> {
   return if (searchQuery.isEmpty()) {
-    trips.sortedBy { it.startDate }
+    trips.sortedByDescending { it.startDate }
   } else {
-    trips.filter { it.name.contains(searchQuery, ignoreCase = true) }.sortedBy { it.startDate }
+    trips
+        .filter { it.name.contains(searchQuery, ignoreCase = true) }
+        .sortedByDescending { it.startDate }
   }
 }
 
