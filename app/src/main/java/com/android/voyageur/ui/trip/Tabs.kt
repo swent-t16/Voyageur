@@ -77,22 +77,15 @@ fun TopTabs(
         selectedTabIndex = navigationActions.getNavigationState().currentTabIndexForTrip,
         modifier = Modifier.fillMaxWidth().testTag("tabRow"),
     ) {
-      // Create each tab with a Tab composable
-      if (navigationActions.getNavigationState().isReadOnlyView) {
-        readOnlyTabs.forEachIndexed { index, title ->
-          Tab(
-              selected = navigationActions.getNavigationState().currentTabIndexForTrip == index,
-              onClick = { navigationActions.getNavigationState().currentTabIndexForTrip = index },
-              text = { Text(title) })
+        // Determine which tabs to display based on the read-only view state
+        val tabsToDisplay = if (navigationActions.getNavigationState().isReadOnlyView) readOnlyTabs else tabs
+        tabsToDisplay.forEachIndexed { index, title ->
+            Tab(
+                selected = navigationActions.getNavigationState().currentTabIndexForTrip == index,
+                onClick = { navigationActions.getNavigationState().currentTabIndexForTrip = index },
+                text = { Text(title) }
+            )
         }
-      } else {
-        tabs.forEachIndexed { index, title ->
-          Tab(
-              selected = navigationActions.getNavigationState().currentTabIndexForTrip == index,
-              onClick = { navigationActions.getNavigationState().currentTabIndexForTrip = index },
-              text = { Text(title) })
-        }
-      }
     }
 
     when (navigationActions.getNavigationState().isReadOnlyView) {
