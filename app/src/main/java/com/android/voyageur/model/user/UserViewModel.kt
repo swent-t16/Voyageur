@@ -1,13 +1,18 @@
 package com.android.voyageur.model.user
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.android.voyageur.R
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.notifications.FriendRequestRepositoryFirebase
+import com.android.voyageur.ui.notifications.NotificationHelper
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -30,12 +35,12 @@ import kotlinx.coroutines.launch
  * @property friendRequestRepository The repository used to manage friend requests.
  * @property addAuthStateListener Flag to control the auth state listener.
  */
-open class UserViewModel(
+open class UserViewModel @SuppressLint("StaticFieldLeak") constructor(
     private val userRepository: UserRepository,
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val friendRequestRepository: FriendRequestRepository,
-    private val addAuthStateListener: Boolean =
-        true // New parameter to control the auth state listener
+    private val addAuthStateListener: Boolean = true, // New parameter to control the auth state listener
+    private val context: Context
 ) : ViewModel() {
 
   /** Flow holding the current user data. */
@@ -403,7 +408,7 @@ open class UserViewModel(
             updateUser(
                 updatedSender,
                 onSuccess = {
-                  // Optimistically update the state flow
+
                   _friendRequests.value =
                       _friendRequests.value.filterNot { it.id == friendRequest.id }
                   // Clear the friend request after successful updates
@@ -470,19 +475,22 @@ open class UserViewModel(
     _selectedUser.value = null
   }
 
-  companion object {
-    /** Factory for creating instances of UserViewModel, supplying the required UserRepository. */
-    val Factory: ViewModelProvider.Factory =
-        object : ViewModelProvider.Factory {
-          @Suppress("UNCHECKED_CAST")
-          override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return UserViewModel(
-                UserRepositoryFirebase.create(),
-                friendRequestRepository = FriendRequestRepositoryFirebase.create())
-                as T
-          }
+    companion object {
+        fun provideFactory(context: Context): ViewModelProvider.Factory {
+            return object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return UserViewModel(
+                        userRepository = UserRepositoryFirebase.create(),
+                        firebaseAuth = FirebaseAuth.getInstance(),
+                        friendRequestRepository = FriendRequestRepositoryFirebase.create(),
+                        addAuthStateListener = true,
+                        context = context
+                    ) as T
+                }
+            }
         }
-  }
+    }
 
   /**
    * Retrieves the notification count for the current user.
@@ -589,26 +597,55 @@ open class UserViewModel(
           Log.e("FRIEND_REQUEST", "Failed to delete friend request: ${exception.message}")
         })
   }
-  /** Sets up a listener for incoming friend requests so that the UI updates in real-time. */
-  fun listenToFriendRequests() {
-    val userId = Firebase.auth.uid.orEmpty()
-    if (userId.isEmpty()) return
+    /**
+     * Sets up a listener for incoming friend requests so that the UI updates in real-time.
+     * Now also triggers a notification if a new friend request arrives.
+     */
+    fun listenToFriendRequests() {
+        val userId = Firebase.auth.uid.orEmpty()
+        if (userId.isEmpty()) return
 
-    // Remove any existing listener to prevent duplicates
-    friendRequestsListener?.remove()
+        // Remove any existing listener to prevent duplicates
+        friendRequestsListener?.remove()
 
-    friendRequestsListener =
-        friendRequestRepository.listenToFriendRequests(
-            userId = userId,
-            onSuccess = { requests ->
-              _friendRequests.value = requests
-              // Update notification count based on the number of incoming friend requests
-              _notificationCount.value = requests.size.toLong()
-              // Fetch associated user data for notifications
-              getUsersByIds(requests.map { it.from }) { users -> _notificationUsers.value = users }
-            },
-            onFailure = { exception ->
-              Log.e("USER_VIEW_MODEL", "Failed to listen to friend requests: ${exception.message}")
-            })
-  }
+        friendRequestsListener =
+            friendRequestRepository.listenToFriendRequests(
+                userId = userId,
+                onSuccess = { requests ->
+                    val oldRequests = _friendRequests.value
+                    _friendRequests.value = requests
+                    _notificationCount.value = requests.size.toLong()
+
+                    getUsersByIds(requests.map { it.from }) { users ->
+                        _notificationUsers.value = users
+
+                        // Check if there's a new request (list got bigger)
+                        if (requests.size > oldRequests.size) {
+                            // Identify newly added requests
+                            val oldRequestIds = oldRequests.map { it.id }.toSet()
+                            val newRequests = requests.filterNot { oldRequestIds.contains(it.id) }
+
+                            // If there's at least one new request, show notification for the first new one
+                            if (newRequests.isNotEmpty()) {
+                                val newRequest = newRequests.first()
+                                val senderUser = users.find { it.id == newRequest.from }
+                                val senderName = senderUser?.name ?: "Someone"
+
+                                NotificationHelper.showNotification(
+                                    context = context,
+                                    notificationId = 1001,
+                                    title = "New Friend Request",
+                                    text = "$senderName sent you a friend request!",
+                                    iconResId = R.drawable.app_logo,
+                                    priority = NotificationCompat.PRIORITY_HIGH
+                                )
+                            }
+                        }
+                    }
+                },
+                onFailure = { exception ->
+                    Log.e("USER_VIEW_MODEL", "Failed to listen to friend requests: ${exception.message}")
+                }
+            )
+    }
 }

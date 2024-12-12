@@ -3,6 +3,7 @@ package com.android.voyageur
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,8 +35,13 @@ fun VoyageurApp(placesClient: PlacesClient) {
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory)
-  val userViewModel: UserViewModel = viewModel(factory = UserViewModel.Factory)
-  val placesViewModel: PlacesViewModel =
+    // Get the current context from the Compose hierarchy
+    val context = LocalContext.current
+
+    // Use UserViewModel.provideFactory(context) instead of UserViewModel.Factory
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModel.provideFactory(context))
+
+    val placesViewModel: PlacesViewModel =
       viewModel(factory = PlacesViewModel.provideFactory(placesClient))
 
   NavHost(navController = navController, startDestination = Route.AUTH) {
