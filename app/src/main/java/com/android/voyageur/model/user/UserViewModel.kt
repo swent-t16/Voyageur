@@ -579,17 +579,14 @@ open class UserViewModel(
    * @param reqId the request ID of the friend request to delete
    */
   fun deleteFriendRequest(reqId: String) {
-    // Optimistically update the state flow
     _sentFriendRequests.value = _sentFriendRequests.value.filterNot { it.id == reqId }
     friendRequestRepository.deleteRequest(
         reqId = reqId,
         onSuccess = {
           Log.d("FRIEND_REQUEST", "Friend request $reqId successfully deleted")
-          // No need to call getSentFriendRequests() since we've updated the state
         },
         onFailure = { exception ->
           Log.e("FRIEND_REQUEST", "Failed to delete friend request: ${exception.message}")
-          // Optionally revert the state flow if needed
         })
   }
   /** Sets up a listener for incoming friend requests so that the UI updates in real-time. */
