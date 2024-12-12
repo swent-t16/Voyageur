@@ -197,8 +197,8 @@ constructor(
                 val newUser =
                     User(
                         id = it.uid,
-                        name = it.displayName ?: "Unknown",
-                        email = it.email ?: "No Email",
+                        name = it.displayName ?: context.getString(R.string.unknown),
+                        email = it.email ?: context.getString(R.string.no_email),
                         profilePicture = it.photoUrl?.toString() ?: "",
                         bio = "",
                         username = it.email?.split("@")?.get(0) ?: "")
@@ -615,14 +615,14 @@ constructor(
                   if (newRequests.isNotEmpty()) {
                     val newRequest = newRequests.first()
                     val senderUser = users.find { it.id == newRequest.from }
-                    val senderName = senderUser?.name ?: "Someone"
+                    val senderName = senderUser?.name ?: context.getString(R.string.unknown)
 
                     // Existing notification for a new friend request
                     NotificationHelper.showNotification(
                         context = context,
                         notificationId = 1001,
-                        title = "New Friend Request",
-                        text = "$senderName sent you a friend request!",
+                        title = context.getString(R.string.new_friend_request),
+                        text = context.getString(R.string.friend_request_message, senderName),
                         iconResId = R.drawable.app_logo,
                         priority = NotificationCompat.PRIORITY_HIGH)
                   }
@@ -658,14 +658,16 @@ constructor(
                   // The "to" user is the one who accepted
                   getUsersByIds(listOf(acceptedReq.to)) { users ->
                     val acceptorUser = users.firstOrNull()
-                    val acceptorName = acceptorUser?.name ?: "Your friend"
+                    val acceptorName = acceptorUser?.name ?: context.getString(R.string.unknown)
 
                     // Show the notification that the request was accepted
                     NotificationHelper.showNotification(
                         context = context,
                         notificationId = 1002,
-                        title = "Friend Request Accepted",
-                        text = "$acceptorName accepted your friend request!",
+                        title = context.getString(R.string.friend_request_accepted),
+                        text =
+                            context.getString(
+                                R.string.friend_request_accepted_message, acceptorName),
                         iconResId = R.drawable.app_logo,
                         priority = NotificationCompat.PRIORITY_HIGH)
 
@@ -678,7 +680,8 @@ constructor(
                         onFailure = { exception ->
                           Log.e(
                               "FRIEND_REQUEST",
-                              "Failed to delete accepted request: ${exception.message}")
+                              context.getString(
+                                  R.string.friend_request_delete_error, exception.message))
                         })
                   }
                 }
