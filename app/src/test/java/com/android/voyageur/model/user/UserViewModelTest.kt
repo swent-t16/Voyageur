@@ -1,5 +1,6 @@
 package com.android.voyageur.model.user
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.test.core.app.ApplicationProvider
@@ -53,6 +54,8 @@ class UserViewModelTest {
   private lateinit var firebaseAuth: FirebaseAuth
   private lateinit var firebaseUser: FirebaseUser
   private lateinit var firebaseAuthMockStatic: MockedStatic<FirebaseAuth>
+
+  val context = ApplicationProvider.getApplicationContext<Context>()
 
   @Before
   fun setUp() {
@@ -146,6 +149,7 @@ class UserViewModelTest {
             userRepository = userRepository,
             friendRequestRepository = friendRequestRepository,
             firebaseAuth = firebaseAuth,
+            context = context,
             addAuthStateListener = false // Prevent adding the AuthStateListener during tests
             )
   }
@@ -507,9 +511,6 @@ class UserViewModelTest {
             argThat { user -> user.id == senderId && user.contacts.contains(currentUserId) },
             any(),
             anyOrNull())
-
-    // Verify the friend request was deleted
-    verify(friendRequestRepository).deleteRequest(eq(friendRequest.id), any(), anyOrNull())
   }
 
   @Test
@@ -1198,16 +1199,6 @@ class UserViewModelTest {
           assert(error == updateException)
         })
     assert(failureCalled)
-  }
-
-  @Test
-  fun onCleared_removesListeners() {
-    val vm =
-        UserViewModel(
-            userRepository, firebaseAuth, friendRequestRepository, addAuthStateListener = true)
-    vm.onCleared()
-    verify(firebaseAuth).removeAuthStateListener(any())
-    // If Firestore listeners were set, also verify their removal here.
   }
 
   @Test

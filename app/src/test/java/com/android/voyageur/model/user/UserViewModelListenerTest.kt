@@ -1,5 +1,6 @@
 package com.android.voyageur.model.user
 
+import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
@@ -29,6 +30,7 @@ class UserViewModelListenerTest {
   private lateinit var firebaseAuth: FirebaseAuth
   private lateinit var userViewModel: TestUserViewModel
   private val testDispatcher = UnconfinedTestDispatcher()
+  val context = ApplicationProvider.getApplicationContext<Context>()
 
   private val user = User("1", "name", "email", "", "bio", listOf(), emptyList(), "username")
 
@@ -51,7 +53,8 @@ class UserViewModelListenerTest {
     authStateListenerCaptor = argumentCaptor()
     doNothing().`when`(firebaseAuth).addAuthStateListener(authStateListenerCaptor.capture())
 
-    userViewModel = TestUserViewModel(userRepository, firebaseAuth, friendRequestRepository)
+    userViewModel =
+        TestUserViewModel(userRepository, firebaseAuth, friendRequestRepository, context)
   }
 
   @After
@@ -63,8 +66,9 @@ class UserViewModelListenerTest {
   class TestUserViewModel(
       userRepository: UserRepository,
       firebaseAuth: FirebaseAuth,
-      friendRequestRepository: FriendRequestRepository
-  ) : UserViewModel(userRepository, firebaseAuth, friendRequestRepository) {
+      friendRequestRepository: FriendRequestRepository,
+      context: Context
+  ) : UserViewModel(userRepository, firebaseAuth, friendRequestRepository, context = context) {
     public override fun onCleared() {
       super.onCleared()
     }

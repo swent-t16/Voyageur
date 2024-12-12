@@ -1,3 +1,4 @@
+import android.content.Context
 import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.model.notifications.FriendRequest
@@ -57,9 +58,15 @@ class UserViewModelLogTest {
       `when`(firebaseAuth.currentUser).thenReturn(firebaseUser)
     }
 
-    userViewModel =
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val userViewModel =
         UserViewModel(
-            userRepository = userRepository, friendRequestRepository = friendRequestRepository)
+            context = context,
+            userRepository = userRepository,
+            friendRequestRepository = friendRequestRepository,
+            firebaseAuth = firebaseAuth,
+            addAuthStateListener = false // or true if you need the listener
+            )
   }
 
   @After
