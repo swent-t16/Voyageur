@@ -43,7 +43,7 @@ constructor(
     private val friendRequestRepository: FriendRequestRepository,
     private val addAuthStateListener: Boolean =
         true, // New parameter to control the auth state listener
-    private val context: Context
+    private val context: Context? = null
 ) : ViewModel() {
 
   /** Flow holding the current user data. */
@@ -195,20 +195,26 @@ constructor(
               firebaseUser?.let {
                 // Create a new user profile if not found in the repository
                 val newUser =
-                    User(
-                        id = it.uid,
-                        name = it.displayName ?: context.getString(R.string.unknown),
-                        email = it.email ?: context.getString(R.string.no_email),
-                        profilePicture = it.photoUrl?.toString() ?: "",
-                        bio = "",
-                        username = it.email?.split("@")?.get(0) ?: "")
-                userRepository.createUser(
-                    newUser,
-                    onSuccess = {
-                      _user.value = newUser
-                      _isLoading.value = false
-                    },
-                    onFailure = { _isLoading.value = false })
+                    (it.displayName ?: context?.getString(R.string.unknown))?.let { it1 ->
+                      (it.email ?: context?.getString(R.string.no_email))?.let { it2 ->
+                        User(
+                            id = it.uid,
+                            name = it1,
+                            email = it2,
+                            profilePicture = it.photoUrl?.toString() ?: "",
+                            bio = "",
+                            username = it.email?.split("@")?.get(0) ?: "")
+                      }
+                    }
+                if (newUser != null) {
+                  userRepository.createUser(
+                      newUser,
+                      onSuccess = {
+                        _user.value = newUser
+                        _isLoading.value = false
+                      },
+                      onFailure = { _isLoading.value = false })
+                }
               }
                   ?: run {
                     _user.value = null
@@ -633,16 +639,18 @@ constructor(
                   if (newRequests.isNotEmpty()) {
                     val newRequest = newRequests.first()
                     val senderUser = users.find { it.id == newRequest.from }
-                    val senderName = senderUser?.name ?: context.getString(R.string.unknown)
+                    val senderName = senderUser?.name ?: context?.getString(R.string.unknown)
 
                     // Existing notification for a new friend request
-                    NotificationHelper.showNotification(
-                        context = context,
-                        notificationId = 1001,
-                        title = context.getString(R.string.new_friend_request),
-                        text = context.getString(R.string.friend_request_message, senderName),
-                        iconResId = R.drawable.app_logo,
-                        priority = NotificationCompat.PRIORITY_HIGH)
+                    if (context != null) {
+                      NotificationHelper.showNotification(
+                          context = context,
+                          notificationId = 1001,
+                          title = context.getString(R.string.new_friend_request),
+                          text = context.getString(R.string.friend_request_message, senderName),
+                          iconResId = R.drawable.app_logo,
+                          priority = NotificationCompat.PRIORITY_HIGH)
+                    }
                   }
                 }
               }
@@ -652,6 +660,10 @@ constructor(
             })
   }
 
+  /**
+   * Sets up a listener for sent friend requests so that the UI updates in real-time. This method
+   * also triggers a notification if a sent friend request is accepted.
+   */
   fun getSentFriendRequests() {
     val userId = Firebase.auth.uid.orEmpty()
     if (userId.isEmpty()) return
@@ -676,30 +688,32 @@ constructor(
                   // The "to" user is the one who accepted
                   getUsersByIds(listOf(acceptedReq.to)) { users ->
                     val acceptorUser = users.firstOrNull()
-                    val acceptorName = acceptorUser?.name ?: context.getString(R.string.unknown)
+                    val acceptorName = acceptorUser?.name ?: context?.getString(R.string.unknown)
 
                     // Show the notification that the request was accepted
-                    NotificationHelper.showNotification(
-                        context = context,
-                        notificationId = 1002,
-                        title = context.getString(R.string.friend_request_accepted),
-                        text =
-                            context.getString(
-                                R.string.friend_request_accepted_message, acceptorName),
-                        iconResId = R.drawable.app_logo,
-                        priority = NotificationCompat.PRIORITY_HIGH)
+                    context?.let {
+                      NotificationHelper.showNotification(
+                          context = context,
+                          notificationId = 1002,
+                          title = it.getString(R.string.friend_request_accepted),
+                          text =
+                              context.getString(
+                                  R.string.friend_request_accepted_message, acceptorName),
+                          iconResId = R.drawable.app_logo,
+                          priority = NotificationCompat.PRIORITY_HIGH)
+                    }
 
                     // After showing the notification, delete the request
                     friendRequestRepository.deleteRequest(
                         reqId = acceptedReq.id,
-                        onSuccess = {
-                          Log.d("FRIEND_REQUEST", "Accepted request ${acceptedReq.id} deleted")
-                        },
+                        onSuccess = {},
                         onFailure = { exception ->
-                          Log.e(
-                              "FRIEND_REQUEST",
-                              context.getString(
-                                  R.string.friend_request_delete_error, exception.message))
+                          context?.let {
+                            Log.e(
+                                "FRIEND_REQUEST",
+                                it.getString(
+                                    R.string.friend_request_delete_error, exception.message))
+                          }
                         })
                   }
                 }

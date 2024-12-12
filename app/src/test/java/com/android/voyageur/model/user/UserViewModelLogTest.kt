@@ -59,7 +59,7 @@ class UserViewModelLogTest {
     }
 
     val context = ApplicationProvider.getApplicationContext<Context>()
-    val userViewModel =
+    userViewModel =
         UserViewModel(
             context = context,
             userRepository = userRepository,
