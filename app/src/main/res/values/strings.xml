@@ -146,4 +146,7 @@
     <string name="filter_activities_by_type">Filter by Type</string>
     <string name="clear_filters">Clear Filters</string>
     <string name="close_photo">Close Photo Dialog</string>
+    <string name="no_trips_to_discover">No trips to discover</string>
+    <string name="check_back_letter">Please check back later.</string>
+    <string name="search_trips">Search trips...</string>
 </resources>
