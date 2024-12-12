@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -178,18 +179,18 @@ fun NoTripsFound() {
             horizontalAlignment = Alignment.CenterHorizontally) {
               Icon(
                   imageVector = Icons.Outlined.ImageSearch,
-                  contentDescription = "No Trips Found",
+                  contentDescription = stringResource(R.string.no_trips_to_discover),
                   modifier = Modifier.size(48.dp),
                   tint = MaterialTheme.colorScheme.onSurfaceVariant)
               Spacer(modifier = Modifier.height(16.dp))
               Text(
-                  text = "No trips to discover",
+                  text = stringResource(R.string.no_trips_to_discover),
                   fontSize = 18.sp,
                   textAlign = TextAlign.Center,
                   color = MaterialTheme.colorScheme.onSurfaceVariant)
               Spacer(modifier = Modifier.height(8.dp))
               Text(
-                  text = "Please check back later.",
+                  text = stringResource(R.string.check_back_letter),
                   fontSize = 14.sp,
                   textAlign = TextAlign.Center,
                   color = MaterialTheme.colorScheme.onSurface)
