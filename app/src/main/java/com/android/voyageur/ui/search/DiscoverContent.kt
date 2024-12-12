@@ -44,6 +44,7 @@ import com.android.voyageur.ui.overview.DisplayParticipants
 /**
  * DiscoverContent composable displays the trips that the user can discover.
  *
+ * @param query the searchBar query that helps filter the field
  * @param tripsViewModel ViewModel that provides the trips to display.
  * @param userViewModel ViewModel that provides the user information.
  * @param modifier Modifier to apply to this layout node.
