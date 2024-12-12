@@ -18,12 +18,14 @@ import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
+import com.android.voyageur.ui.navigation.Screen
 import com.google.android.libraries.places.api.model.Place
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -153,5 +155,24 @@ class SearchScreenTest {
 
     composeTestRule.onNodeWithTag("discoverTab").performClick()
     composeTestRule.onNodeWithTag("noTripsFound").assertIsDisplayed()
+  }
+
+  @Test
+  fun testDetailsButtonUpdatesNavActions() = runTest {
+    composeTestRule.awaitIdle()
+    `when`(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
+      onSuccess(listOf(Trip(id = "1"))) // Provide a valid Trip for testing
+    }
+    composeTestRule.onNodeWithTag("discoverTab").performClick()
+    composeTestRule.awaitIdle()
+    composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("viewTripDetailsButton").performClick()
+    // Check the user will be redirected to daily view
+    assert(navigationActions.getNavigationState().isDailyViewSelected)
+    // Check the user navigates in Read Only Mode for the trip
+    assert(navigationActions.getNavigationState().isReadOnlyView)
+    // Assert the navigation action navigates to the TOP_TABS screen
+    verify(navigationActions).navigateTo(Screen.TOP_TABS)
   }
 }

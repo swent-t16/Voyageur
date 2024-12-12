@@ -53,18 +53,25 @@ import java.util.Locale
  * @param trip The current trip being displayed
  * @param navigationActions Handler for navigation between screens
  * @param userViewModel ViewModel containing user-related data and operations
+ * @param isReadOnly Boolean which determines if the user is in Read Only View and cannot add new
+ *   activities.
  */
 @Composable
 fun WeeklyViewScreen(
     tripsViewModel: TripsViewModel,
     trip: Trip,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    isReadOnly: Boolean = false
 ) {
   val weeks = generateWeeks(trip.startDate, trip.endDate)
 
   Scaffold(
-      floatingActionButton = { AddActivityButton(navigationActions) },
+      floatingActionButton = {
+        if (!isReadOnly) {
+          AddActivityButton(navigationActions)
+        }
+      },
       modifier = Modifier.fillMaxSize().testTag("weeklyViewScreen"),
       bottomBar = {
         BottomNavigationMenu(
