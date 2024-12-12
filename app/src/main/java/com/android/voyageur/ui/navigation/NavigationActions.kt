@@ -76,6 +76,17 @@ open class NavigationState {
    */
   var isDailyViewSelected by mutableStateOf(true) // Default to true (Daily view selected)
   /**
+   * This is a mutable state that represents whether the read only view is set on for a trip (in
+   * Discover tab).
+   *
+   * This is used to determine whether the editing and uploading photos screens are available. It
+   * needs to be part of the navigation actions to ensure that the read-only state is preserved
+   * across screens (to determine which screens the user can access). For example, when navigating
+   * to a screen like`ByDayScreen` or `ScheduleScreen`, this state dictates whether users can add or
+   * modify activities, and the user cannot travel to 'SettingsScreen' or 'PhotosScreen'
+   */
+  var isReadOnlyView by mutableStateOf(false) // Default to false
+  /**
    * This is a mutable state that represents the current tab index for the search. (0 for Users, 1
    * for Places, 2 for the discover tab) This is used to determine which tab is currently selected
    * in the SearchScreen. It needs to be part of the navigation actions in order to remember which

@@ -360,6 +360,7 @@ fun TripItem(
         // When opening a trip, navigate to the Schedule screen, with the daily view enabled
         navigationActions.getNavigationState().currentTabIndexForTrip = 0
         navigationActions.getNavigationState().isDailyViewSelected = true
+        navigationActions.getNavigationState().isReadOnlyView = false
         navigationActions.navigateTo(Screen.TOP_TABS)
         tripsViewModel.selectTrip(trip)
       },

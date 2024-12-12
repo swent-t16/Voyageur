@@ -10,7 +10,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.sp
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
@@ -48,9 +47,10 @@ fun TopTabs(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
-    placesViewModel: PlacesViewModel
+    placesViewModel: PlacesViewModel,
 ) {
   // Define tab items
+  val readOnlyTabs = listOf("Schedule", "Activities")
   val tabs = listOf("Schedule", "Activities", "Map", "Photos", "Settings")
 
   // Collect selectedTrip as state to avoid calling .value directly in composition
@@ -78,32 +78,44 @@ fun TopTabs(
         selectedTabIndex = navigationActions.getNavigationState().currentTabIndexForTrip,
         modifier = Modifier.fillMaxWidth().testTag("tabRow"),
     ) {
-      // Create each tab with a Tab composable
-      tabs.forEachIndexed { index, title ->
+      // Determine which tabs to display based on the read-only view state
+      val tabsToDisplay =
+          if (navigationActions.getNavigationState().isReadOnlyView) readOnlyTabs else tabs
+      tabsToDisplay.forEachIndexed { index, title ->
         Tab(
             selected = navigationActions.getNavigationState().currentTabIndexForTrip == index,
             onClick = { navigationActions.getNavigationState().currentTabIndexForTrip = index },
-            text = { Text(title, fontSize = 12.sp) })
+            text = { Text(title) })
       }
     }
 
-    // Display content based on selected tab
-    when (navigationActions.getNavigationState().currentTabIndexForTrip) {
-      0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel)
-      1 -> ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
-      2 -> ActivitiesMapTab(tripsViewModel)
-      3 -> PhotosScreen(tripsViewModel, navigationActions, userViewModel)
-      4 ->
-          SettingsScreen(
-              selectedTrip,
-              navigationActions,
-              tripsViewModel = tripsViewModel,
-              userViewModel = userViewModel,
-              placesViewModel = placesViewModel,
-              onUpdate = {
-                navigationActions.getNavigationState().currentTabIndexForTrip = 0
-                navigationActions.getNavigationState().currentTabIndexForTrip = 4
-              })
+    when (navigationActions.getNavigationState().isReadOnlyView) {
+      true -> {
+        when (navigationActions.getNavigationState().currentTabIndexForTrip) {
+          // Pass true for the isReadOnly parameters
+          0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel, true)
+          1 -> ActivitiesScreen(navigationActions, userViewModel, tripsViewModel, true)
+        }
+      }
+      false -> {
+        when (navigationActions.getNavigationState().currentTabIndexForTrip) {
+          0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel)
+          1 -> ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
+          2 -> ActivitiesMapTab(tripsViewModel)
+          3 -> PhotosScreen(tripsViewModel, navigationActions, userViewModel)
+          4 ->
+              SettingsScreen(
+                  selectedTrip,
+                  navigationActions,
+                  tripsViewModel = tripsViewModel,
+                  userViewModel = userViewModel,
+                  placesViewModel = placesViewModel,
+                  onUpdate = {
+                    navigationActions.getNavigationState().currentTabIndexForTrip = 0
+                    navigationActions.getNavigationState().currentTabIndexForTrip = 4
+                  })
+        }
+      }
     }
   }
 }

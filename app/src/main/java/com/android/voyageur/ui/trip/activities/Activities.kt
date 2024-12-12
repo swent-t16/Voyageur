@@ -56,11 +56,14 @@ import com.google.firebase.Timestamp
  * @param navigationActions Provides actions for navigating between screens.
  * @param userViewModel The [UserViewModel] instance for managing user-related data.
  * @param tripsViewModel The [TripsViewModel] instance for accessing trip and activity data.
+ * @param isReadOnly Boolean which determines if the user is in Read Only View and cannot
+ *   edit/add/delete activities.
  */
 fun ActivitiesScreen(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
-    tripsViewModel: TripsViewModel
+    tripsViewModel: TripsViewModel,
+    isReadOnly: Boolean = false
 ) {
   // States for filtering
   var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
@@ -167,8 +170,14 @@ fun ActivitiesScreen(
             },
             modifier = Modifier.height(80.dp).testTag("topAppBar"))
       },
-      floatingActionButton = { AddActivityButton(navigationActions) },
+      floatingActionButton = {
+        if (!isReadOnly) {
+          AddActivityButton(navigationActions)
+        }
+      },
       content = { pd ->
+        val isEditable = !isReadOnly
+        val buttonType = if (isEditable) ButtonType.DELETE else ButtonType.NOTHING
         LazyColumn(
             modifier = Modifier.padding(pd).fillMaxWidth().testTag("lazyColumn"),
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
@@ -185,12 +194,12 @@ fun ActivitiesScreen(
               if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
                 ActivityItem(
                     activity,
-                    true,
+                    isEditable,
                     onClickButton = {
                       activityToDelete = activity
                       showDialog = true
                     },
-                    ButtonType.DELETE,
+                    buttonType,
                     navigationActions,
                     tripsViewModel)
                 Spacer(modifier = Modifier.height(10.dp))
@@ -209,12 +218,12 @@ fun ActivitiesScreen(
               if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
                 ActivityItem(
                     activity,
-                    true,
+                    isEditable,
                     onClickButton = {
                       activityToDelete = activity
                       showDialog = true
                     },
-                    ButtonType.DELETE,
+                    buttonType,
                     navigationActions,
                     tripsViewModel)
                 Spacer(modifier = Modifier.height(10.dp))
