@@ -72,7 +72,11 @@ fun ActivitiesForOneDayScreen(
               val matchesFilter = selectedFilters.isEmpty() || it.activityType in selectedFilters
               matchesDate && matchesSearch && matchesFilter
             }
-            .sortedWith(compareBy({ it.startTime }, { it.endTime })))
+            .sortedWith(
+                compareBy(
+                    { it.startTime }, // First, sort by startTime
+                    { it.endTime } // If startTime is equal, sort by endTime
+                    )))
   }
 
   var showDialog by remember { mutableStateOf(false) }
