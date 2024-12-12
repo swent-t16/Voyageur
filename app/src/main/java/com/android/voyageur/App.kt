@@ -35,13 +35,13 @@ fun VoyageurApp(placesClient: PlacesClient) {
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory)
-    // Get the current context from the Compose hierarchy
-    val context = LocalContext.current
+  // Get the current context from the Compose hierarchy
+  val context = LocalContext.current
 
-    // Use UserViewModel.provideFactory(context) instead of UserViewModel.Factory
-    val userViewModel: UserViewModel = viewModel(factory = UserViewModel.provideFactory(context))
+  // Use UserViewModel.provideFactory(context) instead of UserViewModel.Factory
+  val userViewModel: UserViewModel = viewModel(factory = UserViewModel.provideFactory(context))
 
-    val placesViewModel: PlacesViewModel =
+  val placesViewModel: PlacesViewModel =
       viewModel(factory = PlacesViewModel.provideFactory(placesClient))
 
   NavHost(navController = navController, startDestination = Route.AUTH) {

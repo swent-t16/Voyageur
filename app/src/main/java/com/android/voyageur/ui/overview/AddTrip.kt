@@ -127,7 +127,8 @@ fun AddTripScreen(
     navigationActions: NavigationActions,
     isEditMode: Boolean = false,
     onUpdate: () -> Unit = {},
-    userViewModel: UserViewModel = viewModel(factory = UserViewModel.provideFactory(LocalContext.current)),
+    userViewModel: UserViewModel =
+        viewModel(factory = UserViewModel.provideFactory(LocalContext.current)),
     placesViewModel: PlacesViewModel
 ) {
   var name by remember { mutableStateOf("") }
