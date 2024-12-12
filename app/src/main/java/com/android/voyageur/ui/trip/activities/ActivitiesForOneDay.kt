@@ -72,11 +72,7 @@ fun ActivitiesForOneDayScreen(
               val matchesFilter = selectedFilters.isEmpty() || it.activityType in selectedFilters
               matchesDate && matchesSearch && matchesFilter
             }
-            .sortedWith(
-                compareBy(
-                    { it.startTime }, // First, sort by startTime
-                    { it.endTime } // If startTime is equal, sort by endTime
-                    )))
+            .sortedWith(compareBy({ it.startTime }, { it.endTime })))
   }
 
   var showDialog by remember { mutableStateOf(false) }
@@ -97,7 +93,11 @@ fun ActivitiesForOneDayScreen(
               val matchesFilter = selectedFilters.isEmpty() || it.activityType in selectedFilters
               matchesDate && matchesSearch && matchesFilter
             }
-            .sortedWith(compareBy({ it.startTime }, { it.endTime }))
+            .sortedWith(
+                compareBy(
+                    { it.startTime }, // First, sort by startTime
+                    { it.endTime } // If startTime is equal, sort by endTime
+                    ))
   }
 
   // Calculate the total estimated price whenever the activities change
