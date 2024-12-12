@@ -397,7 +397,7 @@ fun SearchScreen(
                   }
                 }
           } else {
-            DiscoverContent(tripsViewModel, userViewModel)
+            DiscoverContent(searchQuery.text, tripsViewModel, userViewModel)
           }
         }
       }
@@ -536,7 +536,7 @@ fun UserSearchResultItem(
 /**
  * Composable function to display a place search result item.
  *
- * @param place The place to display.
+ * @param customPlace The place to display.
  * @param modifier Modifier for the composable.
  */
 @Composable
