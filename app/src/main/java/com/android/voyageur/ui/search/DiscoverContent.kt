@@ -12,7 +12,6 @@ import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,10 +31,13 @@ import com.android.voyageur.ui.navigation.Screen
 import com.android.voyageur.ui.overview.DisplayParticipants
 
 /**
- * DiscoverContent composable displays the trips that the user can discover.
+ * DiscoverContent composable displays the trips that the user can discover. When the user presses
+ * on View Details Button, they are re-directed to the TABS screen in Read-Only View, where they can
+ * see the schedule of the featured trip, with disabled functions (such as adding a new activity).
  *
  * @param tripsViewModel ViewModel that provides the trips to display.
  * @param userViewModel ViewModel that provides the user information.
+ * @param navigationActions Handler for navigation between screens.
  * @param modifier Modifier to apply to this layout node.
  */
 @Composable
