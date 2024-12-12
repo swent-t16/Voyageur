@@ -247,6 +247,7 @@ fun TripItem(
   val themeColor = MaterialTheme.colorScheme.onSurface
   var isExpanded by remember { mutableStateOf(false) }
   var showDialog by remember { mutableStateOf(false) }
+  var leaveTrip by remember { mutableStateOf(false) }
   val context = LocalContext.current
   val status by connectivityState()
   val isConnected = status === ConnectionState.Available
@@ -361,11 +362,18 @@ fun TripItem(
                           },
                           text = { Text(stringResource(R.string.add_to_calendar_text)) },
                           modifier = Modifier.testTag("addToCalendarMenuItem_${trip.name}"))
+                      DropdownMenuItem(
+                          onClick = {
+                            isExpanded = false
+                            leaveTrip = true
+                          },
+                          text = { Text(stringResource(R.string.leave_trip_text)) },
+                          modifier = Modifier.testTag("leaveMenuItem_${trip.name}"))
                     }
               }
             }
       })
-  // Confirmation Dialog
+  // Confirmation Dialog for deleting the trip
   if (showDialog) {
     AlertDialog(
         onDismissRequest = { showDialog = false },
@@ -385,6 +393,45 @@ fun TripItem(
           TextButton(onClick = { showDialog = false }) {
             Text(stringResource(R.string.cancel_text))
           }
+        })
+  }
+  // confirmation button for leaving a trip
+  if (leaveTrip) {
+    AlertDialog(
+        onDismissRequest = { leaveTrip = false },
+        title = { Text(text = stringResource(R.string.leave_trip_text)) },
+        text = { Text(stringResource(R.string.leave_trip_confirmation, trip.name)) },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                val userId = Firebase.auth.uid.orEmpty()
+                if (trip.participants.contains(userId)) {
+                  val updatedParticipants = trip.participants.filter { it != userId }
+                  val updatedTrip = trip.copy(participants = updatedParticipants)
+                  tripsViewModel.updateTrip(
+                      updatedTrip,
+                      onSuccess = {
+                        Toast.makeText(
+                                context,
+                                context.getString(R.string.trip_left_text),
+                                Toast.LENGTH_SHORT)
+                            .show()
+                      },
+                      onFailure = { error ->
+                        Toast.makeText(
+                                context,
+                                context.getString(R.string.fail_leave_trip, error.message),
+                                Toast.LENGTH_SHORT)
+                            .show()
+                      })
+                }
+                leaveTrip = false
+              }) {
+                Text(stringResource(R.string.leave))
+              }
+        },
+        dismissButton = {
+          TextButton(onClick = { leaveTrip = false }) { Text(stringResource(R.string.cancel_text)) }
         })
   }
 }

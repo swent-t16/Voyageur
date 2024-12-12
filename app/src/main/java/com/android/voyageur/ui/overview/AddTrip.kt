@@ -337,7 +337,6 @@ fun AddTripScreen(
                       }
                     }
 
-                Spacer(modifier = Modifier.height(16.dp))
                 PermissionButtonForGallery(
                     onUriSelected = { uri -> imageUri = uri.toString() },
                     stringResource(R.string.select_image_gallery),
