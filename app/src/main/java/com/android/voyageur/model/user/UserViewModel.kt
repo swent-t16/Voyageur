@@ -411,16 +411,34 @@ constructor(
             updateUser(
                 updatedSender,
                 onSuccess = {
-                  // Instead of deleting the request, we set accepted = true
+                  // Mark the request as accepted to trigger the sender's notification
                   val acceptedRequest = friendRequest.copy(accepted = true)
                   friendRequestRepository.createRequest(
                       acceptedRequest,
                       onSuccess = {
-                        // Remove it from the local list if it's being tracked there
+                        // Remove the old request from this device's local state immediately
                         _friendRequests.value =
                             _friendRequests.value.filterNot { it.id == friendRequest.id }
+
+                        // After a short delay, delete the accepted request from Firestore
+                        // This gives the sender time to see the acceptance state and show a
+                        // notification
+                        viewModelScope.launch {
+                          kotlinx.coroutines.delay(1000)
+                          friendRequestRepository.deleteRequest(
+                              reqId = acceptedRequest.id,
+                              onSuccess = {},
+                              onFailure = { e ->
+                                Log.e(
+                                    "ACCEPT_REQUEST",
+                                    "Failed to delete friend request: ${e.message}")
+                              })
+                        }
                       },
-                      onFailure = { error -> })
+                      onFailure = { error ->
+                        Log.e(
+                            "ACCEPT_REQUEST", "Failed to create accepted request: ${error.message}")
+                      })
                 },
                 onFailure = { error ->
                   Log.e("ACCEPT_REQUEST", "Failed to update sender: ${error.message}")
