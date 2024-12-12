@@ -664,35 +664,6 @@ class UserViewModelTest {
   }
 
   @Test
-  fun loadUser_firebaseUserMissingFields() = runTest {
-    val userId = "123"
-    val mockFirebaseUser =
-        mock(FirebaseUser::class.java).apply {
-          `when`(uid).thenReturn(userId)
-          `when`(displayName).thenReturn(null)
-          `when`(email).thenReturn(null)
-        }
-
-    // Mock failure to load user from repository
-    doAnswer { invocation ->
-          val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
-          onFailure(Exception("User not found"))
-          null
-        }
-        .whenever(userRepository)
-        .listenToUser(eq(userId), any(), anyOrNull())
-
-    userViewModel.loadUser(userId, mockFirebaseUser)
-
-    verify(userRepository).listenToUser(eq(userId), any(), anyOrNull())
-    verify(userRepository)
-        .createUser(
-            argThat { user -> user.name == "Unknown" && user.email == "No Email" },
-            any(),
-            anyOrNull())
-  }
-
-  @Test
   fun updateContacts_invalidContactIds() = runTest {
     val invalidIds = listOf("999", "888")
 

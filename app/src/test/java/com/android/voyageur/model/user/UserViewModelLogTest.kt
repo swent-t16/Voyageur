@@ -51,6 +51,8 @@ class UserViewModelLogTest {
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     firebaseAuth = mock(FirebaseAuth::class.java)
     firebaseUser = mock(FirebaseUser::class.java).apply { `when`(uid).thenReturn("123") }
+    stringProvider = mock(StringProvider::class.java) // Initialize stringProvider
+    notificationProvider = mock(NotificationProvider::class.java) // Initialize notificationProvider
 
     // Mock static FirebaseAuth
     logMock = mockStatic(Log::class.java)

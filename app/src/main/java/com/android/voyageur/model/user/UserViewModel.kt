@@ -685,25 +685,31 @@ constructor(
 
               if (newlyAccepted.isNotEmpty()) {
                 newlyAccepted.forEach { acceptedReq ->
-                  // The "to" user is the one who accepted
-                  getUsersByIds(listOf(acceptedReq.to)) { users ->
-                    val acceptorUser = users.firstOrNull()
-                    val acceptorName =
-                        acceptorUser?.name ?: stringProvider?.getString(R.string.unknown)
+                  // Use the optimized `getUserById` instead of `getUsersByIds`
+                  userRepository.getUserById(
+                      id = acceptedReq.to,
+                      onSuccess = { acceptorUser ->
+                        val acceptorName =
+                            acceptorUser.name ?: stringProvider?.getString(R.string.unknown)
 
-                    // Use NotificationProvider to show acceptance notification
-                    if (acceptorName != null) {
-                      notificationProvider?.showFriendRequestAcceptedNotification(acceptorName)
-                    }
+                        // Use NotificationProvider to show acceptance notification
+                        if (acceptorName != null) {
+                          notificationProvider?.showFriendRequestAcceptedNotification(acceptorName)
+                        }
 
-                    // After showing the notification, delete the request
-                    friendRequestRepository.deleteRequest(
-                        reqId = acceptedReq.id,
-                        onSuccess = {},
-                        onFailure = { exception ->
-                          Log.e("FRIEND_REQUEST", "Failed to delete request: ${exception.message}")
-                        })
-                  }
+                        // After showing the notification, delete the request
+                        friendRequestRepository.deleteRequest(
+                            reqId = acceptedReq.id,
+                            onSuccess = {},
+                            onFailure = { exception ->
+                              Log.e(
+                                  "FRIEND_REQUEST",
+                                  "Failed to delete request: ${exception.message}")
+                            })
+                      },
+                      onFailure = { exception ->
+                        Log.e("FRIEND_REQUEST", "Failed to fetch user: ${exception.message}")
+                      })
                 }
               }
             },
