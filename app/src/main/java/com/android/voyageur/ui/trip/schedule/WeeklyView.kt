@@ -73,7 +73,7 @@ fun WeeklyViewScreen(
                       trip = trip,
                       weekStart = weeks[weekIndex].first,
                       weekEnd = weeks[weekIndex].last,
-                      activities = trip.activities,
+                      activities = tripsViewModel.getActivitiesForSelectedTrip(),
                       weekIndex = weekIndex,
                       navigationActions = navigationActions)
                 }
