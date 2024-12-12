@@ -69,10 +69,13 @@
     <string name="additional_participants">and %1$d more</string>
     <string name="participants_count">%1$d Participants:</string>
     <string name="no_compatible_calendar">No compatible calendar app found.</string>
+    <string name="leave_trip_text">Leave Trip</string>
+    <string name="leave_trip_confirmation">Are you sure you want to leave %1$s?</string>
+    <string name="trip_left_text">You have left the trip successfully</string>
+    <string name="leave">Leave</string>
+    <string name="fail_leave_trip">Failed to leave the trip: %1$s</string>
 
-
-
- <!-- Add Activity -->
+    <!-- Add Activity -->
     <string name="create_activity">Create a New Activity</string>
     <string name="edit_activity">Edit Activity</string>
     <string name="back">Back</string>
@@ -123,4 +126,12 @@
     <string name="photo_downloaded">Photo downloaded</string>
     <string name="photo_deleted">Photo successfully deleted</string>
     <string name="photo_added">Photo successfully added</string>
+    <string name="search_activities">Search activities...</string>
+    <string name="select_activities_by_type">Select Activity Types</string>
+    <string name="apply">Apply</string>
+    <string name="filter_activities_button">Filter Activities</string>
+    <string name="filter_activities_by_date">Filter by Date</string>
+    <string name="filter_activities_by_type">Filter by Type</string>
+    <string name="clear_filters">Clear Filters</string>
+    <string name="close_photo">Close Photo Dialog</string>
 </resources>

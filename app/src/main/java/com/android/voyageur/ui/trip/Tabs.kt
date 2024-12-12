@@ -10,11 +10,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.sp
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
+import com.android.voyageur.ui.trip.activities.ActivitiesMapTab
 import com.android.voyageur.ui.trip.activities.ActivitiesScreen
 import com.android.voyageur.ui.trip.photos.PhotosScreen
 import com.android.voyageur.ui.trip.schedule.ScheduleScreen
@@ -49,7 +51,7 @@ fun TopTabs(
     placesViewModel: PlacesViewModel
 ) {
   // Define tab items
-  val tabs = listOf("Schedule", "Activities", "Photos", "Settings")
+  val tabs = listOf("Schedule", "Activities", "Map", "Photos", "Settings")
 
   // Collect selectedTrip as state to avoid calling .value directly in composition
   val trip by tripsViewModel.selectedTrip.collectAsState()
@@ -81,7 +83,7 @@ fun TopTabs(
         Tab(
             selected = navigationActions.getNavigationState().currentTabIndexForTrip == index,
             onClick = { navigationActions.getNavigationState().currentTabIndexForTrip = index },
-            text = { Text(title) })
+            text = { Text(title, fontSize = 12.sp) })
       }
     }
 
@@ -89,8 +91,9 @@ fun TopTabs(
     when (navigationActions.getNavigationState().currentTabIndexForTrip) {
       0 -> ScheduleScreen(tripsViewModel, selectedTrip, navigationActions, userViewModel)
       1 -> ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
-      2 -> PhotosScreen(tripsViewModel, navigationActions, userViewModel)
-      3 ->
+      2 -> ActivitiesMapTab(tripsViewModel)
+      3 -> PhotosScreen(tripsViewModel, navigationActions, userViewModel)
+      4 ->
           SettingsScreen(
               selectedTrip,
               navigationActions,
@@ -99,7 +102,7 @@ fun TopTabs(
               placesViewModel = placesViewModel,
               onUpdate = {
                 navigationActions.getNavigationState().currentTabIndexForTrip = 0
-                navigationActions.getNavigationState().currentTabIndexForTrip = 3
+                navigationActions.getNavigationState().currentTabIndexForTrip = 4
               })
     }
   }
