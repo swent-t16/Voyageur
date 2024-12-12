@@ -160,7 +160,10 @@ fun TripCard(trip: Trip, userViewModel: UserViewModel) {
 fun NoTripsFound() {
   Box(
       modifier =
-          Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp),
+          Modifier.fillMaxSize()
+              .background(MaterialTheme.colorScheme.background)
+              .padding(16.dp)
+              .testTag("noTripsFound"),
       contentAlignment = Alignment.Center) {
         Column(
             modifier =
