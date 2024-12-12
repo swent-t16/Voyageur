@@ -6,6 +6,8 @@ import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.ui.notifications.NotificationProvider
+import com.android.voyageur.ui.notifications.StringProvider
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -54,6 +56,8 @@ class UserViewModelTest {
   private lateinit var firebaseAuth: FirebaseAuth
   private lateinit var firebaseUser: FirebaseUser
   private lateinit var firebaseAuthMockStatic: MockedStatic<FirebaseAuth>
+  private lateinit var stringProvider: StringProvider
+  private lateinit var notificationProvider: NotificationProvider
 
   val context = ApplicationProvider.getApplicationContext<Context>()
 
@@ -70,6 +74,8 @@ class UserViewModelTest {
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     firebaseAuth = mock(FirebaseAuth::class.java)
     firebaseUser = mock(FirebaseUser::class.java)
+    stringProvider = mock()
+    notificationProvider = mock()
 
     // Mock FirebaseAuth to return our mocked firebaseUser
     `when`(firebaseAuth.currentUser).thenReturn(firebaseUser)
@@ -149,9 +155,9 @@ class UserViewModelTest {
             userRepository = userRepository,
             friendRequestRepository = friendRequestRepository,
             firebaseAuth = firebaseAuth,
-            context = context,
-            addAuthStateListener = false // Prevent adding the AuthStateListener during tests
-            )
+            stringProvider = stringProvider,
+            notificationProvider = notificationProvider,
+            addAuthStateListener = false)
   }
 
   @After

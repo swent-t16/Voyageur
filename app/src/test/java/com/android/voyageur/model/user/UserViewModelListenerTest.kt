@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.ui.notifications.NotificationProvider
+import com.android.voyageur.ui.notifications.StringProvider
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -28,6 +30,8 @@ class UserViewModelListenerTest {
   private lateinit var userRepository: UserRepository
   private lateinit var friendRequestRepository: FriendRequestRepository
   private lateinit var firebaseAuth: FirebaseAuth
+  private lateinit var stringProvider: StringProvider
+  private lateinit var notificationProvider: NotificationProvider
   private lateinit var userViewModel: TestUserViewModel
   private val testDispatcher = UnconfinedTestDispatcher()
   val context = ApplicationProvider.getApplicationContext<Context>()
@@ -48,13 +52,20 @@ class UserViewModelListenerTest {
     userRepository = mock()
     friendRequestRepository = mock()
     firebaseAuth = mock()
+    stringProvider = mock()
+    notificationProvider = mock()
 
     // Capture the AuthStateListener
     authStateListenerCaptor = argumentCaptor()
     doNothing().`when`(firebaseAuth).addAuthStateListener(authStateListenerCaptor.capture())
 
     userViewModel =
-        TestUserViewModel(userRepository, firebaseAuth, friendRequestRepository, context)
+        TestUserViewModel(
+            userRepository,
+            firebaseAuth,
+            friendRequestRepository,
+            stringProvider,
+            notificationProvider)
   }
 
   @After
@@ -67,8 +78,16 @@ class UserViewModelListenerTest {
       userRepository: UserRepository,
       firebaseAuth: FirebaseAuth,
       friendRequestRepository: FriendRequestRepository,
-      context: Context
-  ) : UserViewModel(userRepository, firebaseAuth, friendRequestRepository, context = context) {
+      stringProvider: StringProvider,
+      notificationProvider: NotificationProvider
+  ) :
+      UserViewModel(
+          userRepository,
+          firebaseAuth,
+          friendRequestRepository,
+          addAuthStateListener = true,
+          stringProvider = stringProvider,
+          notificationProvider = notificationProvider) {
     public override fun onCleared() {
       super.onCleared()
     }

@@ -73,6 +73,8 @@ import com.android.voyageur.ui.formFields.DatePickerModal
 import com.android.voyageur.ui.formFields.UserDropdown
 import com.android.voyageur.ui.gallery.PermissionButtonForGallery
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.notifications.AndroidNotificationProvider
+import com.android.voyageur.ui.notifications.AndroidStringProvider
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
@@ -127,10 +129,22 @@ fun AddTripScreen(
     navigationActions: NavigationActions,
     isEditMode: Boolean = false,
     onUpdate: () -> Unit = {},
-    userViewModel: UserViewModel =
-        viewModel(factory = UserViewModel.provideFactory(LocalContext.current)),
+    userViewModel: UserViewModel? = null,
     placesViewModel: PlacesViewModel
 ) {
+  val context = LocalContext.current
+
+  // Create providers here in the UI layer
+  val stringProvider = AndroidStringProvider(context)
+  val notificationProvider = AndroidNotificationProvider(context)
+
+  // If userViewModel is not provided from above, create it here:
+  val actualUserViewModel =
+      userViewModel
+          ?: viewModel(
+              factory =
+                  UserViewModel.provideFactory(
+                      stringProvider = stringProvider, notificationProvider = notificationProvider))
   var name by remember { mutableStateOf("") }
   var description by remember { mutableStateOf("") }
   var query by remember { mutableStateOf(TextFieldValue("")) }
@@ -142,7 +156,7 @@ fun AddTripScreen(
   var tripType by remember { mutableStateOf(TripType.BUSINESS) }
   var imageUri by remember { mutableStateOf("") }
   var discoverable by remember { mutableStateOf(false) }
-  val contactsAndUsers by userViewModel.contacts.collectAsState()
+  val contactsAndUsers by actualUserViewModel.contacts.collectAsState()
   val userList =
       remember(contactsAndUsers, isEditMode) {
         contactsAndUsers
@@ -155,7 +169,6 @@ fun AddTripScreen(
             }
             .toMutableStateList()
       }
-  val context = LocalContext.current
   val imageId = R.drawable.default_trip_image
 
   // Get screen dimensions and calculate responsive image height

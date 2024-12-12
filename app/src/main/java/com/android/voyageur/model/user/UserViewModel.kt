@@ -1,10 +1,8 @@
 package com.android.voyageur.model.user
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.net.Uri
 import android.util.Log
-import androidx.core.app.NotificationCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -12,7 +10,8 @@ import com.android.voyageur.R
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.notifications.FriendRequestRepositoryFirebase
-import com.android.voyageur.ui.notifications.NotificationHelper
+import com.android.voyageur.ui.notifications.NotificationProvider
+import com.android.voyageur.ui.notifications.StringProvider
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -41,9 +40,9 @@ constructor(
     private val userRepository: UserRepository,
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val friendRequestRepository: FriendRequestRepository,
-    private val addAuthStateListener: Boolean =
-        true, // New parameter to control the auth state listener
-    private val context: Context? = null
+    private val stringProvider: StringProvider? = null,
+    private val notificationProvider: NotificationProvider? = null,
+    private val addAuthStateListener: Boolean = true
 ) : ViewModel() {
 
   /** Flow holding the current user data. */
@@ -195,15 +194,19 @@ constructor(
               firebaseUser?.let {
                 // Create a new user profile if not found in the repository
                 val newUser =
-                    (it.displayName ?: context?.getString(R.string.unknown))?.let { it1 ->
-                      (it.email ?: context?.getString(R.string.no_email))?.let { it2 ->
-                        User(
-                            id = it.uid,
-                            name = it1,
-                            email = it2,
-                            profilePicture = it.photoUrl?.toString() ?: "",
-                            bio = "",
-                            username = it.email?.split("@")?.get(0) ?: "")
+                    (it.displayName ?: stringProvider?.getString(R.string.unknown))?.let { it1 ->
+                      (it.email ?: stringProvider?.getString(R.string.no_email))?.let { it2 ->
+                        (it.email?.split("@")?.get(0)
+                                ?: stringProvider?.getString(R.string.unknown))
+                            ?.let { it3 ->
+                              User(
+                                  id = it.uid,
+                                  name = it1,
+                                  email = it2,
+                                  profilePicture = it.photoUrl?.toString() ?: "",
+                                  bio = "",
+                                  username = it3)
+                            }
                       }
                     }
                 if (newUser != null) {
@@ -247,9 +250,9 @@ constructor(
    */
   fun addContact(userId: String, friendRequestId: String) {
     val currentUser = user.value ?: return
-    val contacts = currentUser.contacts?.toMutableSet()
-    contacts?.add(userId)
-    val newUser = currentUser.copy(contacts = contacts?.toList().orEmpty())
+    val contacts = currentUser.contacts.toMutableSet()
+    contacts.add(userId)
+    val newUser = currentUser.copy(contacts = contacts.toList().orEmpty())
     updateUser(newUser)
     // Deletes Friend Request since the user has been added as a contact
     deleteFriendRequest(friendRequestId)
@@ -508,7 +511,10 @@ constructor(
   }
 
   companion object {
-    fun provideFactory(context: Context): ViewModelProvider.Factory {
+    fun provideFactory(
+        stringProvider: StringProvider,
+        notificationProvider: NotificationProvider
+    ): ViewModelProvider.Factory {
       return object : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -517,7 +523,8 @@ constructor(
               firebaseAuth = FirebaseAuth.getInstance(),
               friendRequestRepository = FriendRequestRepositoryFirebase.create(),
               addAuthStateListener = true,
-              context = context)
+              stringProvider = stringProvider,
+              notificationProvider = notificationProvider)
               as T
         }
       }
@@ -639,17 +646,10 @@ constructor(
                   if (newRequests.isNotEmpty()) {
                     val newRequest = newRequests.first()
                     val senderUser = users.find { it.id == newRequest.from }
-                    val senderName = senderUser?.name ?: context?.getString(R.string.unknown)
+                    val senderName = senderUser?.name ?: stringProvider?.getString(R.string.unknown)
 
-                    // Existing notification for a new friend request
-                    if (context != null) {
-                      NotificationHelper.showNotification(
-                          context = context,
-                          notificationId = 1001,
-                          title = context.getString(R.string.new_friend_request),
-                          text = context.getString(R.string.friend_request_message, senderName),
-                          iconResId = R.drawable.app_logo,
-                          priority = NotificationCompat.PRIORITY_HIGH)
+                    if (senderName != null) {
+                      notificationProvider?.showNewFriendRequestNotification(senderName)
                     }
                   }
                 }
@@ -688,19 +688,12 @@ constructor(
                   // The "to" user is the one who accepted
                   getUsersByIds(listOf(acceptedReq.to)) { users ->
                     val acceptorUser = users.firstOrNull()
-                    val acceptorName = acceptorUser?.name ?: context?.getString(R.string.unknown)
+                    val acceptorName =
+                        acceptorUser?.name ?: stringProvider?.getString(R.string.unknown)
 
-                    // Show the notification that the request was accepted
-                    context?.let {
-                      NotificationHelper.showNotification(
-                          context = context,
-                          notificationId = 1002,
-                          title = it.getString(R.string.friend_request_accepted),
-                          text =
-                              context.getString(
-                                  R.string.friend_request_accepted_message, acceptorName),
-                          iconResId = R.drawable.app_logo,
-                          priority = NotificationCompat.PRIORITY_HIGH)
+                    // Use NotificationProvider to show acceptance notification
+                    if (acceptorName != null) {
+                      notificationProvider?.showFriendRequestAcceptedNotification(acceptorName)
                     }
 
                     // After showing the notification, delete the request
@@ -708,12 +701,7 @@ constructor(
                         reqId = acceptedReq.id,
                         onSuccess = {},
                         onFailure = { exception ->
-                          context?.let {
-                            Log.e(
-                                "FRIEND_REQUEST",
-                                it.getString(
-                                    R.string.friend_request_delete_error, exception.message))
-                          }
+                          Log.e("FRIEND_REQUEST", "Failed to delete request: ${exception.message}")
                         })
                   }
                 }

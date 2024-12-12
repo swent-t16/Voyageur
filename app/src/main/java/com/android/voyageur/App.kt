@@ -1,8 +1,6 @@
 package com.android.voyageur
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -16,6 +14,8 @@ import com.android.voyageur.ui.authentication.SignInScreen
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.ui.notifications.AndroidNotificationProvider
+import com.android.voyageur.ui.notifications.AndroidStringProvider
 import com.android.voyageur.ui.overview.AddTripScreen
 import com.android.voyageur.ui.overview.OverviewScreen
 import com.android.voyageur.ui.profile.EditProfileScreen
@@ -35,11 +35,21 @@ fun VoyageurApp(placesClient: PlacesClient) {
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory)
-  // Get the current context from the Compose hierarchy
+  // Retrieve context from the UI layer
   val context = LocalContext.current
 
+  // Create the providers here
+  val stringProvider = AndroidStringProvider(context)
+  val notificationProvider = AndroidNotificationProvider(context)
+
   // Use UserViewModel.provideFactory(context) instead of UserViewModel.Factory
-  val userViewModel: UserViewModel = viewModel(factory = UserViewModel.provideFactory(context))
+  val userViewModel: UserViewModel =
+      viewModel(
+          factory =
+              UserViewModel.provideFactory(
+                  notificationProvider = notificationProvider,
+                  stringProvider = stringProvider,
+              ))
 
   val placesViewModel: PlacesViewModel =
       viewModel(factory = PlacesViewModel.provideFactory(placesClient))
