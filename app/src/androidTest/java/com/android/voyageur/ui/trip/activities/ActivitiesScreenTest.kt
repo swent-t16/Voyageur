@@ -420,4 +420,18 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("clearFiltersButton").performClick()
     assert(filteredActivities.size > 1)
   }
+  @Test
+  fun displaysEmptyPromptWhenNoActivities() {
+    // Arrange: Return an empty list of activities
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(emptyList())
+
+    // Act: Set the content
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // Assert: Verify the empty prompt is displayed
+    composeTestRule.onNodeWithTag("emptyActivitiesPrompt").assertIsDisplayed()
+    composeTestRule.onNodeWithText("No activities have been scheduled yet.").assertExists()
+  }
 }

@@ -200,8 +200,8 @@ fun ActivitiesScreen(
                 // Display empty prompt if there are no activities
                 Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        modifier = Modifier.testTag("emptyByDayPrompt"),
-                        text = "No activities have been scheduled yet.",
+                        modifier = Modifier.testTag("emptyActivitiesPrompt"),
+                        text = stringResource(R.string.no_activities_scheduled),
                     )
                 }
             } else {
