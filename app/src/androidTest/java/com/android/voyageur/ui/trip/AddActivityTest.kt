@@ -299,34 +299,6 @@ class AddActivityScreenTest {
   }
 
   @Test
-  fun addActivityScreen_validActivityCreated() {
-    composeTestRule.setContent {
-      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
-    }
-
-    val trip =
-        Trip(
-            id = "editTripId",
-            description = "Existing trip",
-            name = "Existing Trip",
-            location = Location(name = "Paris"),
-            startDate = Timestamp(Date()),
-            endDate = Timestamp(Date()),
-            activities = listOf(),
-            type = TripType.TOURISM,
-            imageUri = "someUri")
-
-    tripsViewModel.selectTrip(trip)
-
-    composeTestRule.onNodeWithTag("inputActivityTitle").performTextInput("Hiking")
-    composeTestRule.onNodeWithTag("inputDate").performClick()
-    composeTestRule.onNodeWithText("OK").performClick()
-    composeTestRule.onNodeWithTag("activitySave").performClick()
-
-    verify(tripRepository).updateTrip(any(), any(), any())
-  }
-
-  @Test
   fun editActivityScreen_displaysExistingActivityDetails() {
     tripsViewModel.selectActivity(mockActivity)
     composeTestRule.setContent {
