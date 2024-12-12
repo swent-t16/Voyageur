@@ -511,6 +511,7 @@ constructor(
   }
 
   companion object {
+    /** Factory for creating instances of UserViewModel, supplying the required UserRepository. */
     fun provideFactory(
         stringProvider: StringProvider,
         notificationProvider: NotificationProvider
