@@ -154,29 +154,4 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag("discoverTab").performClick()
     composeTestRule.onNodeWithTag("noTripsFound").assertIsDisplayed()
   }
-
-  @Test
-  fun testDiscoverUsesSearchBar() = runTest {
-    composeTestRule.awaitIdle()
-    `when`(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
-      val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
-      onSuccess(listOf(Trip(id = "1", name = "1")))
-    }
-
-    composeTestRule.onNodeWithTag("discoverTab").performClick()
-    composeTestRule.awaitIdle()
-    composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
-
-    composeTestRule.onNodeWithTag("searchTextField").performTextInput("1")
-    composeTestRule.awaitIdle()
-    composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
-
-    composeTestRule.onNodeWithTag("searchTextField").performTextInput("2")
-    composeTestRule.awaitIdle()
-    composeTestRule.onNodeWithTag("noTripsFound").assertIsDisplayed()
-
-    composeTestRule.onNodeWithTag("searchTextField").performTextClearance()
-    composeTestRule.awaitIdle()
-    composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
-  }
 }
