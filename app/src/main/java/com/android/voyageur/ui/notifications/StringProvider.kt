@@ -1,8 +1,6 @@
 package com.android.voyageur.ui.notifications
 
-/**
- * StringProvider is an interface for providing string resources.
- */
+/** StringProvider is an interface for providing string resources. */
 interface StringProvider {
 
   /**

@@ -25,20 +25,20 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel responsible for managing user data and interactions with Firebase authentication
- * and user repository. It provides functionality to load, update, and observe user data, and to
- * handle user-related actions such as signing out, adding/removing contacts, and searching users.
+ * ViewModel responsible for managing user data and interactions with Firebase authentication and
+ * user repository. It provides functionality to load, update, and observe user data, and to handle
+ * user-related actions such as signing out, adding/removing contacts, and searching users.
  *
- * This ViewModel is tightly integrated with Firebase services and manages real-time updates to
- * user data and friend requests using Firebase Firestore listeners.
+ * This ViewModel is tightly integrated with Firebase services and manages real-time updates to user
+ * data and friend requests using Firebase Firestore listeners.
  *
- * @constructor Creates an instance of [UserViewModel].
  * @param userRepository The repository used to manage user data.
  * @param firebaseAuth The FirebaseAuth instance used for authentication.
  * @param friendRequestRepository The repository used to manage friend requests.
  * @param stringProvider Optional provider for string resources.
  * @param notificationProvider Optional provider for notifications.
  * @param addAuthStateListener Flag indicating whether to add an auth state listener.
+ * @constructor Creates an instance of [UserViewModel].
  */
 open class UserViewModel
 @SuppressLint("StaticFieldLeak")

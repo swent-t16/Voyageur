@@ -1,8 +1,6 @@
 package com.android.voyageur.ui.notifications
 
-/**
- * NotificationProvider is an interface for displaying notifications.
- */
+/** NotificationProvider is an interface for displaying notifications. */
 interface NotificationProvider {
 
   /**
