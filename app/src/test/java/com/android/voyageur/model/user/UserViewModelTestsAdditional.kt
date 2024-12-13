@@ -32,89 +32,80 @@ import org.robolectric.annotation.Config
 @Config(sdk = [33])
 class UserViewModelTestsAdditional {
 
-    @Mock
-    private lateinit var userRepository: UserRepository
+  @Mock private lateinit var userRepository: UserRepository
 
-    @Mock
-    private lateinit var firebaseAuth: FirebaseAuth
+  @Mock private lateinit var firebaseAuth: FirebaseAuth
 
-    @Mock
-    private lateinit var friendRequestRepository: FriendRequestRepository
+  @Mock private lateinit var friendRequestRepository: FriendRequestRepository
 
-    @Mock
-    private lateinit var listenerRegistration: ListenerRegistration
+  @Mock private lateinit var listenerRegistration: ListenerRegistration
 
-    private lateinit var context: Context
-    private lateinit var notificationProvider: AndroidNotificationProvider
-    private lateinit var stringProvider: AndroidStringProvider
-    private lateinit var viewModel: UserViewModel
-    private val testDispatcher = TestCoroutineDispatcher()
+  private lateinit var context: Context
+  private lateinit var notificationProvider: AndroidNotificationProvider
+  private lateinit var stringProvider: AndroidStringProvider
+  private lateinit var viewModel: UserViewModel
+  private val testDispatcher = TestCoroutineDispatcher()
 
-    @Before
-    fun setup() {
-        MockitoAnnotations.openMocks(this)
-        Dispatchers.setMain(testDispatcher)
+  @Before
+  fun setup() {
+    MockitoAnnotations.openMocks(this)
+    Dispatchers.setMain(testDispatcher)
 
-        context = ApplicationProvider.getApplicationContext<Application>()
-        FirebaseApp.initializeApp(context)
+    context = ApplicationProvider.getApplicationContext<Application>()
+    FirebaseApp.initializeApp(context)
 
-        notificationProvider = AndroidNotificationProvider(context)
-        stringProvider = AndroidStringProvider(context)
+    notificationProvider = AndroidNotificationProvider(context)
+    stringProvider = AndroidStringProvider(context)
 
-        doReturn("testUserId").`when`(firebaseAuth).uid
+    doReturn("testUserId").`when`(firebaseAuth).uid
 
-        // Initialize ViewModel with mocked dependencies
-        viewModel = UserViewModel(
+    // Initialize ViewModel with mocked dependencies
+    viewModel =
+        UserViewModel(
             userRepository = userRepository,
             firebaseAuth = firebaseAuth,
             friendRequestRepository = friendRequestRepository,
             notificationProvider = notificationProvider,
             stringProvider = stringProvider,
-            addAuthStateListener = false
-        )
-    }
+            addAuthStateListener = false)
+  }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-        testDispatcher.cleanupTestCoroutines()
-    }
+  @After
+  fun tearDown() {
+    Dispatchers.resetMain()
+    testDispatcher.cleanupTestCoroutines()
+  }
 
-    @Test
-    fun `getSentFriendRequests should handle empty userId`() {
-        // Given
-        doReturn("").`when`(firebaseAuth).uid
+  @Test
+  fun `getSentFriendRequests should handle empty userId`() {
+    // Given
+    doReturn("").`when`(firebaseAuth).uid
 
-        // When
-        viewModel.getSentFriendRequests()
+    // When
+    viewModel.getSentFriendRequests()
 
-        // Then
-        verify(friendRequestRepository, never()).listenToSentFriendRequests(
-            anyString(),
-            anyOrNull(),
-            anyOrNull()
-        )
-    }
+    // Then
+    verify(friendRequestRepository, never())
+        .listenToSentFriendRequests(anyString(), anyOrNull(), anyOrNull())
+  }
 
-    @Test
-    fun `getSentFriendRequests should handle repository failure`() {
-        // Given
-        val testException = Exception("Test error")
+  @Test
+  fun `getSentFriendRequests should handle repository failure`() {
+    // Given
+    val testException = Exception("Test error")
 
-        doAnswer { invocation ->
-            val onFailure = invocation.arguments[2] as (Exception) -> Unit
-            onFailure(testException)
-            listenerRegistration
-        }.`when`(friendRequestRepository).listenToSentFriendRequests(
-            anyString(),
-            anyOrNull(),
-            anyOrNull()
-        )
+    doAnswer { invocation ->
+          val onFailure = invocation.arguments[2] as (Exception) -> Unit
+          onFailure(testException)
+          listenerRegistration
+        }
+        .`when`(friendRequestRepository)
+        .listenToSentFriendRequests(anyString(), anyOrNull(), anyOrNull())
 
-        // When
-        viewModel.getSentFriendRequests()
+    // When
+    viewModel.getSentFriendRequests()
 
-        // Then
-        assertEquals(emptyList<FriendRequest>(), viewModel.sentFriendRequests.value)
-    }
+    // Then
+    assertEquals(emptyList<FriendRequest>(), viewModel.sentFriendRequests.value)
+  }
 }
