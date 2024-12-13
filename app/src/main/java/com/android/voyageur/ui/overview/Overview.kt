@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -107,7 +108,7 @@ fun OverviewScreen(
   val status by connectivityState()
   val isConnected = status === ConnectionState.Available
   var searchQuery by remember { mutableStateOf("") }
-
+  var sortedDecreasing by remember { mutableStateOf(true) }
   LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
 
   LoadParticipantsEffect(trips, userViewModel)
@@ -116,11 +117,21 @@ fun OverviewScreen(
       floatingActionButton = { AddTripFAB(isConnected, navigationActions) },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        SearchBar(
-            placeholderId = R.string.overview_searchbar_placeholder,
-            onQueryChange = { searchQuery = it },
-            modifier =
-                Modifier.padding(horizontal = 16.dp, vertical = 24.dp).testTag("searchField"))
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp)) {
+          Column(modifier = Modifier.fillMaxWidth(0.9f).padding(start = 16.dp)) {
+            SearchBar(
+                placeholderId = R.string.overview_searchbar_placeholder,
+                onQueryChange = { searchQuery = it },
+                modifier = Modifier.testTag("searchField"))
+          }
+          Column {
+            IconButton(
+                onClick = { sortedDecreasing = !sortedDecreasing },
+                modifier = Modifier.testTag("reverseTripsOrderButton")) {
+                  Icon(imageVector = Icons.Default.SwapVert, contentDescription = "H")
+                }
+          }
+        }
       },
       bottomBar = {
         BottomNavigationMenu(
@@ -137,7 +148,8 @@ fun OverviewScreen(
             padding = pd,
             tripsViewModel = tripsViewModel,
             navigationActions = navigationActions,
-            userViewModel = userViewModel)
+            userViewModel = userViewModel,
+            descending = sortedDecreasing)
       })
 }
 
@@ -216,7 +228,8 @@ private fun OverviewContent(
     padding: PaddingValues,
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    descending: Boolean = true
 ) {
   if (isLoading) {
     CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
@@ -234,7 +247,8 @@ private fun OverviewContent(
           searchQuery = searchQuery,
           tripsViewModel = tripsViewModel,
           navigationActions = navigationActions,
-          userViewModel = userViewModel)
+          userViewModel = userViewModel,
+          descending = descending)
     }
   }
 }
@@ -272,10 +286,13 @@ private fun TripsList(
     searchQuery: String,
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    descending: Boolean = true
 ) {
-  val filteredTrips = filterTrips(trips, searchQuery)
-
+  var filteredTrips = filterTrips(trips, searchQuery)
+  if (!descending) {
+    filteredTrips = filteredTrips.reversed()
+  }
   if (searchQuery.isNotEmpty() && filteredTrips.isEmpty()) {
     NoResultsFound(modifier = Modifier.testTag("noSearchResults"))
     return
