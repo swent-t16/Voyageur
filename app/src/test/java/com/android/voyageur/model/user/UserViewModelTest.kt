@@ -23,6 +23,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
@@ -1352,4 +1354,146 @@ class UserViewModelTest {
     verify(userRepository).fetchUsersByIds(eq(userIds), any(), anyOrNull())
     assert(onSuccessCalled)
   }
+
+    @Test
+    fun `signOutUser should sign out from FirebaseAuth`() {
+        userViewModel.signOutUser()
+        verify(firebaseAuth).signOut()
+    }
+
+    @Test
+    fun `selectUser should update selectedUser state`() {
+        val user = User(id = "123", name = "Test User", email = "test@example.com")
+        userViewModel.selectUser(user)
+        assertEquals(user, userViewModel.selectedUser.value)
+    }
+
+    @Test
+    fun `deselectUser should reset selectedUser state`() {
+        userViewModel.deselectUser()
+        assertNull(userViewModel.selectedUser.value)
+    }
+    @Test
+    fun `getSentFriendRequests updates state on success`() = runTest {
+        val userId = "123"
+        val requests = listOf(FriendRequest(id = "req_999", from = userId, to = "someUser"))
+
+        whenever(Firebase.auth.uid).thenReturn(userId)
+        doAnswer { invocation ->
+            val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
+            onSuccess(requests)
+            null
+        }.whenever(friendRequestRepository).listenToSentFriendRequests(eq(userId), any(), anyOrNull())
+
+        userViewModel.getSentFriendRequests()
+
+        assert(userViewModel.sentFriendRequests.value == requests)
+        verify(friendRequestRepository).listenToSentFriendRequests(eq(userId), any(), anyOrNull())
+    }
+
+    @Test
+    fun `listenToFriendRequests updates state on new requests`() = runTest {
+        val userId = "123"
+        val friendRequests = listOf(
+            FriendRequest(id = "req1", from = "userA", to = userId),
+            FriendRequest(id = "req2", from = "userB", to = userId)
+        )
+
+        whenever(Firebase.auth.uid).thenReturn(userId)
+        doAnswer { invocation ->
+            val onSuccess = invocation.getArgument<(List<FriendRequest>) -> Unit>(1)
+            onSuccess(friendRequests)
+            null
+        }.whenever(friendRequestRepository).listenToFriendRequests(eq(userId), any(), anyOrNull())
+
+        val users = listOf(
+            User(id = "userA", name = "User A", email = "userA@example.com"),
+            User(id = "userB", name = "User B", email = "userB@example.com")
+        )
+        doAnswer { invocation ->
+            val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+            onSuccess(users)
+            null
+        }.whenever(userRepository).fetchUsersByIds(eq(listOf("userA", "userB")), any(), anyOrNull())
+
+        userViewModel.listenToFriendRequests()
+
+        verify(friendRequestRepository).listenToFriendRequests(eq(userId), any(), anyOrNull())
+        verify(userRepository).fetchUsersByIds(eq(listOf("userA", "userB")), any(), anyOrNull())
+
+        assert(userViewModel.friendRequests.value == friendRequests)
+        assert(userViewModel.notificationUsers.value == users)
+        assert(userViewModel.notificationCount.value == friendRequests.size.toLong())
+    }
+    @Test
+    fun `updateContacts updates contacts correctly`() = runTest {
+        val contactIds = listOf("userA", "userB")
+        val users = listOf(
+            User(id = "userA", name = "User A", email = "userA@example.com"),
+            User(id = "userB", name = "User B", email = "userB@example.com")
+        )
+
+        doAnswer { invocation ->
+            val onSuccess = invocation.getArgument<(List<User>) -> Unit>(1)
+            onSuccess(users)
+            null
+        }.whenever(userRepository).fetchUsersByIds(eq(contactIds), any(), anyOrNull())
+
+        userViewModel.updateContacts(contactIds)
+
+        verify(userRepository).fetchUsersByIds(eq(contactIds), any(), anyOrNull())
+        assert(userViewModel.contacts.value == users)
+    }
+
+    @Test
+    fun `clearFriendRequestState clears friend request state correctly`() = runTest {
+        val friendRequestId = "req_123"
+        val friendRequest = FriendRequest(id = friendRequestId, from = "123", to = "456")
+        userViewModel._friendRequests.value = listOf(friendRequest)
+
+        doAnswer { invocation ->
+            val onSuccess = invocation.getArgument<() -> Unit>(1)
+            onSuccess()
+            null
+        }.whenever(friendRequestRepository).deleteRequest(eq(friendRequestId), any(), anyOrNull())
+
+        userViewModel.clearFriendRequestState("456")
+
+        verify(friendRequestRepository).deleteRequest(eq(friendRequestId), any(), anyOrNull())
+        assert(userViewModel.friendRequests.value.isEmpty())
+    }
+
+    @Test
+    fun `getNotificationsCount updates notification count on success`() = runTest {
+        val notificationCount = 5L
+
+        doAnswer { invocation ->
+            val onSuccess = invocation.getArgument<(Long) -> Unit>(1)
+            onSuccess(notificationCount)
+            null
+        }.whenever(friendRequestRepository).getNotificationCount(anyString(), any(), anyOrNull())
+
+        var resultCount: Long? = null
+        userViewModel.getNotificationsCount { count -> resultCount = count }
+
+        verify(friendRequestRepository).getNotificationCount(anyString(), any(), anyOrNull())
+        assert(resultCount == notificationCount)
+        assert(userViewModel.notificationCount.value == notificationCount)
+    }
+
+    @Test
+    fun `getNotificationsCount handles failure gracefully`() = runTest {
+        val exception = Exception("Failed to get notification count")
+
+        doAnswer { invocation ->
+            val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+            onFailure(exception)
+            null
+        }.whenever(friendRequestRepository).getNotificationCount(anyString(), any(), anyOrNull())
+
+        userViewModel.getNotificationsCount { count -> fail("onSuccess should not be called") }
+
+        verify(friendRequestRepository).getNotificationCount(anyString(), any(), anyOrNull())
+        assert(userViewModel.notificationCount.value == 0L)
+    }
 }
