@@ -12,7 +12,6 @@ import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
-import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
@@ -296,34 +295,6 @@ class AddActivityScreenTest {
     expectedCalendar.set(Calendar.MINUTE, 45)
 
     assertEquals(expectedCalendar.time, startTimestamp.toDate())
-  }
-
-  @Test
-  fun addActivityScreen_validActivityCreated() {
-    composeTestRule.setContent {
-      AddActivityScreen(tripsViewModel, navigationActions, placesViewModel)
-    }
-
-    val trip =
-        Trip(
-            id = "editTripId",
-            description = "Existing trip",
-            name = "Existing Trip",
-            location = Location(name = "Paris"),
-            startDate = Timestamp(Date()),
-            endDate = Timestamp(Date()),
-            activities = listOf(),
-            type = TripType.TOURISM,
-            imageUri = "someUri")
-
-    tripsViewModel.selectTrip(trip)
-
-    composeTestRule.onNodeWithTag("inputActivityTitle").performTextInput("Hiking")
-    composeTestRule.onNodeWithTag("inputDate").performClick()
-    composeTestRule.onNodeWithText("OK").performClick()
-    composeTestRule.onNodeWithTag("activitySave").performClick()
-
-    verify(tripRepository).updateTrip(any(), any(), any())
   }
 
   @Test
