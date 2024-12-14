@@ -113,9 +113,8 @@ fun OverviewScreen(
   var searchQuery by remember { mutableStateOf("") }
   var showOnlyFavorites by remember { mutableStateOf(false) }
   val user by userViewModel.user.collectAsState()
-  if (user == null) {
-    // Reload screen if the user is null
-    navigationActions.navigateTo(Screen.OVERVIEW)
+  if (user != null) {
+    // Don't compose the UI yet if the user is not loaded
     return
   }
   LaunchedEffect(user) {
@@ -205,11 +204,9 @@ fun OverviewScreen(
                                   if (showOnlyFavorites) Icons.Filled.Favorite
                                   else Icons.Default.FavoriteBorder,
                               contentDescription =
-                                  if (showOnlyFavorites) "Show all trips"
-                                  else "Show favorite trips",
-                              tint =
-                                  if (showOnlyFavorites) MaterialTheme.colorScheme.onSurface
-                                  else MaterialTheme.colorScheme.onSurface)
+                                  if (showOnlyFavorites) stringResource(R.string.show_all_trips)
+                                  else stringResource(R.string.show_favorite_trips),
+                              tint = MaterialTheme.colorScheme.onSurface)
                         }
                   }
             }

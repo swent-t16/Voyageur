@@ -414,9 +414,9 @@ class OverviewScreenTest {
   }
 
   @Test
-  fun nullUserNavigatesToSignIn() {
+  fun nullUserDoesNotComposeScreen() {
     userViewModel._user.value = null
-    verify(navigationActions).navigateTo(Screen.OVERVIEW)
+    composeTestRule.onNodeWithTag("overviewScreen").assertDoesNotExist()
   }
 
   @Test

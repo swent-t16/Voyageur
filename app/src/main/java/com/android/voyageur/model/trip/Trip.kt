@@ -35,7 +35,7 @@ data class Trip(
     val type: TripType = TripType.TOURISM,
     val imageUri: String = "", // default image for trip
     val photos: List<String> = emptyList(),
-    val discoverable: Boolean = false,
+    val discoverable: Boolean = false
 ) {
   /**
    * A computed property that retrieves the [TripType] of the trip, excluding it from Firestore
