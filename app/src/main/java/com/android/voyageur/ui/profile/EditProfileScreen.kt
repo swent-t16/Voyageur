@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.gallery.PermissionButtonForGallery
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
@@ -30,7 +31,11 @@ import com.android.voyageur.ui.profile.interests.InterestChipEditable
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
+fun EditProfileScreen(
+    userViewModel: UserViewModel,
+    navigationActions: NavigationActions,
+    tripsViewModel: TripsViewModel
+) {
   val user by userViewModel.user.collectAsState()
   val isLoading by userViewModel.isLoading.collectAsState()
   // Check if user is null and navigate back to the Profile screen if true
@@ -82,7 +87,8 @@ fun EditProfileScreen(userViewModel: UserViewModel, navigationActions: Navigatio
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute(),
-            userViewModel)
+            userViewModel,
+            tripsViewModel)
       }) { paddingValues ->
         Box(
             modifier = Modifier.fillMaxSize().padding(paddingValues),

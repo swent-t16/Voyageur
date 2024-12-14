@@ -64,7 +64,7 @@ open class TripsViewModel(
   val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
   private val _feed = MutableStateFlow<List<Trip>>(emptyList())
-  private val _tripInvites = MutableStateFlow<List<TripInvite>>(emptyList())
+  val _tripInvites = MutableStateFlow<List<TripInvite>>(emptyList())
   val tripInvites: StateFlow<List<TripInvite>> = _tripInvites.asStateFlow()
 
   private val _invitingUsers = MutableStateFlow<List<User>>(emptyList())

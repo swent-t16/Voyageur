@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -33,15 +34,22 @@ fun BottomNavigationMenu(
     onTabSelect: (TopLevelDestination) -> Unit,
     tabList: List<TopLevelDestination>,
     selectedItem: String?,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    tripViewModel: TripsViewModel
 ) {
-  val notifications by userViewModel._notificationCount.collectAsState()
-  LaunchedEffect(notifications) { userViewModel.getFriendRequests {} }
+  val userNotifications by userViewModel._notificationCount.collectAsState()
+  val tripInvites by tripViewModel.tripInvites.collectAsState()
+  val totalNotifications = userNotifications + tripInvites.size
+
+  LaunchedEffect(userNotifications) { userViewModel.getFriendRequests {} }
+
   LaunchedEffect(Unit) {
     if (Firebase.auth.uid != null) {
       userViewModel.getNotificationsCount {}
+      tripViewModel.fetchTripInvites()
     }
   }
+
   NavigationBar(
       modifier = Modifier.fillMaxWidth().height(60.dp).testTag("bottomNavigationMenu"),
       containerColor = MaterialTheme.colorScheme.surface,
@@ -49,7 +57,7 @@ fun BottomNavigationMenu(
         tabList.forEach { tab ->
           NavigationBarItem(
               icon = {
-                if (tab.route == Route.PROFILE && notifications > 0) {
+                if (tab.route == Route.PROFILE && totalNotifications > 0) {
                   Box(
                       modifier =
                           Modifier.clip(RoundedCornerShape(50))
@@ -57,7 +65,7 @@ fun BottomNavigationMenu(
                               .size(16.dp)
                               .testTag("notificationBadge")) {
                         Text(
-                            text = notifications.toString(),
+                            text = totalNotifications.toString(),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onError,
                             modifier = Modifier.align(Alignment.Center))

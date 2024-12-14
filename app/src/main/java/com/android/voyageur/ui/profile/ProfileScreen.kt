@@ -94,7 +94,8 @@ fun ProfileScreen(
             onTabSelect = { navigationActions.navigateTo(it) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute(),
-            userViewModel)
+            userViewModel,
+            tripsViewModel)
       }) { padding ->
         Box(
             modifier =

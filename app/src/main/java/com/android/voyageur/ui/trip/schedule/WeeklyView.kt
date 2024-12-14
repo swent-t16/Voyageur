@@ -78,7 +78,8 @@ fun WeeklyViewScreen(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute(),
-            userViewModel = userViewModel)
+            userViewModel = userViewModel,
+            tripsViewModel)
       }) { pd ->
         Box(modifier = Modifier.fillMaxSize().padding(pd)) {
           if (weeks.isEmpty()) {

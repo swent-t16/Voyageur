@@ -15,6 +15,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
@@ -50,6 +51,7 @@ class OverviewScreenTest {
   private lateinit var tripRepository: TripRepository
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripViewModel: TripsViewModel
+  private lateinit var tripInviteRepository: TripInviteRepository
   private lateinit var userViewModel: UserViewModel
   private lateinit var userRepository: UserRepository
   private lateinit var friendRequestRepository: FriendRequestRepository
@@ -64,7 +66,8 @@ class OverviewScreenTest {
     navigationActions = mock(NavigationActions::class.java)
     userRepository = mock(UserRepository::class.java)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
-    tripViewModel = TripsViewModel(tripRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripViewModel = TripsViewModel(tripRepository, tripInviteRepository)
     firebaseAuth = mock(FirebaseAuth::class.java)
     firebaseUser = mock(FirebaseUser::class.java)
 

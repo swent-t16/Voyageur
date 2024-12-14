@@ -7,6 +7,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
@@ -37,6 +38,7 @@ class SearchScreenTest {
   private lateinit var placesViewModel: PlacesViewModel
   private lateinit var placesRepository: PlacesRepository
   private lateinit var tripsRepository: TripRepository
+  private lateinit var tripInviteRepository: TripInviteRepository
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var navigationState: NavigationState
   private lateinit var friendRequestRepository: FriendRequestRepository
@@ -51,7 +53,8 @@ class SearchScreenTest {
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
     placesViewModel = PlacesViewModel(placesRepository)
-    tripsViewModel = TripsViewModel(tripsRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripsRepository, tripInviteRepository)
     navigationState = NavigationState()
     `when`(navigationActions.currentRoute()).thenReturn(Route.SEARCH)
     `when`(navigationActions.getNavigationState()).thenReturn(navigationState)

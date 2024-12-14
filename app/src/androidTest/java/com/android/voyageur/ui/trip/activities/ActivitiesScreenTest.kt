@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
@@ -67,6 +68,7 @@ class ActivitiesScreenTest {
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var tripRepository: TripRepository
   private lateinit var mockTripsViewModel: TripsViewModel
+  private lateinit var tripInviteRepository: TripInviteRepository
 
   private lateinit var friendRequestRepository: FriendRequestRepository
   private lateinit var userRepository: UserRepository
@@ -80,7 +82,8 @@ class ActivitiesScreenTest {
     navigationActions = NavigationActions(navHostController)
     mockNavigationActions = Mockito.mock(NavigationActions::class.java)
     tripRepository = mock(TripRepository::class.java)
-    tripsViewModel = TripsViewModel(tripRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     userRepository = mock(UserRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
