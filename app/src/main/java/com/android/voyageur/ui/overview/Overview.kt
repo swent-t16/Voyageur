@@ -178,6 +178,7 @@ fun OverviewScreen(
             isLoading = isLoading,
             trips = trips,
             searchQuery = searchQuery,
+            showOnlyFavorites = showOnlyFavorites,
             padding = pd,
             tripsViewModel = tripsViewModel,
             navigationActions = navigationActions,
@@ -248,16 +249,19 @@ private fun AddTripFAB(isConnected: Boolean, navigationActions: NavigationAction
  * @param isLoading Boolean indicating whether data is currently being loaded
  * @param trips List of all available trips
  * @param searchQuery Current search query for filtering trips
+ * @param showOnlyFavorites Boolean indicating whether the user is viewing only favorite trips
  * @param padding PaddingValues to apply to the content
  * @param tripsViewModel ViewModel containing trips-related state and logic
  * @param navigationActions Actions to handle navigation between screens
  * @param userViewModel ViewModel containing user-related state and logic
+ * @param user The current user data
  */
 @Composable
 private fun OverviewContent(
     isLoading: Boolean,
     trips: List<Trip>,
     searchQuery: String,
+    showOnlyFavorites: Boolean,
     padding: PaddingValues,
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
@@ -273,7 +277,7 @@ private fun OverviewContent(
       modifier = Modifier.padding(padding).testTag("overviewColumn"),
   ) {
     if (trips.isEmpty()) {
-      EmptyTripsMessage()
+      EmptyTripsMessage(showOnlyFavorites)
     } else {
       TripsList(
           trips = trips,
@@ -289,14 +293,19 @@ private fun OverviewContent(
 /**
  * Composable that displays a message when no trips are available.
  *
- * Shows a centered message prompting the user to create their first trip.
+ * Shows a centered message prompting the user to create their first trip or indicating that no
+ * favorite trips are available.
+ *
+ * @param showOnlyFavorites Boolean indicating whether the user is viewing only favorite trips
  */
 @Composable
-private fun EmptyTripsMessage() {
+private fun EmptyTripsMessage(showOnlyFavorites: Boolean) {
   Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
     Text(
         modifier = Modifier.testTag("emptyTripPrompt"),
-        text = stringResource(R.string.empty_trip_prompt),
+        text =
+            if (!showOnlyFavorites) stringResource(R.string.empty_trip_prompt)
+            else stringResource(R.string.no_favorite_trips),
     )
   }
 }
@@ -312,6 +321,7 @@ private fun EmptyTripsMessage() {
  * @param tripsViewModel ViewModel containing trips-related state and logic
  * @param navigationActions Actions to handle navigation between screens
  * @param userViewModel ViewModel containing user-related state and logic
+ * @param user The current user data
  */
 @Composable
 private fun TripsList(
@@ -374,6 +384,7 @@ private fun filterTrips(trips: List<Trip>, searchQuery: String): List<Trip> {
  * @param trip The trip data to display in this card.
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
+ * @param user The current user data.
  */
 @SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalCoroutinesApi::class)

@@ -64,7 +64,8 @@ class OverviewScreenTest {
     navigationActions = mock(NavigationActions::class.java)
     userRepository = mock(UserRepository::class.java)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
-    userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
+    //    userViewModel = UserViewModel(userRepository, friendRequestRepository =
+    // friendRequestRepository)
     tripViewModel = TripsViewModel(tripRepository)
     firebaseAuth = mock(FirebaseAuth::class.java)
     firebaseUser = mock(FirebaseUser::class.java)
@@ -142,23 +143,23 @@ class OverviewScreenTest {
     // Mocking initial navigation state
 
     `when`(navigationActions.currentRoute()).thenReturn(Route.OVERVIEW)
-    val mockUsers =
-        listOf(
-            User(
-                id = "1",
-                name = "John Doe",
-                email = "john@example.com",
-            ),
-            User(
-                id = "2",
-                name = "Jane Doe",
-                email = "jane@example.com",
-            ))
-
-    `when`(userRepository.fetchUsersByIds(any(), any(), any())).then {
-      val onSuccess = it.getArgument<(List<User>) -> Unit>(1)
-      onSuccess(mockUsers) // Simulate a successful callback
-    }
+    //    val mockUsers =
+    //        listOf(
+    //            User(
+    //                id = "1",
+    //                name = "John Doe",
+    //                email = "john@example.com",
+    //            ),
+    //            User(
+    //                id = "2",
+    //                name = "Jane Doe",
+    //                email = "jane@example.com",
+    //            ))
+    //
+    //    `when`(userRepository.fetchUsersByIds(any(), any(), any())).then {
+    //      val onSuccess = it.getArgument<(List<User>) -> Unit>(1)
+    //      onSuccess(mockUsers) // Simulate a successful callback
+    //    }
     `when`(navigationActions.getNavigationState()).thenReturn(NavigationState())
     composeTestRule.setContent { OverviewScreen(tripViewModel, navigationActions, userViewModel) }
     // set a non-null user for tests
