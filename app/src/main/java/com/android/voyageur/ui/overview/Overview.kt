@@ -141,24 +141,31 @@ fun OverviewScreen(
       floatingActionButton = { AddTripFAB(isConnected, navigationActions) },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        SearchBar(
-            placeholderId = R.string.overview_searchbar_placeholder,
-            onQueryChange = { searchQuery = it },
-            modifier =
-                Modifier.padding(horizontal = 16.dp, vertical = 24.dp).testTag("searchField"))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+          SearchBar(
+              placeholderId = R.string.overview_searchbar_placeholder,
+              onQueryChange = { searchQuery = it },
+              modifier =
+                  Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
+                      .testTag("searchField")
+                      .weight(1f))
+
+          Spacer(modifier = Modifier.width(8.dp))
+
           IconButton(
               onClick = { showOnlyFavorites = !showOnlyFavorites },
-              modifier = Modifier.testTag("favoriteFilterButton")) {
-              Icon(
-                  imageVector =
-                  if (showOnlyFavorites) Icons.Filled.Favorite
-                  else Icons.Default.FavoriteBorder,
-                  contentDescription =
-                  if (showOnlyFavorites) stringResource(R.string.show_all_trips)
-                  else stringResource(R.string.show_favorite_trips),
-                  tint = MaterialTheme.colorScheme.onSurface)
-          }
-               },
+              modifier = Modifier.testTag("favoriteFilterButton").padding(end = 8.dp)) {
+                Icon(
+                    imageVector =
+                        if (showOnlyFavorites) Icons.Filled.Favorite
+                        else Icons.Default.FavoriteBorder,
+                    contentDescription =
+                        if (showOnlyFavorites) stringResource(R.string.show_all_trips)
+                        else stringResource(R.string.show_favorite_trips),
+                    tint = MaterialTheme.colorScheme.onSurface)
+              }
+        }
+      },
       bottomBar = {
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
@@ -175,7 +182,7 @@ fun OverviewScreen(
             tripsViewModel = tripsViewModel,
             navigationActions = navigationActions,
             userViewModel = userViewModel,
-            user = user)
+            user = user!!)
       })
 }
 
@@ -273,7 +280,8 @@ private fun OverviewContent(
           searchQuery = searchQuery,
           tripsViewModel = tripsViewModel,
           navigationActions = navigationActions,
-          userViewModel = userViewModel)
+          userViewModel = userViewModel,
+          user = user)
     }
   }
 }
