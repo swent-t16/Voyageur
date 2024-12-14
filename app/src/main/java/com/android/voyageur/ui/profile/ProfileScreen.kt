@@ -46,6 +46,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.notifications.FriendRequest
+import com.android.voyageur.model.notifications.TripInvite
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
@@ -61,26 +63,30 @@ import com.android.voyageur.ui.navigation.Route
  * @param navigationActions The [NavigationActions] instance for navigating between screens.
  */
 @Composable
-fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationActions) {
-  // Observe user and loading state from UserViewModel
+fun ProfileScreen(
+    userViewModel: UserViewModel,
+    tripsViewModel: TripsViewModel,
+    navigationActions: NavigationActions
+) {
   val user by userViewModel.user.collectAsState()
   val isLoading by userViewModel.isLoading.collectAsState()
+
+  LaunchedEffect(Unit) { tripsViewModel.fetchTripInvites() }
+
   var isSigningOut by remember { mutableStateOf(false) }
 
-  // Navigate to AUTH if user is null and not loading
   if (user == null && !isLoading) {
     LaunchedEffect(Unit) { navigationActions.navigateTo(Route.AUTH) }
-    return // Exit composable to prevent further execution
+    return
   }
 
-  // Handle sign-out
   if (isSigningOut) {
     LaunchedEffect(Unit) {
       userViewModel.signOutUser()
       navigationActions.navigateTo(Route.AUTH)
     }
   }
-  // Main Scaffold layout for ProfileScreen with Bottom Navigation
+
   Scaffold(
       modifier = Modifier.testTag("profileScreen"),
       bottomBar = {
@@ -98,29 +104,27 @@ fun ProfileScreen(userViewModel: UserViewModel, navigationActions: NavigationAct
                     .testTag("profileScreenContent"),
             contentAlignment = Alignment.Center) {
               when {
-                isSigningOut -> {
-                  CircularProgressIndicator(modifier = Modifier.testTag("signingOutIndicator"))
-                }
-                isLoading -> {
-                  CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
-                }
-                user != null -> {
-                  ProfileContent(
-                      userData = user!!,
-                      signedInUserId = user!!.id,
-                      onSignOut = { isSigningOut = true },
-                      userViewModel = userViewModel,
-                      onEdit = { navigationActions.navigateTo(Route.EDIT_PROFILE) })
-                }
-                else -> {
-                  Text(
-                      stringResource(R.string.no_user_data),
-                      modifier = Modifier.testTag("noUserData"))
-                }
+                isSigningOut ->
+                    CircularProgressIndicator(modifier = Modifier.testTag("signingOutIndicator"))
+                isLoading ->
+                    CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
+                user != null ->
+                    ProfileContent(
+                        userData = user!!,
+                        signedInUserId = user!!.id,
+                        onSignOut = { isSigningOut = true },
+                        userViewModel = userViewModel,
+                        tripsViewModel = tripsViewModel,
+                        onEdit = { navigationActions.navigateTo(Route.EDIT_PROFILE) })
+                else ->
+                    Text(
+                        stringResource(R.string.no_user_data),
+                        modifier = Modifier.testTag("noUserData"))
               }
             }
       }
 }
+
 /**
  * Composable function that displays detailed user profile information and interaction options.
  * Includes profile editing and friend request management.
@@ -137,12 +141,15 @@ fun ProfileContent(
     signedInUserId: String,
     onSignOut: () -> Unit,
     userViewModel: UserViewModel,
+    tripsViewModel: TripsViewModel,
     onEdit: () -> Unit
 ) {
   val friendRequests by userViewModel.friendRequests.collectAsState()
   val notificationUsers by userViewModel.notificationUsers.collectAsState()
+  val tripInvites by tripsViewModel.tripInvites.collectAsState()
+
   Column(
-      modifier = Modifier.fillMaxSize().padding(top = 16.dp), // Space for profile content
+      modifier = Modifier.fillMaxSize().padding(top = 16.dp),
       horizontalAlignment = Alignment.CenterHorizontally) {
         UserProfileContent(
             userData = userData,
@@ -151,8 +158,88 @@ fun ProfileContent(
             onSignOut = onSignOut,
             onEdit = onEdit)
         Spacer(modifier = Modifier.height(20.dp))
-        // Expandable Friend Requests Menu
+
+        // Friend Requests Menu
         FriendReqMenu(friendRequests, notificationUsers, userViewModel)
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Trip Invite Menu
+        TripInviteMenu(tripInvites = tripInvites, tripsViewModel = tripsViewModel)
+      }
+}
+
+@Composable
+fun TripInviteItem(tripInvite: TripInvite, tripsViewModel: TripsViewModel) {
+  Row(
+      modifier = Modifier.fillMaxWidth().padding(8.dp).testTag("tripInvite"),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(text = "From: ${tripInvite.from}", modifier = Modifier.weight(1f))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          IconButton(
+              modifier = Modifier.testTag("acceptButton"),
+              onClick = { tripsViewModel.acceptTripInvite(tripInvite) }) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(R.string.accept),
+                    tint = Color.Green)
+              }
+
+          IconButton(
+              modifier = Modifier.testTag("denyButton"),
+              onClick = { tripsViewModel.declineTripInvite(tripInvite.id) }) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(R.string.reject),
+                    tint = Color.Red)
+              }
+        }
+      }
+}
+
+@Composable
+fun TripInviteMenu(tripInvites: List<TripInvite>, tripsViewModel: TripsViewModel) {
+  Card(
+      shape = RoundedCornerShape(12.dp),
+      modifier =
+          Modifier.fillMaxWidth(0.80f)
+              .padding(horizontal = 10.dp, vertical = 8.dp)
+              .testTag("tripInviteCard")) {
+        Column(modifier = Modifier.padding(12.dp)) {
+          Text(
+              text = stringResource(R.string.pending_trip_invites, tripInvites.size),
+              color = MaterialTheme.colorScheme.onSurface,
+          )
+
+          Card(
+              shape = RoundedCornerShape(8.dp),
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .heightIn(max = 180.dp)
+                      .padding(top = 8.dp)
+                      .testTag("tripInviteBox")) {
+                if (tripInvites.isEmpty()) {
+                  Box(
+                      modifier = Modifier.fillMaxSize().testTag("noInvitesBox"),
+                      contentAlignment = Alignment.Center) {
+                        Text(
+                            text = stringResource(R.string.no_pending_invites),
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                      }
+                } else {
+                  LazyColumn(
+                      modifier =
+                          Modifier.fillMaxSize().padding(8.dp).testTag("tripInviteLazyColumn")) {
+                        items(tripInvites) { invite ->
+                          TripInviteItem(tripInvite = invite, tripsViewModel = tripsViewModel)
+                        }
+                      }
+                }
+              }
+        }
       }
 }
 

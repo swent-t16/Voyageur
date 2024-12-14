@@ -92,7 +92,7 @@ fun VoyageurApp(placesClient: PlacesClient) {
         startDestination = Screen.PROFILE,
         route = Route.PROFILE,
     ) {
-      composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigationActions) }
+      composable(Screen.PROFILE) { ProfileScreen(userViewModel, tripsViewModel, navigationActions) }
       composable(Screen.EDIT_PROFILE) { EditProfileScreen(userViewModel, navigationActions) }
     }
 

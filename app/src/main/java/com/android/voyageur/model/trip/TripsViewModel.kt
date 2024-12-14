@@ -8,6 +8,10 @@ import androidx.lifecycle.viewModelScope
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.assistant.generatePrompt
 import com.android.voyageur.model.assistant.generativeModel
+import com.android.voyageur.model.notifications.TripInvite
+import com.android.voyageur.model.notifications.TripInviteRepository
+import com.android.voyageur.model.notifications.TripInviteRepositoryFirebase
+import com.android.voyageur.model.user.User
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -34,6 +38,7 @@ import kotlinx.coroutines.launch
  */
 open class TripsViewModel(
     private val tripsRepository: TripRepository,
+    protected val tripInviteRepository: TripInviteRepository,
     private val addAuthStateListener: Boolean = false,
     public val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance(),
 ) : ViewModel() {
@@ -59,6 +64,11 @@ open class TripsViewModel(
   val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
   private val _feed = MutableStateFlow<List<Trip>>(emptyList())
+  private val _tripInvites = MutableStateFlow<List<TripInvite>>(emptyList())
+  val tripInvites: StateFlow<List<TripInvite>> = _tripInvites.asStateFlow()
+
+  private val _invitingUsers = MutableStateFlow<List<User>>(emptyList())
+  val invitingUsers: StateFlow<List<User>> = _invitingUsers.asStateFlow()
 
   private var _tripListenerRegistration: ListenerRegistration? = null
   val feed: StateFlow<List<Trip>> = _feed.asStateFlow()
@@ -84,6 +94,7 @@ open class TripsViewModel(
 
   init {
     tripsRepository.init {
+      fetchTripInvites() // Fetch trip invites
       _isLoading.value = true
       tripsRepository.getTrips(
           Firebase?.auth?.uid.orEmpty(),
@@ -104,7 +115,9 @@ open class TripsViewModel(
           @Suppress("UNCHECKED CAST")
           override fun <T : ViewModel> create(modelClass: Class<T>): T =
               TripsViewModel(
-                  TripRepositoryFirebase(Firebase.firestore), addAuthStateListener = true)
+                  TripRepositoryFirebase(Firebase.firestore),
+                  TripInviteRepositoryFirebase(Firebase.firestore),
+                  addAuthStateListener = true)
                   as T
         }
   }
@@ -149,6 +162,16 @@ open class TripsViewModel(
           _isLoading.value = false
           Log.e("TripsViewModel", "Failed to get trips", it)
         })
+  }
+
+  fun fetchTripInvites() {
+    val userId = Firebase.auth.uid.orEmpty()
+    if (userId.isEmpty()) return
+
+    tripInviteRepository.listenToTripInvites(
+        userId = userId,
+        onSuccess = { invites -> _tripInvites.value = invites },
+        onFailure = { e -> Log.e("TripsViewModel", "Failed to fetch trip invites: ${e.message}") })
   }
 
   fun createTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
@@ -322,5 +345,35 @@ open class TripsViewModel(
   /** Sets the initial UI state to [UiState.Initial]. */
   open fun setInitialUiState() {
     _uiState.value = UiState.Initial
+  }
+
+  fun acceptTripInvite(tripInvite: TripInvite) {
+    val userId = Firebase.auth.uid.orEmpty()
+    if (userId.isEmpty()) return
+
+    viewModelScope.launch {
+      tripsRepository.getTripById(
+          tripInvite.tripId,
+          onSuccess = { trip ->
+            val updatedTrip = trip.copy(participants = trip.participants + userId)
+            tripsRepository.updateTrip(
+                updatedTrip,
+                onSuccess = {
+                  tripInviteRepository.deleteTripInvite(
+                      tripInvite.id,
+                      onSuccess = { Log.d("TripsViewModel", "Accepted trip invite") },
+                      onFailure = { e -> Log.e("TripsViewModel", "Failed to delete invite: $e") })
+                },
+                onFailure = { e -> Log.e("TripsViewModel", "Failed to update trip: $e") })
+          },
+          onFailure = { e -> Log.e("TripsViewModel", "Failed to get trip: $e") })
+    }
+  }
+
+  fun declineTripInvite(inviteId: String) {
+    tripInviteRepository.deleteTripInvite(
+        inviteId,
+        onSuccess = { Log.d("TripsViewModel", "Declined trip invite") },
+        onFailure = { e -> Log.e("TripsViewModel", "Failed to delete invite: $e") })
   }
 }
