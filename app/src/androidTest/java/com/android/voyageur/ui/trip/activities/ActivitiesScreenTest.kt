@@ -23,6 +23,7 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -65,7 +66,6 @@ class ActivitiesScreenTest {
               ))
   private lateinit var navHostController: NavHostController
   private lateinit var navigationActions: NavigationActions
-  private lateinit var tripsViewModel: TripsViewModel
   private lateinit var tripRepository: TripRepository
   private lateinit var mockTripsViewModel: TripsViewModel
   private lateinit var tripInviteRepository: TripInviteRepository
@@ -74,26 +74,27 @@ class ActivitiesScreenTest {
   private lateinit var userRepository: UserRepository
   private lateinit var userViewModel: UserViewModel
   private lateinit var mockNavigationActions: NavigationActions
+  private lateinit var firebaseAuth: FirebaseAuth
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
   fun setUp() {
+    firebaseAuth = mock(FirebaseAuth::class.java)
     navHostController = Mockito.mock(NavHostController::class.java)
     navigationActions = NavigationActions(navHostController)
     mockNavigationActions = Mockito.mock(NavigationActions::class.java)
     tripRepository = mock(TripRepository::class.java)
     tripInviteRepository = mock(TripInviteRepository::class.java)
-    tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     userRepository = mock(UserRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
-    mockTripsViewModel = mock(TripsViewModel::class.java)
+    mockTripsViewModel = TripsViewModel(tripRepository, tripInviteRepository, false, firebaseAuth)
   }
 
   @Test
   fun hasRequiredComponents() {
     composeTestRule.setContent {
-      ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
     }
     composeTestRule.onNodeWithTag("activitiesScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
@@ -105,7 +106,7 @@ class ActivitiesScreenTest {
   @Test
   fun displaysBottomNavigationCorrectly() {
     composeTestRule.setContent {
-      ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
     }
 
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
@@ -118,7 +119,7 @@ class ActivitiesScreenTest {
   @Test
   fun activitiesScreen_displaysDraftAndFinalSections() {
     composeTestRule.setContent {
-      ActivitiesScreen(navigationActions = navigationActions, userViewModel, tripsViewModel)
+      ActivitiesScreen(navigationActions = navigationActions, userViewModel, mockTripsViewModel)
     }
 
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
@@ -130,7 +131,7 @@ class ActivitiesScreenTest {
   fun clickingCreateActivityButton_navigatesToAddActivityScreen() {
     doReturn(NavigationState()).`when`(mockNavigationActions).getNavigationState()
     composeTestRule.setContent {
-      ActivitiesScreen(mockNavigationActions, userViewModel, tripsViewModel)
+      ActivitiesScreen(mockNavigationActions, userViewModel, mockTripsViewModel)
     }
 
     composeTestRule.onNodeWithTag("createActivityButton").performClick()
@@ -366,7 +367,7 @@ class ActivitiesScreenTest {
   @Test
   fun createActivityButton_notDisplayedInROV() {
     composeTestRule.setContent {
-      ActivitiesScreen(mockNavigationActions, userViewModel, tripsViewModel, true)
+      ActivitiesScreen(mockNavigationActions, userViewModel, mockTripsViewModel, true)
     }
 
     composeTestRule.onNodeWithTag("createActivityButton").assertDoesNotExist()
@@ -401,7 +402,7 @@ class ActivitiesScreenTest {
 
   @Test
   fun activitiesMapTab_displaysSearchBarAndFilterButton() {
-    composeTestRule.setContent { ActivitiesMapTab(tripsViewModel) }
+    composeTestRule.setContent { ActivitiesMapTab(mockTripsViewModel) }
 
     composeTestRule.onNodeWithTag("searchBar").assertIsDisplayed()
     composeTestRule.onNodeWithTag("filterButton").assertIsDisplayed()
@@ -409,7 +410,7 @@ class ActivitiesScreenTest {
 
   @Test
   fun activitiesMapTab_displaysFilterDialogs() {
-    composeTestRule.setContent { ActivitiesMapTab(tripsViewModel) }
+    composeTestRule.setContent { ActivitiesMapTab(mockTripsViewModel) }
 
     composeTestRule.onNodeWithTag("filterButton").performClick()
     composeTestRule.onNodeWithTag("mainFilterActivityAlertDialog").assertIsDisplayed()

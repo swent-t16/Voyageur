@@ -13,6 +13,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.notifications.TripInviteRepository
+import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
@@ -39,6 +41,9 @@ class EditProfileScreenTest {
   private lateinit var firebaseUser: FirebaseUser
   private lateinit var friendRequestRepository: FriendRequestRepository
   private lateinit var tripsViewModel: TripsViewModel
+  private lateinit var tripsRepository: TripRepository
+  private lateinit var tripInviteRepository: TripInviteRepository
+
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
@@ -48,7 +53,9 @@ class EditProfileScreenTest {
     userRepository = mock(UserRepository::class.java)
     firebaseAuth = mock(FirebaseAuth::class.java)
     firebaseUser = mock(FirebaseUser::class.java)
-    tripsViewModel = mock(TripsViewModel::class.java)
+    tripsRepository = mock(TripRepository::class.java)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripsRepository, tripInviteRepository, false, firebaseAuth)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
 
     // Mock FirebaseAuth to return our mocked firebaseUser
