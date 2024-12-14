@@ -49,6 +49,7 @@ class WeeklyViewScreenTest {
     tripsRepository = Mockito.mock(TripRepository::class.java)
     userRepository = Mockito.mock(UserRepository::class.java)
     friendRequestRepository = Mockito.mock(FriendRequestRepository::class.java)
+    tripInviteRepository = Mockito.mock(TripInviteRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
     tripsViewModel = TripsViewModel(tripsRepository, tripInviteRepository)
 
