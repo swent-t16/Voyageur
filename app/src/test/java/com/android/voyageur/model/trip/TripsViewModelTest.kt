@@ -767,4 +767,40 @@ class TripsViewModelTest {
     tripsViewModel.acceptTripInvite(tripInvite)
     advanceUntilIdle()
   }
+    @Test
+    fun getNotificationsCount_success() {
+        // Arrange
+        val expectedCount = 5L
+
+        doAnswer { invocation ->
+            val onSuccess = invocation.arguments[1] as (Long) -> Unit
+            onSuccess(expectedCount)
+            null
+        }.`when`(tripInviteRepository).getTripInvitesCount(anyOrNull(), anyOrNull(), anyOrNull())
+
+        // Act
+        tripsViewModel.getNotificationsCount { count ->
+            // Assert
+            assert(count == expectedCount)
+            assert(tripsViewModel.tripNotificationCount.value == expectedCount)
+        }
+    }
+
+    @Test
+    fun getNotificationsCount_failure() {
+        // Arrange
+        val exception = Exception("Failed to fetch count")
+
+        doAnswer { invocation ->
+            val onFailure = invocation.arguments[2] as (Exception) -> Unit
+            onFailure(exception)
+            null
+        }.`when`(tripInviteRepository).getTripInvitesCount(anyOrNull(), anyOrNull(), anyOrNull())
+
+        // Act
+        tripsViewModel.getNotificationsCount { }
+
+        // Assert - count should remain at default value
+        assert(tripsViewModel.tripNotificationCount.value == 0L)
+    }
 }
