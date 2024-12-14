@@ -113,7 +113,7 @@ fun OverviewScreen(
   var searchQuery by remember { mutableStateOf("") }
   var showOnlyFavorites by remember { mutableStateOf(false) }
   val user by userViewModel.user.collectAsState()
-  if (user != null) {
+  if (user == null) {
     // Don't compose the UI yet if the user is not loaded
     return
   }
