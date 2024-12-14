@@ -49,7 +49,11 @@ open class TripsViewModel(
   private val _selectedTrip = MutableStateFlow<Trip?>(null)
   open val selectedTrip: StateFlow<Trip?> = _selectedTrip.asStateFlow()
 
-  // useful for displaying the activities for one day:
+    val _tripNotificationCount = MutableStateFlow(0L)
+    val tripNotificationCount: StateFlow<Long> = _tripNotificationCount
+
+
+    // useful for displaying the activities for one day:
   private val _selectedDay = MutableStateFlow<LocalDate?>(null)
   open val selectedDay: StateFlow<LocalDate?> = _selectedDay.asStateFlow()
 
@@ -164,7 +168,29 @@ open class TripsViewModel(
         })
   }
 
-  fun fetchTripInvites() {
+    fun getNotificationsCount(onSuccess: (Long) -> Unit) {
+        val userId = Firebase.auth.uid.orEmpty()
+        if (userId.isEmpty()) {
+            Log.e("TripsViewModel", "User ID is empty, cannot fetch trip notifications count")
+            return
+        }
+
+        tripInviteRepository.getTripInvitesCount(
+            userId = userId,
+            onSuccess = { count ->
+                // Assuming _tripNotificationCount is a MutableStateFlow<Long>
+                if (_tripNotificationCount.value != count) {
+                    _tripNotificationCount.value = count
+                }
+                onSuccess(count)
+            },
+            onFailure = { exception ->
+                Log.e("TripsViewModel", "Failed to fetch trip notifications count: ${exception.message}")
+            }
+        )
+    }
+
+    fun fetchTripInvites() {
     val userId = Firebase.auth.uid.orEmpty()
     if (userId.isEmpty()) return
 

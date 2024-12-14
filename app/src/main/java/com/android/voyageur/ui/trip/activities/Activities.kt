@@ -143,7 +143,7 @@ fun ActivitiesScreen(
             tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute(),
             userViewModel = userViewModel,
-            tripsViewModel)
+            tripsViewModel = tripsViewModel)
       },
       topBar = {
         TopAppBar(

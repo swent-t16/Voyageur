@@ -23,7 +23,6 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Screen
 import com.google.firebase.Timestamp
-import com.google.firebase.auth.FirebaseAuth
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,60 +40,60 @@ fun createTimestamp(year: Int, month: Int, day: Int, hour: Int, minute: Int): Ti
 
 class ActivitiesScreenTest {
   private val sampleTrip =
-      Trip(
-          name = "Sample Trip",
-          activities =
-              listOf(
-                  Activity(
-                      title = "Draft Activity",
-                      description = "This is a draft activity",
-                      estimatedPrice = 0.0,
-                      activityType = ActivityType.WALK),
-                  Activity(
-                      title = "Final Activity With Description",
-                      description = "This is a final activity",
-                      startTime = createTimestamp(2022, 1, 1, 12, 0),
-                      endTime = createTimestamp(2022, 1, 1, 14, 0),
-                      estimatedPrice = 20.0,
-                      activityType = ActivityType.RESTAURANT),
-                  Activity(
-                      title = "Final Activity Without Description",
-                      estimatedPrice = 10.0,
-                      startTime = createTimestamp(2022, 1, 2, 12, 0),
-                      endTime = createTimestamp(2022, 1, 2, 14, 0),
-                      activityType = ActivityType.MUSEUM),
-              ))
+    Trip(
+      name = "Sample Trip",
+      activities =
+      listOf(
+        Activity(
+          title = "Draft Activity",
+          description = "This is a draft activity",
+          estimatedPrice = 0.0,
+          activityType = ActivityType.WALK),
+        Activity(
+          title = "Final Activity With Description",
+          description = "This is a final activity",
+          startTime = createTimestamp(2022, 1, 1, 12, 0),
+          endTime = createTimestamp(2022, 1, 1, 14, 0),
+          estimatedPrice = 20.0,
+          activityType = ActivityType.RESTAURANT),
+        Activity(
+          title = "Final Activity Without Description",
+          estimatedPrice = 10.0,
+          startTime = createTimestamp(2022, 1, 2, 12, 0),
+          endTime = createTimestamp(2022, 1, 2, 14, 0),
+          activityType = ActivityType.MUSEUM),
+      ))
   private lateinit var navHostController: NavHostController
   private lateinit var navigationActions: NavigationActions
+  private lateinit var tripsViewModel: TripsViewModel
   private lateinit var tripRepository: TripRepository
   private lateinit var mockTripsViewModel: TripsViewModel
-  private lateinit var tripInviteRepository: TripInviteRepository
 
   private lateinit var friendRequestRepository: FriendRequestRepository
   private lateinit var userRepository: UserRepository
+  private lateinit var tripInviteRepository: TripInviteRepository
   private lateinit var userViewModel: UserViewModel
   private lateinit var mockNavigationActions: NavigationActions
-  private lateinit var firebaseAuth: FirebaseAuth
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
   fun setUp() {
-    firebaseAuth = mock(FirebaseAuth::class.java)
     navHostController = Mockito.mock(NavHostController::class.java)
     navigationActions = NavigationActions(navHostController)
     mockNavigationActions = Mockito.mock(NavigationActions::class.java)
     tripRepository = mock(TripRepository::class.java)
     tripInviteRepository = mock(TripInviteRepository::class.java)
+      tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     userRepository = mock(UserRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
-    mockTripsViewModel = TripsViewModel(tripRepository, tripInviteRepository, false, firebaseAuth)
+    mockTripsViewModel = mock(TripsViewModel::class.java)
   }
 
   @Test
   fun hasRequiredComponents() {
     composeTestRule.setContent {
-      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+      ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
     }
     composeTestRule.onNodeWithTag("activitiesScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
@@ -106,7 +105,7 @@ class ActivitiesScreenTest {
   @Test
   fun displaysBottomNavigationCorrectly() {
     composeTestRule.setContent {
-      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+      ActivitiesScreen(navigationActions, userViewModel, tripsViewModel)
     }
 
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
@@ -119,7 +118,7 @@ class ActivitiesScreenTest {
   @Test
   fun activitiesScreen_displaysDraftAndFinalSections() {
     composeTestRule.setContent {
-      ActivitiesScreen(navigationActions = navigationActions, userViewModel, mockTripsViewModel)
+      ActivitiesScreen(navigationActions = navigationActions, userViewModel, tripsViewModel)
     }
 
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
@@ -131,7 +130,7 @@ class ActivitiesScreenTest {
   fun clickingCreateActivityButton_navigatesToAddActivityScreen() {
     doReturn(NavigationState()).`when`(mockNavigationActions).getNavigationState()
     composeTestRule.setContent {
-      ActivitiesScreen(mockNavigationActions, userViewModel, mockTripsViewModel)
+      ActivitiesScreen(mockNavigationActions, userViewModel, tripsViewModel)
     }
 
     composeTestRule.onNodeWithTag("createActivityButton").performClick()
@@ -177,8 +176,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("deleteIcon_${sampleTrip.activities[0].title}").performClick()
     composeTestRule.onNodeWithTag("confirmDeleteButton").performClick()
     composeTestRule
-        .onNodeWithTag("cardItem_${sampleTrip.activities[0].title}")
-        .assertIsNotDisplayed()
+      .onNodeWithTag("cardItem_${sampleTrip.activities[0].title}")
+      .assertIsNotDisplayed()
     verify(mockTripsViewModel).removeActivityFromTrip(sampleTrip.activities[0])
 
     // test with final activity
@@ -187,8 +186,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("deleteIcon_${sampleTrip.activities[1].title}").performClick()
     composeTestRule.onNodeWithTag("confirmDeleteButton").performClick()
     composeTestRule
-        .onNodeWithTag("cardItem_${sampleTrip.activities[1].title}")
-        .assertIsNotDisplayed()
+      .onNodeWithTag("cardItem_${sampleTrip.activities[1].title}")
+      .assertIsNotDisplayed()
     verify(mockTripsViewModel).removeActivityFromTrip(sampleTrip.activities[1])
   }
 
@@ -217,8 +216,8 @@ class ActivitiesScreenTest {
     // Select the "WALK" filter
     composeTestRule.onNodeWithTag("typeCheckBox_WALK").performClick()
     composeTestRule
-        .onNodeWithTag("typeCheckBox_WALK")
-        .assertIsOn() // Verify the checkbox is checked
+      .onNodeWithTag("typeCheckBox_WALK")
+      .assertIsOn() // Verify the checkbox is checked
     composeTestRule.onNodeWithTag("confirmButtonDialog").performClick()
 
     // Verify that only WALK activities are displayed
@@ -244,8 +243,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertDoesNotExist()
     composeTestRule
-        .onNodeWithTag("cardItem_Final Activity Without Description")
-        .assertDoesNotExist()
+      .onNodeWithTag("cardItem_Final Activity Without Description")
+      .assertDoesNotExist()
 
     // Open the filter dialog again
     composeTestRule.onNodeWithTag("filterButton").performClick()
@@ -274,8 +273,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertDoesNotExist()
     composeTestRule
-        .onNodeWithTag("cardItem_Final Activity Without Description")
-        .assertDoesNotExist()
+      .onNodeWithTag("cardItem_Final Activity Without Description")
+      .assertDoesNotExist()
   }
 
   @Test
@@ -340,8 +339,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertDoesNotExist()
     composeTestRule
-        .onNodeWithTag("cardItem_Final Activity Without Description")
-        .assertDoesNotExist()
+      .onNodeWithTag("cardItem_Final Activity Without Description")
+      .assertDoesNotExist()
   }
 
   @Test
@@ -360,14 +359,14 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertDoesNotExist()
     composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertDoesNotExist()
     composeTestRule
-        .onNodeWithTag("cardItem_Final Activity Without Description")
-        .assertDoesNotExist()
+      .onNodeWithTag("cardItem_Final Activity Without Description")
+      .assertDoesNotExist()
   }
 
   @Test
   fun createActivityButton_notDisplayedInROV() {
     composeTestRule.setContent {
-      ActivitiesScreen(mockNavigationActions, userViewModel, mockTripsViewModel, true)
+      ActivitiesScreen(mockNavigationActions, userViewModel, tripsViewModel, true)
     }
 
     composeTestRule.onNodeWithTag("createActivityButton").assertDoesNotExist()
@@ -385,8 +384,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[0].title}").assertIsDisplayed()
     composeTestRule.onNodeWithTag("expandIcon_${sampleTrip.activities[0].title}").performClick()
     composeTestRule
-        .onNodeWithTag("deleteIcon_${sampleTrip.activities[0].title}")
-        .assertDoesNotExist()
+      .onNodeWithTag("deleteIcon_${sampleTrip.activities[0].title}")
+      .assertDoesNotExist()
     // Assert the edit button is not displayed
     composeTestRule.onNodeWithTag("editIcon_${sampleTrip.activities[0].title}").assertDoesNotExist()
 
@@ -394,15 +393,15 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[1].title}").assertIsDisplayed()
     composeTestRule.onNodeWithTag("expandIcon_${sampleTrip.activities[1].title}").performClick()
     composeTestRule
-        .onNodeWithTag("deleteIcon_${sampleTrip.activities[1].title}")
-        .assertDoesNotExist()
+      .onNodeWithTag("deleteIcon_${sampleTrip.activities[1].title}")
+      .assertDoesNotExist()
     // Assert the edit button is not displayed
     composeTestRule.onNodeWithTag("editIcon_${sampleTrip.activities[1].title}").assertDoesNotExist()
   }
 
   @Test
   fun activitiesMapTab_displaysSearchBarAndFilterButton() {
-    composeTestRule.setContent { ActivitiesMapTab(mockTripsViewModel) }
+    composeTestRule.setContent { ActivitiesMapTab(tripsViewModel) }
 
     composeTestRule.onNodeWithTag("searchBar").assertIsDisplayed()
     composeTestRule.onNodeWithTag("filterButton").assertIsDisplayed()
@@ -410,7 +409,7 @@ class ActivitiesScreenTest {
 
   @Test
   fun activitiesMapTab_displaysFilterDialogs() {
-    composeTestRule.setContent { ActivitiesMapTab(mockTripsViewModel) }
+    composeTestRule.setContent { ActivitiesMapTab(tripsViewModel) }
 
     composeTestRule.onNodeWithTag("filterButton").performClick()
     composeTestRule.onNodeWithTag("mainFilterActivityAlertDialog").assertIsDisplayed()

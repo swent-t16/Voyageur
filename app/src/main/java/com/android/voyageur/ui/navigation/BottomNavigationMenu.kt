@@ -35,18 +35,20 @@ fun BottomNavigationMenu(
     tabList: List<TopLevelDestination>,
     selectedItem: String?,
     userViewModel: UserViewModel,
-    tripViewModel: TripsViewModel
+    tripsViewModel: TripsViewModel
 ) {
-  val userNotifications by userViewModel._notificationCount.collectAsState()
-  val tripInvites by tripViewModel.tripInvites.collectAsState()
-  val totalNotifications = userNotifications + tripInvites.size
+    val userNotifications = userViewModel.notificationCount?.collectAsState(initial = 0)?.value ?: 0
+    val tripInvites = tripsViewModel.tripNotificationCount?.collectAsState(initial = 0)?.value ?: 0
+    val totalNotifications = userNotifications + tripInvites
 
-  LaunchedEffect(userNotifications) { userViewModel.getFriendRequests {} }
-
+    LaunchedEffect(userNotifications, tripInvites) {
+        userViewModel.getFriendRequests {}
+        tripsViewModel.getNotificationsCount {}
+    }
   LaunchedEffect(Unit) {
     if (Firebase.auth.uid != null) {
       userViewModel.getNotificationsCount {}
-      tripViewModel.fetchTripInvites()
+        tripsViewModel.getNotificationsCount {}
     }
   }
 
