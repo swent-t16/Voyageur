@@ -48,7 +48,8 @@ fun PermissionButtonForGallery(
     aspectRatioX: Int = 1,
     aspectRatioY: Int = 1,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    shouldCrop: Boolean = true // default: the image cropper is activated
 ) {
   val context = LocalContext.current
   val compActivity = context.findActivity()
@@ -70,7 +71,12 @@ fun PermissionButtonForGallery(
   val galleryLauncher =
       rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-          imageCropper(uri)
+          if (shouldCrop) {
+            imageCropper(uri)
+          } else {
+            // Directly pass the URI without cropping
+            onUriSelected(uri)
+          }
         } else {
           Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
         }

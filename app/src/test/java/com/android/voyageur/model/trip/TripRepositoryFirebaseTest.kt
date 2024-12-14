@@ -11,12 +11,16 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.util.Assert.fail
 import junit.framework.TestCase
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -40,6 +44,7 @@ class TripRepositoryFirebaseTest {
 
   @Mock private lateinit var mockQuerySnapshot: QuerySnapshot
   @Mock private lateinit var mockQuery: Query
+  @Mock private lateinit var mockListenerRegistration: ListenerRegistration
 
   private lateinit var tripRepository: TripRepositoryFirebase
 
@@ -265,5 +270,35 @@ class TripRepositoryFirebaseTest {
 
     verify(mockQuery).get()
     verify(mockTask).addOnFailureListener(any())
+  }
+
+  @Test
+  fun `listenForTripUpdates calls onFailure when exception occurs`() {
+    val userId = "userId"
+    val testException =
+        FirebaseFirestoreException("Test Error", FirebaseFirestoreException.Code.UNKNOWN)
+
+    // Mock query for trips where the user is a participant
+    `when`(mockCollectionReference.whereArrayContains("participants", userId)).thenReturn(mockQuery)
+
+    // Simulate Firestore addSnapshotListener call
+    `when`(mockQuery.addSnapshotListener(any<EventListener<QuerySnapshot>>())).thenAnswer {
+        invocation ->
+      val listener = invocation.arguments[0] as EventListener<QuerySnapshot>
+      // Simulate an exception in the snapshot listener
+      listener.onEvent(null, testException)
+      mockListenerRegistration
+    }
+
+    var failureCalled = false
+    tripRepository.listenForTripUpdates(
+        userId,
+        onSuccess = { fail("onSuccess should not be called on error") },
+        onFailure = {
+          failureCalled = true
+          assertEquals("Test Error", it.message)
+        })
+
+    assertTrue("onFailure should have been called", failureCalled)
   }
 }

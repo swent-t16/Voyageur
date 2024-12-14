@@ -61,11 +61,11 @@ val LIST_TOP_LEVEL_DESTINATION =
 open class NavigationState {
   /**
    * This is a mutable state that represents the current tab index for the trip. (0 for Schedule, 1
-   * for Activities, 2 for Settings) This is used to determine which tab is currently selected in
-   * the TobTabs composable for a trip. It needs to be part of the navigation actions in order to
-   * remember which tab was selecting when opening another screen and trying to go back. For
-   * example, when we open AddActivityScreen from the Activities tab, we want to go back to this
-   * tab.
+   * for Activities, 2 for Activities Map, 3 for Photos Screen and 4 for Settings) This is used to
+   * determine which tab is currently selected in the TobTabs composable for a trip. It needs to be
+   * part of the navigation actions in order to remember which tab was selecting when opening
+   * another screen and trying to go back. For example, when we open AddActivityScreen from the
+   * Activities tab, we want to go back to this tab.
    */
   var currentTabIndexForTrip by mutableIntStateOf(0) // Default to 0 (Schedule tab)
   /**
@@ -75,6 +75,17 @@ open class NavigationState {
    * which view was selected when opening another screen and trying to go back.
    */
   var isDailyViewSelected by mutableStateOf(true) // Default to true (Daily view selected)
+  /**
+   * This is a mutable state that represents whether the read only view is set on for a trip (in
+   * Discover tab).
+   *
+   * This is used to determine whether the editing and uploading photos screens are available. It
+   * needs to be part of the navigation actions to ensure that the read-only state is preserved
+   * across screens (to determine which screens the user can access). For example, when navigating
+   * to a screen like`ByDayScreen` or `ScheduleScreen`, this state dictates whether users can add or
+   * modify activities, and the user cannot travel to 'SettingsScreen' or 'PhotosScreen'
+   */
+  var isReadOnlyView by mutableStateOf(false) // Default to false
   /**
    * This is a mutable state that represents the current tab index for the search. (0 for Users, 1
    * for Places, 2 for the discover tab) This is used to determine which tab is currently selected

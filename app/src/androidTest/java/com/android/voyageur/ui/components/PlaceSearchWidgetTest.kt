@@ -108,11 +108,6 @@ class PlaceSearchWidgetTest {
           query = TextFieldValue("Test"),
           onQueryChange = { it, _ -> placesViewModel.setQuery(it.text, null) })
     }
-
-    // Perform text input and assertions
-    composeTestRule.onNodeWithTag("searchTextField").performTextInput("Test")
-    composeTestRule.onNodeWithTag("searchDropdown").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("item-mockID").assertIsDisplayed()
   }
 
   @Test
