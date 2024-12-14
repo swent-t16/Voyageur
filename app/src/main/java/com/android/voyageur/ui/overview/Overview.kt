@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,14 +28,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.twotone.Favorite
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,6 +54,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -67,6 +71,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.components.NoResultsFound
 import com.android.voyageur.ui.components.SearchBar
@@ -93,20 +98,40 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
  */
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
 ) {
-  val trips by tripsViewModel.trips.collectAsState()
+  val unfilteredTrips by tripsViewModel.trips.collectAsState()
   val isLoadingUser by userViewModel.isLoading.collectAsState()
   val isLoadingTrip by tripsViewModel.isLoading.collectAsState()
   var isLoading = false
   val status by connectivityState()
   val isConnected = status === ConnectionState.Available
   var searchQuery by remember { mutableStateOf("") }
+  var showOnlyFavorites by remember { mutableStateOf(false) }
+  val user by userViewModel.user.collectAsState()
+  if (user == null) {
+    // Don't compose the UI yet if the user is not loaded
+    return
+  }
+  LaunchedEffect(user) {
+    //   update favorite trips by removing deleted trips or trips that the user is no longer a
+    // participant of
+    val updatedFavoriteTrips =
+        user!!.favoriteTrips.filter { tripId -> unfilteredTrips.any { trip -> trip.id == tripId } }
+    if (updatedFavoriteTrips.size != user!!.favoriteTrips.size) {
+      val updatedUser = user!!.copy(favoriteTrips = updatedFavoriteTrips)
+      userViewModel.updateUser(updatedUser)
+    }
+  }
+
+  val trips =
+      if (showOnlyFavorites) unfilteredTrips.filter { user!!.favoriteTrips.contains(it.id) }
+      else unfilteredTrips
 
   LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
 
@@ -116,11 +141,30 @@ fun OverviewScreen(
       floatingActionButton = { AddTripFAB(isConnected, navigationActions) },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        SearchBar(
-            placeholderId = R.string.overview_searchbar_placeholder,
-            onQueryChange = { searchQuery = it },
-            modifier =
-                Modifier.padding(horizontal = 16.dp, vertical = 24.dp).testTag("searchField"))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+          SearchBar(
+              placeholderId = R.string.overview_searchbar_placeholder,
+              onQueryChange = { searchQuery = it },
+              modifier =
+                  Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
+                      .testTag("searchField")
+                      .weight(1f))
+
+          Spacer(modifier = Modifier.width(8.dp))
+
+          IconButton(
+              onClick = { showOnlyFavorites = !showOnlyFavorites },
+              modifier = Modifier.testTag("favoriteFilterButton").padding(end = 8.dp)) {
+                Icon(
+                    imageVector =
+                        if (showOnlyFavorites) Icons.Filled.Favorite
+                        else Icons.Default.FavoriteBorder,
+                    contentDescription =
+                        if (showOnlyFavorites) stringResource(R.string.show_all_trips)
+                        else stringResource(R.string.show_favorite_trips),
+                    tint = MaterialTheme.colorScheme.onSurface)
+              }
+        }
       },
       bottomBar = {
         BottomNavigationMenu(
@@ -134,10 +178,12 @@ fun OverviewScreen(
             isLoading = isLoading,
             trips = trips,
             searchQuery = searchQuery,
+            showOnlyFavorites = showOnlyFavorites,
             padding = pd,
             tripsViewModel = tripsViewModel,
             navigationActions = navigationActions,
-            userViewModel = userViewModel)
+            userViewModel = userViewModel,
+            user = user!!)
       })
 }
 
@@ -203,20 +249,24 @@ private fun AddTripFAB(isConnected: Boolean, navigationActions: NavigationAction
  * @param isLoading Boolean indicating whether data is currently being loaded
  * @param trips List of all available trips
  * @param searchQuery Current search query for filtering trips
+ * @param showOnlyFavorites Boolean indicating whether the user is viewing only favorite trips
  * @param padding PaddingValues to apply to the content
  * @param tripsViewModel ViewModel containing trips-related state and logic
  * @param navigationActions Actions to handle navigation between screens
  * @param userViewModel ViewModel containing user-related state and logic
+ * @param user The current user data
  */
 @Composable
 private fun OverviewContent(
     isLoading: Boolean,
     trips: List<Trip>,
     searchQuery: String,
+    showOnlyFavorites: Boolean,
     padding: PaddingValues,
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    user: User
 ) {
   if (isLoading) {
     CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
@@ -227,14 +277,15 @@ private fun OverviewContent(
       modifier = Modifier.padding(padding).testTag("overviewColumn"),
   ) {
     if (trips.isEmpty()) {
-      EmptyTripsMessage()
+      EmptyTripsMessage(showOnlyFavorites)
     } else {
       TripsList(
           trips = trips,
           searchQuery = searchQuery,
           tripsViewModel = tripsViewModel,
           navigationActions = navigationActions,
-          userViewModel = userViewModel)
+          userViewModel = userViewModel,
+          user = user)
     }
   }
 }
@@ -242,14 +293,19 @@ private fun OverviewContent(
 /**
  * Composable that displays a message when no trips are available.
  *
- * Shows a centered message prompting the user to create their first trip.
+ * Shows a centered message prompting the user to create their first trip or indicating that no
+ * favorite trips are available.
+ *
+ * @param showOnlyFavorites Boolean indicating whether the user is viewing only favorite trips
  */
 @Composable
-private fun EmptyTripsMessage() {
+private fun EmptyTripsMessage(showOnlyFavorites: Boolean) {
   Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
     Text(
         modifier = Modifier.testTag("emptyTripPrompt"),
-        text = stringResource(R.string.empty_trip_prompt),
+        text =
+            if (!showOnlyFavorites) stringResource(R.string.empty_trip_prompt)
+            else stringResource(R.string.no_favorite_trips),
     )
   }
 }
@@ -265,6 +321,7 @@ private fun EmptyTripsMessage() {
  * @param tripsViewModel ViewModel containing trips-related state and logic
  * @param navigationActions Actions to handle navigation between screens
  * @param userViewModel ViewModel containing user-related state and logic
+ * @param user The current user data
  */
 @Composable
 private fun TripsList(
@@ -272,7 +329,8 @@ private fun TripsList(
     searchQuery: String,
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    user: User
 ) {
   val filteredTrips = filterTrips(trips, searchQuery)
 
@@ -290,7 +348,8 @@ private fun TripsList(
               tripsViewModel = tripsViewModel,
               trip = trip,
               navigationActions = navigationActions,
-              userViewModel = userViewModel)
+              userViewModel = userViewModel,
+              user = user)
         }
       }
 }
@@ -325,14 +384,17 @@ private fun filterTrips(trips: List<Trip>, searchQuery: String): List<Trip> {
  * @param trip The trip data to display in this card.
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
+ * @param user The current user data.
  */
+@SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun TripItem(
     tripsViewModel: TripsViewModel,
     trip: Trip,
     navigationActions: NavigationActions,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    user: User
 ) {
   val dateRange = trip.startDate.toDateString() + " - " + trip.endDate.toDateString()
   val themeColor = MaterialTheme.colorScheme.onSurface
@@ -342,6 +404,7 @@ fun TripItem(
   val context = LocalContext.current
   val status by connectivityState()
   val isConnected = status === ConnectionState.Available
+
   // Permission launcher to access calendar
   val requestPermissionLauncher =
       rememberLauncherForActivityResult(
@@ -375,20 +438,59 @@ fun TripItem(
             modifier = Modifier.fillMaxSize().testTag("cardRow"),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-              // modifier.weight(1f) is used here to set the image for 1/3 of the card
-              if (trip.imageUri.isNotEmpty()) {
-                Image(
-                    painter = rememberAsyncImagePainter(model = trip.imageUri),
-                    contentDescription = stringResource(R.string.selected_image_description),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.width(120.dp).height(217.dp).testTag("tripImage"))
-              } else {
-                Image(
-                    painter = painterResource(id = R.drawable.default_trip_image),
-                    contentDescription = stringResource(R.string.trip_image_overview_description),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.width(120.dp).height(217.dp).testTag("defaultTripImage"))
-              } // modifier.weight(2f) is used here to set the column to 2/3 of the card
+              Box(modifier = Modifier.aspectRatio(0.55f).fillMaxSize().testTag("tripImageBox")) {
+                // Display image or default image
+                if (trip.imageUri.isNotEmpty()) {
+                  Image(
+                      painter = rememberAsyncImagePainter(model = trip.imageUri),
+                      contentDescription = stringResource(R.string.selected_image_description),
+                      contentScale = ContentScale.Crop,
+                      modifier = Modifier.fillMaxSize().testTag("tripImage"))
+                } else {
+                  Image(
+                      painter = painterResource(id = R.drawable.default_trip_image),
+                      contentDescription = stringResource(R.string.trip_image_overview_description),
+                      contentScale = ContentScale.Crop,
+                      modifier = Modifier.fillMaxSize().testTag("defaultTripImage"))
+                }
+
+                // Heart icon on top of the image
+                IconButton(
+                    onClick = {
+                      val updatedFavoriteTrips =
+                          if (user.favoriteTrips.contains(trip.id)) {
+                            user.favoriteTrips.toMutableList().apply { remove(trip.id) }
+                          } else {
+                            user.favoriteTrips.toMutableList().apply { add(trip.id) }
+                          }
+                      val updatedUser = user.copy(favoriteTrips = updatedFavoriteTrips)
+                      userViewModel.updateUser(updatedUser)
+                    },
+                    modifier =
+                        Modifier.align(Alignment.TopStart)
+                            .padding(8.dp)
+                            .testTag("favoriteButton_${trip.name}")) {
+                      Icon(
+                          imageVector =
+                              if (user.favoriteTrips.contains(trip.id)) Icons.TwoTone.Favorite
+                              else Icons.Default.FavoriteBorder,
+                          contentDescription =
+                              if (user.favoriteTrips.contains(trip.id)) "Unmark as Favorite"
+                              else "Mark as Favorite",
+                          tint =
+                              if (user.favoriteTrips.contains(trip.id)) Color.Red
+                              else Color.DarkGray,
+                          modifier =
+                              Modifier.drawBehind {
+                                // Draw white outline for the heart button
+                                drawCircle(
+                                    color = Color.White.copy(alpha = 0.5f),
+                                    radius = size.minDimension / 2 + 4.dp.toPx(),
+                                    center = center)
+                              })
+                    }
+              }
+              // modifier.weight(2f) is used here to set the column to 2/3 of the card
               Column(
                   modifier = Modifier.fillMaxSize().padding(16.dp).weight(2f),
                   verticalArrangement = Arrangement.Top) {
@@ -417,6 +519,7 @@ fun TripItem(
                             ))
                     DisplayParticipants(trip, userViewModel)
                   }
+
               Box(modifier = Modifier.align(Alignment.Top)) {
                 IconButton(
                     enabled = isConnected,

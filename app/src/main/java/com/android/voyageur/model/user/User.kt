@@ -8,7 +8,8 @@ data class User(
     var bio: String = "",
     var contacts: List<String> = mutableListOf(),
     var interests: List<String> = mutableListOf(),
-    var username: String = ""
+    var username: String = "",
+    val favoriteTrips: List<String> = emptyList()
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -25,6 +26,9 @@ data class User(
     if (!interests.containsAll(other.interests) || !other.interests.containsAll(interests))
         return false
     if (username != other.username) return false
+    if (!favoriteTrips.containsAll(other.favoriteTrips) ||
+        !other.favoriteTrips.containsAll(favoriteTrips))
+        return false
 
     return true
   }
@@ -38,6 +42,7 @@ data class User(
     result = 31 * result + contacts.toSet().hashCode()
     result = 31 * result + interests.toSet().hashCode()
     result = 31 * result + username.hashCode()
+    result = 31 * result + favoriteTrips.toSet().hashCode()
     return result
   }
 }
