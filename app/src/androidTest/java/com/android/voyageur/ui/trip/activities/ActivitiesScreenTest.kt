@@ -40,29 +40,29 @@ fun createTimestamp(year: Int, month: Int, day: Int, hour: Int, minute: Int): Ti
 
 class ActivitiesScreenTest {
   private val sampleTrip =
-    Trip(
-      name = "Sample Trip",
-      activities =
-      listOf(
-        Activity(
-          title = "Draft Activity",
-          description = "This is a draft activity",
-          estimatedPrice = 0.0,
-          activityType = ActivityType.WALK),
-        Activity(
-          title = "Final Activity With Description",
-          description = "This is a final activity",
-          startTime = createTimestamp(2022, 1, 1, 12, 0),
-          endTime = createTimestamp(2022, 1, 1, 14, 0),
-          estimatedPrice = 20.0,
-          activityType = ActivityType.RESTAURANT),
-        Activity(
-          title = "Final Activity Without Description",
-          estimatedPrice = 10.0,
-          startTime = createTimestamp(2022, 1, 2, 12, 0),
-          endTime = createTimestamp(2022, 1, 2, 14, 0),
-          activityType = ActivityType.MUSEUM),
-      ))
+      Trip(
+          name = "Sample Trip",
+          activities =
+              listOf(
+                  Activity(
+                      title = "Draft Activity",
+                      description = "This is a draft activity",
+                      estimatedPrice = 0.0,
+                      activityType = ActivityType.WALK),
+                  Activity(
+                      title = "Final Activity With Description",
+                      description = "This is a final activity",
+                      startTime = createTimestamp(2022, 1, 1, 12, 0),
+                      endTime = createTimestamp(2022, 1, 1, 14, 0),
+                      estimatedPrice = 20.0,
+                      activityType = ActivityType.RESTAURANT),
+                  Activity(
+                      title = "Final Activity Without Description",
+                      estimatedPrice = 10.0,
+                      startTime = createTimestamp(2022, 1, 2, 12, 0),
+                      endTime = createTimestamp(2022, 1, 2, 14, 0),
+                      activityType = ActivityType.MUSEUM),
+              ))
   private lateinit var navHostController: NavHostController
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
@@ -83,7 +83,7 @@ class ActivitiesScreenTest {
     mockNavigationActions = Mockito.mock(NavigationActions::class.java)
     tripRepository = mock(TripRepository::class.java)
     tripInviteRepository = mock(TripInviteRepository::class.java)
-      tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
+    tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     userRepository = mock(UserRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
@@ -176,8 +176,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("deleteIcon_${sampleTrip.activities[0].title}").performClick()
     composeTestRule.onNodeWithTag("confirmDeleteButton").performClick()
     composeTestRule
-      .onNodeWithTag("cardItem_${sampleTrip.activities[0].title}")
-      .assertIsNotDisplayed()
+        .onNodeWithTag("cardItem_${sampleTrip.activities[0].title}")
+        .assertIsNotDisplayed()
     verify(mockTripsViewModel).removeActivityFromTrip(sampleTrip.activities[0])
 
     // test with final activity
@@ -186,8 +186,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("deleteIcon_${sampleTrip.activities[1].title}").performClick()
     composeTestRule.onNodeWithTag("confirmDeleteButton").performClick()
     composeTestRule
-      .onNodeWithTag("cardItem_${sampleTrip.activities[1].title}")
-      .assertIsNotDisplayed()
+        .onNodeWithTag("cardItem_${sampleTrip.activities[1].title}")
+        .assertIsNotDisplayed()
     verify(mockTripsViewModel).removeActivityFromTrip(sampleTrip.activities[1])
   }
 
@@ -216,8 +216,8 @@ class ActivitiesScreenTest {
     // Select the "WALK" filter
     composeTestRule.onNodeWithTag("typeCheckBox_WALK").performClick()
     composeTestRule
-      .onNodeWithTag("typeCheckBox_WALK")
-      .assertIsOn() // Verify the checkbox is checked
+        .onNodeWithTag("typeCheckBox_WALK")
+        .assertIsOn() // Verify the checkbox is checked
     composeTestRule.onNodeWithTag("confirmButtonDialog").performClick()
 
     // Verify that only WALK activities are displayed
@@ -243,8 +243,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertDoesNotExist()
     composeTestRule
-      .onNodeWithTag("cardItem_Final Activity Without Description")
-      .assertDoesNotExist()
+        .onNodeWithTag("cardItem_Final Activity Without Description")
+        .assertDoesNotExist()
 
     // Open the filter dialog again
     composeTestRule.onNodeWithTag("filterButton").performClick()
@@ -273,8 +273,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertDoesNotExist()
     composeTestRule
-      .onNodeWithTag("cardItem_Final Activity Without Description")
-      .assertDoesNotExist()
+        .onNodeWithTag("cardItem_Final Activity Without Description")
+        .assertDoesNotExist()
   }
 
   @Test
@@ -339,8 +339,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertDoesNotExist()
     composeTestRule
-      .onNodeWithTag("cardItem_Final Activity Without Description")
-      .assertDoesNotExist()
+        .onNodeWithTag("cardItem_Final Activity Without Description")
+        .assertDoesNotExist()
   }
 
   @Test
@@ -359,8 +359,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertDoesNotExist()
     composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertDoesNotExist()
     composeTestRule
-      .onNodeWithTag("cardItem_Final Activity Without Description")
-      .assertDoesNotExist()
+        .onNodeWithTag("cardItem_Final Activity Without Description")
+        .assertDoesNotExist()
   }
 
   @Test
@@ -384,8 +384,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[0].title}").assertIsDisplayed()
     composeTestRule.onNodeWithTag("expandIcon_${sampleTrip.activities[0].title}").performClick()
     composeTestRule
-      .onNodeWithTag("deleteIcon_${sampleTrip.activities[0].title}")
-      .assertDoesNotExist()
+        .onNodeWithTag("deleteIcon_${sampleTrip.activities[0].title}")
+        .assertDoesNotExist()
     // Assert the edit button is not displayed
     composeTestRule.onNodeWithTag("editIcon_${sampleTrip.activities[0].title}").assertDoesNotExist()
 
@@ -393,8 +393,8 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("cardItem_${sampleTrip.activities[1].title}").assertIsDisplayed()
     composeTestRule.onNodeWithTag("expandIcon_${sampleTrip.activities[1].title}").performClick()
     composeTestRule
-      .onNodeWithTag("deleteIcon_${sampleTrip.activities[1].title}")
-      .assertDoesNotExist()
+        .onNodeWithTag("deleteIcon_${sampleTrip.activities[1].title}")
+        .assertDoesNotExist()
     // Assert the edit button is not displayed
     composeTestRule.onNodeWithTag("editIcon_${sampleTrip.activities[1].title}").assertDoesNotExist()
   }
