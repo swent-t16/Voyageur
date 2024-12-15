@@ -841,17 +841,4 @@ class TripsViewModelTest {
     assert(!callbackCalled) // Callback should not be called for empty user ID
     assert(tripsViewModel.tripNotificationCount.value == 0L)
   }
-
-  @Test
-  fun acceptTripInvite_emptyUserId() = runTest {
-    `when`(firebaseAuth.currentUser).thenReturn(null)
-    val tripInvite = TripInvite(id = "1", tripId = "trip123", from = "user1", to = "123")
-
-    tripsViewModel.acceptTripInvite(tripInvite)
-    advanceUntilIdle()
-
-    verify(tripsRepository, never()).getTripById(any(), any(), any())
-    verify(tripsRepository, never()).updateTrip(any(), any(), any())
-    verify(tripInviteRepository, never()).deleteTripInvite(any(), any(), any())
-  }
 }

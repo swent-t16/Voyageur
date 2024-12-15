@@ -81,7 +81,7 @@ open class TripsViewModel(
         if (firebaseUser != null) {
           _tripListenerRegistration =
               tripsRepository.listenForTripUpdates(
-                  Firebase.auth?.uid.orEmpty(),
+                  firebaseAuth?.uid.orEmpty(),
                   onSuccess = {
                     _trips.value = it
                     if (selectedTrip.value != null)
@@ -149,7 +149,7 @@ open class TripsViewModel(
   fun getTrips(onSuccess: () -> Unit = {}) {
     _isLoading.value = true
     tripsRepository.getTrips(
-        creator = Firebase.auth.uid.orEmpty(),
+        creator = firebaseAuth.uid.orEmpty(),
         onSuccess = { trips ->
           /*
               This is a trick to force a recompose, because the reference wouldn't
@@ -168,7 +168,7 @@ open class TripsViewModel(
   }
 
   fun getNotificationsCount(onSuccess: (Long) -> Unit) {
-    val userId = Firebase.auth.uid
+    val userId = firebaseAuth.uid
     if (userId.toString().isEmpty()) return
 
     tripInviteRepository.getTripInvitesCount(
@@ -186,7 +186,7 @@ open class TripsViewModel(
   }
 
   fun fetchTripInvites() {
-    val userId = Firebase.auth.uid.toString()
+    val userId = firebaseAuth.uid.toString()
     if (userId.isEmpty()) return
 
     tripInviteRepository.listenToTripInvites(
@@ -369,7 +369,7 @@ open class TripsViewModel(
   }
 
   fun acceptTripInvite(tripInvite: TripInvite) {
-    val userId = Firebase.auth.uid.toString()
+    val userId = firebaseAuth.uid.toString()
     if (userId.isEmpty()) return
 
     viewModelScope.launch {
