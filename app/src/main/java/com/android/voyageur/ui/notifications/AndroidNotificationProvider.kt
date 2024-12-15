@@ -10,7 +10,7 @@ import com.android.voyageur.R
  *
  * @param context The context used to access resources and system services.
  */
-open class AndroidNotificationProvider(private val context: Context) : NotificationProvider {
+open class AndroidNotificationProvider(override val context: Context) : NotificationProvider {
 
   /**
    * Displays a notification for a new friend request.

@@ -153,6 +153,7 @@ fun DependencyHandlerScope.globalTestImplementation(dep: Any) {
 }
 
 dependencies {
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -176,7 +177,13 @@ dependencies {
     implementation (libs.androidx.material.icons.extended)
     implementation (libs.androidx.material.icons.extended.v154)
 
-    // Firebase
+    // Ensure you have these Firebase dependencies with the BOM
+    implementation(libs.firebase.bom.v3272)
+    implementation("com.google.firebase:firebase-messaging")
+    implementation(libs.com.google.firebase.firebase.messaging.ktx)
+
+    // Keep your existing Firebase dependencies
+    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.ui.auth)
@@ -205,7 +212,7 @@ dependencies {
         exclude("org.junit")
     }
     testImplementation(libs.testng)
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation(libs.ui.test.junit4)
     androidTestImplementation(libs.mockk)
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.mockk.agent)
@@ -229,7 +236,7 @@ dependencies {
 
     testImplementation(libs.kotlinx.coroutines.test)
 
-    implementation("com.google.firebase:firebase-core:9.6.1")
+    implementation(libs.firebase.core)
 
     // Google Maps Compose library
     val mapsComposeVersion = "4.4.1"

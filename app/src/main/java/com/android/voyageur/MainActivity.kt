@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -28,33 +29,23 @@ import com.android.voyageur.utils.connectivityState
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class MainActivity : ComponentActivity() {
   lateinit var placesClient: PlacesClient
+  private val TAG = "MainActivity"
+  private val NOTIFICATION_PERMISSION_CODE = 100
 
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
-    // Initialize the notification channel
-    NotificationHelper.createNotificationChannel(this)
-
-    try {
-      FirebaseApp.initializeApp(this)
-      Places.initialize(applicationContext, BuildConfig.PLACES_API_KEY)
-      placesClient = Places.createClient(this)
-    } catch (e: Exception) {
-      e.printStackTrace()
-    }
-
-    // Check and request notification permission for Android 13 and above
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
-          PackageManager.PERMISSION_GRANTED) {
-        requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100)
-      }
-    }
+    initializeFirebase()
+    initializeNotifications()
+    initializePlaces()
 
     setContent {
       VoyageurTheme {
@@ -67,7 +58,6 @@ class MainActivity : ComponentActivity() {
               Column {
                 Row {
                   if (!isConnected) {
-                    // Display a red banner at the top of the screen
                     Text(
                         stringResource(R.string.no_internet_connection),
                         modifier =
@@ -85,17 +75,80 @@ class MainActivity : ComponentActivity() {
     }
   }
 
+  private fun initializeFirebase() {
+    try {
+      FirebaseApp.initializeApp(this)
+      getFCMToken()
+    } catch (e: Exception) {
+      Log.e(TAG, "Error initializing Firebase", e)
+    }
+  }
+
+  private fun initializeNotifications() {
+    NotificationHelper.createNotificationChannel(this)
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
+          PackageManager.PERMISSION_GRANTED) {
+        requestPermissions(
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATION_PERMISSION_CODE)
+      }
+    }
+  }
+
+  private fun initializePlaces() {
+    try {
+      Places.initialize(applicationContext, BuildConfig.PLACES_API_KEY)
+      placesClient = Places.createClient(this)
+    } catch (e: Exception) {
+      Log.e(TAG, "Error initializing Places", e)
+    }
+  }
+
+  private fun getFCMToken() {
+    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+      if (!task.isSuccessful) {
+        Log.w(TAG, "Fetching FCM registration token failed", task.exception)
+        return@addOnCompleteListener
+      }
+
+      val token = task.result
+      // Add debug log to verify token
+      Log.d(TAG, "FCM Token: $token")
+
+      // Save token to SharedPreferences
+      getSharedPreferences("voyageur_prefs", MODE_PRIVATE)
+          .edit()
+          .putString("fcm_token", token)
+          .apply()
+
+      // Get current user and update token immediately
+      FirebaseAuth.getInstance().currentUser?.let { user -> updateUserToken(user.uid, token) }
+    }
+  }
+
+  private fun updateUserToken(userId: String, token: String) {
+    FirebaseFirestore.getInstance()
+        .collection("users")
+        .document(userId)
+        .update("fcmToken", token)
+        .addOnSuccessListener { Log.d(TAG, "FCM token updated in Firestore") }
+        .addOnFailureListener { e -> Log.e(TAG, "Error updating FCM token in Firestore", e) }
+  }
+
   override fun onRequestPermissionsResult(
       requestCode: Int,
       permissions: Array<String>,
       grantResults: IntArray
   ) {
     super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    if (requestCode == 100) {
+    if (requestCode == NOTIFICATION_PERMISSION_CODE) {
       if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-        // Permission granted; you can show notifications now
+        // Permission was granted
+        Log.d(TAG, "Notification permission granted")
       } else {
-        // Permission denied; handle accordingly
+        // Permission was denied
+        Log.d(TAG, "Notification permission denied")
       }
     }
   }
