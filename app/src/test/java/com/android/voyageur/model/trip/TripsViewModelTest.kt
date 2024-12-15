@@ -675,7 +675,7 @@ class TripsViewModelTest {
   }
 
   @Test
-  fun declineTripInvite_success() = runTest {
+  fun declineTripInvite_success0() = runTest {
     doAnswer { invocation ->
           val onSuccess = invocation.arguments[1] as () -> Unit
           onSuccess()
@@ -767,40 +767,64 @@ class TripsViewModelTest {
     tripsViewModel.acceptTripInvite(tripInvite)
     advanceUntilIdle()
   }
-    @Test
-    fun getNotificationsCount_success() {
-        // Arrange
-        val expectedCount = 5L
 
-        doAnswer { invocation ->
-            val onSuccess = invocation.arguments[1] as (Long) -> Unit
-            onSuccess(expectedCount)
-            null
-        }.`when`(tripInviteRepository).getTripInvitesCount(anyOrNull(), anyOrNull(), anyOrNull())
+  @Test
+  fun getNotificationsCount_success() {
+    // Arrange
+    val expectedCount = 5L
 
-        // Act
-        tripsViewModel.getNotificationsCount { count ->
-            // Assert
-            assert(count == expectedCount)
-            assert(tripsViewModel.tripNotificationCount.value == expectedCount)
+    doAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as (Long) -> Unit
+          onSuccess(expectedCount)
+          null
         }
+        .`when`(tripInviteRepository)
+        .getTripInvitesCount(anyOrNull(), anyOrNull(), anyOrNull())
+
+    // Act
+    tripsViewModel.getNotificationsCount { count ->
+      // Assert
+      assert(count == expectedCount)
+      assert(tripsViewModel.tripNotificationCount.value == expectedCount)
     }
+  }
 
-    @Test
-    fun getNotificationsCount_failure() {
-        // Arrange
-        val exception = Exception("Failed to fetch count")
+  @Test
+  fun getNotificationsCount_failure() {
+    // Arrange
+    val exception = Exception("Failed to fetch count")
 
-        doAnswer { invocation ->
-            val onFailure = invocation.arguments[2] as (Exception) -> Unit
-            onFailure(exception)
-            null
-        }.`when`(tripInviteRepository).getTripInvitesCount(anyOrNull(), anyOrNull(), anyOrNull())
+    doAnswer { invocation ->
+          val onFailure = invocation.arguments[2] as (Exception) -> Unit
+          onFailure(exception)
+          null
+        }
+        .`when`(tripInviteRepository)
+        .getTripInvitesCount(anyOrNull(), anyOrNull(), anyOrNull())
 
-        // Act
-        tripsViewModel.getNotificationsCount { }
+    // Act
+    tripsViewModel.getNotificationsCount {}
 
-        // Assert - count should remain at default value
-        assert(tripsViewModel.tripNotificationCount.value == 0L)
-    }
+    // Assert - count should remain at default value
+    assert(tripsViewModel.tripNotificationCount.value == 0L)
+  }
+
+  @Test
+  fun declineTripInvite_success() = runTest {
+    // Arrange
+    doAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as () -> Unit
+          onSuccess()
+          null
+        }
+        .`when`(tripInviteRepository)
+        .deleteTripInvite(any(), any(), any())
+
+    // Act
+    tripsViewModel.declineTripInvite("1")
+    advanceUntilIdle()
+
+    // Assert
+    verify(tripInviteRepository).deleteTripInvite(any(), any(), any())
+  }
 }
