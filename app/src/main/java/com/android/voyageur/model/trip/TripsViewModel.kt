@@ -186,7 +186,7 @@ open class TripsViewModel(
   }
 
   fun fetchTripInvites() {
-    val userId = Firebase.auth.uid.orEmpty()
+    val userId = Firebase.auth.uid.toString()
     if (userId.isEmpty()) return
 
     tripInviteRepository.listenToTripInvites(
@@ -369,7 +369,7 @@ open class TripsViewModel(
   }
 
   fun acceptTripInvite(tripInvite: TripInvite) {
-    val userId = Firebase.auth.uid.orEmpty()
+    val userId = Firebase.auth.uid.toString()
     if (userId.isEmpty()) return
 
     viewModelScope.launch {
