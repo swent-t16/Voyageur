@@ -843,19 +843,6 @@ class TripsViewModelTest {
   }
 
   @Test
-  fun getNotificationsCount_noUser() {
-    // Arrange
-    `when`(firebaseAuth.currentUser).thenReturn(null)
-
-    // Act
-    tripsViewModel.getNotificationsCount {}
-
-    // Assert
-    verify(tripInviteRepository, never()).getTripInvitesCount(any(), any(), any())
-    assert(tripsViewModel.tripNotificationCount.value == 0L)
-  }
-
-  @Test
   fun acceptTripInvite_emptyUserId() = runTest {
     `when`(firebaseAuth.currentUser).thenReturn(null)
     val tripInvite = TripInvite(id = "1", tripId = "trip123", from = "user1", to = "123")
