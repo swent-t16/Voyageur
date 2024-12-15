@@ -169,10 +169,7 @@ open class TripsViewModel(
 
   fun getNotificationsCount(onSuccess: (Long) -> Unit) {
     val userId = Firebase.auth.uid.orEmpty()
-    if (userId.isEmpty()) {
-      Log.e("TripsViewModel", "User ID is empty, cannot fetch trip notifications count")
-      return
-    }
+    if (userId.isEmpty()) return
 
     tripInviteRepository.getTripInvitesCount(
         userId = userId,
@@ -385,7 +382,7 @@ open class TripsViewModel(
                 onSuccess = {
                   tripInviteRepository.deleteTripInvite(
                       tripInvite.id,
-                      onSuccess = { Log.d("TripsViewModel", "Accepted trip invite") },
+                      onSuccess = {},
                       onFailure = { e -> Log.e("TripsViewModel", "Failed to delete invite: $e") })
                 },
                 onFailure = { e -> Log.e("TripsViewModel", "Failed to update trip: $e") })
@@ -397,7 +394,7 @@ open class TripsViewModel(
   fun declineTripInvite(inviteId: String) {
     tripInviteRepository.deleteTripInvite(
         inviteId,
-        onSuccess = { Log.d("TripsViewModel", "Declined trip invite") },
+        onSuccess = {},
         onFailure = { e -> Log.e("TripsViewModel", "Failed to delete invite: $e") })
   }
 }

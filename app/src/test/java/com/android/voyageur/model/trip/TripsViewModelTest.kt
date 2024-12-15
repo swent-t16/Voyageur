@@ -827,4 +827,44 @@ class TripsViewModelTest {
     // Assert
     verify(tripInviteRepository).deleteTripInvite(any(), any(), any())
   }
+
+  @Test
+  fun getNotificationsCount_emptyUserId() = runTest {
+    // Mock Firebase auth to return empty user ID
+    `when`(firebaseAuth.currentUser).thenReturn(null)
+
+    // Act
+    var callbackCalled = false
+    tripsViewModel.getNotificationsCount { count -> callbackCalled = true }
+
+    // Assert
+    assert(!callbackCalled) // Callback should not be called for empty user ID
+    assert(tripsViewModel.tripNotificationCount.value == 0L)
+  }
+
+  @Test
+  fun getNotificationsCount_noUser() {
+    // Arrange
+    `when`(firebaseAuth.currentUser).thenReturn(null)
+
+    // Act
+    tripsViewModel.getNotificationsCount {}
+
+    // Assert
+    verify(tripInviteRepository, never()).getTripInvitesCount(any(), any(), any())
+    assert(tripsViewModel.tripNotificationCount.value == 0L)
+  }
+
+  @Test
+  fun acceptTripInvite_emptyUserId() = runTest {
+    `when`(firebaseAuth.currentUser).thenReturn(null)
+    val tripInvite = TripInvite(id = "1", tripId = "trip123", from = "user1", to = "123")
+
+    tripsViewModel.acceptTripInvite(tripInvite)
+    advanceUntilIdle()
+
+    verify(tripsRepository, never()).getTripById(any(), any(), any())
+    verify(tripsRepository, never()).updateTrip(any(), any(), any())
+    verify(tripInviteRepository, never()).deleteTripInvite(any(), any(), any())
+  }
 }
