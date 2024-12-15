@@ -168,11 +168,11 @@ open class TripsViewModel(
   }
 
   fun getNotificationsCount(onSuccess: (Long) -> Unit) {
-    val userId = firebaseAuth.uid
-    if (userId.toString().isEmpty()) return
+    val userId = Firebase.auth.uid.orEmpty()
+    if (userId.isEmpty()) return
 
     tripInviteRepository.getTripInvitesCount(
-        userId = userId.toString(),
+        userId = userId,
         onSuccess = { count ->
           // Assuming _tripNotificationCount is a MutableStateFlow<Long>
           if (_tripNotificationCount.value != count) {
@@ -186,7 +186,7 @@ open class TripsViewModel(
   }
 
   fun fetchTripInvites() {
-    val userId = firebaseAuth.uid.toString()
+    val userId = Firebase.auth.uid.orEmpty()
     if (userId.isEmpty()) return
 
     tripInviteRepository.listenToTripInvites(
