@@ -20,7 +20,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +40,7 @@ import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.components.SearchBar
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -57,11 +57,14 @@ import com.google.firebase.Timestamp
  * @param navigationActions Provides actions for navigating between screens.
  * @param userViewModel The [UserViewModel] instance for managing user-related data.
  * @param tripsViewModel The [TripsViewModel] instance for accessing trip and activity data.
+ * @param isReadOnly Boolean which determines if the user is in Read Only View and cannot
+ *   edit/add/delete activities.
  */
 fun ActivitiesScreen(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
-    tripsViewModel: TripsViewModel
+    tripsViewModel: TripsViewModel,
+    isReadOnly: Boolean = false
 ) {
   // States for filtering
   var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
@@ -148,22 +151,10 @@ fun ActivitiesScreen(
               Box(
                   modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                   contentAlignment = Alignment.CenterStart) {
-                    val textStyle =
-                        MaterialTheme.typography.bodyLarge.copy(
-                            fontSize = 16.sp) // Define consistent style
-                    TextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        placeholder = {
-                          Text(
-                              text = stringResource(R.string.activities_searchbar_placeholder),
-                              style = textStyle,
-                              modifier = Modifier.fillMaxSize())
-                        },
-                        modifier = Modifier.fillMaxWidth().height(50.dp).testTag("searchField"),
-                        textStyle = textStyle, // Apply the same style to the search text
-                        singleLine = true,
-                        shape = RoundedCornerShape(10.dp))
+                    SearchBar(
+                        placeholderId = R.string.activities_searchbar_placeholder,
+                        onQueryChange = { searchQuery = it },
+                        modifier = Modifier.fillMaxWidth().height(50.dp).testTag("searchField"))
                   }
             },
             actions = {
@@ -180,7 +171,11 @@ fun ActivitiesScreen(
             },
             modifier = Modifier.height(80.dp).testTag("topAppBar"))
       },
-      floatingActionButton = { AddActivityButton(navigationActions) },
+      floatingActionButton = {
+        if (!isReadOnly) {
+          AddActivityButton(navigationActions)
+        }
+      },
       content = { pd ->
         if (drafts.isEmpty() && final.isEmpty()) {
           // Display empty prompt if there are no activities
@@ -191,6 +186,8 @@ fun ActivitiesScreen(
             )
           }
         } else {
+          val isEditable = !isReadOnly
+          val buttonType = if (isEditable) ButtonType.DELETE else ButtonType.NOTHING
           LazyColumn(
               modifier = Modifier.padding(pd).fillMaxWidth().testTag("lazyColumn"),
               verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
@@ -207,12 +204,12 @@ fun ActivitiesScreen(
                 if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
                   ActivityItem(
                       activity,
-                      true,
+                      isEditable,
                       onClickButton = {
                         activityToDelete = activity
                         showDialog = true
                       },
-                      ButtonType.DELETE,
+                      buttonType,
                       navigationActions,
                       tripsViewModel)
                   Spacer(modifier = Modifier.height(10.dp))
@@ -231,12 +228,12 @@ fun ActivitiesScreen(
                 if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
                   ActivityItem(
                       activity,
-                      true,
+                      isEditable,
                       onClickButton = {
                         activityToDelete = activity
                         showDialog = true
                       },
-                      ButtonType.DELETE,
+                      buttonType,
                       navigationActions,
                       tripsViewModel)
                   Spacer(modifier = Modifier.height(10.dp))

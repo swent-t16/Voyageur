@@ -19,7 +19,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [Build.VERSION_CODES.P]) // Use Android 28+ for NotificationChannel testing
-class NotificationHelperTest {
+class NotificationHelperUnitTest {
 
   @Test
   fun `createNotificationChannel creates channel correctly`() {
@@ -50,7 +50,7 @@ class NotificationHelperTest {
     val title = "Test Title"
     val text = "Test Text"
     val iconResId = android.R.drawable.ic_dialog_info
-    val intent = Intent(context, NotificationHelperTest::class.java)
+    val intent = Intent(context, NotificationHelperUnitTest::class.java)
     val notificationManagerCompat = NotificationManagerCompat.from(context)
 
     // Clear all existing notifications
@@ -87,7 +87,7 @@ class NotificationHelperTest {
     val title = "High Priority Test Title"
     val text = "High Priority Test Text"
     val iconResId = android.R.drawable.ic_dialog_info
-    val intent = Intent(context, NotificationHelperTest::class.java)
+    val intent = Intent(context, NotificationHelperUnitTest::class.java)
     val notificationManagerCompat = NotificationManagerCompat.from(context)
 
     // Clear all existing notifications
@@ -123,7 +123,7 @@ class NotificationHelperTest {
     val context = ApplicationProvider.getApplicationContext<Context>()
     val notificationId = 1 // Fixed ID for no internet notifications
     val iconResId = android.R.drawable.ic_dialog_alert
-    val intent = Intent(context, NotificationHelperTest::class.java)
+    val intent = Intent(context, NotificationHelperUnitTest::class.java)
 
     val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -208,7 +208,7 @@ class NotificationHelperTest {
     val context = ApplicationProvider.getApplicationContext<Context>()
     val notificationId = 1
     val iconResId = android.R.drawable.ic_dialog_alert
-    val intent = Intent(context, NotificationHelperTest::class.java)
+    val intent = Intent(context, NotificationHelperUnitTest::class.java)
 
     val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

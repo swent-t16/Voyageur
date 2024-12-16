@@ -1,3 +1,4 @@
+import android.content.Context
 import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.model.notifications.FriendRequest
@@ -5,6 +6,8 @@ import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.notifications.NotificationProvider
+import com.android.voyageur.ui.notifications.StringProvider
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -22,7 +25,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.eq
-import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 
@@ -35,6 +37,8 @@ class UserViewModelLogTest {
   private lateinit var userViewModel: UserViewModel
   private lateinit var firebaseAuth: FirebaseAuth
   private lateinit var firebaseUser: FirebaseUser
+  private lateinit var stringProvider: StringProvider
+  private lateinit var notificationProvider: NotificationProvider
   private lateinit var logMock: MockedStatic<Log>
 
   @Before
@@ -47,6 +51,8 @@ class UserViewModelLogTest {
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     firebaseAuth = mock(FirebaseAuth::class.java)
     firebaseUser = mock(FirebaseUser::class.java).apply { `when`(uid).thenReturn("123") }
+    stringProvider = mock(StringProvider::class.java) // Initialize stringProvider
+    notificationProvider = mock(NotificationProvider::class.java) // Initialize notificationProvider
 
     // Mock static FirebaseAuth
     logMock = mockStatic(Log::class.java)
@@ -57,9 +63,16 @@ class UserViewModelLogTest {
       `when`(firebaseAuth.currentUser).thenReturn(firebaseUser)
     }
 
+    val context = ApplicationProvider.getApplicationContext<Context>()
+
     userViewModel =
         UserViewModel(
-            userRepository = userRepository, friendRequestRepository = friendRequestRepository)
+            userRepository = userRepository,
+            friendRequestRepository = friendRequestRepository,
+            firebaseAuth = firebaseAuth,
+            stringProvider = stringProvider,
+            notificationProvider = notificationProvider,
+            addAuthStateListener = false)
   }
 
   @After
