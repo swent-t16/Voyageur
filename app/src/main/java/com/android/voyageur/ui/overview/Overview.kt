@@ -15,6 +15,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -99,7 +101,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
@@ -143,44 +145,33 @@ fun OverviewScreen(
       floatingActionButton = { AddTripFAB(isConnected, navigationActions) },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp)) {
-          Column(modifier = Modifier.fillMaxWidth(0.9f).padding(start = 16.dp)) {
-            SearchBar(
-                placeholderId = R.string.overview_searchbar_placeholder,
-                onQueryChange = { searchQuery = it },
-                modifier = Modifier.testTag("searchField"))
-          }
-          Column {
-            IconButton(
-                onClick = { sortedDecreasing = !sortedDecreasing },
-                modifier = Modifier.testTag("reverseTripsOrderButton")) {
-                  Icon(imageVector = Icons.Default.SwapVert, contentDescription = "H")
-                }
-          }
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-          SearchBar(
-              placeholderId = R.string.overview_searchbar_placeholder,
-              onQueryChange = { searchQuery = it },
-              modifier =
-                  Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
-                      .testTag("searchField")
-                      .weight(1f))
+        FlowRow(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.SpaceBetween) {
+              SearchBar(
+                  placeholderId = R.string.overview_searchbar_placeholder,
+                  onQueryChange = { searchQuery = it },
+                  modifier = Modifier.testTag("searchField").weight(1f).fillMaxWidth(0.9f))
 
-          Spacer(modifier = Modifier.width(8.dp))
-
-          IconButton(
-              onClick = { showOnlyFavorites = !showOnlyFavorites },
-              modifier = Modifier.testTag("favoriteFilterButton").padding(end = 8.dp)) {
-                Icon(
-                    imageVector =
-                        if (showOnlyFavorites) Icons.Filled.Favorite
-                        else Icons.Default.FavoriteBorder,
-                    contentDescription =
-                        if (showOnlyFavorites) stringResource(R.string.show_all_trips)
-                        else stringResource(R.string.show_favorite_trips),
-                    tint = MaterialTheme.colorScheme.onSurface)
-              }
-        }
+              IconButton(
+                  onClick = { sortedDecreasing = !sortedDecreasing },
+                  modifier = Modifier.testTag("reverseTripsOrderButton")) {
+                    Icon(imageVector = Icons.Default.SwapVert, contentDescription = "H")
+                  }
+              IconButton(
+                  onClick = { showOnlyFavorites = !showOnlyFavorites },
+                  modifier = Modifier.testTag("favoriteFilterButton")) {
+                    Icon(
+                        imageVector =
+                            if (showOnlyFavorites) Icons.Filled.Favorite
+                            else Icons.Default.FavoriteBorder,
+                        contentDescription =
+                            if (showOnlyFavorites) stringResource(R.string.show_all_trips)
+                            else stringResource(R.string.show_favorite_trips),
+                        tint = MaterialTheme.colorScheme.onSurface)
+                  }
+            }
       },
       bottomBar = {
         BottomNavigationMenu(
@@ -199,7 +190,7 @@ fun OverviewScreen(
             tripsViewModel = tripsViewModel,
             navigationActions = navigationActions,
             userViewModel = userViewModel,
-            descending = sortedDecreasing)
+            descending = sortedDecreasing,
             user = user!!)
       })
 }
@@ -303,7 +294,7 @@ private fun OverviewContent(
           tripsViewModel = tripsViewModel,
           navigationActions = navigationActions,
           userViewModel = userViewModel,
-          descending = descending)
+          descending = descending,
           user = user)
     }
   }
