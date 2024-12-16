@@ -76,6 +76,7 @@
     <string name="trip_left_text">You have left the trip successfully</string>
     <string name="leave">Leave</string>
     <string name="fail_leave_trip">Failed to leave the trip: %1$s</string>
+    <string name="no_favorite_trips">You have no favorite trips yet.</string>
 
 <!-- BY DAY/ WEEkLY Screens -->
     <string name="invalid_date">No compatible calendar app found.</string>

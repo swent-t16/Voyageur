@@ -305,8 +305,7 @@ private fun EmptyTripsMessage(showOnlyFavorites: Boolean) {
         modifier = Modifier.testTag("emptyTripPrompt"),
         text =
             if (!showOnlyFavorites) stringResource(R.string.empty_trip_prompt)
-            else "No favorite trips yet",
-    )
+            else stringResource(R.string.no_favorite_trips))
   }
 }
 
