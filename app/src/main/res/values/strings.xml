@@ -125,6 +125,7 @@
     <string name="business">Business</string>
     <string name="tourism">Tourism</string>
     <string name="save_trip">Save Trip</string>
+    <string name="select_trip_type">Select Trip Type</string>
 
  <!-- Photos Screen -->
     <string name="add_photo">Add Photo</string>

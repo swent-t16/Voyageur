@@ -27,14 +27,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -153,7 +156,8 @@ fun AddTripScreen(
   var selectedDateField by remember { mutableStateOf<DateField?>(null) }
   var startDate by remember { mutableStateOf<Long?>(null) }
   var endDate by remember { mutableStateOf<Long?>(null) }
-  var tripType by remember { mutableStateOf(TripType.BUSINESS) }
+  var tripType by remember { mutableStateOf(TripType.TOURISM) }
+  var expanded by remember { mutableStateOf(false) }
   var imageUri by remember { mutableStateOf("") }
   var discoverable by remember { mutableStateOf(false) }
   val contactsAndUsers by actualUserViewModel.contacts.collectAsState()
@@ -197,8 +201,6 @@ fun AddTripScreen(
         endDate = trip.endDate.toDate().time
         discoverable = trip.discoverable
       }
-    } else {
-      //      userList.clear()
     }
   }
 
@@ -454,34 +456,36 @@ fun AddTripScreen(
                           })
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically) {
-                      Row(
-                          verticalAlignment = Alignment.CenterVertically,
-                          modifier = Modifier.padding(end = 16.dp)) {
-                            RadioButton(
-                                onClick = { tripType = TripType.BUSINESS },
-                                selected = tripType == TripType.BUSINESS,
-                                modifier = Modifier.testTag("tripTypeBusiness"))
-                            Text(
-                                stringResource(R.string.business),
-                                modifier = Modifier.padding(start = 2.dp))
-                          }
-                      Row(
-                          verticalAlignment = Alignment.CenterVertically,
-                          modifier = Modifier.padding(start = 16.dp)) {
-                            RadioButton(
-                                onClick = { tripType = TripType.TOURISM },
-                                selected = tripType == TripType.TOURISM,
-                                modifier = Modifier.testTag("tripTypeTourism"))
-                            Text(
-                                stringResource(R.string.tourism),
-                                modifier = Modifier.padding(start = 2.dp))
+                Spacer(modifier = Modifier.height(2.dp))
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded },
+                    modifier = Modifier.testTag("tripTypeDropdown")) {
+                      TextField(
+                          value = tripType.name,
+                          onValueChange = {},
+                          readOnly = true,
+                          label = { Text(stringResource(R.string.select_trip_type)) },
+                          trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                          },
+                          modifier = Modifier.fillMaxWidth().menuAnchor().testTag("inputTripType"))
+                      ExposedDropdownMenu(
+                          expanded = expanded,
+                          onDismissRequest = { expanded = false },
+                          modifier = Modifier.testTag("expandedDropdownTrips")) {
+                            TripType.entries.forEach { type ->
+                              DropdownMenuItem(
+                                  text = { Text(text = type.name) },
+                                  onClick = {
+                                    tripType = type
+                                    expanded = false
+                                  })
+                            }
                           }
                     }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically) {
