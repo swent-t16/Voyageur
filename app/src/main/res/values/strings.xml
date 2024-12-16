@@ -52,6 +52,7 @@
     <string name="your_trips_text">Your trips</string>
     <string name="floating_button">"Floating action button"</string>
     <string name="empty_trip_prompt">You have no trips yet.</string>
+    <string name="no_favorite_trips">You have no favorite trips yet.</string>
     <string name="denied_calendar_permission">Permission denied. Cannot open calendar.</string>
     <string name="selected_image_description">Selected image</string>
     <string name="trip_image_overview_description">Trip image overview</string>
@@ -69,6 +70,8 @@
     <string name="additional_participants">and %1$d more</string>
     <string name="participants_count">%1$d Participants:</string>
     <string name="no_compatible_calendar">No compatible calendar app found.</string>
+    <string name="show_all_trips">Show all trips</string>
+    <string name="show_favorite_trips">Show favorite trips</string>
     <string name="leave_trip_text">Leave Trip</string>
     <string name="leave_trip_confirmation">Are you sure you want to leave %1$s?</string>
     <string name="trip_left_text">You have left the trip successfully</string>
@@ -87,7 +90,7 @@
 
 
 
-    <!-- Add Activity -->
+ <!-- Add Activity -->
     <string name="create_activity">Create a New Activity</string>
     <string name="edit_activity">Edit Activity</string>
     <string name="back">Back</string>

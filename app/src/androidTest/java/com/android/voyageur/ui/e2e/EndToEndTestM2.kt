@@ -142,6 +142,7 @@ class E2ETestM2 {
   @Suppress("RememberReturnType")
   @Test
   fun e2ETest() {
+    userViewModel._user.value = User("1")
     composeTestRule.setContent {
       val navController = rememberNavController()
       val navigation = remember { NavigationActions(navController) }
