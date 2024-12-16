@@ -210,27 +210,30 @@ fun AddActivityScreen(
 
     when {
       activityDate == null && (startTime != null || endTime != null) -> {
-        Toast.makeText(context, context.getString(R.string.select_activity_date), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+                context, context.getString(R.string.select_activity_date), Toast.LENGTH_SHORT)
+            .show()
         return
       }
       activityDate != null &&
           (dateNormalized.after(endDateNormalized) ||
               dateNormalized.before(startDateNormalized)) -> {
         Toast.makeText(
-                context,
-                context.getString(R.string.date_between_trip_dates),
-                Toast.LENGTH_SHORT)
+                context, context.getString(R.string.date_between_trip_dates), Toast.LENGTH_SHORT)
             .show()
         return
       }
       startTime == null && endTime != null -> {
-        Toast.makeText(context, context.getString(R.string.select_start_time), Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.select_start_time), Toast.LENGTH_SHORT)
+            .show()
         return
       }
       startTime != null &&
           endTime != null &&
           endTimestamp.toDate().before(startTimestamp.toDate()) -> {
-        Toast.makeText(context, context.getString(R.string.end_time_after_start), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+                context, context.getString(R.string.end_time_after_start), Toast.LENGTH_SHORT)
+            .show()
         return
       }
       activityDate != null && startTime == null && endTime == null -> {
@@ -238,7 +241,8 @@ fun AddActivityScreen(
             .show()
       }
       activityDate == null -> {
-        Toast.makeText(context, context.getString(R.string.created_draft), Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.created_draft), Toast.LENGTH_SHORT)
+            .show()
       }
       startTime != null && endTime == null -> {
         Toast.makeText(context, context.getString(R.string.default_end_time), Toast.LENGTH_SHORT)
@@ -280,9 +284,14 @@ fun AddActivityScreen(
         onFailure = { error ->
           isSaving = false
           Toast.makeText(
-                  context, context.getString(R.string.fail_add_activity, error.message), Toast.LENGTH_SHORT)
+                  context,
+                  context.getString(R.string.fail_add_activity, error.message),
+                  Toast.LENGTH_SHORT)
               .show()
-          Log.e("AddActivityScreen", context.getString(R.string.error_add_activity, error.message), error)
+          Log.e(
+              "AddActivityScreen",
+              context.getString(R.string.error_add_activity, error.message),
+              error)
         })
   }
 
