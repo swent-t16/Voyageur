@@ -210,7 +210,7 @@ fun AddActivityScreen(
 
     when {
       activityDate == null && (startTime != null || endTime != null) -> {
-        Toast.makeText(context, "Please select an activity date first", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.select_activity_date), Toast.LENGTH_SHORT).show()
         return
       }
       activityDate != null &&
@@ -218,30 +218,30 @@ fun AddActivityScreen(
               dateNormalized.before(startDateNormalized)) -> {
         Toast.makeText(
                 context,
-                "Please select a date within the trip's scheduled dates",
+                context.getString(R.string.date_between_trip_dates),
                 Toast.LENGTH_SHORT)
             .show()
         return
       }
       startTime == null && endTime != null -> {
-        Toast.makeText(context, "Please select a start time first", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.select_start_time), Toast.LENGTH_SHORT).show()
         return
       }
       startTime != null &&
           endTime != null &&
           endTimestamp.toDate().before(startTimestamp.toDate()) -> {
-        Toast.makeText(context, "End time must be after start time", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.end_time_after_start), Toast.LENGTH_SHORT).show()
         return
       }
       activityDate != null && startTime == null && endTime == null -> {
-        Toast.makeText(context, "No times selected, defaults to 00:00 - 23:59", Toast.LENGTH_SHORT)
+        Toast.makeText(context, context.getString(R.string.default_times), Toast.LENGTH_SHORT)
             .show()
       }
       activityDate == null -> {
-        Toast.makeText(context, "No date assigned, created as draft", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.created_draft), Toast.LENGTH_SHORT).show()
       }
       startTime != null && endTime == null -> {
-        Toast.makeText(context, "No end time selected, defaults to 23:59", Toast.LENGTH_SHORT)
+        Toast.makeText(context, context.getString(R.string.default_end_time), Toast.LENGTH_SHORT)
             .show()
       }
     }
@@ -280,9 +280,9 @@ fun AddActivityScreen(
         onFailure = { error ->
           isSaving = false
           Toast.makeText(
-                  context, "Failed to add/edit activity: ${error.message}", Toast.LENGTH_SHORT)
+                  context, context.getString(R.string.fail_add_activity, error.message), Toast.LENGTH_SHORT)
               .show()
-          Log.e("AddActivityScreen", "Error adding/editing activity: ${error.message}", error)
+          Log.e("AddActivityScreen", context.getString(R.string.error_add_activity, error.message), error)
         })
   }
 

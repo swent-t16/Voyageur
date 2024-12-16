@@ -208,7 +208,8 @@ fun AddTripScreen(
     if (isSaving) return // Prevent duplicate saves
 
     if (startDate == null || endDate == null) {
-      Toast.makeText(context, "Please select both start and end dates", Toast.LENGTH_SHORT).show()
+      Toast.makeText(context, context.getString(R.string.select_both_dates), Toast.LENGTH_SHORT)
+          .show()
       return
     }
 
@@ -232,18 +233,21 @@ fun AddTripScreen(
     val endDateNormalized = normalizeToMidnight(Date(endDate!!))
 
     if (!isEditMode && (startDateNormalized.before(today) || endDateNormalized.before(today))) {
-      Toast.makeText(context, "Start and end dates cannot be in the past", Toast.LENGTH_SHORT)
+      Toast.makeText(
+              context, context.getString(R.string.dates_must_not_be_in_past), Toast.LENGTH_SHORT)
           .show()
       return
     }
     // if the trip is ongoing then the start date is in the past already so we check just for the
     // end date
     if (isEditMode && endDateNormalized.before(today)) {
-      Toast.makeText(context, "End date cannot be in the past", Toast.LENGTH_SHORT).show()
+      Toast.makeText(context, context.getString(R.string.end_date_not_in_past), Toast.LENGTH_SHORT)
+          .show()
       return
     }
     if (startDateNormalized.after(endDateNormalized)) {
-      Toast.makeText(context, "End date cannot be before start date", Toast.LENGTH_SHORT).show()
+      Toast.makeText(context, context.getString(R.string.end_after_start), Toast.LENGTH_SHORT)
+          .show()
       return
     }
 
@@ -276,13 +280,21 @@ fun AddTripScreen(
           trip,
           onSuccess = {
             isSaving = false
-            Toast.makeText(context, "Trip created successfully!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                    context, context.getString(R.string.trip_created_success), Toast.LENGTH_SHORT)
+                .show()
           },
           onFailure = { error ->
             isSaving = false
-            Toast.makeText(context, "Failed to create trip: ${error.message}", Toast.LENGTH_SHORT)
+            Toast.makeText(
+                    context,
+                    context.getString(R.string.trip_create_failure, error.message),
+                    Toast.LENGTH_SHORT)
                 .show()
-            Log.e("AddTripScreen", "Error creating trip: ${error.message}", error)
+            Log.e(
+                "AddTripScreen",
+                context.getString(R.string.trip_create_error, error.message),
+                error)
           })
       navigationActions.goBack()
     } else {
@@ -291,7 +303,9 @@ fun AddTripScreen(
           trip,
           onSuccess = {
             isSaving = false
-            Toast.makeText(context, "Trip updated successfully!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                    context, context.getString(R.string.trip_updated_success), Toast.LENGTH_SHORT)
+                .show()
             /*
                 This is a trick to force a recompose, because the reference wouldn't
                 change and update the UI.
@@ -302,9 +316,15 @@ fun AddTripScreen(
           },
           onFailure = { error ->
             isSaving = false
-            Toast.makeText(context, "Failed to update trip: ${error.message}", Toast.LENGTH_SHORT)
+            Toast.makeText(
+                    context,
+                    context.getString(R.string.trip_updated_failure, error.message),
+                    Toast.LENGTH_SHORT)
                 .show()
-            Log.e("AddTripScreen", "Error updating trip: ${error.message}", error)
+            Log.e(
+                "AddTripScreen",
+                context.getString(R.string.trip_updated_error, error.message),
+                error)
           })
     }
   }
@@ -511,7 +531,7 @@ fun AddTripScreen(
                       onFailure = { exception ->
                         Toast.makeText(
                                 context,
-                                "Failed to upload image: ${exception.message}",
+                                context.getString(R.string.fail_upload_image, exception.message),
                                 Toast.LENGTH_SHORT)
                             .show()
                       })

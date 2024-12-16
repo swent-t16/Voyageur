@@ -87,9 +87,6 @@
     <string name="empty_activities_prompt">There are no activities scheduled.</string>
     <string name="ask_assistant_button">Ask Assistant</string>
 
-
-
-
  <!-- Add Activity -->
     <string name="create_activity">Create a New Activity</string>
     <string name="edit_activity">Edit Activity</string>
@@ -105,6 +102,15 @@
     <string name="enter_estimated_price">Enter estimated price</string>
     <string name="select_activity_type">Select Activity Type</string>
     <string name="save">Save</string>
+    <string name="select_activity_date">Please select an activity date first</string>
+    <string name="date_between_trip_dates">Please select a date within the trip\'s scheduled dates</string>
+    <string name="select_start_time">Please select a start time first</string>
+    <string name="end_time_after_start">End time must be after start time</string>
+    <string name="default_times">No times selected, defaults to 00:00 – 23:59</string>
+    <string name="created_draft">No date assigned, created as draft</string>
+    <string name="default_end_time">No end time selected, defaults to 23:59</string>
+    <string name="fail_add_activity">Failed to add/edit activity: %1$s</string>
+    <string name="error_add_activity">Error adding/editing activity: %1$s</string>
 
  <!-- Time Pickers -->
     <string name="ok">OK</string>
@@ -126,6 +132,17 @@
     <string name="tourism">Tourism</string>
     <string name="save_trip">Save Trip</string>
     <string name="select_trip_type">Select Trip Type</string>
+    <string name="select_both_dates">Please select both start and end dates</string>
+    <string name="dates_must_not_be_in_past">Start and end dates cannot be in the past</string>
+    <string name="end_date_not_in_past">End date cannot be in the past</string>
+    <string name="end_after_start">End date cannot be before start date</string>
+    <string name="trip_created_success">Trip created successfully!</string>
+    <string name="trip_create_failure">Failed to create trip: %1$s</string>
+    <string name="trip_create_error">Error creating trip: %1$s</string>
+    <string name="trip_updated_success">Trip updated successfully!</string>
+    <string name="trip_updated_failure">Failed to update trip: %1$s</string>
+    <string name="trip_updated_error">Error updating trip: %1$s</string>
+    <string name="fail_upload_image">Failed to upload image: %1$s</string>
 
  <!-- Photos Screen -->
     <string name="add_photo">Add Photo</string>
