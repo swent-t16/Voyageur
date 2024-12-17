@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -176,86 +177,100 @@ fun ActivitiesScreen(
         }
       },
       content = { pd ->
-        val isEditable = !isReadOnly
-        val buttonType = if (isEditable) ButtonType.DELETE else ButtonType.NOTHING
-        LazyColumn(
-            modifier = Modifier.padding(pd).fillMaxWidth().testTag("lazyColumn"),
-            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
-        ) {
-          item {
+        if (drafts.isEmpty() && final.isEmpty()) {
+          // Display empty prompt if there are no activities
+          Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
-                text = stringResource(R.string.drafts),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 10.dp))
+                modifier = Modifier.testTag("emptyActivitiesPrompt"),
+                text = stringResource(R.string.no_activities_scheduled),
+            )
           }
-          drafts.forEach { activity ->
+        } else {
+          val isEditable = !isReadOnly
+          val buttonType = if (isEditable) ButtonType.DELETE else ButtonType.NOTHING
+          LazyColumn(
+              modifier = Modifier.padding(pd).fillMaxWidth().testTag("lazyColumn"),
+              verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+          ) {
             item {
-              if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
-                ActivityItem(
-                    activity,
-                    isEditable,
-                    onClickButton = {
-                      activityToDelete = activity
-                      showDialog = true
-                    },
-                    buttonType,
-                    navigationActions,
-                    tripsViewModel)
-                Spacer(modifier = Modifier.height(10.dp))
+              if (drafts.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.drafts),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 10.dp))
               }
             }
-          }
-          item {
-            Text(
-                text = stringResource(R.string.final_activities),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 10.dp))
-          }
-          final.forEach { activity ->
-            item {
-              if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
-                ActivityItem(
-                    activity,
-                    isEditable,
-                    onClickButton = {
-                      activityToDelete = activity
-                      showDialog = true
-                    },
-                    buttonType,
-                    navigationActions,
-                    tripsViewModel)
-                Spacer(modifier = Modifier.height(10.dp))
+            drafts.forEach { activity ->
+              item {
+                if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
+                  ActivityItem(
+                      activity,
+                      isEditable,
+                      onClickButton = {
+                        activityToDelete = activity
+                        showDialog = true
+                      },
+                      buttonType,
+                      navigationActions,
+                      tripsViewModel)
+                  Spacer(modifier = Modifier.height(10.dp))
+                }
               }
             }
+            item {
+              if (final.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.final_activities),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 10.dp))
+              }
+            }
+            final.forEach { activity ->
+              item {
+                if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
+                  ActivityItem(
+                      activity,
+                      isEditable,
+                      onClickButton = {
+                        activityToDelete = activity
+                        showDialog = true
+                      },
+                      buttonType,
+                      navigationActions,
+                      tripsViewModel)
+                  Spacer(modifier = Modifier.height(10.dp))
+                }
+              }
+            }
+            item { EstimatedPriceBox(totalEstimatedPrice) }
           }
-          item { EstimatedPriceBox(totalEstimatedPrice) }
-        }
 
-        if (showDialog) {
-          DeleteActivityAlertDialog(
-              onDismissRequest = { showDialog = false },
-              activityToDelete = activityToDelete,
-              tripsViewModel = tripsViewModel,
-              confirmButtonOnClick = {
-                showDialog = false
-                final = final.filter { it != activityToDelete }
-                drafts = drafts.filter { it != activityToDelete }
-              })
-        }
-        if (showFilterMenu) {
-          FilterDialog(
-              selectedFilters = selectedFilters,
-              onFilterChanged = { filter, isSelected ->
-                selectedFilters =
-                    if (isSelected) {
-                      selectedFilters + filter
-                    } else {
-                      selectedFilters - filter
-                    }
-              },
-              onDismiss = { showFilterMenu = false })
+          if (showDialog) {
+            DeleteActivityAlertDialog(
+                onDismissRequest = { showDialog = false },
+                activityToDelete = activityToDelete,
+                tripsViewModel = tripsViewModel,
+                confirmButtonOnClick = {
+                  showDialog = false
+                  final = final.filter { it != activityToDelete }
+                  drafts = drafts.filter { it != activityToDelete }
+                })
+          }
+          if (showFilterMenu) {
+            FilterDialog(
+                selectedFilters = selectedFilters,
+                onFilterChanged = { filter, isSelected ->
+                  selectedFilters =
+                      if (isSelected) {
+                        selectedFilters + filter
+                      } else {
+                        selectedFilters - filter
+                      }
+                },
+                onDismiss = { showFilterMenu = false })
+          }
         }
       })
 }
