@@ -55,7 +55,7 @@ open class TripsViewModel(
   open val selectedTrip: StateFlow<Trip?> = _selectedTrip.asStateFlow()
 
   /** StateFlow holding the count of trip notifications. */
-  val _tripNotificationCount = MutableStateFlow(0L)
+  internal val _tripNotificationCount = MutableStateFlow(0L)
   val tripNotificationCount: StateFlow<Long> = _tripNotificationCount
 
   /** StateFlow holding the selected day. */
@@ -79,7 +79,7 @@ open class TripsViewModel(
   val feed: StateFlow<List<Trip>> = _feed.asStateFlow()
 
   /** StateFlow holding the list of trip invites. */
-  val _tripInvites = MutableStateFlow<List<TripInvite>>(emptyList())
+  internal val _tripInvites = MutableStateFlow<List<TripInvite>>(emptyList())
   val tripInvites: StateFlow<List<TripInvite>> = _tripInvites.asStateFlow()
 
   /** StateFlow holding the list of users being invited. */
@@ -96,7 +96,7 @@ open class TripsViewModel(
         if (firebaseUser != null) {
           _tripListenerRegistration =
               tripsRepository.listenForTripUpdates(
-                  firebaseAuth?.uid.orEmpty(),
+                  firebaseAuth.uid.orEmpty(),
                   onSuccess = {
                     _trips.value = it
                     if (selectedTrip.value != null)
