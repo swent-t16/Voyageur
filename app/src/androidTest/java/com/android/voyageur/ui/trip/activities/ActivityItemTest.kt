@@ -8,8 +8,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
-import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
