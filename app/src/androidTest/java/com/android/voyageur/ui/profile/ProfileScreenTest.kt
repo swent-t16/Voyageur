@@ -332,7 +332,7 @@ class ProfileScreenTest {
 
     // Create test invite
     val invite = TripInvite(id = "invite1", from = "user1", to = "user2", tripId = "trip1")
-    tripsViewModel._tripInvites.value = listOf(invite)
+    tripsViewModel.set_tripInvites(listOf(invite))
 
     // Let the UI update
     composeTestRule.waitForIdle()
@@ -360,7 +360,7 @@ class ProfileScreenTest {
         listOf(
             TripInvite(id = "1", from = "user1", to = "user2", tripId = "trip1"),
             TripInvite(id = "2", from = "user3", to = "user2", tripId = "trip2"))
-    tripsViewModel._tripInvites.value = invites
+    tripsViewModel.set_tripInvites(invites)
 
     // Let the UI update
     composeTestRule.waitForIdle()
@@ -378,7 +378,7 @@ class ProfileScreenTest {
 
     // Create test invite
     val invite = TripInvite(id = "invite1", from = "user1", to = "user2", tripId = "trip1")
-    tripsViewModel._tripInvites.value = listOf(invite)
+    tripsViewModel.set_tripInvites(listOf(invite))
 
     // Let the UI update
     composeTestRule.waitForIdle()
@@ -399,7 +399,7 @@ class ProfileScreenTest {
     userViewModel._isLoading.value = false
 
     // Set empty invites
-    tripsViewModel._tripInvites.value = emptyList()
+    tripsViewModel.set_tripInvites(emptyList())
 
     // Let the UI update
     composeTestRule.waitForIdle()
@@ -418,7 +418,7 @@ class ProfileScreenTest {
 
     // Create test invite with specific "from" user
     val invite = TripInvite(id = "invite1", from = "sender123", to = "user2", tripId = "trip1")
-    tripsViewModel._tripInvites.value = listOf(invite)
+    tripsViewModel.set_tripInvites(listOf(invite))
 
     // Let the UI update
     composeTestRule.waitForIdle()

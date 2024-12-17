@@ -55,7 +55,7 @@ open class TripsViewModel(
   open val selectedTrip: StateFlow<Trip?> = _selectedTrip.asStateFlow()
 
   /** StateFlow holding the count of trip notifications. */
-  internal val _tripNotificationCount = MutableStateFlow(0L)
+  private val _tripNotificationCount = MutableStateFlow(0L)
   val tripNotificationCount: StateFlow<Long> = _tripNotificationCount
 
   /** StateFlow holding the selected day. */
@@ -79,7 +79,7 @@ open class TripsViewModel(
   val feed: StateFlow<List<Trip>> = _feed.asStateFlow()
 
   /** StateFlow holding the list of trip invites. */
-  internal val _tripInvites = MutableStateFlow<List<TripInvite>>(emptyList())
+  private val _tripInvites = MutableStateFlow<List<TripInvite>>(emptyList())
   val tripInvites: StateFlow<List<TripInvite>> = _tripInvites.asStateFlow()
 
   /** StateFlow holding the list of users being invited. */
@@ -88,7 +88,6 @@ open class TripsViewModel(
 
   /** Listener registration for trip updates. */
   private var _tripListenerRegistration: ListenerRegistration? = null
-  val userId = Firebase.auth.uid.orEmpty()
 
   /** Authentication state listener for Firebase. */
   val authStateListener =
@@ -116,7 +115,7 @@ open class TripsViewModel(
       fetchTripInvites() // Fetch trip invites
       _isLoading.value = true
       tripsRepository.getTrips(
-          Firebase?.auth?.uid.orEmpty(),
+          Firebase.auth.uid.orEmpty(),
           onSuccess = {
             _trips.value = it
             _isLoading.value = false
@@ -152,6 +151,10 @@ open class TripsViewModel(
    */
   fun setTripType(type: TripType) {
     _tripType.value = type
+  }
+
+  fun set_tripInvites(tripInvites: List<TripInvite>) {
+    _tripInvites.value = tripInvites
   }
 
   /**
@@ -220,6 +223,7 @@ open class TripsViewModel(
    * @param onSuccess Callback to be invoked on success.
    */
   fun getNotificationsCount(onSuccess: (Long) -> Unit) {
+    val userId = Firebase.auth.uid.orEmpty()
     if (userId.isEmpty()) return
 
     tripInviteRepository.getTripInvitesCount(

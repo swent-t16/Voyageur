@@ -32,8 +32,8 @@ fun BottomNavigationMenu(
     userViewModel: UserViewModel,
     tripsViewModel: TripsViewModel
 ) {
-  val userNotifications = userViewModel.notificationCount.collectAsState(initial = 0).value
-  val tripInvites = tripsViewModel.tripNotificationCount.collectAsState(initial = 0).value
+  val userNotifications = userViewModel.notificationCount?.collectAsState(initial = 0)?.value ?: 0
+  val tripInvites = tripsViewModel.tripNotificationCount?.collectAsState(initial = 0)?.value ?: 0
   val totalNotifications = userNotifications + tripInvites
 
   LaunchedEffect(userNotifications, tripInvites) {
