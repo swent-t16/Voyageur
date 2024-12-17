@@ -9,6 +9,7 @@ import androidx.compose.ui.test.performClick
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -40,6 +41,7 @@ class ActivityItemTest {
   private lateinit var tripRepository: TripRepository
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
+  private lateinit var tripInviteRepository: TripInviteRepository
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -47,7 +49,8 @@ class ActivityItemTest {
   fun setUp() {
     tripRepository = mock(TripRepository::class.java)
     navigationActions = mock(NavigationActions::class.java)
-    tripsViewModel = TripsViewModel(tripRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
   }
 
   @Test

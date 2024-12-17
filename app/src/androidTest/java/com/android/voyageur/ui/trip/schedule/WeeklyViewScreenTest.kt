@@ -6,6 +6,7 @@ import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
@@ -37,6 +38,7 @@ class WeeklyViewScreenTest {
   private lateinit var friendRequestRepository: FriendRequestRepository
   private lateinit var userRepository: UserRepository
   private lateinit var userViewModel: UserViewModel
+  private lateinit var tripInviteRepository: TripInviteRepository
 
   @Before
   fun setUp() {
@@ -47,8 +49,9 @@ class WeeklyViewScreenTest {
     tripsRepository = Mockito.mock(TripRepository::class.java)
     userRepository = Mockito.mock(UserRepository::class.java)
     friendRequestRepository = Mockito.mock(FriendRequestRepository::class.java)
+    tripInviteRepository = Mockito.mock(TripInviteRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
-    tripsViewModel = TripsViewModel(tripsRepository)
+    tripsViewModel = TripsViewModel(tripsRepository, tripInviteRepository)
 
     // Mock current route for navigation actions
     `when`(navigationActions.currentRoute()).thenReturn(Route.TOP_TABS)
