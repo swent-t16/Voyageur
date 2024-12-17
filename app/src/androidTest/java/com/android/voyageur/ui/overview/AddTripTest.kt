@@ -15,6 +15,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
@@ -42,6 +43,7 @@ import org.mockito.kotlin.whenever
 class AddTripScreenTest {
   private lateinit var tripRepository: TripRepository
   private lateinit var navigationActions: NavigationActions
+  private lateinit var tripInviteRepository: TripInviteRepository
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var firebaseAuth: FirebaseAuth
   private lateinit var placesRepository: PlacesRepository
@@ -54,7 +56,8 @@ class AddTripScreenTest {
     tripRepository = mock(TripRepository::class.java)
     navigationActions = mock(NavigationActions::class.java)
     firebaseAuth = mock(FirebaseAuth::class.java)
-    tripsViewModel = TripsViewModel(tripRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
     placesRepository = mock(PlacesRepository::class.java)
     placesViewModel = PlacesViewModel(placesRepository)
 

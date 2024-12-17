@@ -5,6 +5,7 @@ data class TripInvite(
     val tripId: String,
     val from: String,
     val to: String,
+    val accepted: Boolean = false
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

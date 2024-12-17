@@ -8,6 +8,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.NavHostController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.voyageur.model.activity.Activity
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
@@ -53,13 +54,15 @@ class AssistantScreenTest {
           username = "johndoe",
           contacts = listOf(),
           interests = listOf("hiking", "cycling"))
+  private lateinit var tripInviteRepository: TripInviteRepository
 
   @Before
   fun setUp() {
     tripRepository = mock(TripRepository::class.java)
     navHostController = mock(NavHostController::class.java)
     navigationActions = NavigationActions(navHostController)
-    tripsViewModel = TripsViewModel(tripRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
     mockTripsViewModel = mock(TripsViewModel::class.java)
     userViewModel = mock(UserViewModel::class.java)
 

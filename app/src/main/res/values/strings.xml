@@ -164,4 +164,6 @@
     <string name="no_trips_to_discover">No trips to discover</string>
     <string name="check_back_letter">Please check back later.</string>
     <string name="search_trips">Search trips...</string>
+    <string name="pending_trip_invites">Pending Trip Invites (%1$d)</string>
+    <string name="no_pending_invites">No pending trip invites</string>
 </resources>
