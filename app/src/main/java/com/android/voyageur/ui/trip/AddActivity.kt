@@ -486,7 +486,7 @@ fun AddActivityScreen(
                     onExpandedChange = { expanded = !expanded },
                     modifier = Modifier.testTag("activityTypeDropdown")) {
                       TextField(
-                          value = activityType.name,
+                          value = activityType.name.lowercase().replaceFirstChar { it.uppercase() },
                           onValueChange = {},
                           readOnly = true,
                           label = { Text(stringResource(R.string.select_activity_type)) },
@@ -501,7 +501,13 @@ fun AddActivityScreen(
                           modifier = Modifier.testTag("expandedDropdown")) {
                             ActivityType.entries.forEach { type ->
                               DropdownMenuItem(
-                                  text = { Text(text = type.name) },
+                                  text = {
+                                    Text(
+                                        text =
+                                            type.name.lowercase().replaceFirstChar {
+                                              it.uppercase()
+                                            })
+                                  },
                                   onClick = {
                                     activityType = type
                                     expanded = false

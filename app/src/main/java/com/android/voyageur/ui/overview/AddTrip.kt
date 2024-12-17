@@ -483,7 +483,7 @@ fun AddTripScreen(
                     onExpandedChange = { expanded = !expanded },
                     modifier = Modifier.testTag("tripTypeDropdown")) {
                       TextField(
-                          value = tripType.name,
+                          value = tripType.name.lowercase().replaceFirstChar { it.uppercase() },
                           onValueChange = {},
                           readOnly = true,
                           label = { Text(stringResource(R.string.select_trip_type)) },
@@ -497,7 +497,13 @@ fun AddTripScreen(
                           modifier = Modifier.testTag("expandedDropdownTrips")) {
                             TripType.entries.forEach { type ->
                               DropdownMenuItem(
-                                  text = { Text(text = type.name) },
+                                  text = {
+                                    Text(
+                                        text =
+                                            type.name.lowercase().replaceFirstChar {
+                                              it.uppercase()
+                                            })
+                                  },
                                   onClick = {
                                     tripType = type
                                     expanded = false

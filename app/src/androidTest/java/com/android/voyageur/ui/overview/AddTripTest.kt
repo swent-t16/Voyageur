@@ -130,12 +130,12 @@ class AddTripScreenTest {
 
     composeTestRule.onNodeWithTag("tripTypeDropdown").assertIsDisplayed()
     composeTestRule.onNodeWithTag("inputTripType").assertIsDisplayed()
-    composeTestRule.onNodeWithText("TOURISM", useUnmergedTree = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Tourism", useUnmergedTree = true).assertIsDisplayed()
     composeTestRule.onNodeWithTag("inputTripType").performClick()
     composeTestRule.onNodeWithTag("expandedDropdownTrips").assertIsDisplayed()
 
     // change trip type
-    composeTestRule.onNodeWithText("EDUCATIONAL", useUnmergedTree = true).performClick()
+    composeTestRule.onNodeWithText("Educational", useUnmergedTree = true).performClick()
   }
 
   @Test
