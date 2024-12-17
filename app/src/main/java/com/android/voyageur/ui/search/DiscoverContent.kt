@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.search
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,17 +19,22 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -99,6 +105,7 @@ fun TripCard(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel
 ) {
+  val context = LocalContext.current
   Box(
       modifier =
           Modifier.fillMaxSize()
@@ -172,6 +179,25 @@ fun TripCard(
                         },
                         modifier = Modifier.testTag("viewTripDetailsButton")) {
                           Text(text = "View Details")
+                        }
+
+                    // Copy Button
+                    IconButton(
+                        onClick = {
+                          tripsViewModel.selectTrip(trip)
+                          tripsViewModel.copyTrip(userViewModel) {
+                            Toast.makeText(
+                                    context,
+                                    "${trip.name} copied successfully!",
+                                    Toast.LENGTH_SHORT)
+                                .show()
+                          }
+                        },
+                        modifier = Modifier.testTag("copyTripDetailsButton")) {
+                          Icon(
+                              imageVector = Icons.Default.ContentCopy,
+                              contentDescription = "Copy Trip Details",
+                              tint = MaterialTheme.colorScheme.primary)
                         }
                   }
             }

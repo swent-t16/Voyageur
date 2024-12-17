@@ -20,6 +20,7 @@ import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
 import com.google.android.libraries.places.api.model.Place
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -29,6 +30,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.whenever
 
 class SearchScreenTest {
   private lateinit var navigationActions: NavigationActions
@@ -174,5 +176,32 @@ class SearchScreenTest {
     assert(navigationActions.getNavigationState().isReadOnlyView)
     // Assert the navigation action navigates to the TOP_TABS screen
     verify(navigationActions).navigateTo(Screen.TOP_TABS)
+  }
+
+  @Test
+  fun testCopyButton() = runTest {
+    composeTestRule.awaitIdle()
+
+    whenever(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
+      onSuccess(listOf(Trip(id = "1"))) // Return a test Trip
+    }
+
+    val mockListenerRegistration = mock(ListenerRegistration::class.java)
+    whenever(userRepository.listenToUser(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (User) -> Unit
+      onSuccess(User(id = "test"))
+      mockListenerRegistration
+    }
+
+    userViewModel.loadUser("test")
+
+    composeTestRule.onNodeWithTag("discoverTab").performClick()
+    composeTestRule.awaitIdle()
+    composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
+    composeTestRule.awaitIdle()
+    composeTestRule.onNodeWithTag("copyTripDetailsButton").performClick()
+
+    verify(tripsRepository).createTrip(any(), any(), any())
   }
 }

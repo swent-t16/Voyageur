@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.assistant.generatePrompt
 import com.android.voyageur.model.assistant.generativeModel
+import com.android.voyageur.model.user.UserViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -280,6 +281,26 @@ open class TripsViewModel(
         })
   }
 
+  /**
+   * Copies the currently selected trip and assigns the current user as its sole participant.
+   *
+   * This function retrieves the current user from the `UserViewModel`, extracts the user's ID, and
+   * assigns it to the list of participants of the selected trip. The updated trip object is then
+   * passed to the `createTrip` function to save the copied trip.
+   *
+   * @param userViewModel The [UserViewModel] that provides the current user data.
+   * @param onSuccess A callback invoked upon the successful creation of the copied trip.
+   */
+  fun copyTrip(userViewModel: UserViewModel, onSuccess: () -> Unit) {
+    userViewModel.user
+    val trip =
+        userViewModel.user.value
+            ?.let { listOf(it.id) }
+            ?.let { selectedTrip.value?.copy(participants = it) }
+    if (trip != null) {
+      createTrip(trip = trip, onSuccess) {}
+    }
+  }
   // ****************************************************************************************************
   // AI assistant
   // ****************************************************************************************************
