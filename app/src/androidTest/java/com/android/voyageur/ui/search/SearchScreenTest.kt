@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.search
 
+import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -192,6 +193,10 @@ class SearchScreenTest {
       onSuccess(User(id = "test"))
       mockListenerRegistration
     }
+
+    // Mock Context to ensure Toast executes
+    val context = mock<Context>()
+    whenever(context.applicationContext).thenReturn(context)
 
     userViewModel.loadUser("test")
 

@@ -28,8 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -105,7 +103,11 @@ fun TripCard(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel
 ) {
+
+  // Workaround to allow Toast in onSuccess function
   val context = LocalContext.current
+  val copiedMsg = stringResource(R.string.trip_copied_message, trip.name)
+
   Box(
       modifier =
           Modifier.fillMaxSize()
@@ -178,7 +180,7 @@ fun TripCard(
                           tripsViewModel.selectTrip(trip)
                         },
                         modifier = Modifier.testTag("viewTripDetailsButton")) {
-                          Text(text = "View Details")
+                          Text(text = stringResource(R.string.view_details))
                         }
 
                     // Copy Button
@@ -186,17 +188,13 @@ fun TripCard(
                         onClick = {
                           tripsViewModel.selectTrip(trip)
                           tripsViewModel.copyTrip(userViewModel) {
-                            Toast.makeText(
-                                    context,
-                                    "${trip.name} copied successfully!",
-                                    Toast.LENGTH_SHORT)
-                                .show()
+                            Toast.makeText(context, copiedMsg, Toast.LENGTH_SHORT).show()
                           }
                         },
                         modifier = Modifier.testTag("copyTripDetailsButton")) {
                           Icon(
                               imageVector = Icons.Default.ContentCopy,
-                              contentDescription = "Copy Trip Details",
+                              contentDescription = stringResource(R.string.copy_trip_button),
                               tint = MaterialTheme.colorScheme.primary)
                         }
                   }
