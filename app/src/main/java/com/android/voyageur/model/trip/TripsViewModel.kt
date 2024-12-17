@@ -449,11 +449,8 @@ open class TripsViewModel(
    * @param onSuccess A callback invoked upon the successful creation of the copied trip.
    */
   fun copyTrip(userViewModel: UserViewModel, onSuccess: () -> Unit) {
-    userViewModel.user
     val trip =
-        userViewModel.user.value
-            ?.let { listOf(it.id) }
-            ?.let { selectedTrip.value?.copy(participants = it) }
+        selectedTrip.value?.copy(participants = firebaseAuth.uid?.let { listOf(it) } ?: emptyList())
     if (trip != null) {
       createTrip(trip = trip, onSuccess) {}
     }
