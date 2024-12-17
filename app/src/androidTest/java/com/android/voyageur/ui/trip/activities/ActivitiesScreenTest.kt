@@ -461,4 +461,53 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("emptyActivitiesPrompt").assertIsDisplayed()
     composeTestRule.onNodeWithText("No activities have been scheduled yet.").assertExists()
   }
+
+  @Test
+  fun draftsTitleNotDisplayedWhenOnlyFinalActivitiesExist() {
+    // Provide a list with only a final activity
+    val activities =
+        listOf(
+            Activity(
+                title = "Final Activity Only",
+                startTime = createTimestamp(2022, 1, 1, 12, 0),
+                endTime = createTimestamp(2022, 1, 1, 14, 0),
+                estimatedPrice = 20.0,
+                activityType = ActivityType.RESTAURANT))
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(activities)
+
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // Assert "Drafts" title should not be displayed
+    composeTestRule.onNodeWithText("Drafts").assertDoesNotExist()
+    // Verify "Final" title exists
+    composeTestRule.onNodeWithText("Final").assertIsDisplayed()
+    // Verify the activity is displayed
+    composeTestRule.onNodeWithTag("cardItem_Final Activity Only").assertIsDisplayed()
+  }
+
+  @Test
+  fun finalTitleNotDisplayedWhenOnlyDraftActivitiesExist() {
+    // Provide a list with only draft activities
+    val activities =
+        listOf(
+            Activity(
+                title = "Draft Activity Only",
+                description = "This is a draft activity",
+                estimatedPrice = 0.0,
+                activityType = ActivityType.WALK))
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(activities)
+
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // Assert "Final" title should not be displayed
+    composeTestRule.onNodeWithText("Final").assertDoesNotExist()
+    // Verify "Drafts" title exists
+    composeTestRule.onNodeWithText("Drafts").assertIsDisplayed()
+    // Verify the activity is displayed
+    composeTestRule.onNodeWithTag("cardItem_Draft Activity Only").assertIsDisplayed()
+  }
 }

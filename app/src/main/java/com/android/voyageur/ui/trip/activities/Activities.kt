@@ -193,11 +193,13 @@ fun ActivitiesScreen(
               verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
           ) {
             item {
-              Text(
-                  text = stringResource(R.string.drafts),
-                  fontSize = 24.sp,
-                  fontWeight = FontWeight.Bold,
-                  modifier = Modifier.padding(start = 10.dp))
+              if (drafts.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.drafts),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 10.dp))
+              }
             }
             drafts.forEach { activity ->
               item {
@@ -217,11 +219,13 @@ fun ActivitiesScreen(
               }
             }
             item {
-              Text(
-                  text = stringResource(R.string.final_activities),
-                  fontSize = 24.sp,
-                  fontWeight = FontWeight.Bold,
-                  modifier = Modifier.padding(start = 10.dp))
+              if (final.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.final_activities),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 10.dp))
+              }
             }
             final.forEach { activity ->
               item {

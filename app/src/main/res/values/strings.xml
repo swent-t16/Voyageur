@@ -87,13 +87,8 @@
     <string name="empty_activities_prompt">There are no activities scheduled.</string>
     <string name="ask_assistant_button">Ask Assistant</string>
 
-
-
-
- <!-- Add Activity -->
     <!-- Activities -->
     <string name="no_activities_scheduled">"No activities have been scheduled yet."</string>
-    <!-- Activity Item -->
     <string name="location_text">Location</string>
 
     <!-- Add Activity -->
