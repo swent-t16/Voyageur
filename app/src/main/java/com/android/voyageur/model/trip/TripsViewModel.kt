@@ -8,11 +8,11 @@ import androidx.lifecycle.viewModelScope
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.assistant.generatePrompt
 import com.android.voyageur.model.assistant.generativeModel
-import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.model.notifications.TripInvite
 import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.notifications.TripInviteRepositoryFirebase
 import com.android.voyageur.model.user.User
+import com.android.voyageur.model.user.UserViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth

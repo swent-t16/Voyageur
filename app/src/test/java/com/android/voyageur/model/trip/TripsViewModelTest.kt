@@ -609,7 +609,7 @@ class TripsViewModelTest {
     tripsViewModel.copyTrip(userViewModel) {}
     verify(tripsRepository).createTrip(any(), any(), any())
   }
-  
+
   @Test
   fun fetchTripInvites_shouldHandleFailure() = runTest {
     val exception = Exception("Failed to fetch invites")
