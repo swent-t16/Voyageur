@@ -8,6 +8,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
+import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
@@ -39,6 +41,7 @@ class ActivityItemTest {
   private lateinit var tripRepository: TripRepository
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
+  private lateinit var tripInviteRepository: TripInviteRepository
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -46,7 +49,8 @@ class ActivityItemTest {
   fun setUp() {
     tripRepository = mock(TripRepository::class.java)
     navigationActions = mock(NavigationActions::class.java)
-    tripsViewModel = TripsViewModel(tripRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
   }
 
   @Test
@@ -245,5 +249,34 @@ class ActivityItemTest {
     composeTestRule.onNodeWithTag("editIcon_${sampleActivityWithDescription.title}").performClick()
     verify(navigationActions).navigateTo(Screen.EDIT_ACTIVITY)
     assert(tripsViewModel.selectedActivity.value == sampleActivityWithDescription)
+  }
+
+  @Test
+  fun activityCard_displaysCorrectLocationName() {
+    // Create a sample activity with a location name
+    val sampleActivityWithLocation =
+        Activity(
+            title = "Final Activity Without Description",
+            estimatedPrice = 10.0,
+            startTime = createTimestamp(2022, 1, 2, 12, 0),
+            endTime = createTimestamp(2022, 1, 2, 14, 0),
+            location = Location(name = "EPFL Lausanne"),
+            activityType = ActivityType.MUSEUM)
+
+    composeTestRule.setContent {
+      ActivityItem(
+          activity = sampleActivityWithLocation,
+          navigationActions = navigationActions,
+          tripsViewModel = tripsViewModel)
+    }
+    // Expand the activity card
+    composeTestRule
+        .onNodeWithTag("expandIcon_${sampleActivityWithLocation.title}")
+        .assertIsDisplayed()
+        .performClick()
+
+    // Check if the location section is displayed
+    composeTestRule.onNodeWithText("Location").assertIsDisplayed()
+    composeTestRule.onNodeWithText("EPFL Lausanne").assertIsDisplayed()
   }
 }
