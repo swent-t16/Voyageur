@@ -176,7 +176,7 @@ fun TripInviteItem(tripInvite: TripInvite, tripsViewModel: TripsViewModel) {
       modifier = Modifier.fillMaxWidth().padding(8.dp).testTag("tripInvite"),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(text = "From: ${tripInvite.from}", modifier = Modifier.weight(1f))
+        Text(text = stringResource(R.string.from, tripInvite.from), modifier = Modifier.weight(1f))
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           IconButton(

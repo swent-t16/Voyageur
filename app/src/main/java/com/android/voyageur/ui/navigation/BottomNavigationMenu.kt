@@ -38,7 +38,7 @@ fun BottomNavigationMenu(
 
   LaunchedEffect(userNotifications, tripInvites) {
     userViewModel.getFriendRequests {}
-    tripsViewModel.getNotificationsCount {}
+    tripsViewModel.fetchTripInvites()
   }
   LaunchedEffect(Unit) {
     if (Firebase.auth.uid != null) {

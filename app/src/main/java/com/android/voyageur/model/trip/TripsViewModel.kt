@@ -88,6 +88,7 @@ open class TripsViewModel(
 
   /** Listener registration for trip updates. */
   private var _tripListenerRegistration: ListenerRegistration? = null
+  val userId = Firebase.auth.uid.orEmpty()
 
   /** Authentication state listener for Firebase. */
   val authStateListener =
@@ -219,7 +220,6 @@ open class TripsViewModel(
    * @param onSuccess Callback to be invoked on success.
    */
   fun getNotificationsCount(onSuccess: (Long) -> Unit) {
-    val userId = Firebase.auth.uid.orEmpty()
     if (userId.isEmpty()) return
 
     tripInviteRepository.getTripInvitesCount(
