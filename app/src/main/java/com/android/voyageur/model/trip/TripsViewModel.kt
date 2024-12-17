@@ -520,4 +520,34 @@ open class TripsViewModel(
         onSuccess = {},
         onFailure = { e -> Log.e("TripsViewModel", "Failed to delete invite: $e") })
   }
+  /**
+   * Sends a trip invite to another user.
+   *
+   * @param toUserId The ID of the user to invite
+   * @param tripId The ID of the trip to invite them to
+   * @param onSuccess Callback to be invoked on success
+   * @param onFailure Callback to be invoked on failure with the exception
+   */
+  fun sendTripInvite(
+      toUserId: String,
+      tripId: String,
+      onSuccess: () -> Unit = {},
+      onFailure: (Exception) -> Unit = {}
+  ) {
+    val fromUserId = firebaseAuth.uid.orEmpty()
+    if (fromUserId.isEmpty()) return
+
+    val inviteId = tripInviteRepository.getNewId()
+    val tripInvite =
+        TripInvite(
+            id = inviteId,
+            tripId = tripId,
+            from = fromUserId,
+            to = toUserId,
+            accepted = false // Default value for new invites
+            )
+
+    tripInviteRepository.createTripInvite(
+        req = tripInvite, onSuccess = onSuccess, onFailure = onFailure)
+  }
 }
