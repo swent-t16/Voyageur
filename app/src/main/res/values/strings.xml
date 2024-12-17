@@ -52,7 +52,6 @@
     <string name="your_trips_text">Your trips</string>
     <string name="floating_button">"Floating action button"</string>
     <string name="empty_trip_prompt">You have no trips yet.</string>
-    <string name="no_favorite_trips">You have no favorite trips yet.</string>
     <string name="denied_calendar_permission">Permission denied. Cannot open calendar.</string>
     <string name="selected_image_description">Selected image</string>
     <string name="trip_image_overview_description">Trip image overview</string>
@@ -77,6 +76,7 @@
     <string name="trip_left_text">You have left the trip successfully</string>
     <string name="leave">Leave</string>
     <string name="fail_leave_trip">Failed to leave the trip: %1$s</string>
+    <string name="no_favorite_trips">You have no favorite trips yet.</string>
 
 <!-- BY DAY/ WEEkLY Screens -->
     <string name="invalid_date">No compatible calendar app found.</string>
@@ -87,10 +87,11 @@
     <string name="empty_activities_prompt">There are no activities scheduled.</string>
     <string name="ask_assistant_button">Ask Assistant</string>
 
+    <!-- Activities -->
+    <string name="no_activities_scheduled">"No activities have been scheduled yet."</string>
+    <string name="location_text">Location</string>
 
-
-
- <!-- Add Activity -->
+    <!-- Add Activity -->
     <string name="create_activity">Create a New Activity</string>
     <string name="edit_activity">Edit Activity</string>
     <string name="back">Back</string>

@@ -28,9 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.voyageur.R
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.hasDescription
 import com.android.voyageur.model.activity.hasEndDate
@@ -161,7 +163,6 @@ fun ActivityItem(
                     fontSize = 14.sp,
                     modifier = Modifier.padding(bottom = 8.dp))
               }
-              // TODO: Add location once we have the final location model
               Text(
                   text = "Price",
                   fontWeight = FontWeight.SemiBold,
@@ -178,6 +179,19 @@ fun ActivityItem(
                   fontSize = 14.sp,
                   modifier = Modifier.padding(vertical = 2.dp))
               Text(text = activity.activityType.toString(), fontSize = 14.sp)
+              // Add Location Section if location is not empty
+              if (activity.location.name.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.location_text),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(vertical = 2.dp).testTag("locationText"))
+                Text(
+                    text = activity.location.name,
+                    fontSize = 14.sp,
+                    modifier =
+                        Modifier.padding(bottom = 8.dp).fillMaxWidth().testTag("locationName"))
+              }
             }
           }
         }
