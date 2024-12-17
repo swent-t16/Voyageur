@@ -179,7 +179,8 @@ class SearchScreenTest {
   }
 
   @Test
-  fun testCopyButton() {
+  fun testCopyButton() = runTest {
+    composeTestRule.awaitIdle()
     whenever(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
       val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
       onSuccess(listOf(Trip(id = "1"))) // Return a test Trip
@@ -195,6 +196,7 @@ class SearchScreenTest {
     userViewModel.loadUser("test")
 
     composeTestRule.onNodeWithTag("discoverTab").performClick()
+    composeTestRule.awaitIdle()
     composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
     composeTestRule.onNodeWithTag("copyTripDetailsButton").performClick()
 
