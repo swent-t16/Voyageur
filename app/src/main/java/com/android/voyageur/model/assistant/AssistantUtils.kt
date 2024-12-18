@@ -112,6 +112,7 @@ val generativeModel =
 /**
  * The prompt that is used to generate activities for a trip.
  *
+ * @param context the context. It is used to get the string resources.
  * @param trip the trip
  * @param userPrompt the prompt that the user provides in the app
  * @param interests the interests to focus on
