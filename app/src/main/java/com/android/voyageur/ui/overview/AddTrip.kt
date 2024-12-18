@@ -323,8 +323,12 @@ fun AddTripScreen(
                       }
                 })
       }) { paddingValues ->
-      val tripId = if (isEditMode) {tripsViewModel.selectedTrip.value!!.id}
-      else {tripsViewModel.getNewTripId()}
+        val tripId =
+            if (isEditMode) {
+              tripsViewModel.selectedTrip.value!!.id
+            } else {
+              tripsViewModel.getNewTripId()
+            }
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
           Column(
               modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),

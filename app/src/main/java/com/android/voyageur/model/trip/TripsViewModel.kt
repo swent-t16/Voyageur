@@ -526,51 +526,6 @@ open class TripsViewModel(
           onFailure = { e -> Log.e("TripsViewModel", "Failed to get trip: $e") })
     }
   }
-    /**
-     * Sends a trip invite to a user.
-     *
-     * @param tripId The ID of the trip for which the invite is being sent.
-     * @param toUserId The ID of the user who will receive the invite.
-     * @param onSuccess Callback to be invoked when the invite is successfully sent.
-     * @param onFailure Callback to be invoked if the invite fails to send.
-     */
-    fun sendTripInvite(
-        tripId: String,
-        toUserId: String,
-        onSuccess: () -> Unit = {},
-        onFailure: (Exception) -> Unit = {}
-    ) {
-        val currentUserId = firebaseAuth.uid ?: return
-
-        // Generate a unique ID for the invite
-        val inviteId = tripInviteRepository.getNewId()
-
-        // Create the trip invite object
-        val tripInvite = TripInvite(
-            id = inviteId,
-            tripId = tripId,
-            from = currentUserId,
-            to = toUserId,
-            accepted = false
-        )
-
-
-
-        // Call the repository to create the invite
-        tripInviteRepository.createTripInvite(
-            req = tripInvite,
-            onSuccess = {
-                // Update trip invites state
-                _tripInvites.value += tripInvite
-                Log.d("TripsViewModel", "Trip invite sent successfully to user: ${_tripInvites.value}")
-                onSuccess()
-            },
-            onFailure = { exception ->
-                Log.e("TripsViewModel", "Failed to send trip invite: ${exception.message}", exception)
-                onFailure(exception)
-            }
-        )
-    }
   /**
    * Declines a trip invite.
    *
@@ -579,9 +534,7 @@ open class TripsViewModel(
   fun declineTripInvite(inviteId: String) {
     tripInviteRepository.deleteTripInvite(
         inviteId,
-        onSuccess = {
-            _tripInvites.value = _tripInvites.value.filter { it.id != inviteId }
-        },
+        onSuccess = { _tripInvites.value = _tripInvites.value.filter { it.id != inviteId } },
         onFailure = { e -> Log.e("TripsViewModel", "Failed to delete invite: $e") })
   }
   /**
@@ -612,6 +565,16 @@ open class TripsViewModel(
             )
 
     tripInviteRepository.createTripInvite(
-        req = tripInvite, onSuccess = onSuccess, onFailure = onFailure)
+        req = tripInvite,
+        onSuccess = {
+          // Update trip invites state
+          _tripInvites.value += tripInvite
+          Log.d("TripsViewModel", "Created invite: ${tripInvite.tripId}")
+          onSuccess()
+        },
+        onFailure = { e ->
+          Log.e("TripsViewModel", "Failed to create invite: $e")
+          onFailure(e)
+        })
   }
 }

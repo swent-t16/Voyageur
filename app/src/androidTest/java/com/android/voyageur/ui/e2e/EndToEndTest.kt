@@ -61,6 +61,7 @@ class E2ETest {
   private lateinit var mockAuthTask: Task<AuthResult>
   private lateinit var friendRequestRepository: FriendRequestRepository
   private val mockMail = "test@gmail.com"
+  private val sampleTrip = Trip(name = "Sample Trip", participants = listOf("userId123"))
 
   @Before
   fun setUp() {
@@ -68,6 +69,7 @@ class E2ETest {
     navigationActions = mock(NavigationActions::class.java)
     tripInviteRepository = mock(TripInviteRepository::class.java)
     tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
+    tripsViewModel.selectTrip(sampleTrip)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
 
     placesRepository = mock(PlacesRepository::class.java)
@@ -98,6 +100,8 @@ class E2ETest {
         }
         .`when`(userRepository)
         .getUserById(anyString(), anyOrNull(), anyOrNull())
+    // Mock the new id for the user dropdown
+    `when`(tripRepository.getNewTripId()).thenReturn("456")
 
     // Mock userRepository.fetchUsersByIds to call onSuccess with the list of users
     doAnswer { invocation ->
