@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.search
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,8 +19,10 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -99,6 +103,11 @@ fun TripCard(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel
 ) {
+
+  // Workaround to allow Toast in onSuccess function
+  val context = LocalContext.current
+  val copiedMsg = stringResource(R.string.trip_copied_message, trip.name)
+
   Box(
       modifier =
           Modifier.fillMaxSize()
@@ -171,7 +180,22 @@ fun TripCard(
                           tripsViewModel.selectTrip(trip)
                         },
                         modifier = Modifier.testTag("viewTripDetailsButton")) {
-                          Text(text = "View Details")
+                          Text(text = stringResource(R.string.view_details))
+                        }
+
+                    // Copy Button
+                    IconButton(
+                        onClick = {
+                          tripsViewModel.selectTrip(trip)
+                          tripsViewModel.copyTrip(userViewModel) {
+                            Toast.makeText(context, copiedMsg, Toast.LENGTH_SHORT).show()
+                          }
+                        },
+                        modifier = Modifier.testTag("copyTripDetailsButton")) {
+                          Icon(
+                              imageVector = Icons.Default.ContentCopy,
+                              contentDescription = stringResource(R.string.copy_trip_button),
+                              tint = MaterialTheme.colorScheme.primary)
                         }
                   }
             }

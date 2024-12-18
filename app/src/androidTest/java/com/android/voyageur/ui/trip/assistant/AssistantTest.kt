@@ -8,6 +8,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.NavHostController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.voyageur.model.activity.Activity
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
@@ -39,7 +40,7 @@ class AssistantScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  private val sampleTrip = Trip(name = "Sample Trip")
+  private val sampleTrip = Trip(name = "Sample Trip", participants = listOf("user123", "contact1"))
   private val sampleJson =
       "[{\"title\":\"Activity 1\", \"description\": \"Description 1\", \"year\": 2022, \"month\": 1, \"day\": 1, \"startTimeHour\": 12, \"startTimeMinute\": 0, \"endTimeHour\": 14, \"endTimeMinute\": 0}" +
           ",{\"title\":\"Activity 2\", \"description\": \"Description 2\", \"year\": 2022, \"month\": 1, \"day\": 2, \"startTimeHour\": 12, \"startTimeMinute\": 0, \"endTimeHour\": 14, \"endTimeMinute\": 0}]"
@@ -53,13 +54,21 @@ class AssistantScreenTest {
           username = "johndoe",
           contacts = listOf(),
           interests = listOf("hiking", "cycling"))
+  private lateinit var tripInviteRepository: TripInviteRepository
+
+  private val mockContacts =
+      listOf(
+          User(id = "contact1", name = "Contact 1", interests = listOf("hiking", "art")),
+          User(id = "contact2", name = "Contact 2", interests = listOf("restaurants", "music")),
+          mockUser)
 
   @Before
   fun setUp() {
     tripRepository = mock(TripRepository::class.java)
     navHostController = mock(NavHostController::class.java)
     navigationActions = NavigationActions(navHostController)
-    tripsViewModel = TripsViewModel(tripRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
     mockTripsViewModel = mock(TripsViewModel::class.java)
     userViewModel = mock(UserViewModel::class.java)
 
@@ -67,6 +76,10 @@ class AssistantScreenTest {
     val userField = UserViewModel::class.java.getDeclaredField("user")
     userField.isAccessible = true
     userField.set(userViewModel, MutableStateFlow(mockUser))
+
+    val contactsField = UserViewModel::class.java.getDeclaredField("contacts")
+    contactsField.isAccessible = true
+    contactsField.set(userViewModel, MutableStateFlow(mockContacts))
   }
 
   @Test
@@ -187,8 +200,8 @@ class AssistantScreenTest {
     composeTestRule.onNodeWithTag("settingsDialog").assertIsDisplayed()
     composeTestRule.onNodeWithTag("provideFinalActivitiesSwitch").assertIsDisplayed()
     composeTestRule.onNodeWithTag("provideFinalActivitiesSwitch").assertIsOff()
-    composeTestRule.onNodeWithTag("useInterestsSwitch").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("useInterestsSwitch").assertIsOff()
+    composeTestRule.onNodeWithTag("useUserInterestsSwitch").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("useUserInterestsSwitch").assertIsOff()
     composeTestRule.onNodeWithTag("closeDialogButton").assertIsDisplayed()
   }
 
@@ -235,13 +248,51 @@ class AssistantScreenTest {
     }
 
     composeTestRule.onNodeWithTag("settingsButton").performClick()
-    composeTestRule.onNodeWithTag("useInterestsSwitch").performClick()
+    composeTestRule.onNodeWithTag("useUserInterestsSwitch").performClick()
     composeTestRule.onNodeWithTag("closeDialogButton").performClick()
-    // check the call to sendActivitiesPrompt happens with useInterests = true
+    // check the call to sendActivitiesPrompt happens with useUserInterests = true
     composeTestRule.onNodeWithTag("AIRequestButton").performClick()
     verify(mockTripsViewModel)
         .sendActivitiesPrompt(
             sampleTrip, "", listOf("hiking", "cycling"), provideFinalActivities = false)
+  }
+
+  @Test
+  fun checkAllParticipantsInterestsUsedWhenSwitched() {
+    val uiStateFlow = MutableStateFlow(UiState.Success(sampleJson))
+    val tripFlow = MutableStateFlow(sampleTrip)
+    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
+    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
+    composeTestRule.setContent {
+      AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+    }
+
+    composeTestRule.onNodeWithTag("settingsButton").performClick()
+    composeTestRule.onNodeWithTag("useParticipantsInterestsSwitch").performClick()
+    composeTestRule.onNodeWithTag("closeDialogButton").performClick()
+    // check the call to sendActivitiesPrompt happens with useUserInterests = true
+    composeTestRule.onNodeWithTag("AIRequestButton").performClick()
+    verify(mockTripsViewModel)
+        .sendActivitiesPrompt(
+            sampleTrip, "", listOf("hiking", "cycling", "art"), provideFinalActivities = false)
+  }
+
+  @Test
+  fun checkInterestsSwitchesAlternate() {
+    val uiStateFlow = MutableStateFlow(UiState.Success(sampleJson))
+    val tripFlow = MutableStateFlow(sampleTrip)
+    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
+    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
+    composeTestRule.setContent {
+      AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+    }
+    composeTestRule.onNodeWithTag("settingsButton").performClick()
+    composeTestRule.onNodeWithTag("useUserInterestsSwitch").performClick()
+    composeTestRule.onNodeWithTag("useParticipantsInterestsSwitch").assertIsOff()
+    composeTestRule.onNodeWithTag("useUserInterestsSwitch").assertIsOn()
+    composeTestRule.onNodeWithTag("useParticipantsInterestsSwitch").performClick()
+    composeTestRule.onNodeWithTag("useUserInterestsSwitch").assertIsOff()
+    composeTestRule.onNodeWithTag("useParticipantsInterestsSwitch").assertIsOn()
   }
 
   @Test

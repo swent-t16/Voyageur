@@ -76,6 +76,12 @@ fun AssistantScreen(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel
 ) {
+  val trip = tripsViewModel.selectedTrip.value
+  if (trip == null) {
+    navigationActions.navigateTo(Screen.OVERVIEW)
+    return
+  }
+
   // State
   var result by rememberSaveable { mutableStateOf("placeholderResult") }
   val uiState by tripsViewModel.uiState.collectAsState()
@@ -84,20 +90,22 @@ fun AssistantScreen(
 
   // User related data
   var prompt by rememberSaveable { mutableStateOf("") }
-  val interests = userViewModel.user.collectAsState().value?.interests ?: emptyList()
+  val userInterests = userViewModel.user.collectAsState().value?.interests ?: emptyList()
+  val participantsInterests =
+      trip.participants
+          .mapNotNull { participant ->
+            userViewModel.contacts.value.find { it.id == participant } // Find user
+          }
+          .flatMap { user -> user.interests } // Extract all interests
+          .distinct() // Keep only distinct interests
 
   val keyboardController = LocalSoftwareKeyboardController.current
 
   // Settings
   var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
   var provideFinalActivities by rememberSaveable { mutableStateOf(false) }
-  var useInterests by rememberSaveable { mutableStateOf(false) }
-
-  val trip = tripsViewModel.selectedTrip.value
-  if (trip == null) {
-    navigationActions.navigateTo(Screen.OVERVIEW)
-    return
-  }
+  var useUserInterests by rememberSaveable { mutableStateOf(false) }
+  var useParticipantsInterests by rememberSaveable { mutableStateOf(false) }
 
   Scaffold(
       modifier = Modifier.testTag("assistantScreen"),
@@ -129,7 +137,10 @@ fun AssistantScreen(
                               tripsViewModel.sendActivitiesPrompt(
                                   trip = trip,
                                   userPrompt = prompt,
-                                  interests = if (useInterests) interests else emptyList(),
+                                  interests =
+                                    if (useUserInterests) userInterests
+                                    else if (useParticipantsInterests) participantsInterests
+                                    else emptyList(),
                                   provideFinalActivities = provideFinalActivities,
                               )
                             }
@@ -147,7 +158,9 @@ fun AssistantScreen(
                   tripsViewModel.sendActivitiesPrompt(
                       trip = trip,
                       userPrompt = prompt,
-                      interests = if (useInterests) interests else emptyList(),
+                      interests =
+                          if (useUserInterests) userInterests
+                          else if (useParticipantsInterests) participantsInterests else emptyList(),
                       provideFinalActivities = provideFinalActivities,
                   )
                 },
@@ -249,8 +262,11 @@ fun AssistantScreen(
                 onDismiss = { showSettingsDialog = false },
                 provideDraftActivities = provideFinalActivities,
                 onProvideFinalActivitiesChanged = { provideFinalActivities = it },
-                useInterests = useInterests,
-                onUseInterestsChanged = { useInterests = it })
+                useInterests = useUserInterests,
+                onUseInterestsChanged = { useUserInterests = it },
+              useParticipantsInterests = useParticipantsInterests,
+              onUseParticipantsInterestsChanged = { useParticipantsInterests = it },
+          )
           }
         }
       })
@@ -270,7 +286,9 @@ fun SettingsDialog(
     provideDraftActivities: Boolean,
     onProvideFinalActivitiesChanged: (Boolean) -> Unit,
     useInterests: Boolean,
-    onUseInterestsChanged: (Boolean) -> Unit
+    onUseInterestsChanged: (Boolean) -> Unit,
+    useParticipantsInterests: Boolean,
+    onUseParticipantsInterestsChanged: (Boolean) -> Unit,
 ) {
   AlertDialog(
       modifier = Modifier.testTag("settingsDialog"),
@@ -284,7 +302,7 @@ fun SettingsDialog(
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyLarge)
           }
-          Spacer(modifier = Modifier.height(16.dp)) // Add a spacer for some vertical space
+          Spacer(modifier = Modifier.height(16.dp))
 
           Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.provide_final_activities), modifier = Modifier.weight(1f))
@@ -293,13 +311,33 @@ fun SettingsDialog(
                 onCheckedChange = onProvideFinalActivitiesChanged,
                 modifier = Modifier.testTag("provideFinalActivitiesSwitch"))
           }
-          Spacer(modifier = Modifier.height(16.dp)) // Add a spacer for some vertical space
+          Spacer(modifier = Modifier.height(4.dp))
           Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.use_interests), modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.use_user_interests), modifier = Modifier.weight(1f))
             Switch(
                 checked = useInterests,
-                onCheckedChange = onUseInterestsChanged,
-                modifier = Modifier.testTag("useInterestsSwitch"))
+                onCheckedChange = { isChecked ->
+                  onUseInterestsChanged(isChecked)
+                  if (isChecked) {
+                    onUseParticipantsInterestsChanged(false) // Turn off the other switch
+                  }
+                },
+                modifier = Modifier.testTag("useUserInterestsSwitch"))
+          }
+          Spacer(modifier = Modifier.height(4.dp))
+
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.use_participants_interests), modifier = Modifier.weight(1f))
+            Switch(
+                checked = useParticipantsInterests,
+                onCheckedChange = { isChecked ->
+                  onUseParticipantsInterestsChanged(isChecked)
+                  if (isChecked) {
+                    onUseInterestsChanged(false) // Turn off the other switch
+                  }
+                },
+                modifier = Modifier.testTag("useParticipantsInterestsSwitch"))
           }
         }
       },

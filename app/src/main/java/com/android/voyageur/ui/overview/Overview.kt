@@ -178,7 +178,8 @@ fun OverviewScreen(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute(),
-            userViewModel)
+            userViewModel,
+            tripsViewModel)
       },
       content = { pd ->
         OverviewContent(
@@ -315,8 +316,7 @@ private fun EmptyTripsMessage(showOnlyFavorites: Boolean) {
         modifier = Modifier.testTag("emptyTripPrompt"),
         text =
             if (!showOnlyFavorites) stringResource(R.string.empty_trip_prompt)
-            else stringResource(R.string.no_favorite_trips),
-    )
+            else stringResource(R.string.no_favorite_trips))
   }
 }
 
@@ -659,7 +659,7 @@ fun DisplayParticipants(
     modifier: Modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
     arrangement: Arrangement.Vertical = Arrangement.Bottom
 ) {
-  val numberOfParticipants = trip.participants.size - 1
+  val numberOfParticipants = trip.participants.size
   val numberToString = generateParticipantString(numberOfParticipants)
   val themeColor = MaterialTheme.colorScheme.onSurface
   Column(
@@ -686,16 +686,13 @@ fun DisplayParticipants(
         ) {
           // Display participants (limit to 5 avatars max for space reasons)
           if (numberOfParticipants > 0) {
-            trip.participants
-                .filter { it != Firebase.auth.uid.orEmpty() }
-                .take(4)
-                .forEach { participant ->
-                  val user = userViewModel.contacts.value.find { it.id == participant }
-                  if (user != null) {
-                    // uses the same UserIcon function as in the participants form
-                    UserIcon(user)
-                  }
-                }
+            trip.participants.take(4).forEach { participant ->
+              val user = userViewModel.contacts.value.find { it.id == participant }
+              if (user != null) {
+                // uses the same UserIcon function as in the participants form
+                UserIcon(user)
+              }
+            }
             if (numberOfParticipants > 4) {
               Text(
                   text = stringResource(R.string.additional_participants, numberOfParticipants - 4),

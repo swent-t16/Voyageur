@@ -1,8 +1,5 @@
 package com.android.voyageur.ui.navigation
 
-//noinspection UsingMaterialAndMaterial3Libraries
-//noinspection UsingMaterialAndMaterial3Libraries
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,13 +14,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -33,15 +29,24 @@ fun BottomNavigationMenu(
     onTabSelect: (TopLevelDestination) -> Unit,
     tabList: List<TopLevelDestination>,
     selectedItem: String?,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    tripsViewModel: TripsViewModel
 ) {
-  val notifications by userViewModel._notificationCount.collectAsState()
-  LaunchedEffect(notifications) { userViewModel.getFriendRequests {} }
+  val userNotifications = userViewModel.notificationCount?.collectAsState(initial = 0)?.value ?: 0
+  val tripInvites = tripsViewModel.tripNotificationCount?.collectAsState(initial = 0)?.value ?: 0
+  val totalNotifications = userNotifications + tripInvites
+
+  LaunchedEffect(userNotifications, tripInvites) {
+    userViewModel.getFriendRequests {}
+    tripsViewModel.fetchTripInvites()
+  }
   LaunchedEffect(Unit) {
     if (Firebase.auth.uid != null) {
       userViewModel.getNotificationsCount {}
+      tripsViewModel.getNotificationsCount {}
     }
   }
+
   NavigationBar(
       modifier = Modifier.fillMaxWidth().height(60.dp).testTag("bottomNavigationMenu"),
       containerColor = MaterialTheme.colorScheme.surface,
@@ -49,7 +54,7 @@ fun BottomNavigationMenu(
         tabList.forEach { tab ->
           NavigationBarItem(
               icon = {
-                if (tab.route == Route.PROFILE && notifications > 0) {
+                if (tab.route == Route.PROFILE && totalNotifications > 0) {
                   Box(
                       modifier =
                           Modifier.clip(RoundedCornerShape(50))
@@ -57,7 +62,7 @@ fun BottomNavigationMenu(
                               .size(16.dp)
                               .testTag("notificationBadge")) {
                         Text(
-                            text = notifications.toString(),
+                            text = totalNotifications.toString(),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onError,
                             modifier = Modifier.align(Alignment.Center))

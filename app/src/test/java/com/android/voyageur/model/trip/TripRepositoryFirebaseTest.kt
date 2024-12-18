@@ -301,4 +301,94 @@ class TripRepositoryFirebaseTest {
 
     assertTrue("onFailure should have been called", failureCalled)
   }
+
+  @Test
+  fun `getTripById success returns trip object`() {
+    // Mock successful document snapshot that contains a Trip
+    val mockDocumentSnapshot = mock(com.google.firebase.firestore.DocumentSnapshot::class.java)
+    `when`(mockDocumentSnapshot.toObject(Trip::class.java)).thenReturn(trip)
+
+    // Configure the mock task to return success with our mock snapshot
+    val mockTask = mock(Task::class.java) as Task<com.google.firebase.firestore.DocumentSnapshot>
+    `when`(mockDocumentReference.get()).thenReturn(mockTask)
+    `when`(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
+      val listener =
+          invocation.arguments[0]
+              as OnSuccessListener<com.google.firebase.firestore.DocumentSnapshot>
+      listener.onSuccess(mockDocumentSnapshot)
+      mockTask
+    }
+
+    var successCalled = false
+    var resultTrip: Trip? = null
+
+    tripRepository.getTripById(
+        "1",
+        onSuccess = {
+          successCalled = true
+          resultTrip = it
+        },
+        onFailure = { fail("Failure callback should not be called") })
+
+    assertTrue("Success callback should have been called", successCalled)
+    assertEquals(trip, resultTrip)
+    verify(mockDocumentReference).get()
+  }
+
+  @Test
+  fun `getTripById with null trip calls onFailure`() {
+    // Mock document snapshot that returns null for toObject
+    val mockDocumentSnapshot = mock(com.google.firebase.firestore.DocumentSnapshot::class.java)
+    `when`(mockDocumentSnapshot.toObject(Trip::class.java)).thenReturn(null)
+
+    val mockTask = mock(Task::class.java) as Task<com.google.firebase.firestore.DocumentSnapshot>
+    `when`(mockDocumentReference.get()).thenReturn(mockTask)
+    `when`(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
+      val listener =
+          invocation.arguments[0]
+              as OnSuccessListener<com.google.firebase.firestore.DocumentSnapshot>
+      listener.onSuccess(mockDocumentSnapshot)
+      mockTask
+    }
+
+    var failureCalled = false
+
+    tripRepository.getTripById(
+        "1",
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = {
+          failureCalled = true
+          assertEquals("Trip not found", it.message)
+        })
+
+    assertTrue("Failure callback should have been called", failureCalled)
+    verify(mockDocumentReference).get()
+  }
+
+  @Test
+  fun `getTripById failure calls onFailure`() {
+    val exception = Exception("Failed to get trip")
+    val mockTask = mock(Task::class.java) as Task<com.google.firebase.firestore.DocumentSnapshot>
+
+    `when`(mockDocumentReference.get()).thenReturn(mockTask)
+    `when`(mockTask.addOnSuccessListener(any())).thenReturn(mockTask)
+    `when`(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
+      val listener = invocation.arguments[0] as OnFailureListener
+      listener.onFailure(exception)
+      mockTask
+    }
+
+    var failureCalled = false
+
+    tripRepository.getTripById(
+        "1",
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = {
+          failureCalled = true
+          assertEquals("Failed to get trip", it.message)
+        })
+
+    assertTrue("Failure callback should have been called", failureCalled)
+    verify(mockDocumentReference).get()
+  }
 }
