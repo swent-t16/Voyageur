@@ -166,78 +166,80 @@ fun ProfileContent(
         Spacer(modifier = Modifier.height(20.dp))
 
         // Trip Invite Menu
-        TripInviteMenu(tripInvites = tripInvites, tripsViewModel = tripsViewModel)
+        TripInviteMenu(
+            tripInvites = tripInvites,
+            tripsViewModel = tripsViewModel,
+            userViewModel = userViewModel)
       }
 }
 
 @Composable
-fun TripInviteItem(tripInvite: TripInvite, tripsViewModel: TripsViewModel) {
+fun TripInviteItem(tripInvite: TripInvite, sender: User, tripsViewModel: TripsViewModel) {
   Row(
-      modifier = Modifier.fillMaxWidth().padding(8.dp).testTag("tripInvite"),
+      modifier = Modifier.fillMaxWidth().padding(8.dp),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(text = stringResource(R.string.from, tripInvite.from), modifier = Modifier.weight(1f))
+        Column(modifier = Modifier.weight(1f)) {
+          Text(text = stringResource(R.string.from_user, sender.name))
+          Text(text = stringResource(R.string.trip_id, tripInvite.tripId))
+        }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-          IconButton(
-              modifier = Modifier.testTag("acceptButton"),
-              onClick = { tripsViewModel.acceptTripInvite(tripInvite) }) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = stringResource(R.string.accept),
-                    tint = Color.Green)
-              }
+          IconButton(onClick = { tripsViewModel.acceptTripInvite(tripInvite) }) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = stringResource(R.string.accept),
+                tint = Color.Green)
+          }
 
-          IconButton(
-              modifier = Modifier.testTag("denyButton"),
-              onClick = { tripsViewModel.declineTripInvite(tripInvite.id) }) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.reject),
-                    tint = Color.Red)
-              }
+          IconButton(onClick = { tripsViewModel.declineTripInvite(tripInvite.id) }) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.reject),
+                tint = Color.Red)
+          }
         }
       }
 }
 
 @Composable
-fun TripInviteMenu(tripInvites: List<TripInvite>, tripsViewModel: TripsViewModel) {
+fun TripInviteMenu(
+    tripInvites: List<TripInvite>,
+    tripsViewModel: TripsViewModel,
+    userViewModel: UserViewModel
+) {
+  var resolvedInvites by remember { mutableStateOf<List<Pair<TripInvite, User>>>(emptyList()) }
+
+  LaunchedEffect(tripInvites) {
+    userViewModel.resolveTripInviteUsers(tripInvites) { resolved -> resolvedInvites = resolved }
+  }
+
   Card(
       shape = RoundedCornerShape(12.dp),
-      modifier =
-          Modifier.fillMaxWidth(0.80f)
-              .padding(horizontal = 10.dp, vertical = 8.dp)
-              .testTag("tripInviteCard")) {
+      modifier = Modifier.fillMaxWidth(0.80f).padding(horizontal = 10.dp, vertical = 8.dp)) {
         Column(modifier = Modifier.padding(12.dp)) {
           Text(
-              text = stringResource(R.string.pending_trip_invites, tripInvites.size),
+              text = stringResource(R.string.pending_trip_invites, resolvedInvites.size),
               color = MaterialTheme.colorScheme.onSurface,
           )
 
           Card(
               shape = RoundedCornerShape(8.dp),
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .heightIn(max = 180.dp)
-                      .padding(top = 8.dp)
-                      .testTag("tripInviteBox")) {
-                if (tripInvites.isEmpty()) {
-                  Box(
-                      modifier = Modifier.fillMaxSize().testTag("noInvitesBox"),
-                      contentAlignment = Alignment.Center) {
-                        Text(
-                            text = stringResource(R.string.no_pending_invites),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                      }
+              modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp).padding(top = 8.dp)) {
+                if (resolvedInvites.isEmpty()) {
+                  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.no_pending_invites),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                  }
                 } else {
-                  LazyColumn(
-                      modifier =
-                          Modifier.fillMaxSize().padding(8.dp).testTag("tripInviteLazyColumn")) {
-                        items(tripInvites) { invite ->
-                          TripInviteItem(tripInvite = invite, tripsViewModel = tripsViewModel)
-                        }
-                      }
+                  LazyColumn(modifier = Modifier.fillMaxSize().padding(8.dp)) {
+                    items(resolvedInvites) { (invite, user) ->
+                      TripInviteItem(
+                          tripInvite = invite, sender = user, tripsViewModel = tripsViewModel)
+                    }
+                  }
                 }
               }
         }

@@ -10,6 +10,7 @@ import com.android.voyageur.R
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.notifications.FriendRequestRepositoryFirebase
+import com.android.voyageur.model.notifications.TripInvite
 import com.android.voyageur.ui.notifications.NotificationProvider
 import com.android.voyageur.ui.notifications.StringProvider
 import com.google.firebase.Firebase
@@ -721,5 +722,20 @@ constructor(
               }
             },
             onFailure = { exception -> Log.e("USER_VIEW_MODEL", exception.message.orEmpty()) })
+  }
+
+  fun resolveTripInviteUsers(
+      invites: List<TripInvite>,
+      onResolved: (List<Pair<TripInvite, User>>) -> Unit
+  ) {
+    val userIds = invites.map { it.from }.distinct()
+    getUsersByIds(userIds) { users ->
+      val inviteUserPairs =
+          invites.mapNotNull { invite ->
+            val user = users.find { it.id == invite.from }
+            if (user != null) Pair(invite, user) else null
+          }
+      onResolved(inviteUserPairs)
+    }
   }
 }
