@@ -12,6 +12,7 @@ import com.android.voyageur.model.notifications.TripInvite
 import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.notifications.TripInviteRepositoryFirebase
 import com.android.voyageur.model.user.User
+import com.android.voyageur.model.user.UserViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -55,7 +56,7 @@ open class TripsViewModel(
   open val selectedTrip: StateFlow<Trip?> = _selectedTrip.asStateFlow()
 
   /** StateFlow holding the count of trip notifications. */
-  val _tripNotificationCount = MutableStateFlow(0L)
+  private val _tripNotificationCount = MutableStateFlow(0L)
   val tripNotificationCount: StateFlow<Long> = _tripNotificationCount
 
   /** StateFlow holding the selected day. */
@@ -79,7 +80,7 @@ open class TripsViewModel(
   val feed: StateFlow<List<Trip>> = _feed.asStateFlow()
 
   /** StateFlow holding the list of trip invites. */
-  val _tripInvites = MutableStateFlow<List<TripInvite>>(emptyList())
+  private val _tripInvites = MutableStateFlow<List<TripInvite>>(emptyList())
   val tripInvites: StateFlow<List<TripInvite>> = _tripInvites.asStateFlow()
 
   /** StateFlow holding the list of users being invited. */
@@ -96,7 +97,7 @@ open class TripsViewModel(
         if (firebaseUser != null) {
           _tripListenerRegistration =
               tripsRepository.listenForTripUpdates(
-                  firebaseAuth?.uid.orEmpty(),
+                  firebaseAuth.uid.orEmpty(),
                   onSuccess = {
                     _trips.value = it
                     if (selectedTrip.value != null)
@@ -115,7 +116,7 @@ open class TripsViewModel(
       fetchTripInvites() // Fetch trip invites
       _isLoading.value = true
       tripsRepository.getTrips(
-          Firebase?.auth?.uid.orEmpty(),
+          Firebase.auth.uid.orEmpty(),
           onSuccess = {
             _trips.value = it
             _isLoading.value = false
@@ -151,6 +152,10 @@ open class TripsViewModel(
    */
   fun setTripType(type: TripType) {
     _tripType.value = type
+  }
+
+  fun set_tripInvites(tripInvites: List<TripInvite>) {
+    _tripInvites.value = tripInvites
   }
 
   /**
@@ -433,6 +438,23 @@ open class TripsViewModel(
         })
   }
 
+  /**
+   * Copies the currently selected trip and assigns the current user as its sole participant.
+   *
+   * This function retrieves the current user from the `UserViewModel`, extracts the user's ID, and
+   * assigns it to the list of participants of the selected trip. The updated trip object is then
+   * passed to the `createTrip` function to save the copied trip.
+   *
+   * @param userViewModel The [UserViewModel] that provides the current user data.
+   * @param onSuccess A callback invoked upon the successful creation of the copied trip.
+   */
+  fun copyTrip(userViewModel: UserViewModel, onSuccess: () -> Unit) {
+    val trip =
+        selectedTrip.value?.copy(participants = firebaseAuth.uid?.let { listOf(it) } ?: emptyList())
+    if (trip != null) {
+      createTrip(trip = trip, onSuccess) {}
+    }
+  }
   // ****************************************************************************************************
   // AI assistant
   // ****************************************************************************************************
@@ -561,5 +583,35 @@ open class TripsViewModel(
             _tripInvites.value = _tripInvites.value.filter { it.id != inviteId }
         },
         onFailure = { e -> Log.e("TripsViewModel", "Failed to delete invite: $e") })
+  }
+  /**
+   * Sends a trip invite to another user.
+   *
+   * @param toUserId The ID of the user to invite
+   * @param tripId The ID of the trip to invite them to
+   * @param onSuccess Callback to be invoked on success
+   * @param onFailure Callback to be invoked on failure with the exception
+   */
+  fun sendTripInvite(
+      toUserId: String,
+      tripId: String,
+      onSuccess: () -> Unit = {},
+      onFailure: (Exception) -> Unit = {}
+  ) {
+    val fromUserId = firebaseAuth.uid.orEmpty()
+    if (fromUserId.isEmpty()) return
+
+    val inviteId = tripInviteRepository.getNewId()
+    val tripInvite =
+        TripInvite(
+            id = inviteId,
+            tripId = tripId,
+            from = fromUserId,
+            to = toUserId,
+            accepted = false // Default value for new invites
+            )
+
+    tripInviteRepository.createTripInvite(
+        req = tripInvite, onSuccess = onSuccess, onFailure = onFailure)
   }
 }

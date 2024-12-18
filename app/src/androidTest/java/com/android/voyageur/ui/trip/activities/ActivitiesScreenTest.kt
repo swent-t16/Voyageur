@@ -98,8 +98,6 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("activitiesScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("bottomNavigationMenu").assertIsDisplayed()
     composeTestRule.onNodeWithTag("createActivityButton").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("totalEstimatedPriceBox").assertIsDisplayed()
   }
 
   @Test
@@ -117,8 +115,9 @@ class ActivitiesScreenTest {
 
   @Test
   fun activitiesScreen_displaysDraftAndFinalSections() {
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
     composeTestRule.setContent {
-      ActivitiesScreen(navigationActions = navigationActions, userViewModel, tripsViewModel)
+      ActivitiesScreen(navigationActions = navigationActions, userViewModel, mockTripsViewModel)
     }
 
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
@@ -278,7 +277,7 @@ class ActivitiesScreenTest {
   }
 
   @Test
-  fun searchField_maintainsCategoriesWhileFiltering() {
+  fun searchField_displaysEmptyPromptIfNoActivitiesFound() {
     `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
     composeTestRule.setContent {
       ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
@@ -291,12 +290,15 @@ class ActivitiesScreenTest {
     // Enter search query
     composeTestRule.onNodeWithTag("searchField").performTextInput("2")
 
-    // Verify categories remain with filtered content
-    composeTestRule.onNodeWithText("Drafts").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Final", ignoreCase = true).assertIsDisplayed()
+    // Verify categories disappear when no matching activity was found
+    composeTestRule.onNodeWithText("Drafts").assertDoesNotExist()
+    composeTestRule.onNodeWithText("Final", ignoreCase = true).assertDoesNotExist()
     composeTestRule.onNodeWithText("Final Activity With Description").assertDoesNotExist()
     composeTestRule.onNodeWithText("Final Activity Without Description").assertDoesNotExist()
     composeTestRule.onNodeWithText("Draft Activity").assertDoesNotExist()
+    // Assert the empty prompt is displayed
+    composeTestRule.onNodeWithTag("emptyActivitiesPrompt").assertIsDisplayed()
+    composeTestRule.onNodeWithText("No activities have been scheduled yet.").assertExists()
   }
 
   @Test
@@ -338,26 +340,6 @@ class ActivitiesScreenTest {
     // Verify only activities matching both filter and search are shown
     composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertDoesNotExist()
-    composeTestRule
-        .onNodeWithTag("cardItem_Final Activity Without Description")
-        .assertDoesNotExist()
-  }
-
-  @Test
-  fun searchField_handlesEmptyResults() {
-    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(sampleTrip.activities)
-    composeTestRule.setContent {
-      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
-    }
-
-    // Enter search query that matches nothing
-    composeTestRule.onNodeWithTag("searchField").performTextInput("NonexistentActivity")
-
-    // Verify sections still exist but no activities are shown
-    composeTestRule.onNodeWithText("Drafts").assertExists()
-    composeTestRule.onNodeWithText("Final").assertExists()
-    composeTestRule.onNodeWithTag("cardItem_Draft Activity").assertDoesNotExist()
-    composeTestRule.onNodeWithTag("cardItem_Final Activity With Description").assertDoesNotExist()
     composeTestRule
         .onNodeWithTag("cardItem_Final Activity Without Description")
         .assertDoesNotExist()
@@ -466,5 +448,69 @@ class ActivitiesScreenTest {
     composeTestRule.onNodeWithTag("filterButton").performClick()
     composeTestRule.onNodeWithTag("clearFiltersButton").performClick()
     assert(filteredActivities.size > 1)
+  }
+
+  @Test
+  fun displaysEmptyPromptWhenNoActivities() {
+    // Arrange: Return an empty list of activities
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(emptyList())
+
+    // Act: Set the content
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // Assert: Verify the empty prompt is displayed
+    composeTestRule.onNodeWithTag("emptyActivitiesPrompt").assertIsDisplayed()
+    composeTestRule.onNodeWithText("No activities have been scheduled yet.").assertExists()
+  }
+
+  @Test
+  fun draftsTitleNotDisplayedWhenOnlyFinalActivitiesExist() {
+    // Provide a list with only a final activity
+    val activities =
+        listOf(
+            Activity(
+                title = "Final Activity Only",
+                startTime = createTimestamp(2022, 1, 1, 12, 0),
+                endTime = createTimestamp(2022, 1, 1, 14, 0),
+                estimatedPrice = 20.0,
+                activityType = ActivityType.RESTAURANT))
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(activities)
+
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // Assert "Drafts" title should not be displayed
+    composeTestRule.onNodeWithText("Drafts").assertDoesNotExist()
+    // Verify "Final" title exists
+    composeTestRule.onNodeWithText("Final").assertIsDisplayed()
+    // Verify the activity is displayed
+    composeTestRule.onNodeWithTag("cardItem_Final Activity Only").assertIsDisplayed()
+  }
+
+  @Test
+  fun finalTitleNotDisplayedWhenOnlyDraftActivitiesExist() {
+    // Provide a list with only draft activities
+    val activities =
+        listOf(
+            Activity(
+                title = "Draft Activity Only",
+                description = "This is a draft activity",
+                estimatedPrice = 0.0,
+                activityType = ActivityType.WALK))
+    `when`(mockTripsViewModel.getActivitiesForSelectedTrip()).thenReturn(activities)
+
+    composeTestRule.setContent {
+      ActivitiesScreen(navigationActions, userViewModel, mockTripsViewModel)
+    }
+
+    // Assert "Final" title should not be displayed
+    composeTestRule.onNodeWithText("Final").assertDoesNotExist()
+    // Verify "Drafts" title exists
+    composeTestRule.onNodeWithText("Drafts").assertIsDisplayed()
+    // Verify the activity is displayed
+    composeTestRule.onNodeWithTag("cardItem_Draft Activity Only").assertIsDisplayed()
   }
 }

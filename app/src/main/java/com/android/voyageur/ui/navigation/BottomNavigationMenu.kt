@@ -1,8 +1,5 @@
 package com.android.voyageur.ui.navigation
 
-//noinspection UsingMaterialAndMaterial3Libraries
-//noinspection UsingMaterialAndMaterial3Libraries
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,8 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,7 +38,7 @@ fun BottomNavigationMenu(
 
   LaunchedEffect(userNotifications, tripInvites) {
     userViewModel.getFriendRequests {}
-    tripsViewModel.getNotificationsCount {}
+    tripsViewModel.fetchTripInvites()
   }
   LaunchedEffect(Unit) {
     if (Firebase.auth.uid != null) {
