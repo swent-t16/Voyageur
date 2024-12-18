@@ -1,6 +1,7 @@
 package com.android.voyageur.ui.trip.assistant
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.test.*
@@ -328,5 +329,58 @@ class AssistantScreenTest {
 
     verify(keyboardController).hide()
     verify(mockTripsViewModel, times(0)).sendActivitiesPrompt(any(), any(), any(), any(), any())
+  }
+
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun pressingEnterKey_submitsPromptWhenNotLoading() {
+    val uiStateFlow = MutableStateFlow(UiState.Success(sampleJson))
+    val tripFlow = MutableStateFlow(sampleTrip)
+    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
+    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
+
+    val keyboardController = mock(SoftwareKeyboardController::class.java)
+
+    composeTestRule.setContent {
+      CompositionLocalProvider(LocalSoftwareKeyboardController provides keyboardController) {
+        AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+      }
+    }
+    // Simulate entering a prompt
+    val inputPrompt = "Test prompt"
+    composeTestRule.onNodeWithTag("AIRequestTextField").performTextInput(inputPrompt)
+
+    // Find the TextField and simulate the Enter key event
+    composeTestRule.onNodeWithTag("AIRequestTextField").performKeyInput { pressKey(Key.Enter) }
+
+    verify(keyboardController).hide()
+    verify(mockTripsViewModel).sendActivitiesPrompt(any(), any(), eq(inputPrompt), any(), any())
+  }
+
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun pressingEnterKey_doesNotSubmitPromptWhenLoading() {
+    val uiStateFlow = MutableStateFlow(UiState.Loading)
+    val tripFlow = MutableStateFlow(sampleTrip)
+    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
+    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
+
+    val keyboardController = mock(SoftwareKeyboardController::class.java)
+
+    composeTestRule.setContent {
+      CompositionLocalProvider(LocalSoftwareKeyboardController provides keyboardController) {
+        AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+      }
+    }
+    // Simulate entering a prompt
+    val inputPrompt = "Test prompt"
+    composeTestRule.onNodeWithTag("AIRequestTextField").performTextInput(inputPrompt)
+
+    // Find the TextField and simulate the Enter key event
+    composeTestRule.onNodeWithTag("AIRequestTextField").performKeyInput { pressKey(Key.Enter) }
+
+    verify(keyboardController).hide()
+    verify(mockTripsViewModel, times(0))
+        .sendActivitiesPrompt(any(), any(), eq(inputPrompt), any(), any())
   }
 }
