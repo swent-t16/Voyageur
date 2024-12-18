@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.formFields
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,7 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +23,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +35,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.User
+import com.android.voyageur.utils.ConnectionState
+import com.android.voyageur.utils.connectivityState
 
 /**
  * Composable function that displays the profile picture of a given user.
@@ -64,10 +69,21 @@ fun UserIcon(user: User) {
 @Composable()
 fun UserDropdown(
     users: List<Pair<User, Boolean>>,
+    tripsViewModel: TripsViewModel,
+    tripId: String,
     modifier: Modifier = Modifier.fillMaxWidth().wrapContentSize(Alignment.TopStart),
-    onUpdate: (Pair<User, Boolean>, Int) -> Unit
+    onRemove: (Pair<User, Boolean>, Int) -> Unit
 ) {
   var expanded by remember { mutableStateOf(false) }
+
+    val connectionStatus by connectivityState()
+    val isConnected = connectionStatus == ConnectionState.Available
+
+    // collect trip invites as stateflow
+    val tripInvites by tripsViewModel.tripInvites.collectAsState()
+    // collect the selected trip in case the user is in Edit Mode
+    val selectedTrip by tripsViewModel.selectedTrip.collectAsState()
+
 
   Box(modifier = modifier) {
     Row(
@@ -97,15 +113,73 @@ fun UserDropdown(
         onDismissRequest = { expanded = false },
         modifier = Modifier.fillMaxWidth()) {
           users.forEachIndexed { index, userPair ->
+              val user = userPair.first
+              // Check if the user is already a participant
+              var isAlreadyParticipant =
+                  selectedTrip?.participants?.contains(user.id) == true
+
+              // Find the invite if it exists
+              val existingInvite = tripInvites.find { it.to == user.id && it.tripId == tripId }
+              val isInvitePending = existingInvite != null
+
+
             DropdownMenuItem(
                 text = { Text("${userPair.first.name} ") },
-                onClick = { onUpdate(userPair, index) },
+                onClick = { // Do nothing if pressing on the item (just on the buttons)
+                     },
                 trailingIcon = {
-                    Button(onClick = {}) {Text("send request") }
-                  //Checkbox(
-                  //    checked = userPair.second, onCheckedChange = { onUpdate(userPair, index) })
-                })
+                    when {
+                        isAlreadyParticipant -> {
+                            Button(
+                                onClick = {
+                                    val updatedParticipants = selectedTrip?.participants?.filter { it != user.id }
+                                    val updatedTrip = selectedTrip?.copy(participants = updatedParticipants ?: listOf())
+                                    updatedTrip?.let {
+                                        tripsViewModel.updateTrip(it)
+                                    }
+                                    onRemove(userPair, index)
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                            ) {
+                                Text("Remove")
+                            }
+                        }
+
+                        isInvitePending -> {
+                            // Show "Cancel" button for pending invites
+                            Button(
+                                onClick = {
+                                    existingInvite?.let { invite ->
+                                        tripsViewModel.declineTripInvite(invite.id)
+                                    }
+                                },
+                                modifier = Modifier.testTag("cancelButton_${user.id}"),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Text("Cancel")
+                            }
+                        }
+
+                        else -> {
+                            // Show "Send Invite" button
+                            Button(
+                                onClick = {
+                                    tripsViewModel.sendTripInvite(tripId, user.id)
+                                },
+                                modifier = Modifier.testTag("inviteButton_${user.id}"),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Text("Send Invite")
+                            }
+                        }
+                    }
+                }
+            )
           }
-        }
+    }
   }
 }

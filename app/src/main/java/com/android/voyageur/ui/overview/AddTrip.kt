@@ -202,7 +202,7 @@ fun AddTripScreen(
     }
   }
 
-  fun createTripWithImage(imageUrl: String) {
+  fun createTripWithImage(imageUrl: String, tripId: String) {
     if (isSaving) return // Prevent duplicate saves
 
     if (startDate == null || endDate == null) {
@@ -247,9 +247,7 @@ fun AddTripScreen(
 
     val trip =
         Trip(
-            id =
-                if (isEditMode) tripsViewModel.selectedTrip.value!!.id
-                else tripsViewModel.getNewTripId(),
+            id = tripId,
             description = description,
             name = name,
             participants =
@@ -325,6 +323,8 @@ fun AddTripScreen(
                       }
                 })
       }) { paddingValues ->
+      val tripId = if (isEditMode) {tripsViewModel.selectedTrip.value!!.id}
+      else {tripsViewModel.getNewTripId()}
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
           Column(
               modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
@@ -374,7 +374,10 @@ fun AddTripScreen(
 
                 UserDropdown(
                     userList,
-                    onUpdate = { pair, index -> userList[index] = Pair(pair.first, !pair.second) })
+                    tripsViewModel,
+                    tripId,
+                    // set to false to remove the user
+                    onRemove = { pair, index -> userList[index] = Pair(pair.first, false) })
 
                 OutlinedTextField(
                     value = description,
@@ -503,7 +506,7 @@ fun AddTripScreen(
                   val imageUriParsed = Uri.parse(imageUri)
                   tripsViewModel.uploadImageToFirebase(
                       uri = imageUriParsed,
-                      onSuccess = { downloadUrl -> createTripWithImage(downloadUrl) },
+                      onSuccess = { downloadUrl -> createTripWithImage(downloadUrl, tripId) },
                       onFailure = { exception ->
                         Toast.makeText(
                                 context,
@@ -512,7 +515,7 @@ fun AddTripScreen(
                             .show()
                       })
                 } else {
-                  createTripWithImage(imageUri)
+                  createTripWithImage(imageUri, tripId)
                 }
               },
               enabled =
