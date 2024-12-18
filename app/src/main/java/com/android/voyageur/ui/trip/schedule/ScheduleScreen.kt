@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.trip.schedule
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,8 +18,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,6 +31,9 @@ import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.utils.ConnectionState
+import com.android.voyageur.utils.connectivityState
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /**
  * Displays the schedule for a trip, allowing the user to toggle between daily and weekly views.
@@ -47,6 +53,7 @@ import com.android.voyageur.ui.navigation.Screen
  * @param isReadOnly Boolean which determines if the user is in Read Only View and cannot access the
  *   AI assistant.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun ScheduleScreen(
     tripsViewModel: TripsViewModel,
@@ -55,8 +62,11 @@ fun ScheduleScreen(
     userViewModel: UserViewModel,
     isReadOnly: Boolean = false
 ) {
+    val status by connectivityState()
+    val isConnected = status === ConnectionState.Available
+    val context = LocalContext.current
 
-  Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
+    Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp, start = 16.dp, end = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -65,8 +75,12 @@ fun ScheduleScreen(
           if (!isReadOnly) {
             TextButton(
                 onClick = {
-                  tripsViewModel.setInitialUiState()
-                  navigationActions.navigateTo(Screen.ASSISTANT)
+                    if (isConnected) {
+                        tripsViewModel.setInitialUiState()
+                        navigationActions.navigateTo(Screen.ASSISTANT)
+                    } else {
+                        Toast.makeText(context, R.string.notification_no_internet_text, Toast.LENGTH_SHORT).show()
+                    }
                 },
                 elevation = ButtonDefaults.elevatedButtonElevation(8.dp),
                 shape = RoundedCornerShape(16.dp),
