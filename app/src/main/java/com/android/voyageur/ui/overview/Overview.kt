@@ -659,7 +659,7 @@ fun DisplayParticipants(
     modifier: Modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
     arrangement: Arrangement.Vertical = Arrangement.Bottom
 ) {
-  val numberOfParticipants = trip.participants.size - 1
+  val numberOfParticipants = trip.participants.size
   val numberToString = generateParticipantString(numberOfParticipants)
   val themeColor = MaterialTheme.colorScheme.onSurface
   Column(
@@ -686,16 +686,13 @@ fun DisplayParticipants(
         ) {
           // Display participants (limit to 5 avatars max for space reasons)
           if (numberOfParticipants > 0) {
-            trip.participants
-                .filter { it != Firebase.auth.uid.orEmpty() }
-                .take(4)
-                .forEach { participant ->
-                  val user = userViewModel.contacts.value.find { it.id == participant }
-                  if (user != null) {
-                    // uses the same UserIcon function as in the participants form
-                    UserIcon(user)
-                  }
-                }
+            trip.participants.take(4).forEach { participant ->
+              val user = userViewModel.contacts.value.find { it.id == participant }
+              if (user != null) {
+                // uses the same UserIcon function as in the participants form
+                UserIcon(user)
+              }
+            }
             if (numberOfParticipants > 4) {
               Text(
                   text = stringResource(R.string.additional_participants, numberOfParticipants - 4),
