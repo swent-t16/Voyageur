@@ -81,7 +81,6 @@ fun UserDropdown(
                 .testTag("expander"),
         verticalAlignment = Alignment.CenterVertically) {
           val selectedUsers = users.filter { it.second }
-          val numberOfUsers = selectedUsers.size
           if (selectedUsers.isEmpty()) {
             Text("Participants")
           }
