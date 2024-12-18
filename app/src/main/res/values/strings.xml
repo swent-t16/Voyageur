@@ -47,6 +47,9 @@
     <string name="provide_final_activities">Provide final activities with date and time (recommended for trips shorter than a week)</string>
     <string name="use_interests">Use your profile\'s interests to recommend activities</string>
     <string name="close">Close</string>
+    <string name="assistant_initial_screen">Please enter a prompt to receive activity recommendations. You can mention what types of activities you would like to do on your trip, or leave it empty for general recommendations based on the trip details. Fee free to use the settings button to customize the recommendations.</string>
+    <string name="assistant_error">An error has occurred. Please try again.</string>
+    <string name="assistant_no_activities">You added all the activities to your trip. Please provide a new prompt to receive more recommendations.</string>
 
     <!-- OVERVIEW SCREEN -->
     <string name="your_trips_text">Your trips</string>
