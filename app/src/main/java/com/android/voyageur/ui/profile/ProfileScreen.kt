@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
@@ -68,43 +69,43 @@ fun ProfileScreen(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions
 ) {
-  val user by userViewModel.user.collectAsState()
-  val isLoading by userViewModel.isLoading.collectAsState()
+    val user by userViewModel.user.collectAsState()
+    val isLoading by userViewModel.isLoading.collectAsState()
 
-  LaunchedEffect(Unit) { tripsViewModel.fetchTripInvites() }
+    LaunchedEffect(Unit) { tripsViewModel.fetchTripInvites() }
 
-  var isSigningOut by remember { mutableStateOf(false) }
+    var isSigningOut by remember { mutableStateOf(false) }
 
-  if (user == null && !isLoading) {
-    LaunchedEffect(Unit) { navigationActions.navigateTo(Route.AUTH) }
-    return
-  }
-
-  if (isSigningOut) {
-    LaunchedEffect(Unit) {
-      userViewModel.signOutUser()
-      navigationActions.navigateTo(Route.AUTH)
+    if (user == null && !isLoading) {
+        LaunchedEffect(Unit) { navigationActions.navigateTo(Route.AUTH) }
+        return
     }
-  }
 
-  Scaffold(
-      modifier = Modifier.testTag("profileScreen"),
-      bottomBar = {
-        BottomNavigationMenu(
-            onTabSelect = { navigationActions.navigateTo(it) },
-            tabList = LIST_TOP_LEVEL_DESTINATION,
-            selectedItem = navigationActions.currentRoute(),
-            userViewModel,
-            tripsViewModel)
-      }) { padding ->
+    if (isSigningOut) {
+        LaunchedEffect(Unit) {
+            userViewModel.signOutUser()
+            navigationActions.navigateTo(Route.AUTH)
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.testTag("profileScreen"),
+        bottomBar = {
+            BottomNavigationMenu(
+                onTabSelect = { navigationActions.navigateTo(it) },
+                tabList = LIST_TOP_LEVEL_DESTINATION,
+                selectedItem = navigationActions.currentRoute(),
+                userViewModel,
+                tripsViewModel)
+        }) { padding ->
         Box(
             modifier =
-                Modifier.fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState())
-                    .testTag("profileScreenContent"),
+            Modifier.fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .testTag("profileScreenContent"),
             contentAlignment = Alignment.Center) {
-              when {
+            when {
                 isSigningOut ->
                     CircularProgressIndicator(modifier = Modifier.testTag("signingOutIndicator"))
                 isLoading ->
@@ -121,9 +122,9 @@ fun ProfileScreen(
                     Text(
                         stringResource(R.string.no_user_data),
                         modifier = Modifier.testTag("noUserData"))
-              }
             }
-      }
+        }
+    }
 }
 
 /**
@@ -145,13 +146,13 @@ fun ProfileContent(
     tripsViewModel: TripsViewModel,
     onEdit: () -> Unit
 ) {
-  val friendRequests by userViewModel.friendRequests.collectAsState()
-  val notificationUsers by userViewModel.notificationUsers.collectAsState()
-  val tripInvites by tripsViewModel.tripInvites.collectAsState()
+    val friendRequests by userViewModel.friendRequests.collectAsState()
+    val notificationUsers by userViewModel.notificationUsers.collectAsState()
+    val tripInvites by tripsViewModel.tripInvites.collectAsState()
 
-  Column(
-      modifier = Modifier.fillMaxSize().padding(top = 16.dp),
-      horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(top = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally) {
         UserProfileContent(
             userData = userData,
             signedInUserId = signedInUserId,
@@ -167,83 +168,121 @@ fun ProfileContent(
 
         // Trip Invite Menu
         TripInviteMenu(
-            tripInvites = tripInvites,
-            tripsViewModel = tripsViewModel,
-            userViewModel = userViewModel)
-      }
+            tripInvites = tripInvites, tripsViewModel = tripsViewModel, userViewModel = userViewModel
+        )
+    }
 }
 
 @Composable
-fun TripInviteItem(tripInvite: TripInvite, sender: User, tripsViewModel: TripsViewModel) {
-  Row(
-      modifier = Modifier.fillMaxWidth().padding(8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.SpaceBetween) {
-        Column(modifier = Modifier.weight(1f)) {
-          Text(text = stringResource(R.string.from_user, sender.name))
-          Text(text = stringResource(R.string.trip_id, tripInvite.tripId))
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-          IconButton(onClick = { tripsViewModel.acceptTripInvite(tripInvite) }) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = stringResource(R.string.accept),
-                tint = Color.Green)
-          }
-
-          IconButton(onClick = { tripsViewModel.declineTripInvite(tripInvite.id) }) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = stringResource(R.string.reject),
-                tint = Color.Red)
-          }
-        }
-      }
-}
-
-@Composable
-fun TripInviteMenu(
-    tripInvites: List<TripInvite>,
+fun TripInviteItem(
+    tripInvite: TripInvite,
     tripsViewModel: TripsViewModel,
     userViewModel: UserViewModel
 ) {
-  var resolvedInvites by remember { mutableStateOf<List<Pair<TripInvite, User>>>(emptyList()) }
+    val tripName = remember { mutableStateOf("Loading trip...") }
+    val senderName = remember { mutableStateOf("Loading user...") }
 
-  LaunchedEffect(tripInvites) {
-    userViewModel.resolveTripInviteUsers(tripInvites) { resolved -> resolvedInvites = resolved }
-  }
-
-  Card(
-      shape = RoundedCornerShape(12.dp),
-      modifier = Modifier.fillMaxWidth(0.80f).padding(horizontal = 10.dp, vertical = 8.dp)) {
-        Column(modifier = Modifier.padding(12.dp)) {
-          Text(
-              text = stringResource(R.string.pending_trip_invites, resolvedInvites.size),
-              color = MaterialTheme.colorScheme.onSurface,
-          )
-
-          Card(
-              shape = RoundedCornerShape(8.dp),
-              modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp).padding(top = 8.dp)) {
-                if (resolvedInvites.isEmpty()) {
-                  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.no_pending_invites),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                  }
-                } else {
-                  LazyColumn(modifier = Modifier.fillMaxSize().padding(8.dp)) {
-                    items(resolvedInvites) { (invite, user) ->
-                      TripInviteItem(
-                          tripInvite = invite, sender = user, tripsViewModel = tripsViewModel)
-                    }
-                  }
-                }
-              }
+    // Fetch the trip and user details asynchronously
+    LaunchedEffect(tripInvite) {
+        tripsViewModel.getTripById(tripInvite.tripId) { trip ->
+            tripName.value = trip?.name ?: "Unknown Trip"
         }
-      }
+        userViewModel.getUserById(tripInvite.from) { user ->
+            senderName.value = user?.name ?: "Unknown User"
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .testTag("tripInvite"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = tripName.value,
+                style = MaterialTheme.typography.titleMedium, // Updated style
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "Invited by: ${senderName.value}",
+                style = MaterialTheme.typography.bodySmall, // Updated style
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            IconButton(
+                modifier = Modifier.testTag("acceptButton"),
+                onClick = { tripsViewModel.acceptTripInvite(tripInvite) }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(R.string.accept),
+                    tint = Color.Green
+                )
+            }
+
+            IconButton(
+                modifier = Modifier.testTag("denyButton"),
+                onClick = { tripsViewModel.declineTripInvite(tripInvite.id) }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(R.string.reject),
+                    tint = Color.Red
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TripInviteMenu(tripInvites: List<TripInvite>, tripsViewModel: TripsViewModel, userViewModel: UserViewModel) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        modifier =
+        Modifier.fillMaxWidth(0.80f)
+            .padding(horizontal = 10.dp, vertical = 8.dp)
+            .testTag("tripInviteCard")) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = stringResource(R.string.pending_trip_invites, tripInvites.size),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+
+            Card(
+                shape = RoundedCornerShape(8.dp),
+                modifier =
+                Modifier.fillMaxWidth()
+                    .heightIn(max = 180.dp)
+                    .padding(top = 8.dp)
+                    .testTag("tripInviteBox")) {
+                if (tripInvites.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().testTag("noInvitesBox"),
+                        contentAlignment = Alignment.Center) {
+                        Text(
+                            text = stringResource(R.string.no_pending_invites),
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                } else {
+                    LazyColumn(
+                        modifier =
+                        Modifier.fillMaxSize().padding(8.dp).testTag("tripInviteLazyColumn")) {
+                        items(tripInvites) { invite ->
+                            TripInviteItem(tripInvite = invite, tripsViewModel = tripsViewModel, userViewModel = userViewModel)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -262,56 +301,56 @@ fun FriendReqMenu(
     notificationUsers: List<User>,
     userViewModel: UserViewModel,
 ) {
-  // Parent Card containing the scrollable box
-  Card(
-      shape = RoundedCornerShape(12.dp),
-      modifier =
-          Modifier.fillMaxWidth(0.80f)
-              .padding(horizontal = 10.dp, vertical = 8.dp)
-              .testTag("friendRequestCard")) {
+    // Parent Card containing the scrollable box
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        modifier =
+        Modifier.fillMaxWidth(0.80f)
+            .padding(horizontal = 10.dp, vertical = 8.dp)
+            .testTag("friendRequestCard")) {
         Column(modifier = Modifier.padding(12.dp)) {
-          Text(
-              text = stringResource(R.string.pending_friend_requests, friendRequests.size),
-              color = MaterialTheme.colorScheme.onSurface,
-          )
+            Text(
+                text = stringResource(R.string.pending_friend_requests, friendRequests.size),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
 
-          // Scrollable List inside a fixed-height box
-          Card(
-              shape = RoundedCornerShape(8.dp),
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .heightIn(max = 180.dp) // Set the height to restrict the scrollable area
-                      .padding(top = 8.dp)
-                      .testTag("friendRequestBox")) {
+            // Scrollable List inside a fixed-height box
+            Card(
+                shape = RoundedCornerShape(8.dp),
+                modifier =
+                Modifier.fillMaxWidth()
+                    .heightIn(max = 180.dp) // Set the height to restrict the scrollable area
+                    .padding(top = 8.dp)
+                    .testTag("friendRequestBox")) {
                 if (friendRequests.isEmpty()) {
-                  // Display message if no friend requests
-                  Box(
-                      modifier = Modifier.fillMaxSize().testTag("noRequestsBox"),
-                      contentAlignment = Alignment.Center) {
+                    // Display message if no friend requests
+                    Box(
+                        modifier = Modifier.fillMaxSize().testTag("noRequestsBox"),
+                        contentAlignment = Alignment.Center) {
                         Text(
                             text = stringResource(R.string.no_pending_requests),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
-                      }
+                    }
                 } else {
-                  // Display Lazy Column with the friend requests
-                  LazyColumn(
-                      modifier =
-                          Modifier.fillMaxSize().padding(8.dp).testTag("friendRequestLazyColumn")) {
+                    // Display Lazy Column with the friend requests
+                    LazyColumn(
+                        modifier =
+                        Modifier.fillMaxSize().padding(8.dp).testTag("friendRequestLazyColumn")) {
                         items(friendRequests) { request ->
-                          val fromUser = notificationUsers.find { it.id == request.from }
-                          fromUser?.let {
-                            FriendRequestItem(
-                                friendRequest = request,
-                                fromUser = fromUser,
-                                userViewModel = userViewModel)
-                          }
+                            val fromUser = notificationUsers.find { it.id == request.from }
+                            fromUser?.let {
+                                FriendRequestItem(
+                                    friendRequest = request,
+                                    fromUser = fromUser,
+                                    userViewModel = userViewModel)
+                            }
                         }
-                      }
+                    }
                 }
-              }
+            }
         }
-      }
+    }
 }
 /**
  * A composable function that displays a single friend request item. The item shows the user's
@@ -324,47 +363,47 @@ fun FriendReqMenu(
  */
 @Composable
 fun FriendRequestItem(friendRequest: FriendRequest, fromUser: User, userViewModel: UserViewModel) {
-  Row(
-      modifier = Modifier.fillMaxWidth().padding(8.dp).testTag("friendRequest"),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(8.dp).testTag("friendRequest"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween) {
         // Display the Profile Picture of the user from which you have a request
         Image(
             painter = rememberAsyncImagePainter(fromUser.profilePicture),
             contentDescription = stringResource(R.string.profile_picture),
             modifier =
-                Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).testTag("profilePicture"))
+            Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).testTag("profilePicture"))
 
         Text(
             text = fromUser.name,
             modifier = Modifier.padding(start = 8.dp).weight(1f) // Take remaining space
-            )
+        )
 
         // Accept and Reject Icons
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-          IconButton(
-              modifier = Modifier.testTag("acceptButton"),
-              onClick = {
-                // Accept user's friend request and add to contacts
-                userViewModel.acceptFriendRequest(friendRequest)
-              }) {
+            IconButton(
+                modifier = Modifier.testTag("acceptButton"),
+                onClick = {
+                    // Accept user's friend request and add to contacts
+                    userViewModel.acceptFriendRequest(friendRequest)
+                }) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = stringResource(R.string.accept),
                     tint = Color.Green)
-              }
+            }
 
-          IconButton(
-              modifier = Modifier.testTag("denyButton"),
-              onClick = {
-                // Delete the user friend request
-                userViewModel.deleteFriendRequest(friendRequest.id)
-              }) {
+            IconButton(
+                modifier = Modifier.testTag("denyButton"),
+                onClick = {
+                    // Delete the user friend request
+                    userViewModel.deleteFriendRequest(friendRequest.id)
+                }) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = stringResource(R.string.reject),
                     tint = Color.Red)
-              }
+            }
         }
-      }
+    }
 }
