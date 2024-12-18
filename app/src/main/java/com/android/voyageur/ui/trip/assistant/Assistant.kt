@@ -1,6 +1,7 @@
 package com.android.voyageur.ui.trip.assistant
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -24,6 +27,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -37,6 +41,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -103,30 +112,40 @@ fun AssistantScreen(
           TopBarWithImageAndText(
               trip, navigationActions, stringResource(R.string.ask_assistant), trip.name)
           Row(modifier = Modifier.padding(all = 16.dp)) {
-            TextField(
+            OutlinedTextField(
                 value = prompt,
                 label = { Text(stringResource(R.string.prompt)) },
-                onValueChange = { prompt = it },
+                onValueChange = { newValue ->
+                    // Prevent newlines in the text
+                    if (!newValue.contains('\n')) {
+                        prompt = newValue
+                    }
+                },
+                maxLines = 3,
                 modifier =
                     Modifier.testTag("AIRequestTextField")
                         .weight(0.8f)
                         .padding(end = 16.dp)
-                        .align(Alignment.CenterVertically),
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                keyboardActions =
-                    KeyboardActions(
-                        onDone = {
-                          keyboardController?.hide()
-                          if (uiState !is UiState.Loading) {
-                            tripsViewModel.sendActivitiesPrompt(
-                                trip = trip,
-                                userPrompt = prompt,
-                                interests = if (useInterests) interests else emptyList(),
-                                provideFinalActivities = provideFinalActivities,
-                            )
-                          }
-                        }),
-                singleLine = true)
+                        .align(Alignment.CenterVertically)
+                    .onKeyEvent { event ->
+                        if (event.key == Key.Enter) {
+                            keyboardController?.hide()
+                            if (uiState !is UiState.Loading) {
+                                tripsViewModel.sendActivitiesPrompt(
+                                    trip = trip,
+                                    userPrompt = prompt,
+                                    interests = if (useInterests) interests else emptyList(),
+                                    provideFinalActivities = provideFinalActivities,
+                                )
+                            }
+                            true // Consume the key event.
+                        } else {
+                            false // Pass other key events through.
+                        }
+                    },
+                shape = RoundedCornerShape(16.dp),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                )
             Button(
                 onClick = {
                   tripsViewModel.sendActivitiesPrompt(
@@ -138,11 +157,11 @@ fun AssistantScreen(
                 },
                 enabled = uiState !is UiState.Loading, // Disable the button during loading
                 modifier = Modifier.testTag("AIRequestButton").align(Alignment.CenterVertically)) {
-                  Text(text = stringResource(R.string.go))
+                  Text(text = stringResource(R.string.ask))
                 }
             IconButton(
                 onClick = { showSettingsDialog = true },
-                modifier = Modifier.testTag("settingsButton")) {
+                modifier = Modifier.testTag("settingsButton").align(Alignment.CenterVertically)) {
                   Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings")
                 }
           }
