@@ -165,7 +165,7 @@ fun AssistantScreen(
           when (uiState) {
             is UiState.Loading -> {
               Box(modifier = Modifier.fillMaxSize()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).testTag("loadingIndicator"))
               }
             }
             is UiState.Initial -> {
@@ -210,7 +210,7 @@ fun AssistantScreen(
                       textAlign = TextAlign.Center,
                       color = MaterialTheme.colorScheme.onSurface,
                       modifier =
-                          Modifier.testTag("emptyActivities")
+                          Modifier.testTag("emptyActivitiesPrompt")
                               .align(Alignment.Center)
                               .padding(bottom = 80.dp, start = 16.dp, end = 16.dp))
                 }

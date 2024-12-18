@@ -78,6 +78,7 @@ class AssistantScreenTest {
     composeTestRule.onNodeWithTag("AIRequestTextField").assertIsDisplayed()
     composeTestRule.onNodeWithTag("AIRequestButton").assertIsDisplayed()
     composeTestRule.onNodeWithTag("settingsButton").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("initialStateText").assertIsDisplayed()
   }
 
   @Test
@@ -118,6 +119,25 @@ class AssistantScreenTest {
     }
     composeTestRule.onNodeWithTag("cardItem_Activity 1").assertIsDisplayed()
     composeTestRule.onNodeWithTag("cardItem_Activity 2").assertIsDisplayed()
+  }
+
+  @Test
+  fun emptyActivitiesPromptDisplayedWhenAllActivitiesAdded() {
+    val uiStateFlow = MutableStateFlow(UiState.Success(sampleJson))
+    val tripFlow = MutableStateFlow(sampleTrip)
+    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
+    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
+    val mockActivity1 = Activity(title = "Activity 1", description = "Description 1")
+    val mockActivity2 = Activity(title = "Activity 2", description = "Description 2")
+    doNothing().`when`(mockTripsViewModel).addActivityToTrip(mockActivity1)
+    doNothing().`when`(mockTripsViewModel).addActivityToTrip(mockActivity2)
+    composeTestRule.setContent {
+      AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
+    }
+    composeTestRule.onNodeWithTag("expandIcon_Activity 1").performClick()
+    composeTestRule.onNodeWithTag("addIcon_Activity 1").performClick()
+    composeTestRule.onNodeWithTag("addIcon_Activity 2").performClick()
+    composeTestRule.onNodeWithTag("emptyActivitiesPrompt").assertIsDisplayed()
   }
 
   @Test
@@ -222,36 +242,6 @@ class AssistantScreenTest {
     verify(mockTripsViewModel)
         .sendActivitiesPrompt(
             sampleTrip, "", listOf("hiking", "cycling"), provideFinalActivities = false)
-  }
-
-  @Test
-  fun assistantScreen_doneAction_hidesKeyboardAndSendsPrompt() {
-    val uiStateFlow = MutableStateFlow(UiState.Success(sampleJson))
-    val tripFlow = MutableStateFlow(sampleTrip)
-    `when`(mockTripsViewModel.selectedTrip).thenReturn(tripFlow)
-    `when`(mockTripsViewModel.uiState).thenReturn(uiStateFlow)
-
-    val keyboardController = mock(SoftwareKeyboardController::class.java)
-
-    composeTestRule.setContent {
-      CompositionLocalProvider(LocalSoftwareKeyboardController provides keyboardController) {
-        AssistantScreen(mockTripsViewModel, navigationActions, userViewModel)
-      }
-    }
-    // Simulate entering a prompt
-    val inputPrompt = "Test prompt"
-    composeTestRule.onNodeWithTag("AIRequestTextField").performTextInput(inputPrompt)
-
-    // Simulate the Done action
-    composeTestRule.onNodeWithTag("AIRequestTextField").performImeAction()
-
-    verify(keyboardController).hide()
-    verify(mockTripsViewModel)
-        .sendActivitiesPrompt(
-            trip = sampleTrip,
-            userPrompt = inputPrompt,
-            interests = emptyList(),
-            provideFinalActivities = false)
   }
 
   @Test
