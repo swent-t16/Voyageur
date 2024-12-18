@@ -550,15 +550,14 @@ open class TripsViewModel(
     tripInviteRepository.createTripInvite(
         req = tripInvite, onSuccess = onSuccess, onFailure = onFailure)
   }
-    fun getTripById(tripId: String, onResult: (Trip?) -> Unit) {
-        tripsRepository.getTripById(
-            tripId,
-            onSuccess = { trip -> onResult(trip) },
-            onFailure = { exception ->
-                Log.e("TripsViewModel", "Failed to fetch trip by ID: $exception")
-                onResult(null)
-            }
-        )
-    }
 
+  fun getTripById(tripId: String, onResult: (Trip?) -> Unit) {
+    tripsRepository.getTripById(
+        tripId,
+        onSuccess = { trip -> onResult(trip) },
+        onFailure = { exception ->
+          Log.e("TripsViewModel", "Failed to fetch trip by ID: $exception")
+          onResult(null)
+        })
+  }
 }

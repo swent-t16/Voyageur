@@ -1512,4 +1512,46 @@ class UserViewModelTest {
     verify(friendRequestRepository).getNotificationCount(anyString(), any(), anyOrNull())
     assert(userViewModel.notificationCount.value == 0L)
   }
+
+  @Test
+  fun getUserById_success() = runTest {
+    val userId = "123"
+    val mockUser = User(id = userId, name = "Test User", email = "test@example.com")
+
+    // Mock userRepository.getUserById to call onSuccess with the mockUser
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<(User?) -> Unit>(1)
+          onSuccess(mockUser)
+          null
+        }
+        .whenever(userRepository)
+        .getUserById(eq(userId), any(), anyOrNull())
+
+    var resultUser: User? = null
+    userViewModel.getUserById(userId) { user -> resultUser = user }
+
+    verify(userRepository).getUserById(eq(userId), any(), anyOrNull())
+    assert(resultUser == mockUser)
+  }
+
+  @Test
+  fun getUserById_failure() = runTest {
+    val userId = "123"
+    val exception = Exception("Failed to fetch user")
+
+    // Mock userRepository.getUserById to call onFailure with the exception
+    doAnswer { invocation ->
+          val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+          onFailure(exception)
+          null
+        }
+        .whenever(userRepository)
+        .getUserById(eq(userId), any(), anyOrNull())
+
+    var resultUser: User? = null
+    userViewModel.getUserById(userId) { user -> resultUser = user }
+
+    verify(userRepository).getUserById(eq(userId), any(), anyOrNull())
+    assert(resultUser == null)
+  }
 }

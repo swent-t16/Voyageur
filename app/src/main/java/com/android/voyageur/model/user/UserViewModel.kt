@@ -10,7 +10,6 @@ import com.android.voyageur.R
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.notifications.FriendRequestRepositoryFirebase
-import com.android.voyageur.model.notifications.TripInvite
 import com.android.voyageur.ui.notifications.NotificationProvider
 import com.android.voyageur.ui.notifications.StringProvider
 import com.google.firebase.Firebase
@@ -723,15 +722,14 @@ constructor(
             },
             onFailure = { exception -> Log.e("USER_VIEW_MODEL", exception.message.orEmpty()) })
   }
-    fun getUserById(userId: String, onResult: (User?) -> Unit) {
-        userRepository.getUserById(
-            userId,
-            onSuccess = { user -> onResult(user) },
-            onFailure = { exception ->
-                Log.e("UserViewModel", "Failed to fetch user by ID: $exception")
-                onResult(null)
-            }
-        )
-    }
 
+  fun getUserById(userId: String, onResult: (User?) -> Unit) {
+    userRepository.getUserById(
+        userId,
+        onSuccess = { user -> onResult(user) },
+        onFailure = { exception ->
+          Log.e("UserViewModel", "Failed to fetch user by ID: $exception")
+          onResult(null)
+        })
+  }
 }
