@@ -274,13 +274,13 @@ class E2ETestM2 {
     composeTestRule.onNodeWithTag("byDayScreen").assertIsDisplayed()
 
     // Go to edit trip
-    composeTestRule.onNodeWithText("Settings").performClick()
+    composeTestRule.onNodeWithContentDescription("Settings").performClick()
     composeTestRule.onNodeWithTag("inputTripTitle").assertTextContains("Trip with activities")
     composeTestRule.onNodeWithTag("inputTripTitle").performTextClearance()
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Changed Title")
     composeTestRule.onNodeWithTag("inputTripTitle").assertTextContains("Changed Title")
 
-    composeTestRule.onNodeWithText("Schedule").performClick()
+    composeTestRule.onNodeWithContentDescription("Schedule").performClick()
     // check activity is displayed in daily view
     composeTestRule.onNodeWithText("Activity 1").assertIsDisplayed()
     composeTestRule.onNodeWithText("Daily").performClick()
@@ -300,10 +300,10 @@ class E2ETestM2 {
     composeTestRule.onNodeWithTag("weeklyViewScreen").assertIsDisplayed()
 
     // go to activities screen
-    composeTestRule.onNodeWithText("Activities").performClick()
+    composeTestRule.onNodeWithContentDescription("Activities").performClick()
     composeTestRule.onNodeWithText("Activity 1").assertIsDisplayed()
 
-    composeTestRule.onNodeWithText("Schedule").performClick()
+    composeTestRule.onNodeWithContentDescription("Schedule").performClick()
     // back to weekly view
     composeTestRule.onNodeWithText("Daily").performClick()
     composeTestRule.waitForIdle()
