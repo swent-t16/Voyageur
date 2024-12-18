@@ -26,6 +26,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 
 @RunWith(AndroidJUnit4::class)
@@ -234,7 +235,8 @@ class AssistantScreenTest {
     // check the call to sendActivitiesPrompt happens with provideFinalActivities = true
     composeTestRule.onNodeWithTag("AIRequestButton").performClick()
     verify(mockTripsViewModel)
-        .sendActivitiesPrompt(sampleTrip, "", emptyList(), provideFinalActivities = true)
+        .sendActivitiesPrompt(
+            any(), eq(sampleTrip), eq(""), eq(emptyList()), provideFinalActivities = eq(true))
   }
 
   @Test
@@ -254,7 +256,11 @@ class AssistantScreenTest {
     composeTestRule.onNodeWithTag("AIRequestButton").performClick()
     verify(mockTripsViewModel)
         .sendActivitiesPrompt(
-            sampleTrip, "", listOf("hiking", "cycling"), provideFinalActivities = false)
+            any(),
+            eq(sampleTrip),
+            eq(""),
+            eq(listOf("hiking", "cycling")),
+            provideFinalActivities = eq(false))
   }
 
   @Test
@@ -274,7 +280,11 @@ class AssistantScreenTest {
     composeTestRule.onNodeWithTag("AIRequestButton").performClick()
     verify(mockTripsViewModel)
         .sendActivitiesPrompt(
-            sampleTrip, "", listOf("hiking", "cycling", "art"), provideFinalActivities = false)
+            any(),
+            eq(sampleTrip),
+            eq(""),
+            eq(listOf("hiking", "cycling", "art")),
+            provideFinalActivities = eq(false))
   }
 
   @Test
@@ -317,6 +327,6 @@ class AssistantScreenTest {
     composeTestRule.onNodeWithTag("AIRequestTextField").performImeAction()
 
     verify(keyboardController).hide()
-    verify(mockTripsViewModel, times(0)).sendActivitiesPrompt(any(), any(), any(), any())
+    verify(mockTripsViewModel, times(0)).sendActivitiesPrompt(any(), any(), any(), any(), any())
   }
 }

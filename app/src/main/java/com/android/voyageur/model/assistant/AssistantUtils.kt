@@ -1,6 +1,8 @@
 package com.android.voyageur.model.assistant
 
+import android.content.Context
 import com.android.voyageur.BuildConfig
+import com.android.voyageur.R
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.Trip
 import com.google.ai.client.generativeai.GenerativeModel
@@ -10,7 +12,7 @@ import com.google.ai.client.generativeai.type.generationConfig
 
 /**
  * The generative model that is used to generate activities for a trip. It corresponds to the
- * ActivityFromAssistant class.
+ * ActivityFromAssistant class. It contains the schema for the response of the generative model.
  */
 val generativeModel =
     GenerativeModel(
@@ -120,32 +122,35 @@ val generativeModel =
  * @return the prompt to send to use with the generative model
  */
 fun generatePrompt(
+    context: Context,
     trip: Trip,
     userPrompt: String,
     interests: List<String>,
     provideFinalActivities: Boolean,
     alreadyPresentActivities: List<String>
 ): String {
+
   // specifies which enum types are possible
   val possibleEnumTypePrompt =
-      "The activity type can only be ${ActivityType.entries.joinToString(", ")}, " +
-          "but you can recommend any activity and set the type to OTHER."
+      context.getString(R.string.possible_enum_type_prompt, ActivityType.entries.joinToString(", "))
 
   val startDate = getYearMonthDay(trip.startDate)
   val endDate = getYearMonthDay(trip.endDate)
   // specifies the date range of the trip
   val datePrompt =
-      """
-          between the start date year ${startDate.first} month ${startDate.second + 1} day ${startDate.third} 
-          and the end date year ${endDate.first} month ${endDate.second + 1} day ${endDate.third}
-      """
-          .trimIndent()
+      context.getString(
+          R.string.date_prompt,
+          startDate.first,
+          startDate.second + 1,
+          startDate.third,
+          endDate.first,
+          endDate.second + 1,
+          endDate.third)
 
   // specifies the interests of the user (if non-empty)
   val interestsPrompt =
       if (interests.isNotEmpty()) {
-        "The activities should focus on the following interests (if applicable): " +
-            "${interests.joinToString(", ")}."
+        context.getString(R.string.interests_prompt, interests.joinToString(", "))
       } else {
         ""
       }
@@ -153,8 +158,8 @@ fun generatePrompt(
   // specifies the titles of the activities that are already present in the trip
   val alreadyPresentActivitiesPrompt =
       if (alreadyPresentActivities.isNotEmpty()) {
-        "The following activities are already present in the trip: " +
-            "${alreadyPresentActivities.joinToString(", ")}. Please avoid them."
+        context.getString(
+            R.string.already_present_activities_prompt, alreadyPresentActivities.joinToString(", "))
       } else {
         ""
       }
@@ -162,21 +167,25 @@ fun generatePrompt(
   // specifies whether the prompt is for recommending draft or final activities
   val draftVsFinalPrompt =
       if (provideFinalActivities) {
-        "Make a full schedule by listing specific activities, including separate activities " +
-            "for eating, transport, etc. Instead of travel from airport, say just arrival in Paris " +
-            "in the afternoon, unless otherwise specified by the user."
+        context.getString(R.string.draft_vs_final_prompt_final)
       } else {
-        "List a lot of popular specific activities to do on a trip."
+        context.getString(R.string.draft_vs_final_prompt_draft)
       }
 
-  // combines all the prompts into a single prompt and mentions the trip name, description, and
+  // combines all the prompts into a single prompt and mentions the trip name, description, type and
   // location
   val prompt =
-      "$draftVsFinalPrompt The trip, called ${trip.name}, with description ${trip.description} " +
-          "and location ${trip.location.name}, takes place $datePrompt with the following prompt:" +
-          " $userPrompt. Descriptions should be detailed. " +
-          interestsPrompt +
-          alreadyPresentActivitiesPrompt +
-          possibleEnumTypePrompt
+      context.getString(
+          R.string.full_trip_prompt,
+          draftVsFinalPrompt,
+          trip.name,
+          trip.description,
+          trip.type,
+          trip.location.name,
+          datePrompt,
+          userPrompt,
+          interestsPrompt,
+          alreadyPresentActivitiesPrompt,
+          possibleEnumTypePrompt)
   return prompt
 }

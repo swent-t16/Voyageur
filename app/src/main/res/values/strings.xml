@@ -52,6 +52,13 @@
     <string name="assistant_initial_screen">Please enter a prompt to receive activity recommendations. You can mention what types of activities you would like to do on your trip, or leave it empty for general recommendations based on the trip details. Fee free to use the settings button to customize the recommendations.</string>
     <string name="assistant_error">An error has occurred. Please try again.</string>
     <string name="assistant_no_activities">You added all the activities to your trip. Please provide a new prompt to receive more recommendations.</string>
+    <string name="possible_enum_type_prompt">The activity type can only be %1$s, but you can recommend any activity and set the type to OTHER.</string>
+    <string name="date_prompt">between the start date year %1$d month %2$d day %3$d and the end date year %4$d month %5$d day %6$d</string>
+    <string name="interests_prompt">The activities should focus on the following interests (if applicable): %1$s.</string>
+    <string name="already_present_activities_prompt">The following activities are already present in the trip: %1$s. Please avoid them.</string>
+    <string name="draft_vs_final_prompt_final">Make a full schedule by listing specific activities, including separate activities for eating, transport, etc. Instead of travel from airport, say just arrival in Paris in the afternoon, unless otherwise specified by the user.</string>
+    <string name="draft_vs_final_prompt_draft">List a lot of popular specific activities to do on a trip.</string>
+    <string name="full_trip_prompt">%1$s The trip, called %2$s, with description %3$s, type %4$s and location %5$s, takes place %6$s with the following prompt: %7$s. Descriptions should be detailed. %8$s %9$s %10$s</string>
 
     <!-- OVERVIEW SCREEN -->
     <string name="your_trips_text">Your trips</string>
@@ -92,11 +99,11 @@
     <string name="empty_activities_prompt">There are no activities scheduled.</string>
     <string name="ask_assistant_button">Ask Assistant</string>
 
-    <!-- Activities -->
+<!-- Activities -->
     <string name="no_activities_scheduled">"No activities have been scheduled yet."</string>
     <string name="location_text">Location</string>
 
-    <!-- Add Activity -->
+<!-- Add Activity -->
     <string name="create_activity">Create a New Activity</string>
     <string name="edit_activity">Edit Activity</string>
     <string name="back">Back</string>

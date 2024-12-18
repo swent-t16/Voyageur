@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -107,6 +108,9 @@ fun AssistantScreen(
   var useUserInterests by rememberSaveable { mutableStateOf(false) }
   var useParticipantsInterests by rememberSaveable { mutableStateOf(false) }
 
+  // Context used to access resources when generating the prompt
+  val context = LocalContext.current
+
   Scaffold(
       modifier = Modifier.testTag("assistantScreen"),
       content = { pd ->
@@ -135,12 +139,13 @@ fun AssistantScreen(
                             if (uiState !is UiState.Loading) {
                               addButtonWasClicked = false
                               tripsViewModel.sendActivitiesPrompt(
+                                  context = context,
                                   trip = trip,
                                   userPrompt = prompt,
                                   interests =
-                                    if (useUserInterests) userInterests
-                                    else if (useParticipantsInterests) participantsInterests
-                                    else emptyList(),
+                                      if (useUserInterests) userInterests
+                                      else if (useParticipantsInterests) participantsInterests
+                                      else emptyList(),
                                   provideFinalActivities = provideFinalActivities,
                               )
                             }
@@ -156,6 +161,7 @@ fun AssistantScreen(
                 onClick = {
                   addButtonWasClicked = false
                   tripsViewModel.sendActivitiesPrompt(
+                      context = context,
                       trip = trip,
                       userPrompt = prompt,
                       interests =
@@ -178,7 +184,8 @@ fun AssistantScreen(
           when (uiState) {
             is UiState.Loading -> {
               Box(modifier = Modifier.fillMaxSize()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).testTag("loadingIndicator"))
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center).testTag("loadingIndicator"))
               }
             }
             is UiState.Initial -> {
@@ -264,9 +271,9 @@ fun AssistantScreen(
                 onProvideFinalActivitiesChanged = { provideFinalActivities = it },
                 useInterests = useUserInterests,
                 onUseInterestsChanged = { useUserInterests = it },
-              useParticipantsInterests = useParticipantsInterests,
-              onUseParticipantsInterestsChanged = { useParticipantsInterests = it },
-          )
+                useParticipantsInterests = useParticipantsInterests,
+                onUseParticipantsInterestsChanged = { useParticipantsInterests = it },
+            )
           }
         }
       })
