@@ -62,11 +62,11 @@ fun ScheduleScreen(
     userViewModel: UserViewModel,
     isReadOnly: Boolean = false
 ) {
-    val status by connectivityState()
-    val isConnected = status === ConnectionState.Available
-    val context = LocalContext.current
+  val status by connectivityState()
+  val isConnected = status === ConnectionState.Available
+  val context = LocalContext.current
 
-    Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
+  Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp, start = 16.dp, end = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -75,12 +75,14 @@ fun ScheduleScreen(
           if (!isReadOnly) {
             TextButton(
                 onClick = {
-                    if (isConnected) {
-                        tripsViewModel.setInitialUiState()
-                        navigationActions.navigateTo(Screen.ASSISTANT)
-                    } else {
-                        Toast.makeText(context, R.string.notification_no_internet_text, Toast.LENGTH_SHORT).show()
-                    }
+                  if (isConnected) {
+                    tripsViewModel.setInitialUiState()
+                    navigationActions.navigateTo(Screen.ASSISTANT)
+                  } else {
+                    Toast.makeText(
+                            context, R.string.notification_no_internet_text, Toast.LENGTH_SHORT)
+                        .show()
+                  }
                 },
                 elevation = ButtonDefaults.elevatedButtonElevation(8.dp),
                 shape = RoundedCornerShape(16.dp),
