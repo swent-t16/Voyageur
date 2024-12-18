@@ -515,13 +515,13 @@ fun AddTripScreen(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically) {
-                      Text(
-                          stringResource(R.string.make_trip_public),
-                          modifier = Modifier.padding(end = 16.dp))
                       Checkbox(
                           checked = discoverable,
                           onCheckedChange = { discoverable = it },
                           modifier = Modifier.testTag("discoverableCheckbox"))
+                      Text(
+                          stringResource(R.string.make_trip_public),
+                          modifier = Modifier.padding(end = 16.dp))
                     }
                 Spacer(modifier = Modifier.height(16.dp))
               }

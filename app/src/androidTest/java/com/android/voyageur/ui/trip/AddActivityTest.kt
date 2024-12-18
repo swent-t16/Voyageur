@@ -8,6 +8,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
@@ -35,6 +36,7 @@ import org.mockito.kotlin.whenever
 class AddActivityScreenTest {
 
   private lateinit var tripRepository: TripRepository
+  private lateinit var tripInviteRepository: TripInviteRepository
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var context: Context
@@ -59,7 +61,8 @@ class AddActivityScreenTest {
   fun setUp() {
     tripRepository = mock(TripRepository::class.java)
     navigationActions = mock(NavigationActions::class.java)
-    tripsViewModel = TripsViewModel(tripRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
     context = ApplicationProvider.getApplicationContext()
 
     placesRepository = mock(PlacesRepository::class.java)

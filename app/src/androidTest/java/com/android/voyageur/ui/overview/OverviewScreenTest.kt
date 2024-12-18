@@ -6,6 +6,7 @@ import android.provider.CalendarContract
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -15,6 +16,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
@@ -50,6 +52,7 @@ class OverviewScreenTest {
   private lateinit var tripRepository: TripRepository
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripViewModel: TripsViewModel
+  private lateinit var tripInviteRepository: TripInviteRepository
   private lateinit var userViewModel: UserViewModel
   private lateinit var userRepository: UserRepository
   private lateinit var friendRequestRepository: FriendRequestRepository
@@ -64,7 +67,8 @@ class OverviewScreenTest {
     navigationActions = mock(NavigationActions::class.java)
     userRepository = mock(UserRepository::class.java)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
-    tripViewModel = TripsViewModel(tripRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripViewModel = TripsViewModel(tripRepository, tripInviteRepository)
     firebaseAuth = mock(FirebaseAuth::class.java)
     firebaseUser = mock(FirebaseUser::class.java)
 
@@ -615,5 +619,50 @@ class OverviewScreenTest {
     composeTestRule.onNodeWithTag("favoriteFilterButton").performClick()
 
     verify(userRepository).updateUser(eq(User().copy(favoriteTrips = listOf("2"))), any(), any())
+  }
+
+  @Test
+  fun tripsAreSortedDescendingByDefault() {
+    val mockTrips =
+        listOf(
+            Trip(id = "1", name = "Trip A", startDate = Timestamp.now(), endDate = Timestamp.now()),
+            Trip(
+                id = "2",
+                name = "Trip B",
+                startDate = Timestamp(Timestamp.now().seconds - 86400, 0), // Subtract 1 day
+                endDate = Timestamp(Timestamp.now().seconds - 86400, 0)))
+
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
+    }
+    tripViewModel.getTrips()
+
+    val nodes = composeTestRule.onAllNodesWithTag("cardItem")
+    nodes[0].assertTextContains("Trip A") // Most recent trip
+    nodes[1].assertTextContains("Trip B") // Older trip
+  }
+
+  @Test
+  fun tripsCanBeSortedAscending() {
+    val mockTrips =
+        listOf(
+            Trip(id = "1", name = "Trip A", startDate = Timestamp.now(), endDate = Timestamp.now()),
+            Trip(
+                id = "2",
+                name = "Trip B",
+                startDate = Timestamp(Timestamp.now().seconds - 86400, 0), // Subtract 1 day
+                endDate = Timestamp(Timestamp.now().seconds - 86400, 0)))
+
+    `when`(tripRepository.getTrips(any(), any(), any())).then {
+      it.getArgument<(List<Trip>) -> Unit>(1)(mockTrips)
+    }
+    tripViewModel.getTrips()
+
+    // Click the reverse sorting button
+    composeTestRule.onNodeWithTag("reverseTripsOrderButton").performClick()
+
+    val nodes = composeTestRule.onAllNodesWithTag("cardItem")
+    nodes[0].assertTextContains("Trip B") // Older trip
+    nodes[1].assertTextContains("Trip A") // Most recent trip
   }
 }

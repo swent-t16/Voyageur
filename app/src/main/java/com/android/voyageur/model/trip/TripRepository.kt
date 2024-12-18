@@ -42,4 +42,10 @@ interface TripRepository {
       onSuccess: (List<Trip>) -> Unit,
       onFailure: (Exception) -> Unit,
   ): ListenerRegistration
+
+  fun getTripById(
+      tripId: String,
+      onSuccess: (Trip) -> Unit,
+      onFailure: (Exception) -> Unit,
+  )
 }
