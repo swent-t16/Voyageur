@@ -2,6 +2,7 @@ import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.notifications.TripInvite
 import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.trip.Trip
@@ -9,12 +10,16 @@ import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.trip.UiState
+import com.android.voyageur.model.user.User
+import com.android.voyageur.model.user.UserRepository
+import com.android.voyageur.model.user.UserViewModel
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
@@ -28,8 +33,10 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.MockedStatic
-import org.mockito.Mockito.*
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
@@ -582,6 +589,25 @@ class TripsViewModelTest {
     // Assert - Verify trips were not updated and error is handled
     assert(tripsViewModel.trips.value.isEmpty()) // Trips should remain empty on failure
     verify(tripsRepository).listenForTripUpdates(any(), any(), any())
+  }
+
+  @Test
+  fun testCopyTrip() {
+    val userRepository = mock(UserRepository::class.java)
+    val friendRequestRepository = mock(FriendRequestRepository::class.java)
+    val userViewModel =
+        UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
+
+    val mockListenerRegistration = mock(ListenerRegistration::class.java)
+    whenever(userRepository.listenToUser(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (User) -> Unit
+      onSuccess(User(id = "test"))
+      mockListenerRegistration
+    }
+    tripsViewModel.selectTrip(Trip(id = "1"))
+    userViewModel.loadUser("test")
+    tripsViewModel.copyTrip(userViewModel) {}
+    verify(tripsRepository).createTrip(any(), any(), any())
   }
 
   @Test
