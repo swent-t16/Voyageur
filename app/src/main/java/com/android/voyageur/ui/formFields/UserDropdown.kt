@@ -22,6 +22,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.android.voyageur.model.notifications.TripInvite
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.User
 import com.android.voyageur.utils.ConnectionState
@@ -132,7 +134,9 @@ fun UserDropdown(
                                 selectedTrip?.participants?.filter { it != user.id }
                             val updatedTrip =
                                 selectedTrip?.copy(participants = updatedParticipants ?: listOf())
-                            updatedTrip?.let { tripsViewModel.updateTrip(it) }
+                            updatedTrip?.let { tripsViewModel.updateTrip(it)
+                                // re-assign the selected trip
+                                tripsViewModel.selectTrip(it)}
                             onRemove(userPair, index)
                           },
                           modifier = Modifier.testTag("removeButton_${user.id}"),

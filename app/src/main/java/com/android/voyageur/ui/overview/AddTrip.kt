@@ -41,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -67,6 +68,7 @@ import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
+import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.components.PlaceSearchWidget
 import com.android.voyageur.ui.formFields.DatePickerModal
@@ -158,7 +160,7 @@ fun AddTripScreen(
   var discoverable by remember { mutableStateOf(false) }
   val contactsAndUsers by actualUserViewModel.contacts.collectAsState()
   val userList =
-      remember(contactsAndUsers, isEditMode) {
+      remember(tripsViewModel.selectedTrip, contactsAndUsers, isEditMode) {
         contactsAndUsers
             .filter { user -> user.id != Firebase.auth.uid.orEmpty() }
             .map {
