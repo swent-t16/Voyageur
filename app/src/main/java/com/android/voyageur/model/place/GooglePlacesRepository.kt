@@ -25,6 +25,7 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
 
   private val advancedPlaceFields =
       listOf(
+          Place.Field.DISPLAY_NAME,
           Place.Field.PHOTO_METADATAS,
           Place.Field.INTERNATIONAL_PHONE_NUMBER,
           Place.Field.WEBSITE_URI,
