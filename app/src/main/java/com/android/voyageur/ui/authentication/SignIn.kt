@@ -1,7 +1,6 @@
 package com.android.voyageur.ui.authentication
 
 import android.content.Intent
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -41,80 +40,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 @Composable
-fun SignInScreen(navigationActions: NavigationActions) {
-  val context = LocalContext.current
-  var user by remember { mutableStateOf(Firebase.auth.currentUser) }
-
-  val launcher =
-      rememberFirebaseAuthLauncher(
-          onAuthComplete = { result ->
-            user = result.user
-            Log.d("SignInScreen", "User signed in: ${result.user?.displayName}")
-            Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
-            navigationActions.navigateTo(TopLevelDestinations.OVERVIEW)
-          },
-          onAuthError = {
-            user = null
-            Log.e("SignInScreen", "Failed to sign in: ${it.statusCode}")
-            Toast.makeText(context, "Login Failed!", Toast.LENGTH_LONG).show()
-          })
-  val token = stringResource(R.string.default_web_client_id)
-
-  Scaffold(
-      modifier = Modifier.fillMaxSize().testTag("signInScreenScaffold"),
-  ) { padding ->
-    Column(
-        modifier = Modifier.fillMaxSize().padding(padding).testTag("signInScreenColumn"),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-      Image(
-          painter = painterResource(id = R.drawable.app_logo),
-          contentDescription = "App Logo",
-          contentScale = ContentScale.Crop,
-          modifier =
-              Modifier.width(250.dp)
-                  .height(250.dp)
-                  .clip(RoundedCornerShape(8.dp))
-                  .testTag("appLogo"))
-
-      Spacer(modifier = Modifier.height(16.dp))
-
-      Text(
-          modifier = Modifier.testTag("loginTitle"),
-          text = "Welcome",
-          style = MaterialTheme.typography.headlineLarge.copy(fontSize = 57.sp, lineHeight = 64.sp),
-          fontWeight = FontWeight.Bold,
-          textAlign = TextAlign.Center)
-
-      Spacer(modifier = Modifier.height(48.dp))
-
-      GoogleSignInButton(
-          onSignInClick = {
-            if (Firebase.auth.uid.orEmpty().isEmpty()) {
-
-              val gso =
-                  GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                      .requestIdToken(token)
-                      .requestEmail()
-                      .build()
-              val googleSignInClient = GoogleSignIn.getClient(context, gso)
-              launcher.launch(googleSignInClient.signInIntent)
-            }
-            if (user != null) {
-              navigationActions.navigateTo(TopLevelDestinations.OVERVIEW)
-            }
-          })
-    }
-  }
-}
-
-@Composable
-fun rememberFirebaseAuthLauncher(
+private fun rememberFirebaseAuthLauncher(
     onAuthComplete: (AuthResult) -> Unit,
     onAuthError: (ApiException) -> Unit
 ): ManagedActivityResultLauncher<Intent, ActivityResult> {
   val scope = rememberCoroutineScope()
+
   return rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
       result ->
     val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
@@ -132,44 +63,111 @@ fun rememberFirebaseAuthLauncher(
 }
 
 @Composable
-fun GoogleSignInButton(onSignInClick: () -> Unit) {
-  BoxWithConstraints {
-    val buttonWidth =
-        if (maxWidth > 600.dp) {
-          250.dp
-        } else {
-          Dp.Unspecified
-        }
+fun AuthenticationWrapper(navigationActions: NavigationActions) {
+  val user by remember { mutableStateOf(Firebase.auth.currentUser) }
 
-    Button(
-        onClick = onSignInClick,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-        shape = RoundedCornerShape(50),
-        border = BorderStroke(1.dp, Color.LightGray),
-        modifier =
-            Modifier.padding(8.dp)
-                .height(48.dp)
-                .let { modifier ->
-                  if (buttonWidth != Dp.Unspecified) modifier.width(buttonWidth)
-                  else modifier.fillMaxWidth()
-                }
-                .testTag("loginButton")) {
-          Row(
-              verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.Center,
-              modifier = Modifier.fillMaxWidth().testTag("googleSignInButtonRow")) {
-                Image(
-                    painter = painterResource(id = R.drawable.google_logo),
-                    contentDescription = "Google Logo",
-                    modifier = Modifier.size(30.dp).padding(end = 8.dp).testTag("googleLogo"))
-
-                Text(
-                    text = "Sign in with Google",
-                    color = Color.Gray,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.testTag("googleSignInButtonText"))
-              }
-        }
+  LaunchedEffect(user) {
+    if (user != null) {
+      navigationActions.navigateTo(TopLevelDestinations.OVERVIEW)
+    }
   }
+
+  if (user == null) {
+    SignInScreen(navigationActions)
+  }
+}
+
+@Composable
+fun SignInScreen(navigationActions: NavigationActions) {
+  val context = LocalContext.current
+  var user by remember { mutableStateOf(Firebase.auth.currentUser) }
+  val success = stringResource(R.string.login_successful)
+  val failure = stringResource(R.string.login_failed)
+
+  val launcher =
+      rememberFirebaseAuthLauncher(
+          onAuthComplete = { result ->
+            user = result.user
+            Toast.makeText(context, success, Toast.LENGTH_LONG).show()
+            navigationActions.navigateTo(TopLevelDestinations.OVERVIEW)
+          },
+          onAuthError = {
+            user = null
+            Toast.makeText(context, failure, Toast.LENGTH_LONG).show()
+          })
+  val token = stringResource(R.string.default_web_client_id)
+
+  Scaffold(
+      modifier = Modifier.fillMaxSize().testTag("signInScreenScaffold"),
+  ) { padding ->
+    Column(
+        modifier = Modifier.fillMaxSize().padding(padding).testTag("signInScreenColumn"),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+      val logoWidth = 250.dp
+
+      Image(
+          painter = painterResource(id = R.drawable.app_logo),
+          contentDescription = stringResource(R.string.app_logo_content_description),
+          contentScale = ContentScale.Crop,
+          modifier =
+              Modifier.width(logoWidth)
+                  .height(logoWidth)
+                  .clip(RoundedCornerShape(8.dp))
+                  .testTag("appLogo"))
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      Text(
+          modifier = Modifier.testTag("loginTitle"),
+          text = stringResource(R.string.welcome_text),
+          style = MaterialTheme.typography.headlineLarge.copy(fontSize = 57.sp, lineHeight = 64.sp),
+          fontWeight = FontWeight.Bold,
+          textAlign = TextAlign.Center)
+
+      Spacer(modifier = Modifier.height(48.dp))
+
+      GoogleSignInButton(
+          onSignInClick = {
+            if (Firebase.auth.uid.orEmpty().isEmpty()) {
+              val gso =
+                  GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                      .requestIdToken(token)
+                      .requestEmail()
+                      .build()
+              val googleSignInClient = GoogleSignIn.getClient(context, gso)
+              launcher.launch(googleSignInClient.signInIntent)
+            }
+          },
+          buttonWidth = logoWidth)
+    }
+  }
+}
+
+@Composable
+fun GoogleSignInButton(onSignInClick: () -> Unit, buttonWidth: Dp) {
+  Button(
+      onClick = onSignInClick,
+      colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+      shape = RoundedCornerShape(50),
+      border = BorderStroke(1.dp, Color.LightGray),
+      modifier = Modifier.padding(8.dp).height(48.dp).width(buttonWidth).testTag("loginButton")) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth().testTag("googleSignInButtonRow")) {
+              Image(
+                  painter = painterResource(id = R.drawable.google_logo),
+                  contentDescription = stringResource(R.string.google_logo_content_description),
+                  modifier = Modifier.size(30.dp).padding(end = 8.dp).testTag("googleLogo"))
+
+              Text(
+                  text = stringResource(R.string.sign_in_with_google),
+                  color = Color.Gray,
+                  fontSize = 16.sp,
+                  fontWeight = FontWeight.Medium,
+                  modifier = Modifier.testTag("googleSignInButtonText"))
+            }
+      }
 }
