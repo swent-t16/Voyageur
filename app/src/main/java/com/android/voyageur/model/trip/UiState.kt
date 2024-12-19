@@ -4,10 +4,10 @@ package com.android.voyageur.model.trip
 sealed interface UiState {
 
   /** Empty state when the screen is first shown */
-  object Initial : UiState
+  data object Initial : UiState
 
   /** Still loading */
-  object Loading : UiState
+  data object Loading : UiState
 
   /** Text has been generated */
   data class Success(val outputText: String) : UiState

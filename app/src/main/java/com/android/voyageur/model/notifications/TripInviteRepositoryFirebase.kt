@@ -1,5 +1,6 @@
 package com.android.voyageur.model.notifications
 
+import android.util.Log
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -56,8 +57,63 @@ class TripInviteRepositoryFirebase(private val db: FirebaseFirestore) : TripInvi
     db.collection(collectionPath)
         .document(req.id)
         .set(req, SetOptions.merge())
-        .addOnSuccessListener { onSuccess() }
+        .addOnSuccessListener {
+          // Send a notification for the trip invite
+          sendTripInviteNotification(req)
+          onSuccess()
+        }
         .addOnFailureListener { exception -> onFailure(exception) }
+  }
+
+  /**
+   * Resolves the trip name from the trip ID.
+   *
+   * @param tripId The ID of the trip.
+   * @param onSuccess Callback to execute after successful resolution.
+   * @param onFailure Exception handling callback.
+   */
+  fun resolveTripName(tripId: String, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
+    db.collection("trips")
+        .document(tripId)
+        .get()
+        .addOnSuccessListener { document ->
+          val tripName = document.getString("name") ?: "Unknown Trip"
+          onSuccess(tripName)
+        }
+        .addOnFailureListener { exception -> onFailure(exception) }
+  }
+
+  /**
+   * Sends a trip invite notification.
+   *
+   * @param tripInvite The trip invite to send a notification for.
+   */
+  fun sendTripInviteNotification(tripInvite: TripInvite) {
+    // Resolve the trip name if necessary (assuming `tripId` is not the actual name)
+    resolveTripName(
+        tripInvite.tripId,
+        { tripName ->
+          val messageData =
+              mapOf(
+                  "type" to "trip_invite", "tripName" to tripName, "senderName" to tripInvite.from)
+          db.collection("users").document(tripInvite.to).get().addOnSuccessListener { document ->
+            val recipientToken = document.getString("fcmToken")
+            if (!recipientToken.isNullOrEmpty()) {
+              sendFcmMessage(recipientToken, messageData)
+            }
+          }
+        },
+        { exception -> Log.e("TripInviteRepo", "Error resolving trip name: $exception") })
+  }
+
+  /**
+   * Sends an FCM message.
+   *
+   * @param token The recipient's FCM token.
+   * @param data The data to include in the message.
+   */
+  private fun sendFcmMessage(token: String, data: Map<String, String>) {
+    Log.d("TripInviteRepo", "Sending FCM message to token: $token with data: $data")
   }
 
   /**
@@ -123,7 +179,7 @@ class TripInviteRepositoryFirebase(private val db: FirebaseFirestore) : TripInvi
       onSuccess: (List<TripInvite>) -> Unit,
       onFailure: (Exception) -> Unit
   ): ListenerRegistration {
-    return db.collection("friendRequests").whereEqualTo("from", userId).addSnapshotListener {
+    return db.collection(collectionPath).whereEqualTo("from", userId).addSnapshotListener {
         snapshot,
         exception ->
       if (exception != null) {

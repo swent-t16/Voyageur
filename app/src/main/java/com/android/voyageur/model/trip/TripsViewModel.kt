@@ -1,5 +1,6 @@
 package com.android.voyageur.model.trip
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -87,8 +88,12 @@ open class TripsViewModel(
   private val _invitingUsers = MutableStateFlow<List<User>>(emptyList())
   val invitingUsers: StateFlow<List<User>> = _invitingUsers.asStateFlow()
 
+  private val _sentTripInvites = MutableStateFlow<List<TripInvite>>(emptyList())
+  val sentTripInvites: StateFlow<List<TripInvite>> = _sentTripInvites.asStateFlow()
+
   /** Listener registration for trip updates. */
   private var _tripListenerRegistration: ListenerRegistration? = null
+  private var sentTripInvitesListener: ListenerRegistration? = null
 
   /** Authentication state listener for Firebase. */
   val authStateListener =
@@ -114,6 +119,7 @@ open class TripsViewModel(
   init {
     tripsRepository.init {
       fetchTripInvites() // Fetch trip invites
+      getSentTripInvites()
       _isLoading.value = true
       tripsRepository.getTrips(
           Firebase.auth.uid.orEmpty(),
@@ -154,6 +160,11 @@ open class TripsViewModel(
     _tripType.value = type
   }
 
+  /**
+   * Sets the tripInvites StateFlow value to the given tripInvites
+   *
+   * @param tripInvites the trip invites which should be contained in the State Flow.
+   */
   fun set_tripInvites(tripInvites: List<TripInvite>) {
     _tripInvites.value = tripInvites
   }
@@ -183,6 +194,14 @@ open class TripsViewModel(
    */
   fun selectActivity(activity: Activity) {
     _selectedActivity.value = activity
+  }
+  /**
+   * Sets the sentTripInvites StateFlow value to the given sentTripInvites
+   *
+   * @param sentTripInvites the trip invites which should be contained in the State Flow.
+   */
+  fun set_SentTripInvites(sentTripInvites: List<TripInvite>) {
+    _sentTripInvites.value = sentTripInvites
   }
 
   /**
@@ -463,6 +482,7 @@ open class TripsViewModel(
    * Sends a prompt to the AI assistant to generate activities for a trip. The result changes the UI
    * state.
    *
+   * @param context The context. Used for accessing resources.
    * @param trip The trip.
    * @param userPrompt The prompt that the user provides in the app.
    * @param interests The interests to focus on.
@@ -470,6 +490,7 @@ open class TripsViewModel(
    *   draft activities.
    */
   open fun sendActivitiesPrompt(
+      context: Context,
       trip: Trip,
       userPrompt: String,
       interests: List<String> = emptyList(),
@@ -482,6 +503,7 @@ open class TripsViewModel(
         val response =
             generativeModel.generateContent(
                 generatePrompt(
+                    context,
                     trip,
                     userPrompt,
                     interests,
@@ -526,7 +548,6 @@ open class TripsViewModel(
           onFailure = { e -> Log.e("TripsViewModel", "Failed to get trip: $e") })
     }
   }
-
   /**
    * Declines a trip invite.
    *
@@ -535,9 +556,10 @@ open class TripsViewModel(
   fun declineTripInvite(inviteId: String) {
     tripInviteRepository.deleteTripInvite(
         inviteId,
-        onSuccess = {},
+        onSuccess = { _tripInvites.value = _tripInvites.value.filter { it.id != inviteId } },
         onFailure = { e -> Log.e("TripsViewModel", "Failed to delete invite: $e") })
   }
+
   /**
    * Sends a trip invite to another user.
    *
@@ -566,7 +588,33 @@ open class TripsViewModel(
             )
 
     tripInviteRepository.createTripInvite(
-        req = tripInvite, onSuccess = onSuccess, onFailure = onFailure)
+        req = tripInvite,
+        onSuccess = {
+          // Update trip invites state
+          _tripInvites.value += tripInvite
+          Log.d("TripsViewModel", "Created invite: ${tripInvite.tripId}")
+          Log.d("UserDropdown", "Trip Invites: $tripInvites")
+          onSuccess()
+        },
+        onFailure = { e ->
+          Log.e("TripsViewModel", "Failed to create invite: $e")
+          onFailure(e)
+        })
+  }
+
+  fun getSentTripInvites() {
+    val userId = firebaseAuth.uid.orEmpty()
+    if (userId.isEmpty()) return
+
+    sentTripInvitesListener?.remove()
+
+    sentTripInvitesListener =
+        tripInviteRepository.listenToSentTripInvites(
+            userId = userId,
+            onSuccess = { invites -> _sentTripInvites.value = invites },
+            onFailure = { exception ->
+              Log.e("TripsViewModel", "Failed to listen to sent trip invites: ${exception.message}")
+            })
   }
 
   /**
