@@ -79,7 +79,6 @@ fun TopBarWithImageAndText(
                 .width(279.dp)
                 .height(72.dp)
                 .background(Color.White.copy(alpha = 0.7f))
-                // .padding(horizontal = 77.dp, vertical = 11.dp)
                 .wrapContentSize()
                 .widthIn(max = 250.dp) // Maximum width available
         ) {
@@ -96,7 +95,6 @@ fun TopBarWithImageAndText(
                     color = Color.Black,
                 )
                 Text(
-                    // TODO: Replace with correct date format
                     text = text2,
                     textAlign = TextAlign.Center,
                     fontSize = 14.sp,
@@ -129,7 +127,6 @@ fun TopBarWithImageAndText(
 }
 
 fun Timestamp.toDateWithoutYearString(): String {
-  // TODO: Test this with 2 digit dates (I am not sure it works)
   val sdf = java.text.SimpleDateFormat("d MMM", java.util.Locale.getDefault())
   return sdf.format(this.toDate())
 }

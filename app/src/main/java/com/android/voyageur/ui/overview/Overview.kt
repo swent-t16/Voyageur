@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -145,14 +144,14 @@ fun OverviewScreen(
       floatingActionButton = { AddTripFAB(isConnected, navigationActions) },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        FlowRow(
+        Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween) {
               SearchBar(
                   placeholderId = R.string.overview_searchbar_placeholder,
                   onQueryChange = { searchQuery = it },
-                  modifier = Modifier.testTag("searchField").weight(1f).fillMaxWidth(0.9f))
+                  modifier = Modifier.testTag("searchField").weight(1f).fillMaxWidth(0.8f))
 
               IconButton(
                   onClick = { sortedDecreasing = !sortedDecreasing },
@@ -731,8 +730,8 @@ fun Timestamp.toDateString(): String {
 fun generateParticipantString(numberOfParticipants: Int): String {
   return when (numberOfParticipants) {
     0 -> "No participants."
-    1 -> "1 Other Participant:"
-    else -> "$numberOfParticipants Other Participants:"
+    1 -> "1 Participant:"
+    else -> "$numberOfParticipants Participants:"
   }
 }
 /**

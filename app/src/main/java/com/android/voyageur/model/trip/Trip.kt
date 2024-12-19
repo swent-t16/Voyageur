@@ -92,7 +92,7 @@ data class Trip(
   }
 }
 
-/** Enum representing the type of a trip - Business or Tourism. */
+/** Enum representing the type of a trip */
 enum class TripType {
   TOURISM,
   BUSINESS,

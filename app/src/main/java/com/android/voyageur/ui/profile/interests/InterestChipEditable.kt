@@ -26,6 +26,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
+/**
+ * A composable that displays an editable interest chip with the ability to remove the interest. The
+ * chip shows the interest text and provides a button to trigger a confirmation dialog for removal.
+ * When confirmed, the [onRemove] function is invoked to handle the removal logic.
+ *
+ * @param interest A string representing the interest to be displayed and potentially removed.
+ * @param onRemove A callback function invoked when the user confirms the removal of the interest.
+ */
 @Composable
 fun InterestChipEditable(interest: String, onRemove: () -> Unit) {
   var showDialog by remember { mutableStateOf(false) }

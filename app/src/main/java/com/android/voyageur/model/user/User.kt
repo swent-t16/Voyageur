@@ -1,5 +1,19 @@
 package com.android.voyageur.model.user
 
+/**
+ * Data class representing a user in the application.
+ *
+ * @property id The unique identifier for the user.
+ * @property name The user's full name.
+ * @property email The user's email address.
+ * @property profilePicture The URL or path to the user's profile picture.
+ * @property bio A short biography or description of the user.
+ * @property contacts A list of the user's contacts, represented by their IDs.
+ * @property interests A list of the user's interests (e.g., hobbies, topics of interest).
+ * @property username The user's username used within the app.
+ * @property favoriteTrips A list of trip IDs representing the user's favorite trips.
+ * @property fcmToken Firebase Cloud Messaging token for push notifications (optional).
+ */
 data class User(
     val id: String = "",
     var name: String = "",
@@ -12,6 +26,13 @@ data class User(
     val favoriteTrips: List<String> = emptyList(),
     var fcmToken: String? = null // Add FCM token with null default
 ) {
+
+  /**
+   * Compares this user object to another object for equality.
+   *
+   * @param other The other object to compare this user to.
+   * @return `true` if the other object is a `User` and all properties are equal, `false` otherwise.
+   */
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
@@ -35,6 +56,14 @@ data class User(
     return true
   }
 
+  /**
+   * Returns a hash code value for this user.
+   *
+   * The hash code is generated based on the user's properties to ensure that two equal `User`
+   * objects have the same hash code.
+   *
+   * @return A hash code for this user.
+   */
   override fun hashCode(): Int {
     var result = id.hashCode()
     result = 31 * result + name.hashCode()
@@ -49,7 +78,11 @@ data class User(
     return result
   }
 
-  // Helper function to convert User to Map for Firestore
+  /**
+   * Converts this `User` object to a map suitable for storing in Firestore.
+   *
+   * @return A map containing key-value pairs representing the properties of the `User` object.
+   */
   fun toMap(): Map<String, Any?> {
     return mapOf(
         "id" to id,

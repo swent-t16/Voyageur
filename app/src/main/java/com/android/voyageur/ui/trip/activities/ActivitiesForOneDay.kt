@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.android.voyageur.R
 import com.android.voyageur.model.activity.Activity
@@ -51,10 +52,10 @@ fun ActivitiesForOneDayScreen(
   val isReadOnlyView = navigationActions.getNavigationState().isReadOnlyView
   val trip =
       tripsViewModel.selectedTrip.value
-          ?: return Text(text = "No trip selected. Should not happen", color = Color.Red)
+          ?: return Text(text = stringResource(R.string.no_trip_selected), color = Color.Red)
   val day =
       tripsViewModel.selectedDay.value
-          ?: return Text(text = "No day selected. Should not happen", color = Color.Red)
+          ?: return Text(text = stringResource(R.string.no_day_selected), color = Color.Red)
 
   // States for filtering and search
   var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
@@ -108,7 +109,7 @@ fun ActivitiesForOneDayScreen(
           Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 modifier = Modifier.testTag("emptyByDayPrompt"),
-                text = "You have no activities yet.",
+                text = stringResource(R.string.no_activities),
             )
           }
         } else {

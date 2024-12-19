@@ -50,7 +50,10 @@ fun AddActivityButton(navigationActions: NavigationActions) {
         } else navigationActions.navigateTo(Screen.ADD_ACTIVITY)
       },
       modifier = Modifier.testTag("createActivityButton")) {
-        Icon(Icons.Outlined.Add, "Floating action button", modifier = Modifier.testTag("addIcon"))
+        Icon(
+            Icons.Outlined.Add,
+            contentDescription = stringResource(R.string.floating_button),
+            modifier = Modifier.testTag("addIcon"))
       }
 }
 
@@ -73,8 +76,8 @@ fun DeleteActivityAlertDialog(
   AlertDialog(
       modifier = Modifier.testTag("deleteActivityAlertDialog"),
       onDismissRequest = onDismissRequest,
-      title = { Text("Delete Activity") },
-      text = { Text("Are you sure you want to delete this activity?") },
+      title = { Text(stringResource(R.string.delete_activity)) },
+      text = { Text(stringResource(R.string.delete_activity_confirmation)) },
       confirmButton = {
         TextButton(
             modifier = Modifier.testTag("confirmDeleteButton"),
@@ -83,10 +86,12 @@ fun DeleteActivityAlertDialog(
               // Perform the deletion
               activityToDelete?.let { activity -> tripsViewModel.removeActivityFromTrip(activity) }
             }) {
-              Text("Delete")
+              Text(stringResource(R.string.delete))
             }
       },
-      dismissButton = { TextButton(onClick = { onDismissRequest() }) { Text("Cancel") } })
+      dismissButton = {
+        TextButton(onClick = { onDismissRequest() }) { Text(stringResource(R.string.cancel)) }
+      })
 }
 /**
  * A dialog for filtering activities by type. Displays a list of available activity types with

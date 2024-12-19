@@ -51,8 +51,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
  * @param trip The trip whose schedule is being displayed, including activities and details.
  * @param navigationActions Handles navigation actions such as switching screens or views.
  * @param userViewModel The ViewModel responsible for user-specific data and state.
- * @param isReadOnly Boolean which determines if the user is in Read Only View and cannot access the
- *   AI assistant.
+ * @param isReadOnly Boolean which determines if the user is in Read Only View
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable

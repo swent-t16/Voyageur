@@ -29,6 +29,24 @@ import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.profile.interests.InterestChipEditable
 
+/**
+ * A composable function that allows users to edit their profile, including their name, email,
+ * profile picture, and interests.
+ *
+ * @param userViewModel [UserViewModel] responsible for handling user data operations.
+ * @param navigationActions [NavigationActions] used for navigating between screens.
+ * @param tripsViewModel [TripsViewModel] used for managing trip data.
+ *
+ * The screen displays:
+ * - A profile picture, which can be edited.
+ * - The user's name, which can be edited.
+ * - The user's email, which is displayed as read-only.
+ * - A list of interests, with options to remove or add new interests.
+ * - A save button to update the profile with the changes made.
+ *
+ * The screen also handles the loading state and displays a progress indicator while data is being
+ * fetched or saved.
+ */
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(

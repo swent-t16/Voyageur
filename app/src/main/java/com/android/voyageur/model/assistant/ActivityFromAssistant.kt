@@ -92,6 +92,13 @@ fun convertActivityFromAssistantToActivity(activityFromAssistant: ActivityFromAs
           })
 }
 
+/**
+ * Extracts the year, month, and day from a Firebase `Timestamp` and returns them as a Triple.
+ *
+ * @param timestamp The `Timestamp` object representing a specific point in time.
+ * @return A `Triple` containing the year, month (0-based, where January is 0), and day of the
+ *   month.
+ */
 fun getYearMonthDay(timestamp: Timestamp): Triple<Int, Int, Int> {
   val date = timestamp.toDate()
   val calendar = java.util.Calendar.getInstance()

@@ -63,7 +63,7 @@ import com.google.firebase.Timestamp
 /**
  * The assistant screen that allows the user to ask the assistant for activities for a trip. The
  * user can provide a prompt and the assistant will generate activities based on that prompt. The
- * user can also provide settings for the assistant. The user can also add the activities direrctly
+ * user can also provide settings for the assistant. The user can also add the activities directly
  * to the trip.
  *
  * @param tripsViewModel the view model for the trips
