@@ -1,5 +1,6 @@
 package com.android.voyageur.model.trip
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -481,6 +482,7 @@ open class TripsViewModel(
    * Sends a prompt to the AI assistant to generate activities for a trip. The result changes the UI
    * state.
    *
+   * @param context The context. Used for accessing resources.
    * @param trip The trip.
    * @param userPrompt The prompt that the user provides in the app.
    * @param interests The interests to focus on.
@@ -488,6 +490,7 @@ open class TripsViewModel(
    *   draft activities.
    */
   open fun sendActivitiesPrompt(
+      context: Context,
       trip: Trip,
       userPrompt: String,
       interests: List<String> = emptyList(),
@@ -500,6 +503,7 @@ open class TripsViewModel(
         val response =
             generativeModel.generateContent(
                 generatePrompt(
+                    context,
                     trip,
                     userPrompt,
                     interests,

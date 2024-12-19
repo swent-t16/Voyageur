@@ -1,3 +1,4 @@
+import android.content.Context
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.android.voyageur.model.activity.Activity
@@ -52,7 +53,7 @@ class TripsViewModelTest {
   private lateinit var tripsRepository: TripRepository
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var mockTripsViewModel: TripsViewModel
-
+  private lateinit var context: Context
   private lateinit var firebaseAuth: FirebaseAuth
   private lateinit var firebaseUser: FirebaseUser
   private lateinit var firebaseAuthMockStatic: MockedStatic<FirebaseAuth>
@@ -77,6 +78,7 @@ class TripsViewModelTest {
   fun setUp() {
     tripsRepository = mock(TripRepository::class.java)
     tripInviteRepository = mock(TripInviteRepository::class.java)
+    context = mock(Context::class.java)
 
     // Initialize Firebase if necessary
     if (FirebaseApp.getApps(ApplicationProvider.getApplicationContext()).isEmpty()) {
@@ -417,7 +419,8 @@ class TripsViewModelTest {
     val userPrompt = "Generate activities for the trip"
     val provideFinalActivities = true
 
-    tripsViewModel.sendActivitiesPrompt(trip, userPrompt, emptyList(), provideFinalActivities)
+    tripsViewModel.sendActivitiesPrompt(
+        context, trip, userPrompt, emptyList(), provideFinalActivities)
     advanceUntilIdle()
 
     val uiState = tripsViewModel.uiState.value
