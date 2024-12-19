@@ -9,7 +9,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,6 +41,14 @@ import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/**
+ * Creates and remembers a Firebase authentication launcher for Google Sign-In. This composable
+ * function handles the authentication flow with Firebase using Google Sign-In.
+ *
+ * @param onAuthComplete Callback function invoked when authentication is successful
+ * @param onAuthError Callback function invoked when authentication fails
+ * @return ManagedActivityResultLauncher for handling the Google Sign-In intent
+ */
 @Composable
 private fun rememberFirebaseAuthLauncher(
     onAuthComplete: (AuthResult) -> Unit,
@@ -62,6 +72,12 @@ private fun rememberFirebaseAuthLauncher(
   }
 }
 
+/**
+ * Authentication wrapper composable that handles the authentication state. This component checks if
+ * the user is authenticated and navigates accordingly.
+ *
+ * @param navigationActions Navigation handler for the app
+ */
 @Composable
 fun AuthenticationWrapper(navigationActions: NavigationActions) {
   val user by remember { mutableStateOf(Firebase.auth.currentUser) }
@@ -77,12 +93,19 @@ fun AuthenticationWrapper(navigationActions: NavigationActions) {
   }
 }
 
+/**
+ * The main sign-in screen composable that displays the login interface. Features a scrollable
+ * layout with app logo, welcome text, and Google Sign-In button.
+ *
+ * @param navigationActions Navigation handler for the app
+ */
 @Composable
 fun SignInScreen(navigationActions: NavigationActions) {
   val context = LocalContext.current
   var user by remember { mutableStateOf(Firebase.auth.currentUser) }
   val success = stringResource(R.string.login_successful)
   val failure = stringResource(R.string.login_failed)
+  val scrollState = rememberScrollState()
 
   val launcher =
       rememberFirebaseAuthLauncher(
@@ -101,12 +124,17 @@ fun SignInScreen(navigationActions: NavigationActions) {
       modifier = Modifier.fillMaxSize().testTag("signInScreenScaffold"),
   ) { padding ->
     Column(
-        modifier = Modifier.fillMaxSize().padding(padding).testTag("signInScreenColumn"),
+        modifier =
+            Modifier.fillMaxSize()
+                .padding(padding)
+                .verticalScroll(scrollState) // Makes the column scrollable
+                .testTag("signInScreenColumn"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
       val logoWidth = 250.dp
 
+      // App Logo
       Image(
           painter = painterResource(id = R.drawable.app_logo),
           contentDescription = stringResource(R.string.app_logo_content_description),
@@ -119,6 +147,7 @@ fun SignInScreen(navigationActions: NavigationActions) {
 
       Spacer(modifier = Modifier.height(16.dp))
 
+      // Welcome Text
       Text(
           modifier = Modifier.testTag("loginTitle"),
           text = stringResource(R.string.welcome_text),
@@ -128,6 +157,7 @@ fun SignInScreen(navigationActions: NavigationActions) {
 
       Spacer(modifier = Modifier.height(48.dp))
 
+      // Google Sign-In Button
       GoogleSignInButton(
           onSignInClick = {
             if (Firebase.auth.uid.orEmpty().isEmpty()) {
@@ -141,10 +171,20 @@ fun SignInScreen(navigationActions: NavigationActions) {
             }
           },
           buttonWidth = logoWidth)
+
+      // Bottom spacing for better scrolling experience
+      Spacer(modifier = Modifier.height(24.dp))
     }
   }
 }
 
+/**
+ * A custom Google Sign-In button composable that maintains Google's design guidelines. This button
+ * includes the Google logo and sign-in text in a styled button.
+ *
+ * @param onSignInClick Callback function invoked when the button is clicked
+ * @param buttonWidth Width of the button in Dp
+ */
 @Composable
 fun GoogleSignInButton(onSignInClick: () -> Unit, buttonWidth: Dp) {
   Button(
@@ -157,11 +197,13 @@ fun GoogleSignInButton(onSignInClick: () -> Unit, buttonWidth: Dp) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth().testTag("googleSignInButtonRow")) {
+              // Google Logo
               Image(
                   painter = painterResource(id = R.drawable.google_logo),
                   contentDescription = stringResource(R.string.google_logo_content_description),
                   modifier = Modifier.size(30.dp).padding(end = 8.dp).testTag("googleLogo"))
 
+              // Sign-in Text
               Text(
                   text = stringResource(R.string.sign_in_with_google),
                   color = Color.Gray,
