@@ -52,7 +52,7 @@ class DropDownTest {
 
   @Test
   fun userIcon_displaysProfilePic() {
-      tripsViewModel.selectTrip(sampleTrip)
+    tripsViewModel.selectTrip(sampleTrip)
     composeTestRule.setContent {
       UserIcon(User(name = "Alice", profilePicture = "https://test.com/profile.jpg"))
     }
@@ -65,7 +65,7 @@ class DropDownTest {
   fun userDropdown_displaysParticipants() {
     val users =
         listOf(Pair(User(name = "Alice", profilePicture = "https://test.com/profile.jpg"), true))
-      tripsViewModel.selectTrip(sampleTrip)
+    tripsViewModel.selectTrip(sampleTrip)
     composeTestRule.setContent {
       UserDropdown(
           users = users,
@@ -85,7 +85,7 @@ class DropDownTest {
   fun userDropdown_sendInviteButton() {
     val mockUser = User("mockId", "Mock User")
     val users = listOf(mockUser to false) // User is not selected
-      tripsViewModel.selectTrip(sampleTrip)
+    tripsViewModel.selectTrip(sampleTrip)
     composeTestRule.setContent {
       UserDropdown(
           users = users,
