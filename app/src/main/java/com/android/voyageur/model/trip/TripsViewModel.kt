@@ -221,6 +221,8 @@ open class TripsViewModel(
     tripsRepository.getTrips(
         creator = firebaseAuth.uid.orEmpty(),
         onSuccess = { trips ->
+          Log.d("TripsViewModel", "Got trips: ${trips.map { "${it.name}: ${it.archived}" }}")
+
           /*
               This is a trick to force a recompose, because the reference wouldn't
               change and update the UI as the list references wouldn't change, nor the object ref.
@@ -305,6 +307,16 @@ open class TripsViewModel(
    */
   fun updateTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
     tripsRepository.updateTrip(
+        trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = { onFailure(it) })
+  }
+
+  fun archiveTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
+    tripsRepository.archiveTrip(
+        trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = { onFailure(it) })
+  }
+
+  fun unarchiveTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
+    tripsRepository.unarchiveTrip(
         trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = { onFailure(it) })
   }
 
@@ -474,6 +486,8 @@ open class TripsViewModel(
       createTrip(trip = trip, onSuccess) {}
     }
   }
+  // ****************************************************************************************************
+
   // ****************************************************************************************************
   // AI assistant
   // ****************************************************************************************************
