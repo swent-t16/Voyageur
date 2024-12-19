@@ -1,14 +1,29 @@
 package com.android.voyageur.model.assistant
 
+import android.content.Context
+import androidx.test.platform.app.InstrumentationRegistry
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.trip.Trip
+import com.android.voyageur.model.trip.TripType
 import com.google.firebase.Timestamp
 import java.util.Calendar
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
+/**
+ * Tests for the generatePrompt function in AssistantUtils.kt. This is an androidTest because it
+ * requires a Context to access string resources.
+ */
 class GeneratePromptTest {
+  private lateinit var context: Context
+
+  @Before
+  fun setUp() {
+    // Mock the context to return a string resource
+    context = InstrumentationRegistry.getInstrumentation().targetContext
+  }
 
   @Test
   fun testDatePromptGeneratesCorrectly() {
@@ -20,6 +35,7 @@ class GeneratePromptTest {
 
     val prompt =
         generatePrompt(
+            context = context,
             trip = trip,
             userPrompt = "",
             interests = emptyList(),
@@ -40,6 +56,7 @@ class GeneratePromptTest {
 
     val prompt =
         generatePrompt(
+            context = context,
             trip = trip,
             userPrompt = "",
             interests = listOf("hiking", "cycling"),
@@ -61,6 +78,7 @@ class GeneratePromptTest {
 
     val prompt =
         generatePrompt(
+            context = context,
             trip = trip,
             userPrompt = "",
             interests = emptyList(),
@@ -81,6 +99,7 @@ class GeneratePromptTest {
 
     val prompt =
         generatePrompt(
+            context = context,
             trip = trip,
             userPrompt = "",
             interests = emptyList(),
@@ -100,6 +119,7 @@ class GeneratePromptTest {
 
     val prompt =
         generatePrompt(
+            context = context,
             trip = trip,
             userPrompt = "",
             interests = emptyList(),
@@ -121,6 +141,7 @@ class GeneratePromptTest {
 
     val prompt =
         generatePrompt(
+            context = context,
             trip = trip,
             userPrompt = "",
             interests = emptyList(),
@@ -140,6 +161,7 @@ class GeneratePromptTest {
 
     val prompt =
         generatePrompt(
+            context = context,
             trip = trip,
             userPrompt = "",
             interests = emptyList(),
@@ -159,6 +181,7 @@ class GeneratePromptTest {
 
     val prompt =
         generatePrompt(
+            context = context,
             trip = trip,
             userPrompt = "",
             interests = emptyList(),
@@ -175,11 +198,13 @@ class GeneratePromptTest {
             name = "Trip Name",
             description = "Trip Description",
             location = Location(id = "", name = "Location Name"),
+            type = TripType.TOURISM,
             startDate = createTimestamp(2024, 7, 1),
             endDate = createTimestamp(2024, 7, 7))
 
     val prompt =
         generatePrompt(
+            context = context,
             trip = trip,
             userPrompt = "",
             interests = emptyList(),
@@ -189,6 +214,7 @@ class GeneratePromptTest {
     assertTrue(prompt.contains("The trip, called Trip Name"))
     assertTrue(prompt.contains("description Trip Description"))
     assertTrue(prompt.contains("location Location Name"))
+    assertTrue(prompt.contains("type TOURISM"))
   }
 
   @Test
@@ -201,6 +227,7 @@ class GeneratePromptTest {
 
     val prompt =
         generatePrompt(
+            context = context,
             trip = trip,
             userPrompt = "User Prompt",
             interests = emptyList(),
