@@ -535,7 +535,8 @@ fun AddTripScreen(
 
                 if (!isEditMode) {
                   Row(
-                      modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                      modifier =
+                          Modifier.fillMaxWidth().padding(top = 4.dp).testTag("informativeText"),
                       verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Outlined.Info,
