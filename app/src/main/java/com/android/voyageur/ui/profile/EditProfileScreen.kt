@@ -78,7 +78,10 @@ fun EditProfileScreen(
             title = { Text("Edit Profile") },
             navigationIcon = {
               IconButton(onClick = { navigationActions.navigateTo(Route.PROFILE) }) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    modifier = Modifier.testTag("goBack"))
               }
             })
       },
