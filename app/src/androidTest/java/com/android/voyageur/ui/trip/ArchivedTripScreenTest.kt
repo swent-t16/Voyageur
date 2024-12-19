@@ -1,4 +1,4 @@
-package com.android.voyageur.ui.overview
+package com.android.voyageur.ui.trip
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -12,6 +12,7 @@ import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
+import com.android.voyageur.ui.overview.ArchivedTripsScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import org.junit.Before

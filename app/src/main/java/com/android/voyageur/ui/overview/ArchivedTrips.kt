@@ -21,8 +21,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -49,9 +53,20 @@ fun ArchivedTripsScreen(
     userViewModel: UserViewModel,
 ) {
   val trips by tripsViewModel.trips.collectAsState()
-  // Explicitly sort archived trips by start date
-  val archivedTrips = trips.filter { it.archived }.sortedBy { it.startDate }
+  var visibleArchivedTripIds by remember {
+    mutableStateOf(trips.filter { it.archived }.map { it.id }.toSet())
+  }
+  // Filter trips to show only archived trips that are marked as visible
+  val visibleArchivedTrips =
+      trips
+          .filter { it.archived && visibleArchivedTripIds.contains(it.id) }
+          .sortedBy { it.startDate }
   val isLoading by userViewModel.isLoading.collectAsState()
+
+  // Initialize visibleArchivedTripIds when trips change
+  LaunchedEffect(trips) {
+    visibleArchivedTripIds = trips.filter { it.archived }.map { it.id }.toSet()
+  }
 
   Scaffold(
       topBar = {
@@ -80,7 +95,7 @@ fun ArchivedTripsScreen(
             CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
           }
         } else {
-          if (archivedTrips.isEmpty()) {
+          if (visibleArchivedTrips.isEmpty()) {
             Box(
                 modifier = Modifier.padding(padding).fillMaxSize(),
                 contentAlignment = Alignment.Center) {
@@ -93,14 +108,18 @@ fun ArchivedTripsScreen(
             LazyColumn(
                 modifier = Modifier.padding(padding).fillMaxSize().testTag("archivedTripsColumn"),
                 horizontalAlignment = Alignment.CenterHorizontally) {
-                  items(archivedTrips.size) { index ->
+                  items(visibleArchivedTrips.size) { index ->
                     userViewModel._user.value?.let { user ->
                       TripItem(
                           tripsViewModel = tripsViewModel,
-                          trip = archivedTrips[index],
+                          trip = visibleArchivedTrips[index],
                           navigationActions = navigationActions,
                           userViewModel = userViewModel,
-                          user = user)
+                          user = user,
+                          onTripVisibilityChange = { tripId ->
+                            // Remove trip from visible set before starting unarchive operation
+                            visibleArchivedTripIds = visibleArchivedTripIds - tripId
+                          })
                     }
                   }
                 }
@@ -109,7 +128,7 @@ fun ArchivedTripsScreen(
       }
 }
 
-/** Composable button for accessing archived trips. */
+// The ArchiveButton can remain unchanged since it's just a navigation button
 @Composable
 fun ArchiveButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
   Button(
