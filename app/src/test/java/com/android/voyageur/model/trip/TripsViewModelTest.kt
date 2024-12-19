@@ -43,6 +43,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 
@@ -914,5 +915,90 @@ class TripsViewModelTest {
 
     // Assert
     assertNull(resultTrip)
+  }
+
+  @Test
+  fun getSentTripInvites_success() = runTest {
+    // Arrange: Prepare expected data
+    val expectedInvites =
+        listOf(
+            TripInvite(id = "1", tripId = "trip1", from = "123", to = "user456", accepted = false),
+            TripInvite(id = "2", tripId = "trip2", from = "123", to = "user789", accepted = false))
+
+    // Mock repository behavior for listening to sent invites
+    doAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as (List<TripInvite>) -> Unit
+          onSuccess(expectedInvites) // Simulate success callback
+          null
+        }
+        .`when`(tripInviteRepository)
+        .listenToSentTripInvites(any(), any(), any())
+
+    tripsViewModel.getSentTripInvites()
+    advanceUntilIdle()
+  }
+
+  @Test
+  fun getSentTripInvites_failure() = runTest {
+    // Arrange
+    val exception = Exception("Failed to fetch sent trip invites")
+    doAnswer { invocation ->
+          val onFailure = invocation.arguments[2] as (Exception) -> Unit
+          onFailure(exception)
+          null
+        }
+        .`when`(tripInviteRepository)
+        .listenToSentTripInvites(eq("user123"), any(), any())
+
+    // Act
+    tripsViewModel.getSentTripInvites()
+    advanceUntilIdle()
+  }
+
+  @Test
+  fun sendTripInvite_success() = runTest {
+    // Arrange
+    val userId = "user123"
+    val tripId = "trip123"
+    val inviteId = "invite123"
+    val tripInvite =
+        TripInvite(
+            id = inviteId, tripId = tripId, from = "userSender", to = userId, accepted = false)
+
+    doAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as () -> Unit
+          onSuccess() // Simulate success
+          null
+        }
+        .`when`(tripInviteRepository)
+        .createTripInvite(eq(tripInvite), any(), any())
+
+    // Act
+    tripsViewModel.sendTripInvite(userId, tripId)
+    advanceUntilIdle()
+  }
+
+  @Test
+  fun sendTripInvite_failure() = runTest {
+    // Arrange
+    val userId = "user123"
+    val tripId = "trip123"
+    val inviteId = "invite123"
+    val tripInvite =
+        TripInvite(
+            id = inviteId, tripId = tripId, from = "userSender", to = userId, accepted = false)
+    val exception = Exception("Failed to send trip invite")
+
+    doAnswer { invocation ->
+          val onFailure = invocation.arguments[2] as (Exception) -> Unit
+          onFailure(exception) // Simulate failure
+          null
+        }
+        .`when`(tripInviteRepository)
+        .createTripInvite(eq(tripInvite), any(), any())
+
+    // Act
+    tripsViewModel.sendTripInvite(userId, tripId)
+    advanceUntilIdle()
   }
 }
