@@ -87,8 +87,12 @@ open class TripsViewModel(
   private val _invitingUsers = MutableStateFlow<List<User>>(emptyList())
   val invitingUsers: StateFlow<List<User>> = _invitingUsers.asStateFlow()
 
+  private val _sentTripInvites = MutableStateFlow<List<TripInvite>>(emptyList())
+  val sentTripInvites: StateFlow<List<TripInvite>> = _sentTripInvites.asStateFlow()
+
   /** Listener registration for trip updates. */
   private var _tripListenerRegistration: ListenerRegistration? = null
+  private var sentTripInvitesListener: ListenerRegistration? = null
 
   /** Authentication state listener for Firebase. */
   val authStateListener =
@@ -114,6 +118,7 @@ open class TripsViewModel(
   init {
     tripsRepository.init {
       fetchTripInvites() // Fetch trip invites
+      getSentTripInvites()
       _isLoading.value = true
       tripsRepository.getTrips(
           Firebase.auth.uid.orEmpty(),
@@ -154,6 +159,11 @@ open class TripsViewModel(
     _tripType.value = type
   }
 
+  /**
+   * Sets the tripInvites StateFlow value to the given tripInvites
+   *
+   * @param tripInvites the trip invites which should be contained in the State Flow.
+   */
   fun set_tripInvites(tripInvites: List<TripInvite>) {
     _tripInvites.value = tripInvites
   }
@@ -183,6 +193,14 @@ open class TripsViewModel(
    */
   fun selectActivity(activity: Activity) {
     _selectedActivity.value = activity
+  }
+  /**
+   * Sets the sentTripInvites StateFlow value to the given sentTripInvites
+   *
+   * @param sentTripInvites the trip invites which should be contained in the State Flow.
+   */
+  fun set_SentTripInvites(sentTripInvites: List<TripInvite>) {
+    _sentTripInvites.value = sentTripInvites
   }
 
   /**
@@ -538,6 +556,16 @@ open class TripsViewModel(
         onFailure = { e -> Log.e("TripsViewModel", "Failed to delete invite: $e") })
   }
   /**
+   * Retrieves the ID of the sent friend request to a specific user.
+   *
+   * @param toUserId The ID of the user to whom the friend request was sent.
+   * @return The ID of the sent friend request, or null if not found.
+   */
+  fun getTripRequestId(toUserId: String): String? {
+    return tripInvites.value.firstOrNull { it.to == toUserId }?.id
+  }
+
+  /**
    * Sends a trip invite to another user.
    *
    * @param toUserId The ID of the user to invite
@@ -570,11 +598,30 @@ open class TripsViewModel(
           // Update trip invites state
           _tripInvites.value += tripInvite
           Log.d("TripsViewModel", "Created invite: ${tripInvite.tripId}")
+          Log.d("UserDropdown", "Trip Invites: $tripInvites")
           onSuccess()
         },
         onFailure = { e ->
           Log.e("TripsViewModel", "Failed to create invite: $e")
           onFailure(e)
         })
+  }
+
+  private fun getSentTripInvites() {
+    val userId = firebaseAuth.uid.orEmpty()
+    if (userId.isEmpty()) return
+
+    sentTripInvitesListener?.remove()
+
+    sentTripInvitesListener =
+        tripInviteRepository.listenToSentTripInvites(
+            userId = userId,
+            onSuccess = { invites ->
+              _sentTripInvites.value = invites
+              Log.d("TripsViewModel", "Fetched sent trip invites: ${invites.size}")
+            },
+            onFailure = { exception ->
+              Log.e("TripsViewModel", "Failed to listen to sent trip invites: ${exception.message}")
+            })
   }
 }

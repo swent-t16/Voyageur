@@ -26,7 +26,8 @@ class DropDownTest {
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var mockTripsViewModel: TripsViewModel
   private lateinit var firebaseAuth: FirebaseAuth
-  private val sampleTrip = Trip(name = "Sample Trip", participants = listOf("userId123"))
+  private val sampleTrip =
+      Trip(name = "Sample Trip", id = "testTripId", participants = listOf("userId123"))
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
@@ -120,11 +121,13 @@ class DropDownTest {
             id = "mockedInviteId",
             tripId = "testTripId",
             from = "mockUserId",
-            to = "userId123",
+            to = "userId456",
             accepted = false // Default value for new invites
             )
-    tripsViewModel.set_tripInvites(listOf(mockTripInvite))
-    val mockUser = User("userId123", "Mock User")
+    tripsViewModel.set_SentTripInvites(listOf(mockTripInvite))
+    tripsViewModel.selectTrip(sampleTrip)
+    composeTestRule.waitForIdle()
+    val mockUser = User("userId456", "Mock User")
     val users = listOf(mockUser to false) // User is not selected
     composeTestRule.setContent {
       UserDropdown(
@@ -133,7 +136,9 @@ class DropDownTest {
           tripId = "testTripId",
           onRemove = { _, _ -> })
     }
+    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag("expander").assertExists().performClick()
+    composeTestRule.waitForIdle()
     // Press on cancel button to cancel sent invitation
     composeTestRule.onNodeWithTag("cancelButton_${mockUser.id}").assertExists().performClick()
   }

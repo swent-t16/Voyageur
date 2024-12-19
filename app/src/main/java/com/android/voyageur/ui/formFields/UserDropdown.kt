@@ -22,7 +22,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,9 +32,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
-import com.android.voyageur.model.notifications.TripInvite
+import com.android.voyageur.R
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.User
 import com.android.voyageur.utils.ConnectionState
@@ -62,11 +62,32 @@ fun UserIcon(user: User) {
       contentAlignment = Alignment.Center) {
         Image(
             painter = rememberAsyncImagePainter(profilePictureUri),
-            contentDescription = "Profile Picture",
+            contentDescription = stringResource(R.string.profile_picture_description),
             modifier = Modifier.size(30.dp).clip(RoundedCornerShape(50)).testTag("profilePic"))
       }
 }
 
+/**
+ * Composable function to display a dropdown menu of users.
+ *
+ * This dropdown allows users to manage participants in a trip. Users can send invitations, cancel
+ * pending invitations, or remove existing participants.
+ *
+ * ## Behavior
+ * - If a user is already a participant, the "Remove" button will be displayed.
+ * - If a trip invitation is pending, the "Cancel" button will be displayed.
+ * - Otherwise, the "Invite" button will allow sending a trip invitation to the user.
+ *
+ * ## Parameters
+ *
+ * @param users A list of user pairs, where the first item is the user and the second item indicates
+ *   whether the user is selected.
+ * @param tripsViewModel The `TripsViewModel` instance for managing trip-related data.
+ * @param tripId The ID of the trip for which the dropdown is used.
+ * @param modifier The modifier to be applied to the dropdown container.
+ * @param onRemove A callback invoked when a participant is removed. It provides the removed user
+ *   pair and its index in the list.
+ */
 @Composable
 fun UserDropdown(
     users: List<Pair<User, Boolean>>,
@@ -80,10 +101,10 @@ fun UserDropdown(
   val connectionStatus by connectivityState()
   val isConnected = connectionStatus == ConnectionState.Available
 
-  // collect trip invites as stateflow
-  val tripInvites by tripsViewModel.tripInvites.collectAsState()
-  // collect the selected trip in case the user is in Edit Mode
+  // Collect the selected trip in case the user is in Edit Mode
   val selectedTrip by tripsViewModel.selectedTrip.collectAsState()
+
+  val sentTripInvites by tripsViewModel.sentTripInvites.collectAsState()
 
   Box(modifier = modifier) {
     Row(
@@ -98,9 +119,8 @@ fun UserDropdown(
                 .testTag("expander"),
         verticalAlignment = Alignment.CenterVertically) {
           val selectedUsers = users.filter { it.second }
-          val numberOfUsers = selectedUsers.size
           if (selectedUsers.isEmpty()) {
-            Text("Participants")
+            Text(stringResource(R.string.participants_label))
           }
           selectedUsers.forEach {
             Column(modifier = Modifier.padding(4.dp).align(Alignment.CenterVertically)) {
@@ -114,17 +134,18 @@ fun UserDropdown(
         modifier = Modifier.fillMaxWidth().testTag("userDropDown")) {
           users.forEachIndexed { index, userPair ->
             val user = userPair.first
-            // Check if the user is already a participant
             val isAlreadyParticipant = selectedTrip?.participants?.contains(user.id) == true
-
-            // Find the invite if it exists
-            val existingInvite = tripInvites.find { it.to == user.id && it.tripId == tripId }
-            val isInvitePending = existingInvite != null
+            val existingInviteId =
+                sentTripInvites
+                    .find { invite ->
+                      invite.to == user.id && invite.tripId == (selectedTrip?.id ?: "")
+                    }
+                    ?.id
+            val isInvitePending = existingInviteId != null
 
             DropdownMenuItem(
-                text = { Text("${userPair.first.name} ") },
-                onClick = { // Do nothing if pressing on the item (just on the buttons)
-                },
+                text = { Text(user.name) },
+                onClick = { /* Do nothing, actions are on buttons */},
                 trailingIcon = {
                   when {
                     isAlreadyParticipant -> {
@@ -134,44 +155,44 @@ fun UserDropdown(
                                 selectedTrip?.participants?.filter { it != user.id }
                             val updatedTrip =
                                 selectedTrip?.copy(participants = updatedParticipants ?: listOf())
-                            updatedTrip?.let { tripsViewModel.updateTrip(it)
-                                // re-assign the selected trip
-                                tripsViewModel.selectTrip(it)}
+                            updatedTrip?.let {
+                              tripsViewModel.updateTrip(it)
+                              tripsViewModel.selectTrip(it)
+                            }
                             onRemove(userPair, index)
                           },
                           modifier = Modifier.testTag("removeButton_${user.id}"),
-                          enabled = isConnected, // Disable if offline mode
+                          enabled = isConnected,
                           colors =
                               ButtonDefaults.buttonColors(
                                   containerColor = MaterialTheme.colorScheme.error)) {
-                            Text("Remove")
+                            Text(stringResource(R.string.remove_label))
                           }
                     }
                     isInvitePending -> {
                       Button(
                           onClick = {
-                            existingInvite?.let { invite ->
-                              tripsViewModel.declineTripInvite(invite.id)
+                            existingInviteId?.let { invite ->
+                              tripsViewModel.declineTripInvite(invite)
                             }
                           },
-                          enabled = isConnected, // Disable if offline mode
                           modifier = Modifier.testTag("cancelButton_${user.id}"),
+                          enabled = isConnected,
                           colors =
                               ButtonDefaults.buttonColors(
-                                  containerColor = MaterialTheme.colorScheme.error)) {
-                            Text("Cancel")
+                                  containerColor = MaterialTheme.colorScheme.secondary)) {
+                            Text(stringResource(R.string.cancel_label))
                           }
                     }
                     else -> {
-                      // Show "Send Invite" button
                       Button(
                           onClick = { tripsViewModel.sendTripInvite(user.id, tripId) },
                           modifier = Modifier.testTag("inviteButton_${user.id}"),
-                          enabled = isConnected, // Disable if offline mode
+                          enabled = isConnected,
                           colors =
                               ButtonDefaults.buttonColors(
                                   containerColor = MaterialTheme.colorScheme.primary)) {
-                            Text("Send Invite")
+                            Text(stringResource(R.string.invite_label))
                           }
                     }
                   }

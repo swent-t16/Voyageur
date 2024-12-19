@@ -123,7 +123,7 @@ class TripInviteRepositoryFirebase(private val db: FirebaseFirestore) : TripInvi
       onSuccess: (List<TripInvite>) -> Unit,
       onFailure: (Exception) -> Unit
   ): ListenerRegistration {
-    return db.collection("friendRequests").whereEqualTo("from", userId).addSnapshotListener {
+    return db.collection(collectionPath).whereEqualTo("from", userId).addSnapshotListener {
         snapshot,
         exception ->
       if (exception != null) {

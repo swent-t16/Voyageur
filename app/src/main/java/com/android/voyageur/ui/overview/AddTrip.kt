@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,7 +42,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -68,7 +68,6 @@ import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripType
 import com.android.voyageur.model.trip.TripsViewModel
-import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.components.PlaceSearchWidget
 import com.android.voyageur.ui.formFields.DatePickerModal
@@ -159,6 +158,8 @@ fun AddTripScreen(
   var imageUri by remember { mutableStateOf("") }
   var discoverable by remember { mutableStateOf(false) }
   val contactsAndUsers by actualUserViewModel.contacts.collectAsState()
+  val tripInvites by tripsViewModel.tripInvites.collectAsState()
+  LaunchedEffect(Unit) { tripsViewModel.fetchTripInvites() }
   val userList =
       remember(tripsViewModel.selectedTrip, contactsAndUsers, isEditMode) {
         contactsAndUsers
@@ -377,13 +378,14 @@ fun AddTripScreen(
                     singleLine = true)
 
                 Spacer(modifier = Modifier.height(2.dp))
-
-                UserDropdown(
-                    userList,
-                    tripsViewModel,
-                    tripId,
-                    // set to false to remove the user
-                    onRemove = { pair, index -> userList[index] = Pair(pair.first, false) })
+                if (isEditMode) {
+                  UserDropdown(
+                      userList,
+                      tripsViewModel,
+                      tripId,
+                      // set to false to remove the user
+                      onRemove = { pair, index -> userList[index] = Pair(pair.first, false) })
+                }
 
                 OutlinedTextField(
                     value = description,
@@ -502,7 +504,24 @@ fun AddTripScreen(
                           stringResource(R.string.make_trip_public),
                           modifier = Modifier.padding(end = 16.dp))
                     }
-                Spacer(modifier = Modifier.height(16.dp))
+
+                if (!isEditMode) {
+                  Row(
+                      modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                      verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription =
+                                null, // Decorative icon, no content description needed
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(end = 8.dp))
+                        Text(
+                            text =
+                                stringResource(
+                                    R.string.add_participants_text_when_not_in_edit_mode),
+                            color = MaterialTheme.colorScheme.onBackground)
+                      }
+                }
               }
 
           Button(

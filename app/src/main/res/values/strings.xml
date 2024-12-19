@@ -128,6 +128,13 @@
     <string name="business">Business</string>
     <string name="tourism">Tourism</string>
     <string name="save_trip">Save Trip</string>
+    <string name="add_participants_text_when_not_in_edit_mode">"To add participants, first create a trip and then send them invitations from Settings."</string>
+<!-- USER DROPDOWN -->
+    <string name="profile_picture_description">Profile Picture</string>
+    <string name="participants_label">Participants</string>
+    <string name="remove_label">Remove</string>
+    <string name="cancel_label">Cancel</string>
+    <string name="invite_label">Invite</string>
 
  <!-- Photos Screen -->
     <string name="add_photo">Add Photo</string>
