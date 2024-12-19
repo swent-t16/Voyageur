@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.trip.activities
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,8 +15,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -25,16 +28,27 @@ import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.utils.ConnectionState
+import com.android.voyageur.utils.connectivityState
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /**
  * Composable that displays a button that navigates to the Add Activity screen.
  *
  * @param navigationActions: The navigation actions.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun AddActivityButton(navigationActions: NavigationActions) {
+  val status by connectivityState()
+  val isConnected = status == ConnectionState.Available
+  val context = LocalContext.current
   FloatingActionButton(
-      onClick = { navigationActions.navigateTo(Screen.ADD_ACTIVITY) },
+      onClick = {
+        if (!isConnected) {
+          Toast.makeText(context, R.string.no_internet_connection, Toast.LENGTH_SHORT).show()
+        } else navigationActions.navigateTo(Screen.ADD_ACTIVITY)
+      },
       modifier = Modifier.testTag("createActivityButton")) {
         Icon(Icons.Outlined.Add, "Floating action button", modifier = Modifier.testTag("addIcon"))
       }
