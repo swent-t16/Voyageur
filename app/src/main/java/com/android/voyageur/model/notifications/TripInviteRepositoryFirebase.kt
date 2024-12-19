@@ -88,7 +88,7 @@ class TripInviteRepositoryFirebase(private val db: FirebaseFirestore) : TripInvi
    *
    * @param tripInvite The trip invite to send a notification for.
    */
-  private fun sendTripInviteNotification(tripInvite: TripInvite) {
+  fun sendTripInviteNotification(tripInvite: TripInvite) {
     // Resolve the trip name if necessary (assuming `tripId` is not the actual name)
     resolveTripName(
         tripInvite.tripId,

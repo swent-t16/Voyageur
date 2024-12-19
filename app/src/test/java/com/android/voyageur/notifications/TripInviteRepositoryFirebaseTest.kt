@@ -32,6 +32,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
@@ -302,5 +303,27 @@ class TripInviteRepositoryFirebaseTest {
 
     shadowOf(Looper.getMainLooper()).idle()
     verify(mockDocumentReference).set(tripInvite, SetOptions.merge())
+  }
+
+  @Test
+  fun `sendTripInviteNotification sends notification when trip name is resolved`() {
+    val tripInvite = TripInvite("1", "tripId", "fromUser", "toUser")
+    val tripName = "Test Trip"
+    val recipientToken = "recipientToken"
+    val mockDocumentSnapshot = mock(DocumentSnapshot::class.java)
+
+    `when`(mockCollectionReference.document(tripInvite.tripId)).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
+    `when`(mockDocumentSnapshot.getString("name")).thenReturn(tripName)
+    `when`(mockCollectionReference.document(tripInvite.to)).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
+    `when`(mockDocumentSnapshot.getString("fcmToken")).thenReturn(recipientToken)
+
+    tripInviteRepository.sendTripInviteNotification(tripInvite)
+
+    shadowOf(Looper.getMainLooper()).idle()
+    verify(mockDocumentReference, times(2)).get()
+    verify(mockDocumentSnapshot).getString("name")
+    verify(mockDocumentSnapshot).getString("fcmToken")
   }
 }
