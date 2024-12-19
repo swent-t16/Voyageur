@@ -61,6 +61,8 @@ import com.android.voyageur.ui.navigation.Route
  * navigation, and manages sign-out logic.
  *
  * @param userViewModel The [UserViewModel] instance used to observe user state and actions.
+ * @param tripsViewModel The [TripsViewModel] instance used to observe trip-related state and
+ *   actions.
  * @param navigationActions The [NavigationActions] instance for navigating between screens.
  */
 @Composable
@@ -135,6 +137,7 @@ fun ProfileScreen(
  * @param signedInUserId The ID of the currently signed-in user.
  * @param onSignOut A lambda function triggered when the user chooses to sign out.
  * @param userViewModel The [UserViewModel] instance for managing user-related actions.
+ * @param tripsViewModel The [TripsViewModel] instance for managing trip-related actions.
  * @param onEdit A lambda function triggered to navigate to the edit profile screen.
  */
 @Composable
@@ -174,6 +177,14 @@ fun ProfileContent(
       }
 }
 
+/**
+ * Composable function that displays a single trip invite item. The item shows the trip name,
+ * sender's name, and buttons to accept or reject the trip invite.
+ *
+ * @param tripInvite The [TripInvite] object representing the trip invite.
+ * @param tripsViewModel The [TripsViewModel] instance for managing trip-related actions.
+ * @param userViewModel The [UserViewModel] instance for managing user-related actions.
+ */
 @Composable
 fun TripInviteItem(
     tripInvite: TripInvite,
@@ -232,6 +243,15 @@ fun TripInviteItem(
       }
 }
 
+/**
+ * Composable function that displays a menu for handling pending trip invites. The menu can be
+ * toggled between a collapsed view and an expanded dialog view for reviewing and managing trip
+ * invites.
+ *
+ * @param tripInvites A list of [TripInvite] objects representing the pending trip invites.
+ * @param tripsViewModel The [TripsViewModel] instance for managing trip-related actions.
+ * @param userViewModel The [UserViewModel] instance for managing user-related actions.
+ */
 @Composable
 fun TripInviteMenu(
     tripInvites: List<TripInvite>,

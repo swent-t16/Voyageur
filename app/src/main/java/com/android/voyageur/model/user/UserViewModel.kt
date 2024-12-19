@@ -723,6 +723,12 @@ constructor(
             onFailure = { exception -> Log.e("USER_VIEW_MODEL", exception.message.orEmpty()) })
   }
 
+  /**
+   * Fetches a user by their ID and invokes the provided callback with the result.
+   *
+   * @param userId The ID of the user to fetch.
+   * @param onResult Callback to be invoked with the fetched user or null if the fetch fails.
+   */
   fun getUserById(userId: String, onResult: (User?) -> Unit) {
     userRepository.getUserById(
         userId,

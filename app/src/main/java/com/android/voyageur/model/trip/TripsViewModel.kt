@@ -551,6 +551,12 @@ open class TripsViewModel(
         req = tripInvite, onSuccess = onSuccess, onFailure = onFailure)
   }
 
+  /**
+   * Fetches a trip by its ID and invokes the provided callback with the result.
+   *
+   * @param tripId The ID of the trip to fetch.
+   * @param onResult Callback to be invoked with the fetched trip or null if the fetch fails.
+   */
   fun getTripById(tripId: String, onResult: (Trip?) -> Unit) {
     tripsRepository.getTripById(
         tripId,
