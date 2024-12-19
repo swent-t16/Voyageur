@@ -77,6 +77,8 @@ class ActivitiesForOneDayScreenTest {
     composeTestRule.onNodeWithTag("activitiesForOneDayScreen").assertIsDisplayed()
     composeTestRule.onNodeWithTag("lazyColumn").assertIsDisplayed()
     composeTestRule.onNodeWithTag("createActivityButton").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("searchField").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("filterButton").assertIsDisplayed()
   }
 
   @Test

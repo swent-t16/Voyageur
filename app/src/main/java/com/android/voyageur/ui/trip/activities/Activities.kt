@@ -12,11 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,6 +36,7 @@ import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
+import com.android.voyageur.ui.components.ActivityFilter
 import com.android.voyageur.ui.components.SearchBar
 import com.android.voyageur.ui.navigation.BottomNavigationMenu
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
@@ -68,7 +65,6 @@ fun ActivitiesScreen(
 ) {
   // States for filtering
   var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
-  var showFilterMenu by remember { mutableStateOf(false) }
   var searchQuery by remember { mutableStateOf("") }
 
   var drafts by remember {
@@ -116,11 +112,7 @@ fun ActivitiesScreen(
                   searchQuery.isEmpty() || activity.title.contains(searchQuery, ignoreCase = true)
               matchesTimestamp && matchesSearch
             }
-            .sortedWith(
-                compareBy(
-                    { it.startTime }, // First, sort by startTime
-                    { it.endTime } // If startTime is equal, sort by endTime
-                    ))
+            .sortedWith(compareBy({ it.startTime }, { it.endTime }))
   }
 
   var showDialog by remember { mutableStateOf(false) }
@@ -159,16 +151,9 @@ fun ActivitiesScreen(
                   }
             },
             actions = {
-              Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-                IconButton(
-                    modifier = Modifier.testTag("filterButton"),
-                    onClick = { showFilterMenu = true }) {
-                      Icon(
-                          imageVector = Icons.Outlined.FilterAlt,
-                          contentDescription = stringResource(R.string.filter_activities),
-                          tint = MaterialTheme.colorScheme.primary)
-                    }
-              }
+              ActivityFilter(
+                  selectedFilters = selectedFilters,
+                  onFiltersChanged = { newFilters -> selectedFilters = newFilters })
             },
             modifier = Modifier.height(80.dp).testTag("topAppBar"))
       },
@@ -258,19 +243,6 @@ fun ActivitiesScreen(
                   final = final.filter { it != activityToDelete }
                   drafts = drafts.filter { it != activityToDelete }
                 })
-          }
-          if (showFilterMenu) {
-            FilterDialog(
-                selectedFilters = selectedFilters,
-                onFilterChanged = { filter, isSelected ->
-                  selectedFilters =
-                      if (isSelected) {
-                        selectedFilters + filter
-                      } else {
-                        selectedFilters - filter
-                      }
-                },
-                onDismiss = { showFilterMenu = false })
           }
         }
       })
