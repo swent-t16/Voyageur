@@ -613,24 +613,29 @@ fun TripItem(
               onClick = {
                 val userId = Firebase.auth.uid.orEmpty()
                 if (trip.participants.contains(userId)) {
-                  val updatedParticipants = trip.participants.filter { it != userId }
-                  val updatedTrip = trip.copy(participants = updatedParticipants)
-                  tripsViewModel.updateTrip(
-                      updatedTrip,
-                      onSuccess = {
-                        Toast.makeText(
-                                context,
-                                context.getString(R.string.trip_left_text),
-                                Toast.LENGTH_SHORT)
-                            .show()
-                      },
-                      onFailure = { error ->
-                        Toast.makeText(
-                                context,
-                                context.getString(R.string.fail_leave_trip, error.message),
-                                Toast.LENGTH_SHORT)
-                            .show()
-                      })
+                  if (trip.participants.size > 1) {
+                    val updatedParticipants = trip.participants.filter { it != userId }
+                    val updatedTrip = trip.copy(participants = updatedParticipants)
+                    tripsViewModel.updateTrip(
+                        updatedTrip,
+                        onSuccess = {
+                          Toast.makeText(
+                                  context,
+                                  context.getString(R.string.trip_left_text),
+                                  Toast.LENGTH_SHORT)
+                              .show()
+                        },
+                        onFailure = { error ->
+                          Toast.makeText(
+                                  context,
+                                  context.getString(R.string.fail_leave_trip, error.message),
+                                  Toast.LENGTH_SHORT)
+                              .show()
+                        })
+                  } else {
+                    // if no participants left, delete the trip
+                    tripsViewModel.deleteTripById(trip.id)
+                  }
                 }
                 leaveTrip = false
               }) {
@@ -659,7 +664,7 @@ fun DisplayParticipants(
     modifier: Modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
     arrangement: Arrangement.Vertical = Arrangement.Bottom
 ) {
-  val numberOfParticipants = trip.participants.size - 1
+  val numberOfParticipants = trip.participants.size
   val numberToString = generateParticipantString(numberOfParticipants)
   val themeColor = MaterialTheme.colorScheme.onSurface
   Column(
@@ -686,16 +691,13 @@ fun DisplayParticipants(
         ) {
           // Display participants (limit to 5 avatars max for space reasons)
           if (numberOfParticipants > 0) {
-            trip.participants
-                .filter { it != Firebase.auth.uid.orEmpty() }
-                .take(4)
-                .forEach { participant ->
-                  val user = userViewModel.contacts.value.find { it.id == participant }
-                  if (user != null) {
-                    // uses the same UserIcon function as in the participants form
-                    UserIcon(user)
-                  }
-                }
+            trip.participants.take(4).forEach { participant ->
+              val user = userViewModel.contacts.value.find { it.id == participant }
+              if (user != null) {
+                // uses the same UserIcon function as in the participants form
+                UserIcon(user)
+              }
+            }
             if (numberOfParticipants > 4) {
               Text(
                   text = stringResource(R.string.additional_participants, numberOfParticipants - 4),
@@ -729,8 +731,8 @@ fun Timestamp.toDateString(): String {
 fun generateParticipantString(numberOfParticipants: Int): String {
   return when (numberOfParticipants) {
     0 -> "No participants."
-    1 -> "1 Participant:"
-    else -> "$numberOfParticipants Participants:"
+    1 -> "1 Other Participant:"
+    else -> "$numberOfParticipants Other Participants:"
   }
 }
 /**

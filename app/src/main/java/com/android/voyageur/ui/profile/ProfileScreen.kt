@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
@@ -60,6 +61,8 @@ import com.android.voyageur.ui.navigation.Route
  * navigation, and manages sign-out logic.
  *
  * @param userViewModel The [UserViewModel] instance used to observe user state and actions.
+ * @param tripsViewModel The [TripsViewModel] instance used to observe trip-related state and
+ *   actions.
  * @param navigationActions The [NavigationActions] instance for navigating between screens.
  */
 @Composable
@@ -134,6 +137,7 @@ fun ProfileScreen(
  * @param signedInUserId The ID of the currently signed-in user.
  * @param onSignOut A lambda function triggered when the user chooses to sign out.
  * @param userViewModel The [UserViewModel] instance for managing user-related actions.
+ * @param tripsViewModel The [TripsViewModel] instance for managing trip-related actions.
  * @param onEdit A lambda function triggered to navigate to the edit profile screen.
  */
 @Composable
@@ -166,17 +170,56 @@ fun ProfileContent(
         Spacer(modifier = Modifier.height(20.dp))
 
         // Trip Invite Menu
-        TripInviteMenu(tripInvites = tripInvites, tripsViewModel = tripsViewModel)
+        TripInviteMenu(
+            tripInvites = tripInvites,
+            tripsViewModel = tripsViewModel,
+            userViewModel = userViewModel)
       }
 }
 
+/**
+ * Composable function that displays a single trip invite item. The item shows the trip name,
+ * sender's name, and buttons to accept or reject the trip invite.
+ *
+ * @param tripInvite The [TripInvite] object representing the trip invite.
+ * @param tripsViewModel The [TripsViewModel] instance for managing trip-related actions.
+ * @param userViewModel The [UserViewModel] instance for managing user-related actions.
+ */
 @Composable
-fun TripInviteItem(tripInvite: TripInvite, tripsViewModel: TripsViewModel) {
+fun TripInviteItem(
+    tripInvite: TripInvite,
+    tripsViewModel: TripsViewModel,
+    userViewModel: UserViewModel
+) {
+  val tripName = remember { mutableStateOf("Loading trip...") }
+  val senderName = remember { mutableStateOf("Loading user...") }
+
+  // Fetch the trip and user details asynchronously
+  LaunchedEffect(tripInvite) {
+    tripsViewModel.getTripById(tripInvite.tripId) { trip ->
+      tripName.value = trip?.name ?: "Unknown Trip"
+    }
+    userViewModel.getUserById(tripInvite.from) { user ->
+      senderName.value = user?.name ?: "Unknown User"
+    }
+  }
+
   Row(
       modifier = Modifier.fillMaxWidth().padding(8.dp).testTag("tripInvite"),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(text = stringResource(R.string.from, tripInvite.from), modifier = Modifier.weight(1f))
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+              text = tripName.value,
+              style = MaterialTheme.typography.titleMedium, // Updated style
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis)
+          Text(
+              text = "Invited by: ${senderName.value}",
+              style = MaterialTheme.typography.bodySmall, // Updated style
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis)
+        }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           IconButton(
@@ -200,8 +243,21 @@ fun TripInviteItem(tripInvite: TripInvite, tripsViewModel: TripsViewModel) {
       }
 }
 
+/**
+ * Composable function that displays a menu for handling pending trip invites. The menu can be
+ * toggled between a collapsed view and an expanded dialog view for reviewing and managing trip
+ * invites.
+ *
+ * @param tripInvites A list of [TripInvite] objects representing the pending trip invites.
+ * @param tripsViewModel The [TripsViewModel] instance for managing trip-related actions.
+ * @param userViewModel The [UserViewModel] instance for managing user-related actions.
+ */
 @Composable
-fun TripInviteMenu(tripInvites: List<TripInvite>, tripsViewModel: TripsViewModel) {
+fun TripInviteMenu(
+    tripInvites: List<TripInvite>,
+    tripsViewModel: TripsViewModel,
+    userViewModel: UserViewModel
+) {
   Card(
       shape = RoundedCornerShape(12.dp),
       modifier =
@@ -235,7 +291,10 @@ fun TripInviteMenu(tripInvites: List<TripInvite>, tripsViewModel: TripsViewModel
                       modifier =
                           Modifier.fillMaxSize().padding(8.dp).testTag("tripInviteLazyColumn")) {
                         items(tripInvites) { invite ->
-                          TripInviteItem(tripInvite = invite, tripsViewModel = tripsViewModel)
+                          TripInviteItem(
+                              tripInvite = invite,
+                              tripsViewModel = tripsViewModel,
+                              userViewModel = userViewModel)
                         }
                       }
                 }

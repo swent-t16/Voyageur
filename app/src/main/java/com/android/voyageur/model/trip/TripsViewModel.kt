@@ -624,4 +624,20 @@ open class TripsViewModel(
               Log.e("TripsViewModel", "Failed to listen to sent trip invites: ${exception.message}")
             })
   }
+
+  /**
+   * Fetches a trip by its ID and invokes the provided callback with the result.
+   *
+   * @param tripId The ID of the trip to fetch.
+   * @param onResult Callback to be invoked with the fetched trip or null if the fetch fails.
+   */
+  fun getTripById(tripId: String, onResult: (Trip?) -> Unit) {
+    tripsRepository.getTripById(
+        tripId,
+        onSuccess = { trip -> onResult(trip) },
+        onFailure = { exception ->
+          Log.e("TripsViewModel", "Failed to fetch trip by ID: $exception")
+          onResult(null)
+        })
+  }
 }
