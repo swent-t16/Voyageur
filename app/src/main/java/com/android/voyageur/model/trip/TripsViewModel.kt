@@ -555,15 +555,6 @@ open class TripsViewModel(
         onSuccess = { _tripInvites.value = _tripInvites.value.filter { it.id != inviteId } },
         onFailure = { e -> Log.e("TripsViewModel", "Failed to delete invite: $e") })
   }
-  /**
-   * Retrieves the ID of the sent friend request to a specific user.
-   *
-   * @param toUserId The ID of the user to whom the friend request was sent.
-   * @return The ID of the sent friend request, or null if not found.
-   */
-  fun getTripRequestId(toUserId: String): String? {
-    return tripInvites.value.firstOrNull { it.to == toUserId }?.id
-  }
 
   /**
    * Sends a trip invite to another user.
@@ -607,7 +598,7 @@ open class TripsViewModel(
         })
   }
 
-  private fun getSentTripInvites() {
+  fun getSentTripInvites() {
     val userId = firebaseAuth.uid.orEmpty()
     if (userId.isEmpty()) return
 
