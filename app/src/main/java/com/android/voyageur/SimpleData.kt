@@ -5,8 +5,8 @@ import kotlin.math.sqrt
 /**
  * A data class representing a point in a 2D Cartesian coordinate system.
  *
- * This class stores the coordinates (x, y) of the point and provides functionality
- * to calculate the Euclidean distance between the current point and another point.
+ * This class stores the coordinates (x, y) of the point and provides functionality to calculate the
+ * Euclidean distance between the current point and another point.
  *
  * @property x The x-coordinate of the point.
  * @property y The y-coordinate of the point.

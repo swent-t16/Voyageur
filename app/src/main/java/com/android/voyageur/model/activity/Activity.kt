@@ -4,16 +4,20 @@ import com.android.voyageur.model.location.Location
 import com.google.firebase.Timestamp
 
 /**
- * Represents an activity within a trip, including its details such as title, location,
- * timing, and estimated price.
+ * Represents an activity within a trip, including its details such as title, location, timing, and
+ * estimated price.
  *
  * @property title The name of the activity.
  * @property description A brief description of the activity.
- * @property location The location where the activity takes place, represented by a [Location] object.
- * @property startTime The start time of the activity, represented as a [Timestamp]. Defaults to an empty [Timestamp].
- * @property endTime The end time of the activity, represented as a [Timestamp]. Defaults to an empty [Timestamp].
+ * @property location The location where the activity takes place, represented by a [Location]
+ *   object.
+ * @property startTime The start time of the activity, represented as a [Timestamp]. Defaults to an
+ *   empty [Timestamp].
+ * @property endTime The end time of the activity, represented as a [Timestamp]. Defaults to an
+ *   empty [Timestamp].
  * @property estimatedPrice The estimated cost of the activity. Defaults to 0.0.
- * @property activityType The type of activity, represented by the [ActivityType] enum. Defaults to [ActivityType.OTHER].
+ * @property activityType The type of activity, represented by the [ActivityType] enum. Defaults to
+ *   [ActivityType.OTHER].
  */
 data class Activity(
     val title: String = "",
@@ -25,9 +29,7 @@ data class Activity(
     val activityType: ActivityType = ActivityType.OTHER,
 )
 
-/**
- * Enum class representing different types of activities that can be associated with a trip.
- */
+/** Enum class representing different types of activities that can be associated with a trip. */
 enum class ActivityType {
   WALK,
   RESTAURANT,

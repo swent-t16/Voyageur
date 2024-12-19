@@ -50,7 +50,10 @@ fun AddActivityButton(navigationActions: NavigationActions) {
         } else navigationActions.navigateTo(Screen.ADD_ACTIVITY)
       },
       modifier = Modifier.testTag("createActivityButton")) {
-        Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.floating_button), modifier = Modifier.testTag("addIcon"))
+        Icon(
+            Icons.Outlined.Add,
+            contentDescription = stringResource(R.string.floating_button),
+            modifier = Modifier.testTag("addIcon"))
       }
 }
 
@@ -86,7 +89,9 @@ fun DeleteActivityAlertDialog(
               Text(stringResource(R.string.delete))
             }
       },
-      dismissButton = { TextButton(onClick = { onDismissRequest() }) { Text(stringResource(R.string.cancel)) } })
+      dismissButton = {
+        TextButton(onClick = { onDismissRequest() }) { Text(stringResource(R.string.cancel)) }
+      })
 }
 /**
  * A dialog for filtering activities by type. Displays a list of available activity types with

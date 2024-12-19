@@ -25,21 +25,21 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
 /**
- * A composable bottom navigation menu for the app, allowing users to navigate between
- * different sections (Overview, Search, Profile). The menu displays a list of tabs,
- * each with an icon and label. If there are any notifications (such as trip invites or
- * friend requests), a badge with the notification count will be shown on the profile tab.
+ * A composable bottom navigation menu for the app, allowing users to navigate between different
+ * sections (Overview, Search, Profile). The menu displays a list of tabs, each with an icon and
+ * label. If there are any notifications (such as trip invites or friend requests), a badge with the
+ * notification count will be shown on the profile tab.
  *
  * @param onTabSelect A lambda function that is called when a tab is selected. It receives the
- * [TopLevelDestination] as a parameter to navigate to the corresponding screen.
- * @param tabList A list of [TopLevelDestination] representing the tabs in the navigation menu.
- * Each tab contains information like the route, icon, and label for the tab.
+ *   [TopLevelDestination] as a parameter to navigate to the corresponding screen.
+ * @param tabList A list of [TopLevelDestination] representing the tabs in the navigation menu. Each
+ *   tab contains information like the route, icon, and label for the tab.
  * @param selectedItem The route of the currently selected tab. This is used to highlight the
- * selected tab.
+ *   selected tab.
  * @param userViewModel The [UserViewModel] used to manage user-related data, including
- * notifications for friend requests and user activity.
+ *   notifications for friend requests and user activity.
  * @param tripsViewModel The [TripsViewModel] used to manage trip-related data, including
- * notifications for trip invites.
+ *   notifications for trip invites.
  */
 @Composable
 fun BottomNavigationMenu(

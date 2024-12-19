@@ -2,9 +2,7 @@ package com.android.voyageur.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-/**
- * This file defines the color palette used in the Voyageur app's user interface.
- */
+/** This file defines the color palette used in the Voyageur app's user interface. */
 
 // Light Theme Colors
 val Purple80 = Color(0xFFD0BCFF)

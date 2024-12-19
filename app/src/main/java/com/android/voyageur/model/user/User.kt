@@ -27,12 +27,12 @@ data class User(
     var fcmToken: String? = null // Add FCM token with null default
 ) {
 
-    /**
-     * Compares this user object to another object for equality.
-     *
-     * @param other The other object to compare this user to.
-     * @return `true` if the other object is a `User` and all properties are equal, `false` otherwise.
-     */
+  /**
+   * Compares this user object to another object for equality.
+   *
+   * @param other The other object to compare this user to.
+   * @return `true` if the other object is a `User` and all properties are equal, `false` otherwise.
+   */
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
@@ -56,13 +56,14 @@ data class User(
     return true
   }
 
-    /**
-     * Returns a hash code value for this user.
-     *
-     * The hash code is generated based on the user's properties to ensure that two equal `User` objects have the same hash code.
-     *
-     * @return A hash code for this user.
-     */
+  /**
+   * Returns a hash code value for this user.
+   *
+   * The hash code is generated based on the user's properties to ensure that two equal `User`
+   * objects have the same hash code.
+   *
+   * @return A hash code for this user.
+   */
   override fun hashCode(): Int {
     var result = id.hashCode()
     result = 31 * result + name.hashCode()
@@ -77,11 +78,11 @@ data class User(
     return result
   }
 
-    /**
-     * Converts this `User` object to a map suitable for storing in Firestore.
-     *
-     * @return A map containing key-value pairs representing the properties of the `User` object.
-     */
+  /**
+   * Converts this `User` object to a map suitable for storing in Firestore.
+   *
+   * @return A map containing key-value pairs representing the properties of the `User` object.
+   */
   fun toMap(): Map<String, Any?> {
     return mapOf(
         "id" to id,

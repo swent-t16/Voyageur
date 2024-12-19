@@ -33,9 +33,9 @@ import com.google.android.libraries.places.api.net.PlacesClient
 /**
  * Composable function that sets up the main navigation and screens for the Voyageur app.
  *
- * The function configures and initializes the navigation controller, sets up the ViewModels
- * for various data sources (Trips, User, Places), and establishes navigation routes
- * for authentication, overview, trip management, user profiles, and activity-related screens.
+ * The function configures and initializes the navigation controller, sets up the ViewModels for
+ * various data sources (Trips, User, Places), and establishes navigation routes for authentication,
+ * overview, trip management, user profiles, and activity-related screens.
  *
  * @param placesClient The client used to interact with the Google Places API, providing place data.
  */

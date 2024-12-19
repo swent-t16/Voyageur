@@ -17,15 +17,15 @@ data class CustomPlace(
     val place: Place,
     val photos: List<ImageBitmap>,
 ) {
-    /**
-     * Converts the `CustomPlace` object to a `Location` object.
-     *
-     * This method extracts relevant fields from the `Place` object and maps them to
-     * the `Location` class, ensuring only the required data is preserved.
-     *
-     * @return A `Location` object containing the ID, name, address, latitude, and longitude
-     *         of the place.
-     */
+  /**
+   * Converts the `CustomPlace` object to a `Location` object.
+   *
+   * This method extracts relevant fields from the `Place` object and maps them to the `Location`
+   * class, ensuring only the required data is preserved.
+   *
+   * @return A `Location` object containing the ID, name, address, latitude, and longitude of the
+   *   place.
+   */
   fun toLocation(): Location {
     return Location(
         id = this.place.id ?: "",
