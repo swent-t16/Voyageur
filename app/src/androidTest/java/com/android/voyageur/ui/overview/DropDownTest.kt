@@ -52,6 +52,7 @@ class DropDownTest {
 
   @Test
   fun userIcon_displaysProfilePic() {
+      tripsViewModel.selectTrip(sampleTrip)
     composeTestRule.setContent {
       UserIcon(User(name = "Alice", profilePicture = "https://test.com/profile.jpg"))
     }
@@ -64,7 +65,7 @@ class DropDownTest {
   fun userDropdown_displaysParticipants() {
     val users =
         listOf(Pair(User(name = "Alice", profilePicture = "https://test.com/profile.jpg"), true))
-
+      tripsViewModel.selectTrip(sampleTrip)
     composeTestRule.setContent {
       UserDropdown(
           users = users,
@@ -72,6 +73,7 @@ class DropDownTest {
           tripsViewModel = tripsViewModel,
           onRemove = { _, _ -> })
     }
+
     // Assert that the participant profile picture is displayed
     composeTestRule.onNodeWithTag("profilePic", useUnmergedTree = true).assertExists()
 
@@ -83,6 +85,7 @@ class DropDownTest {
   fun userDropdown_sendInviteButton() {
     val mockUser = User("mockId", "Mock User")
     val users = listOf(mockUser to false) // User is not selected
+      tripsViewModel.selectTrip(sampleTrip)
     composeTestRule.setContent {
       UserDropdown(
           users = users,
@@ -90,6 +93,7 @@ class DropDownTest {
           tripId = "testTripId",
           onRemove = { _, _ -> })
     }
+
     composeTestRule.onNodeWithTag("expander").assertExists().performClick()
     // Press on invite button to send invitation
     composeTestRule.onNodeWithTag("inviteButton_${mockUser.id}").assertExists().performClick()

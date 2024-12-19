@@ -162,7 +162,6 @@ fun AddTripScreen(
   var imageUri by remember { mutableStateOf("") }
   var discoverable by remember { mutableStateOf(false) }
   val contactsAndUsers by actualUserViewModel.contacts.collectAsState()
-  val tripInvites by tripsViewModel.tripInvites.collectAsState()
   LaunchedEffect(Unit) { tripsViewModel.fetchTripInvites() }
   val userList =
       remember(tripsViewModel.selectedTrip, contactsAndUsers, isEditMode) {
@@ -190,7 +189,6 @@ fun AddTripScreen(
   var isSaving by remember { mutableStateOf(false) }
 
   val keyboardController = LocalSoftwareKeyboardController.current
-  Log.d("USERLIST", contactsAndUsers.size.toString())
 
   LaunchedEffect(isEditMode) {
     if (isEditMode && tripsViewModel.selectedTrip.value != null) {

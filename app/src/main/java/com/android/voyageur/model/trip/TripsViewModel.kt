@@ -607,10 +607,7 @@ open class TripsViewModel(
     sentTripInvitesListener =
         tripInviteRepository.listenToSentTripInvites(
             userId = userId,
-            onSuccess = { invites ->
-              _sentTripInvites.value = invites
-              Log.d("TripsViewModel", "Fetched sent trip invites: ${invites.size}")
-            },
+            onSuccess = { invites -> _sentTripInvites.value = invites },
             onFailure = { exception ->
               Log.e("TripsViewModel", "Failed to listen to sent trip invites: ${exception.message}")
             })
