@@ -34,6 +34,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+/**
+ * Main activity of the Voyageur app. Initializes Firebase, notifications, and Google Places API.
+ * Displays the main UI content and handles connectivity state.
+ */
 class MainActivity : ComponentActivity() {
   lateinit var placesClient: PlacesClient
   private val TAG = "MainActivity"
@@ -75,15 +79,17 @@ class MainActivity : ComponentActivity() {
     }
   }
 
+  /** Initializes Firebase services. */
   private fun initializeFirebase() {
+    getFCMToken()
     try {
       FirebaseApp.initializeApp(this)
-      getFCMToken()
     } catch (e: Exception) {
       Log.e(TAG, "Error initializing Firebase", e)
     }
   }
 
+  /** Initializes notification channels and requests notification permissions if needed. */
   private fun initializeNotifications() {
     NotificationHelper.createNotificationChannel(this)
 
@@ -96,6 +102,7 @@ class MainActivity : ComponentActivity() {
     }
   }
 
+  /** Initializes Google Places API. */
   private fun initializePlaces() {
     try {
       Places.initialize(applicationContext, BuildConfig.PLACES_API_KEY)
@@ -105,6 +112,7 @@ class MainActivity : ComponentActivity() {
     }
   }
 
+  /** Retrieves the FCM token and updates it in Firestore. */
   private fun getFCMToken() {
     FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
       if (!task.isSuccessful) {
@@ -127,6 +135,12 @@ class MainActivity : ComponentActivity() {
     }
   }
 
+  /**
+   * Updates the FCM token for the specified user in Firestore.
+   *
+   * @param userId The ID of the user.
+   * @param token The FCM token to update.
+   */
   private fun updateUserToken(userId: String, token: String) {
     FirebaseFirestore.getInstance()
         .collection("users")
@@ -136,6 +150,13 @@ class MainActivity : ComponentActivity() {
         .addOnFailureListener { e -> Log.e(TAG, "Error updating FCM token in Firestore", e) }
   }
 
+  /**
+   * Handles the result of permission requests.
+   *
+   * @param requestCode The request code passed in requestPermissions.
+   * @param permissions The requested permissions.
+   * @param grantResults The grant results for the corresponding permissions.
+   */
   override fun onRequestPermissionsResult(
       requestCode: Int,
       permissions: Array<String>,

@@ -302,14 +302,32 @@ constructor(
     firebaseAuth.currentUser?.uid?.let { userId -> updateStoredFCMToken(userId) }
   }
 
+  /**
+   * Called when the ViewModel is being destroyed. This method is used to clean up resources such as
+   * listeners and state observers to prevent memory leaks.
+   *
+   * This implementation removes the authentication state listener, user listener registration, sent
+   * friend requests listener, and friend requests listener.
+   */
   override fun onCleared() {
     super.onCleared()
+
+    // Remove and nullify auth state listener
     if (addAuthStateListener) {
       firebaseAuth.removeAuthStateListener(authStateListener)
     }
+
+    // Remove and nullify user listener registration
     userListenerRegistration?.remove()
+    userListenerRegistration = null
+
+    // Remove and nullify sent friend requests listener
     sentFriendRequestsListener?.remove()
+    sentFriendRequestsListener = null
+
+    // Remove and nullify friend requests listener
     friendRequestsListener?.remove()
+    friendRequestsListener = null
   }
 
   private fun handleUserSignOut() {
@@ -670,6 +688,14 @@ constructor(
         })
   }
 
+  /**
+   * Updates the status of a friend request. If the request is accepted, it adds the sender to the
+   * user's contacts and marks the request as accepted. If the request is not accepted, it deletes
+   * the friend request.
+   *
+   * @param friendRequest The friend request to update.
+   * @param accepted A boolean indicating whether the friend request is accepted.
+   */
   fun updateFriendRequest(friendRequest: FriendRequest, accepted: Boolean) {
     if (accepted) {
       // Update the friend request to mark it as accepted
