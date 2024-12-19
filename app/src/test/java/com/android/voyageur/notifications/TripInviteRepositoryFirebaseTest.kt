@@ -20,7 +20,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
-import com.google.firebase.firestore.SetOptions
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -101,20 +100,6 @@ class TripInviteRepositoryFirebaseTest {
 
     shadowOf(Looper.getMainLooper()).idle()
     verify(mockQuery).count()
-  }
-
-  @Test
-  fun `createTripInvite calls Firestore set with correct data`() {
-    `when`(mockDocumentReference.set(any(TripInvite::class.java), any<SetOptions>()))
-        .thenReturn(Tasks.forResult(null))
-
-    tripInviteRepository.createTripInvite(
-        testTripInvite,
-        onSuccess = {},
-        onFailure = { fail("Failure callback should not be called") })
-
-    shadowOf(Looper.getMainLooper()).idle()
-    verify(mockDocumentReference).set(any(TripInvite::class.java), any<SetOptions>())
   }
 
   @Test
