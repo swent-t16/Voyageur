@@ -212,6 +212,17 @@
     <string name="from">From: %1$s</string>
     <string name="from_user">From: %1$s</string>
     <string name="trip_id">Trip ID: %1$s</string>
+    <!-- Authentication -->
+    <string name="welcome_text">Welcome</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="login_successful">Login successful!</string>
+    <string name="login_failed">Login Failed!</string>
+    <string name="app_logo_content_description">App Logo</string>
+    <string name="google_logo_content_description">Google Logo</string>
+    <!-- Logs -->
+    <string name="log_user_signed_in">User signed in: %1$s</string>
+    <string name="log_sign_in_failed">Failed to sign in: %1$d</string>
+
     <string name="new_trip_invite">New Trip Invite</string>
     <string name="trip_invite_message">%1$s invited you to join the trip: %2$s</string>
     <string name="unknown_trip">Unknown Trip</string>
