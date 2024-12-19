@@ -1,5 +1,7 @@
 package com.android.voyageur.ui.notifications
 
+import android.content.Context
+
 /** NotificationProvider is an interface for displaying notifications. */
 interface NotificationProvider {
 
@@ -16,4 +18,6 @@ interface NotificationProvider {
    * @param acceptorName The name of the user who accepted the friend request.
    */
   fun showFriendRequestAcceptedNotification(acceptorName: String)
+
+  val context: Context
 }

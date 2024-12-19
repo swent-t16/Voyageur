@@ -25,6 +25,7 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
 
   private val advancedPlaceFields =
       listOf(
+          Place.Field.DISPLAY_NAME,
           Place.Field.PHOTO_METADATAS,
           Place.Field.INTERNATIONAL_PHONE_NUMBER,
           Place.Field.WEBSITE_URI,
@@ -32,7 +33,8 @@ class GooglePlacesRepository(private val placesClient: PlacesClient) : PlacesRep
           Place.Field.RATING,
           Place.Field.USER_RATINGS_TOTAL,
           Place.Field.WEBSITE_URI,
-          Place.Field.PRICE_LEVEL)
+          Place.Field.PRICE_LEVEL,
+          Place.Field.LAT_LNG)
 
   /**
    * Converts a circular radius around a location (LatLng) to rectangular bounds.

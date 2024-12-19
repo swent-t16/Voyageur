@@ -73,10 +73,11 @@ class TopTabsTest {
 
     // Verify that each tab is displayed with the correct title
     composeTestRule.onNodeWithTag("tabRow").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Schedule").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Photos").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Settings").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Schedule").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Activities").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Map").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Photos").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Settings").assertIsDisplayed()
   }
 
   @Test
@@ -87,23 +88,23 @@ class TopTabsTest {
     }
 
     // Initially, the first tab (Schedule) should be selected
-    composeTestRule.onNodeWithText("Schedule").assertIsSelected()
+    composeTestRule.onNodeWithContentDescription("Schedule").assertIsSelected()
 
     // Verify that ByDayScreen content is shown initially
     composeTestRule.onNodeWithTag("byDayScreen").assertIsDisplayed()
 
     // Switch to the "Activities" tab and verify
-    composeTestRule.onNodeWithText("Activities").performClick()
-    composeTestRule.onNodeWithText("Activities").assertIsSelected()
+    composeTestRule.onNodeWithContentDescription("Activities").performClick()
+    composeTestRule.onNodeWithContentDescription("Activities").assertIsSelected()
     composeTestRule.onNodeWithTag("activitiesScreen").assertIsDisplayed()
 
     // Switch to the "Photos" tab and verify
-    composeTestRule.onNodeWithText("Photos").performClick()
+    composeTestRule.onNodeWithContentDescription("Photos").performClick()
     composeTestRule.onNodeWithTag("photosScreen").assertIsDisplayed()
 
     // Switch to the "Settings" tab and verify
-    composeTestRule.onNodeWithText("Settings").performClick()
-    composeTestRule.onNodeWithText("Settings").assertIsSelected()
+    composeTestRule.onNodeWithContentDescription("Settings").performClick()
+    composeTestRule.onNodeWithContentDescription("Settings").assertIsSelected()
     composeTestRule.onNodeWithTag("settingsScreen").assertIsDisplayed()
   }
 
@@ -118,38 +119,38 @@ class TopTabsTest {
     }
 
     // Verify that each tab is displayed with the correct title
-    composeTestRule.onNodeWithText("Schedule").assertExists()
-    composeTestRule.onNodeWithText("Activities").assertExists()
-    composeTestRule.onNodeWithText("Map").assertExists()
-    composeTestRule.onNodeWithText("Photos").assertExists()
-    composeTestRule.onNodeWithText("Settings").assertExists()
+    composeTestRule.onNodeWithContentDescription("Schedule").assertExists()
+    composeTestRule.onNodeWithContentDescription("Activities").assertExists()
+    composeTestRule.onNodeWithContentDescription("Map").assertExists()
+    composeTestRule.onNodeWithContentDescription("Photos").assertExists()
+    composeTestRule.onNodeWithContentDescription("Settings").assertExists()
 
     // Click on "Activities" tab
-    composeTestRule.onNodeWithText("Activities").performClick()
+    composeTestRule.onNodeWithContentDescription("Activities").performClick()
 
     // Assert that the currentTabIndexForTrip has been updated to 1 (Activities tab)
     assert(navigationActions.getNavigationState().currentTabIndexForTrip == 1)
 
     // Click on "Map" tab
-    composeTestRule.onNodeWithText("Map").performClick()
+    composeTestRule.onNodeWithContentDescription("Map").performClick()
 
     // Assert that the currentTabIndexForTrip has been updated to 2 (Map tab)
     assert(navigationActions.getNavigationState().currentTabIndexForTrip == 2)
 
     // Click on "Photos" tab
-    composeTestRule.onNodeWithText("Photos").performClick()
+    composeTestRule.onNodeWithContentDescription("Photos").performClick()
 
     // Assert that the currentTabIndexForTrip has been updated to 2 (Photos tab)
     assert(navigationActions.getNavigationState().currentTabIndexForTrip == 3)
 
     // Click on "Settings" tab
-    composeTestRule.onNodeWithText("Settings").performClick()
+    composeTestRule.onNodeWithContentDescription("Settings").performClick()
 
     // Assert that the currentTabIndexForTrip has been updated to 3 (Settings tab)
     assert(navigationActions.getNavigationState().currentTabIndexForTrip == 4)
 
     // Click on "Schedule" tab
-    composeTestRule.onNodeWithText("Schedule").performClick()
+    composeTestRule.onNodeWithContentDescription("Schedule").performClick()
 
     // Assert that the currentTabIndexForTrip has been updated to 0 (Schedule tab)
     assert(navigationActions.getNavigationState().currentTabIndexForTrip == 0)
@@ -167,22 +168,22 @@ class TopTabsTest {
     }
 
     // Initially, the first tab (Schedule) should be selected
-    composeTestRule.onNodeWithText("Schedule").assertIsSelected()
+    composeTestRule.onNodeWithContentDescription("Schedule").assertIsSelected()
 
     // Verify that ByDayScreen content is shown initially
     composeTestRule.onNodeWithTag("byDayScreen").assertIsDisplayed()
 
     // Switch to the "Activities" tab and verify
-    composeTestRule.onNodeWithText("Activities").performClick()
-    composeTestRule.onNodeWithText("Activities").assertIsSelected()
+    composeTestRule.onNodeWithContentDescription("Activities").performClick()
+    composeTestRule.onNodeWithContentDescription("Activities").assertIsSelected()
     composeTestRule.onNodeWithTag("activitiesScreen").assertIsDisplayed()
 
     // Assert "Photos" tab does not exist
-    composeTestRule.onNodeWithText("Photos").assertDoesNotExist()
+    composeTestRule.onNodeWithContentDescription("Photos").assertDoesNotExist()
     composeTestRule.onNodeWithTag("photosScreen").assertDoesNotExist()
 
     // Assert "Settings" tab does not exist
-    composeTestRule.onNodeWithText("Settings").assertDoesNotExist()
+    composeTestRule.onNodeWithContentDescription("Settings").assertDoesNotExist()
     composeTestRule.onNodeWithTag("settingsScreen").assertDoesNotExist()
   }
 }

@@ -613,24 +613,29 @@ fun TripItem(
               onClick = {
                 val userId = Firebase.auth.uid.orEmpty()
                 if (trip.participants.contains(userId)) {
-                  val updatedParticipants = trip.participants.filter { it != userId }
-                  val updatedTrip = trip.copy(participants = updatedParticipants)
-                  tripsViewModel.updateTrip(
-                      updatedTrip,
-                      onSuccess = {
-                        Toast.makeText(
-                                context,
-                                context.getString(R.string.trip_left_text),
-                                Toast.LENGTH_SHORT)
-                            .show()
-                      },
-                      onFailure = { error ->
-                        Toast.makeText(
-                                context,
-                                context.getString(R.string.fail_leave_trip, error.message),
-                                Toast.LENGTH_SHORT)
-                            .show()
-                      })
+                  if (trip.participants.size > 1) {
+                    val updatedParticipants = trip.participants.filter { it != userId }
+                    val updatedTrip = trip.copy(participants = updatedParticipants)
+                    tripsViewModel.updateTrip(
+                        updatedTrip,
+                        onSuccess = {
+                          Toast.makeText(
+                                  context,
+                                  context.getString(R.string.trip_left_text),
+                                  Toast.LENGTH_SHORT)
+                              .show()
+                        },
+                        onFailure = { error ->
+                          Toast.makeText(
+                                  context,
+                                  context.getString(R.string.fail_leave_trip, error.message),
+                                  Toast.LENGTH_SHORT)
+                              .show()
+                        })
+                  } else {
+                    // if no participants left, delete the trip
+                    tripsViewModel.deleteTripById(trip.id)
+                  }
                 }
                 leaveTrip = false
               }) {
@@ -726,8 +731,8 @@ fun Timestamp.toDateString(): String {
 fun generateParticipantString(numberOfParticipants: Int): String {
   return when (numberOfParticipants) {
     0 -> "No participants."
-    1 -> "1 Participant:"
-    else -> "$numberOfParticipants Participants:"
+    1 -> "1 Other Participant:"
+    else -> "$numberOfParticipants Other Participants:"
   }
 }
 /**

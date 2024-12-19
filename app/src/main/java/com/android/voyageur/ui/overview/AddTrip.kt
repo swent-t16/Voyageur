@@ -27,14 +27,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -153,7 +156,8 @@ fun AddTripScreen(
   var selectedDateField by remember { mutableStateOf<DateField?>(null) }
   var startDate by remember { mutableStateOf<Long?>(null) }
   var endDate by remember { mutableStateOf<Long?>(null) }
-  var tripType by remember { mutableStateOf(TripType.BUSINESS) }
+  var tripType by remember { mutableStateOf(TripType.TOURISM) }
+  var expanded by remember { mutableStateOf(false) }
   var imageUri by remember { mutableStateOf("") }
   var discoverable by remember { mutableStateOf(false) }
   val contactsAndUsers by actualUserViewModel.contacts.collectAsState()
@@ -197,8 +201,6 @@ fun AddTripScreen(
         endDate = trip.endDate.toDate().time
         discoverable = trip.discoverable
       }
-    } else {
-      //      userList.clear()
     }
   }
 
@@ -206,7 +208,8 @@ fun AddTripScreen(
     if (isSaving) return // Prevent duplicate saves
 
     if (startDate == null || endDate == null) {
-      Toast.makeText(context, "Please select both start and end dates", Toast.LENGTH_SHORT).show()
+      Toast.makeText(context, context.getString(R.string.select_both_dates), Toast.LENGTH_SHORT)
+          .show()
       return
     }
 
@@ -230,18 +233,21 @@ fun AddTripScreen(
     val endDateNormalized = normalizeToMidnight(Date(endDate!!))
 
     if (!isEditMode && (startDateNormalized.before(today) || endDateNormalized.before(today))) {
-      Toast.makeText(context, "Start and end dates cannot be in the past", Toast.LENGTH_SHORT)
+      Toast.makeText(
+              context, context.getString(R.string.dates_must_not_be_in_past), Toast.LENGTH_SHORT)
           .show()
       return
     }
     // if the trip is ongoing then the start date is in the past already so we check just for the
     // end date
     if (isEditMode && endDateNormalized.before(today)) {
-      Toast.makeText(context, "End date cannot be in the past", Toast.LENGTH_SHORT).show()
+      Toast.makeText(context, context.getString(R.string.end_date_not_in_past), Toast.LENGTH_SHORT)
+          .show()
       return
     }
     if (startDateNormalized.after(endDateNormalized)) {
-      Toast.makeText(context, "End date cannot be before start date", Toast.LENGTH_SHORT).show()
+      Toast.makeText(context, context.getString(R.string.end_after_start), Toast.LENGTH_SHORT)
+          .show()
       return
     }
 
@@ -274,13 +280,21 @@ fun AddTripScreen(
           trip,
           onSuccess = {
             isSaving = false
-            Toast.makeText(context, "Trip created successfully!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                    context, context.getString(R.string.trip_created_success), Toast.LENGTH_SHORT)
+                .show()
           },
           onFailure = { error ->
             isSaving = false
-            Toast.makeText(context, "Failed to create trip: ${error.message}", Toast.LENGTH_SHORT)
+            Toast.makeText(
+                    context,
+                    context.getString(R.string.trip_create_failure, error.message),
+                    Toast.LENGTH_SHORT)
                 .show()
-            Log.e("AddTripScreen", "Error creating trip: ${error.message}", error)
+            Log.e(
+                "AddTripScreen",
+                context.getString(R.string.trip_create_error, error.message),
+                error)
           })
       navigationActions.goBack()
     } else {
@@ -289,7 +303,9 @@ fun AddTripScreen(
           trip,
           onSuccess = {
             isSaving = false
-            Toast.makeText(context, "Trip updated successfully!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                    context, context.getString(R.string.trip_updated_success), Toast.LENGTH_SHORT)
+                .show()
             /*
                 This is a trick to force a recompose, because the reference wouldn't
                 change and update the UI.
@@ -300,9 +316,15 @@ fun AddTripScreen(
           },
           onFailure = { error ->
             isSaving = false
-            Toast.makeText(context, "Failed to update trip: ${error.message}", Toast.LENGTH_SHORT)
+            Toast.makeText(
+                    context,
+                    context.getString(R.string.trip_updated_failure, error.message),
+                    Toast.LENGTH_SHORT)
                 .show()
-            Log.e("AddTripScreen", "Error updating trip: ${error.message}", error)
+            Log.e(
+                "AddTripScreen",
+                context.getString(R.string.trip_updated_error, error.message),
+                error)
           })
     }
   }
@@ -454,34 +476,42 @@ fun AddTripScreen(
                           })
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically) {
-                      Row(
-                          verticalAlignment = Alignment.CenterVertically,
-                          modifier = Modifier.padding(end = 16.dp)) {
-                            RadioButton(
-                                onClick = { tripType = TripType.BUSINESS },
-                                selected = tripType == TripType.BUSINESS,
-                                modifier = Modifier.testTag("tripTypeBusiness"))
-                            Text(
-                                stringResource(R.string.business),
-                                modifier = Modifier.padding(start = 2.dp))
-                          }
-                      Row(
-                          verticalAlignment = Alignment.CenterVertically,
-                          modifier = Modifier.padding(start = 16.dp)) {
-                            RadioButton(
-                                onClick = { tripType = TripType.TOURISM },
-                                selected = tripType == TripType.TOURISM,
-                                modifier = Modifier.testTag("tripTypeTourism"))
-                            Text(
-                                stringResource(R.string.tourism),
-                                modifier = Modifier.padding(start = 2.dp))
+                Spacer(modifier = Modifier.height(2.dp))
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded },
+                    modifier = Modifier.testTag("tripTypeDropdown")) {
+                      TextField(
+                          value = tripType.name.lowercase().replaceFirstChar { it.uppercase() },
+                          onValueChange = {},
+                          readOnly = true,
+                          label = { Text(stringResource(R.string.select_trip_type)) },
+                          trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                          },
+                          modifier = Modifier.fillMaxWidth().menuAnchor().testTag("inputTripType"))
+                      ExposedDropdownMenu(
+                          expanded = expanded,
+                          onDismissRequest = { expanded = false },
+                          modifier = Modifier.testTag("expandedDropdownTrips")) {
+                            TripType.entries.forEach { type ->
+                              DropdownMenuItem(
+                                  text = {
+                                    Text(
+                                        text =
+                                            type.name.lowercase().replaceFirstChar {
+                                              it.uppercase()
+                                            })
+                                  },
+                                  onClick = {
+                                    tripType = type
+                                    expanded = false
+                                  })
+                            }
                           }
                     }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically) {
@@ -507,7 +537,7 @@ fun AddTripScreen(
                       onFailure = { exception ->
                         Toast.makeText(
                                 context,
-                                "Failed to upload image: ${exception.message}",
+                                context.getString(R.string.fail_upload_image, exception.message),
                                 Toast.LENGTH_SHORT)
                             .show()
                       })

@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.android.voyageur.MainActivity
 import com.android.voyageur.R
 
 object NotificationHelper {
@@ -59,11 +60,18 @@ object NotificationHelper {
       intent: Intent? = null,
       notificationManagerCompat: NotificationManagerCompat? = null
   ) {
+    val appIntent =
+        intent
+            ?: Intent(context, MainActivity::class.java).apply {
+              flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+
     val pendingIntent =
-        intent?.let {
-          PendingIntent.getActivity(
-              context, 0, it, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        }
+        PendingIntent.getActivity(
+            context,
+            notificationId, // Use notificationId to create unique PendingIntent
+            appIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
     val builder =
         NotificationCompat.Builder(context, CHANNEL_ID)
@@ -72,8 +80,7 @@ object NotificationHelper {
             .setContentText(text)
             .setPriority(priority)
             .setAutoCancel(true)
-
-    pendingIntent?.let { builder.setContentIntent(it) }
+            .setContentIntent(pendingIntent) // Attach the intent here
 
     val mgrCompat = notificationManagerCompat ?: NotificationManagerCompat.from(context)
 

@@ -9,7 +9,8 @@ data class User(
     var contacts: List<String> = mutableListOf(),
     var interests: List<String> = mutableListOf(),
     var username: String = "",
-    val favoriteTrips: List<String> = emptyList()
+    val favoriteTrips: List<String> = emptyList(),
+    var fcmToken: String? = null // Add FCM token with null default
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -29,6 +30,7 @@ data class User(
     if (!favoriteTrips.containsAll(other.favoriteTrips) ||
         !other.favoriteTrips.containsAll(favoriteTrips))
         return false
+    if (fcmToken != other.fcmToken) return false // Add FCM token comparison
 
     return true
   }
@@ -43,6 +45,22 @@ data class User(
     result = 31 * result + interests.toSet().hashCode()
     result = 31 * result + username.hashCode()
     result = 31 * result + favoriteTrips.toSet().hashCode()
+    result = 31 * result + (fcmToken?.hashCode() ?: 0) // Add FCM token to hash
     return result
+  }
+
+  // Helper function to convert User to Map for Firestore
+  fun toMap(): Map<String, Any?> {
+    return mapOf(
+        "id" to id,
+        "name" to name,
+        "email" to email,
+        "profilePicture" to profilePicture,
+        "bio" to bio,
+        "contacts" to contacts,
+        "interests" to interests,
+        "username" to username,
+        "favoriteTrips" to favoriteTrips,
+        "fcmToken" to fcmToken)
   }
 }

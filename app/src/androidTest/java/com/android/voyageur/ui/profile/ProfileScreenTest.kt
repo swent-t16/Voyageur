@@ -13,6 +13,7 @@ import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.notifications.TripInvite
 import com.android.voyageur.model.notifications.TripInviteRepository
+import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripRepository
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.User
@@ -416,14 +417,46 @@ class ProfileScreenTest {
     userViewModel._user.value = user
     userViewModel._isLoading.value = false
 
-    // Create test invite with specific "from" user
+    // Mock trip and sender details
+    val trip = Trip(id = "trip1", name = "Adventure Trip")
+    val sender = User(id = "sender123", name = "Alice")
+
+    // Mock tripInviteRepository and userRepository behavior
+    doAnswer { invocation ->
+          val tripId = invocation.getArgument<String>(0)
+          val onSuccess = invocation.getArgument<(Trip?) -> Unit>(1)
+          if (tripId == "trip1") {
+            onSuccess(trip)
+          } else {
+            onSuccess(null)
+          }
+          null
+        }
+        .`when`(tripsRepository)
+        .getTripById(eq("trip1"), anyOrNull(), anyOrNull())
+
+    doAnswer { invocation ->
+          val userId = invocation.getArgument<String>(0)
+          val onSuccess = invocation.getArgument<(User?) -> Unit>(1)
+          if (userId == "sender123") {
+            onSuccess(sender)
+          } else {
+            onSuccess(null)
+          }
+          null
+        }
+        .`when`(userRepository)
+        .getUserById(eq("sender123"), anyOrNull(), anyOrNull())
+
+    // Create test invite
     val invite = TripInvite(id = "invite1", from = "sender123", to = "user2", tripId = "trip1")
     tripsViewModel.set_tripInvites(listOf(invite))
 
     // Let the UI update
     composeTestRule.waitForIdle()
 
-    // Verify the sender information is displayed
-    composeTestRule.onNodeWithText("From: sender123").assertIsDisplayed()
+    // Verify the sender's name and trip name are displayed
+    composeTestRule.onNodeWithText("Adventure Trip").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Invited by: Alice").assertIsDisplayed()
   }
 }

@@ -30,6 +30,8 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -869,5 +871,51 @@ class TripsViewModelTest {
     // Assert
     assert(!callbackCalled) // Callback should not be called for empty user ID
     assert(tripsViewModel.tripNotificationCount.value == 0L)
+  }
+
+  @Test
+  fun getTripById_success() = runTest {
+    // Arrange
+    val tripId = "1"
+    val expectedTrip = trip
+
+    doAnswer { invocation ->
+          val onSuccess = invocation.arguments[1] as (Trip?) -> Unit
+          onSuccess(expectedTrip)
+          null
+        }
+        .`when`(tripsRepository)
+        .getTripById(any(), any(), any())
+
+    // Act
+    var resultTrip: Trip? = null
+    tripsViewModel.getTripById(tripId) { trip -> resultTrip = trip }
+    advanceUntilIdle()
+
+    // Assert
+    assertEquals(expectedTrip, resultTrip)
+  }
+
+  @Test
+  fun getTripById_failure() = runTest {
+    // Arrange
+    val tripId = "1"
+    val exception = Exception("Failed to fetch trip")
+
+    doAnswer { invocation ->
+          val onFailure = invocation.arguments[2] as (Exception) -> Unit
+          onFailure(exception)
+          null
+        }
+        .`when`(tripsRepository)
+        .getTripById(any(), any(), any())
+
+    // Act
+    var resultTrip: Trip? = null
+    tripsViewModel.getTripById(tripId) { trip -> resultTrip = trip }
+    advanceUntilIdle()
+
+    // Assert
+    assertNull(resultTrip)
   }
 }
