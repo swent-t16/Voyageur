@@ -34,7 +34,8 @@ fun SettingsScreen(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute(),
-            userViewModel)
+            userViewModel,
+            tripsViewModel)
       },
       content = { pd ->
         Box(modifier = Modifier.padding(pd)) {

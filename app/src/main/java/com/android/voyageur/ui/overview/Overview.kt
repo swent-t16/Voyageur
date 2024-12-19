@@ -15,6 +15,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.twotone.Favorite
 import androidx.compose.material3.AlertDialog
@@ -98,7 +101,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
  * @param navigationActions Actions to handle navigation between screens.
  * @param userViewModel The ViewModel containing the state and logic for user data.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun OverviewScreen(
     tripsViewModel: TripsViewModel,
@@ -112,6 +115,7 @@ fun OverviewScreen(
   val status by connectivityState()
   val isConnected = status === ConnectionState.Available
   var searchQuery by remember { mutableStateOf("") }
+  var sortedDecreasing by remember { mutableStateOf(true) }
   var showOnlyFavorites by remember { mutableStateOf(false) }
   val user by userViewModel.user.collectAsState()
   if (user == null) {
@@ -141,37 +145,41 @@ fun OverviewScreen(
       floatingActionButton = { AddTripFAB(isConnected, navigationActions) },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-          SearchBar(
-              placeholderId = R.string.overview_searchbar_placeholder,
-              onQueryChange = { searchQuery = it },
-              modifier =
-                  Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
-                      .testTag("searchField")
-                      .weight(1f))
+        FlowRow(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.SpaceBetween) {
+              SearchBar(
+                  placeholderId = R.string.overview_searchbar_placeholder,
+                  onQueryChange = { searchQuery = it },
+                  modifier = Modifier.testTag("searchField").weight(1f).fillMaxWidth(0.9f))
 
-          Spacer(modifier = Modifier.width(8.dp))
-
-          IconButton(
-              onClick = { showOnlyFavorites = !showOnlyFavorites },
-              modifier = Modifier.testTag("favoriteFilterButton").padding(end = 8.dp)) {
-                Icon(
-                    imageVector =
-                        if (showOnlyFavorites) Icons.Filled.Favorite
-                        else Icons.Default.FavoriteBorder,
-                    contentDescription =
-                        if (showOnlyFavorites) stringResource(R.string.show_all_trips)
-                        else stringResource(R.string.show_favorite_trips),
-                    tint = MaterialTheme.colorScheme.onSurface)
-              }
-        }
+              IconButton(
+                  onClick = { sortedDecreasing = !sortedDecreasing },
+                  modifier = Modifier.testTag("reverseTripsOrderButton")) {
+                    Icon(imageVector = Icons.Default.SwapVert, contentDescription = "H")
+                  }
+              IconButton(
+                  onClick = { showOnlyFavorites = !showOnlyFavorites },
+                  modifier = Modifier.testTag("favoriteFilterButton")) {
+                    Icon(
+                        imageVector =
+                            if (showOnlyFavorites) Icons.Filled.Favorite
+                            else Icons.Default.FavoriteBorder,
+                        contentDescription =
+                            if (showOnlyFavorites) stringResource(R.string.show_all_trips)
+                            else stringResource(R.string.show_favorite_trips),
+                        tint = MaterialTheme.colorScheme.onSurface)
+                  }
+            }
       },
       bottomBar = {
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute(),
-            userViewModel)
+            userViewModel,
+            tripsViewModel)
       },
       content = { pd ->
         OverviewContent(
@@ -183,6 +191,7 @@ fun OverviewScreen(
             tripsViewModel = tripsViewModel,
             navigationActions = navigationActions,
             userViewModel = userViewModel,
+            descending = sortedDecreasing,
             user = user!!)
       })
 }
@@ -266,6 +275,7 @@ private fun OverviewContent(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
+    descending: Boolean = true,
     user: User
 ) {
   if (isLoading) {
@@ -285,6 +295,7 @@ private fun OverviewContent(
           tripsViewModel = tripsViewModel,
           navigationActions = navigationActions,
           userViewModel = userViewModel,
+          descending = descending,
           user = user)
     }
   }
@@ -305,8 +316,7 @@ private fun EmptyTripsMessage(showOnlyFavorites: Boolean) {
         modifier = Modifier.testTag("emptyTripPrompt"),
         text =
             if (!showOnlyFavorites) stringResource(R.string.empty_trip_prompt)
-            else stringResource(R.string.no_favorite_trips),
-    )
+            else stringResource(R.string.no_favorite_trips))
   }
 }
 
@@ -330,10 +340,13 @@ private fun TripsList(
     tripsViewModel: TripsViewModel,
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
+    descending: Boolean = true,
     user: User
 ) {
-  val filteredTrips = filterTrips(trips, searchQuery)
-
+  var filteredTrips = filterTrips(trips, searchQuery)
+  if (!descending) {
+    filteredTrips = filteredTrips.reversed()
+  }
   if (searchQuery.isNotEmpty() && filteredTrips.isEmpty()) {
     NoResultsFound(modifier = Modifier.testTag("noSearchResults"))
     return
@@ -600,24 +613,29 @@ fun TripItem(
               onClick = {
                 val userId = Firebase.auth.uid.orEmpty()
                 if (trip.participants.contains(userId)) {
-                  val updatedParticipants = trip.participants.filter { it != userId }
-                  val updatedTrip = trip.copy(participants = updatedParticipants)
-                  tripsViewModel.updateTrip(
-                      updatedTrip,
-                      onSuccess = {
-                        Toast.makeText(
-                                context,
-                                context.getString(R.string.trip_left_text),
-                                Toast.LENGTH_SHORT)
-                            .show()
-                      },
-                      onFailure = { error ->
-                        Toast.makeText(
-                                context,
-                                context.getString(R.string.fail_leave_trip, error.message),
-                                Toast.LENGTH_SHORT)
-                            .show()
-                      })
+                  if (trip.participants.size > 1) {
+                    val updatedParticipants = trip.participants.filter { it != userId }
+                    val updatedTrip = trip.copy(participants = updatedParticipants)
+                    tripsViewModel.updateTrip(
+                        updatedTrip,
+                        onSuccess = {
+                          Toast.makeText(
+                                  context,
+                                  context.getString(R.string.trip_left_text),
+                                  Toast.LENGTH_SHORT)
+                              .show()
+                        },
+                        onFailure = { error ->
+                          Toast.makeText(
+                                  context,
+                                  context.getString(R.string.fail_leave_trip, error.message),
+                                  Toast.LENGTH_SHORT)
+                              .show()
+                        })
+                  } else {
+                    // if no participants left, delete the trip
+                    tripsViewModel.deleteTripById(trip.id)
+                  }
                 }
                 leaveTrip = false
               }) {
@@ -646,7 +664,7 @@ fun DisplayParticipants(
     modifier: Modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
     arrangement: Arrangement.Vertical = Arrangement.Bottom
 ) {
-  val numberOfParticipants = trip.participants.size - 1
+  val numberOfParticipants = trip.participants.size
   val numberToString = generateParticipantString(numberOfParticipants)
   val themeColor = MaterialTheme.colorScheme.onSurface
   Column(
@@ -673,16 +691,13 @@ fun DisplayParticipants(
         ) {
           // Display participants (limit to 5 avatars max for space reasons)
           if (numberOfParticipants > 0) {
-            trip.participants
-                .filter { it != Firebase.auth.uid.orEmpty() }
-                .take(4)
-                .forEach { participant ->
-                  val user = userViewModel.contacts.value.find { it.id == participant }
-                  if (user != null) {
-                    // uses the same UserIcon function as in the participants form
-                    UserIcon(user)
-                  }
-                }
+            trip.participants.take(4).forEach { participant ->
+              val user = userViewModel.contacts.value.find { it.id == participant }
+              if (user != null) {
+                // uses the same UserIcon function as in the participants form
+                UserIcon(user)
+              }
+            }
             if (numberOfParticipants > 4) {
               Text(
                   text = stringResource(R.string.additional_participants, numberOfParticipants - 4),
@@ -716,8 +731,8 @@ fun Timestamp.toDateString(): String {
 fun generateParticipantString(numberOfParticipants: Int): String {
   return when (numberOfParticipants) {
     0 -> "No participants."
-    1 -> "1 Participant:"
-    else -> "$numberOfParticipants Participants:"
+    1 -> "1 Other Participant:"
+    else -> "$numberOfParticipants Other Participants:"
   }
 }
 /**

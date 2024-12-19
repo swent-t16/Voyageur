@@ -9,17 +9,26 @@ Travelers often struggle with organizing all their ideas and options when planni
 - James, a 40-year-old business traveler looking to make the most of limited free time during work trips and needs a fast way to get a clear hour-by-hour schedule.
 
 ### Multi-user support
-
 - Google authenticator for secure authentication during login.
-- Users can create multiple trips, invite others to collaborate, and assign different permissions (view-only or editing rights).
-- Role-based access control (RBAC) ensures that only authorized users can edit or view trip details.
+- Users can create multiple trips, invite others to collaborate
 - Real-time sync ensures seamless collaboration and updates when multiple users work on the same trip.
+- Participants can edit trip details / leave or delete the trip. They can also add photos that are shared with each other
+
+### Social Aspect
+- Users can decide to make the trip public, so other people can discover it via their feed page.
+- Friend requests and trip invites ensure that the users are not added to trips by bad actors / spammers.
+
+### Other features
+- Users can search for their acquaintances and add them as "friends"
+- They can also search for places and activities and view relevant information such as opening hours, address and photos
+- They can add interests in the profile page that will be taken into account by the AI assistant when generating trip and activity suggestions
 
 ### Sensor use
-GPS is used to find nearby restaurants, museums, and activities based on the user's current location.
-
+- GPS is used to find nearby restaurants, museums, and activities based on the user's current location.
+- The camera is used to change the trip's thumbnail, change profile picture and add shared pictures.
+- 
 ### Offline mode
-- Users can save travel ideas (restaurants, museums, activities) offline and still access them without network connectivity.
-- Previously planned schedules or itineraries can be downloaded and viewed offline, allowing for uninterrupted access even in areas with poor connectivity.
-- A “Connected” vs. “Offline” status indicator informs users of their current connectivity, prompting a refresh when back online.
-- While offline, users will see prompts or buttons to retry certain actions that depend on live API calls, like finding new locations or generating updated itineraries.
+- Previously planned schedules are still available offline, allowing for uninterrupted access even in areas with poor connectivity.
+- The search for users and the feed still work even without connexion, though a bit slower
+- When the user goes offline a red banner will be displayed until they reconnect and certain functions are disabled
+- Photos for users and trips are cached so available offline.

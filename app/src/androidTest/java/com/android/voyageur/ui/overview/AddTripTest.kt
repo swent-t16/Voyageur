@@ -2,11 +2,9 @@ package com.android.voyageur.ui.overview
 
 import android.icu.util.GregorianCalendar
 import android.icu.util.TimeZone
-import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertIsNotSelected
-import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -15,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.location.Location
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
@@ -42,6 +41,7 @@ import org.mockito.kotlin.whenever
 class AddTripScreenTest {
   private lateinit var tripRepository: TripRepository
   private lateinit var navigationActions: NavigationActions
+  private lateinit var tripInviteRepository: TripInviteRepository
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var firebaseAuth: FirebaseAuth
   private lateinit var placesRepository: PlacesRepository
@@ -54,7 +54,8 @@ class AddTripScreenTest {
     tripRepository = mock(TripRepository::class.java)
     navigationActions = mock(NavigationActions::class.java)
     firebaseAuth = mock(FirebaseAuth::class.java)
-    tripsViewModel = TripsViewModel(tripRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
     placesRepository = mock(PlacesRepository::class.java)
     placesViewModel = PlacesViewModel(placesRepository)
 
@@ -130,15 +131,14 @@ class AddTripScreenTest {
       AddTripScreen(tripsViewModel, navigationActions, placesViewModel = placesViewModel)
     }
 
-    // Check initial state
-    composeTestRule.onNodeWithTag("tripTypeBusiness").assertIsSelected()
-    composeTestRule.onNodeWithTag("tripTypeTourism").assertIsNotSelected()
+    composeTestRule.onNodeWithTag("tripTypeDropdown").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("inputTripType").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Tourism", useUnmergedTree = true).assertIsDisplayed()
+    composeTestRule.onNodeWithTag("inputTripType").performClick()
+    composeTestRule.onNodeWithTag("expandedDropdownTrips").assertIsDisplayed()
 
-    // Attempt to change to Tourism
-    composeTestRule.onNodeWithTag("tripTypeTourism").performClick()
-
-    // Verify that the Tourism button is clickable
-    composeTestRule.onNodeWithTag("tripTypeTourism").assertHasClickAction()
+    // change trip type
+    composeTestRule.onNodeWithText("Educational", useUnmergedTree = true).performClick()
   }
 
   @Test
@@ -247,7 +247,6 @@ class AddTripScreenTest {
 
     composeTestRule.onNodeWithTag("inputTripTitle").assertTextContains("Existing Trip")
     composeTestRule.onNodeWithTag("inputTripDescription").assertTextContains("Existing trip")
-    composeTestRule.onNodeWithTag("tripTypeTourism").assertIsSelected()
   }
 
   @Test

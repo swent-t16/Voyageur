@@ -132,4 +132,19 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
           onFailure(exception)
         }
   }
+
+  override fun getTripById(
+      tripId: String,
+      onSuccess: (Trip) -> Unit,
+      onFailure: (Exception) -> Unit
+  ) {
+    db.collection(collectionPath)
+        .document(tripId)
+        .get()
+        .addOnSuccessListener { document ->
+          document.toObject(Trip::class.java)?.let(onSuccess)
+              ?: onFailure(Exception("Trip not found"))
+        }
+        .addOnFailureListener(onFailure)
+  }
 }

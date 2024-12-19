@@ -13,6 +13,7 @@ import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.location.Location
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.place.CustomPlace
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
@@ -64,6 +65,7 @@ class E2ETestM2 {
   @get:Rule val composeTestRule = createComposeRule()
 
   private lateinit var tripRepository: TripRepository
+  private lateinit var tripInviteRepository: TripInviteRepository
   private lateinit var navigationActions: NavigationActions
   private lateinit var tripsViewModel: TripsViewModel
 
@@ -83,7 +85,8 @@ class E2ETestM2 {
   fun setUp() {
     tripRepository = mock(TripRepository::class.java)
     navigationActions = mock(NavigationActions::class.java)
-    tripsViewModel = TripsViewModel(tripRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
 
     placesRepository = mock(PlacesRepository::class.java)
     placesViewModel = PlacesViewModel(placesRepository)
@@ -151,7 +154,7 @@ class E2ETestM2 {
           startDestination = Route.OVERVIEW,
       ) {
         composable(Route.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
-        composable(Route.PROFILE) { ProfileScreen(userViewModel, navigation) }
+        composable(Route.PROFILE) { ProfileScreen(userViewModel, tripsViewModel, navigation) }
         composable(Route.SEARCH) {
           SearchScreen(
               userViewModel, placesViewModel, tripsViewModel, navigation, requirePermission = false)
@@ -164,8 +167,14 @@ class E2ETestM2 {
           AddTripScreen(tripsViewModel, navigation, placesViewModel = placesViewModel)
         }
         composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
-        composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigation) }
-        composable(Screen.EDIT_PROFILE) { EditProfileScreen(userViewModel, navigation) }
+        composable(Screen.PROFILE) { ProfileScreen(userViewModel, tripsViewModel, navigation) }
+        composable(Screen.EDIT_PROFILE) {
+          EditProfileScreen(
+              userViewModel,
+              navigation,
+              tripsViewModel = tripsViewModel,
+          )
+        }
         composable(Screen.SEARCH) {
           SearchScreen(userViewModel, placesViewModel, tripsViewModel, navigation)
         }
@@ -274,13 +283,13 @@ class E2ETestM2 {
     composeTestRule.onNodeWithTag("byDayScreen").assertIsDisplayed()
 
     // Go to edit trip
-    composeTestRule.onNodeWithText("Settings").performClick()
+    composeTestRule.onNodeWithContentDescription("Settings").performClick()
     composeTestRule.onNodeWithTag("inputTripTitle").assertTextContains("Trip with activities")
     composeTestRule.onNodeWithTag("inputTripTitle").performTextClearance()
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Changed Title")
     composeTestRule.onNodeWithTag("inputTripTitle").assertTextContains("Changed Title")
 
-    composeTestRule.onNodeWithText("Schedule").performClick()
+    composeTestRule.onNodeWithContentDescription("Schedule").performClick()
     // check activity is displayed in daily view
     composeTestRule.onNodeWithText("Activity 1").assertIsDisplayed()
     composeTestRule.onNodeWithText("Daily").performClick()
@@ -300,10 +309,10 @@ class E2ETestM2 {
     composeTestRule.onNodeWithTag("weeklyViewScreen").assertIsDisplayed()
 
     // go to activities screen
-    composeTestRule.onNodeWithText("Activities").performClick()
+    composeTestRule.onNodeWithContentDescription("Activities").performClick()
     composeTestRule.onNodeWithText("Activity 1").assertIsDisplayed()
 
-    composeTestRule.onNodeWithText("Schedule").performClick()
+    composeTestRule.onNodeWithContentDescription("Schedule").performClick()
     // back to weekly view
     composeTestRule.onNodeWithText("Daily").performClick()
     composeTestRule.waitForIdle()

@@ -94,6 +94,14 @@ data class Trip(
 
 /** Enum representing the type of a trip - Business or Tourism. */
 enum class TripType {
-  BUSINESS,
   TOURISM,
+  BUSINESS,
+  ADVENTURE,
+  CULTURAL,
+  FAMILY,
+  CULINARY,
+  FESTIVAL,
+  VOLUNTEER,
+  EDUCATIONAL,
+  OTHER
 }
