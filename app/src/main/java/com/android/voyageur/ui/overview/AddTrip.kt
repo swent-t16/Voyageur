@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
@@ -161,8 +162,9 @@ fun AddTripScreen(
   var imageUri by remember { mutableStateOf("") }
   var discoverable by remember { mutableStateOf(false) }
   val contactsAndUsers by actualUserViewModel.contacts.collectAsState()
+  LaunchedEffect(Unit) { tripsViewModel.fetchTripInvites() }
   val userList =
-      remember(contactsAndUsers, isEditMode) {
+      remember(tripsViewModel.selectedTrip, contactsAndUsers, isEditMode) {
         contactsAndUsers
             .filter { user -> user.id != Firebase.auth.uid.orEmpty() }
             .map {
@@ -187,7 +189,6 @@ fun AddTripScreen(
   var isSaving by remember { mutableStateOf(false) }
 
   val keyboardController = LocalSoftwareKeyboardController.current
-  Log.d("USERLIST", contactsAndUsers.size.toString())
 
   LaunchedEffect(isEditMode) {
     if (isEditMode && tripsViewModel.selectedTrip.value != null) {
@@ -204,7 +205,7 @@ fun AddTripScreen(
     }
   }
 
-  fun createTripWithImage(imageUrl: String) {
+  fun createTripWithImage(imageUrl: String, tripId: String) {
     if (isSaving) return // Prevent duplicate saves
 
     if (startDate == null || endDate == null) {
@@ -253,9 +254,7 @@ fun AddTripScreen(
 
     val trip =
         Trip(
-            id =
-                if (isEditMode) tripsViewModel.selectedTrip.value!!.id
-                else tripsViewModel.getNewTripId(),
+            id = tripId,
             description = description,
             name = name,
             participants =
@@ -347,6 +346,12 @@ fun AddTripScreen(
                       }
                 })
       }) { paddingValues ->
+        val tripId =
+            if (isEditMode) {
+              tripsViewModel.selectedTrip.value!!.id
+            } else {
+              tripsViewModel.getNewTripId()
+            }
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
           Column(
               modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
@@ -393,10 +398,14 @@ fun AddTripScreen(
                     singleLine = true)
 
                 Spacer(modifier = Modifier.height(2.dp))
-
-                UserDropdown(
-                    userList,
-                    onUpdate = { pair, index -> userList[index] = Pair(pair.first, !pair.second) })
+                if (isEditMode) {
+                  UserDropdown(
+                      userList,
+                      tripsViewModel,
+                      tripId,
+                      // set to false to remove the user
+                      onRemove = { pair, index -> userList[index] = Pair(pair.first, false) })
+                }
 
                 OutlinedTextField(
                     value = description,
@@ -523,7 +532,25 @@ fun AddTripScreen(
                           stringResource(R.string.make_trip_public),
                           modifier = Modifier.padding(end = 16.dp))
                     }
-                Spacer(modifier = Modifier.height(16.dp))
+
+                if (!isEditMode) {
+                  Row(
+                      modifier =
+                          Modifier.fillMaxWidth().padding(top = 4.dp).testTag("informativeText"),
+                      verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription =
+                                null, // Decorative icon, no content description needed
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(end = 8.dp))
+                        Text(
+                            text =
+                                stringResource(
+                                    R.string.add_participants_text_when_not_in_edit_mode),
+                            color = MaterialTheme.colorScheme.onBackground)
+                      }
+                }
               }
 
           Button(
@@ -533,7 +560,7 @@ fun AddTripScreen(
                   val imageUriParsed = Uri.parse(imageUri)
                   tripsViewModel.uploadImageToFirebase(
                       uri = imageUriParsed,
-                      onSuccess = { downloadUrl -> createTripWithImage(downloadUrl) },
+                      onSuccess = { downloadUrl -> createTripWithImage(downloadUrl, tripId) },
                       onFailure = { exception ->
                         Toast.makeText(
                                 context,
@@ -542,7 +569,7 @@ fun AddTripScreen(
                             .show()
                       })
                 } else {
-                  createTripWithImage(imageUri)
+                  createTripWithImage(imageUri, tripId)
                 }
               },
               enabled =

@@ -198,7 +198,7 @@ class E2ETestM3a {
         .onNodeWithText("Select Image from Gallery", useUnmergedTree = true)
         .assertExists()
     composeTestRule.onNodeWithTag("inputTripTitle").assertExists()
-    composeTestRule.onNodeWithText("Participants", useUnmergedTree = true).assertExists()
+    composeTestRule.onNodeWithTag("informativeText").assertExists()
     composeTestRule.onNodeWithTag("inputTripDescription").assertExists()
     composeTestRule.onNodeWithTag("searchTextField").assertExists() // location
     composeTestRule.onNodeWithTag("inputStartDate").assertExists()

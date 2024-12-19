@@ -149,6 +149,14 @@
     <string name="trip_updated_failure">Failed to update trip: %1$s</string>
     <string name="trip_updated_error">Error updating trip: %1$s</string>
     <string name="fail_upload_image">Failed to upload image: %1$s</string>
+    <string name="add_participants_text_when_not_in_edit_mode">"To add participants, first create a trip and then send them invitations from Settings."</string>
+<!-- USER DROPDOWN -->
+    <string name="profile_picture_description">Profile Picture</string>
+    <string name="participants_label">Participants</string>
+    <string name="remove_label">Remove</string>
+    <string name="cancel_label">Cancel</string>
+    <string name="invite_label">Invite</string>
+    <string name="null_selected_trip_label">This should not happen.</string>
 
  <!-- Photos Screen -->
     <string name="add_photo">Add Photo</string>
