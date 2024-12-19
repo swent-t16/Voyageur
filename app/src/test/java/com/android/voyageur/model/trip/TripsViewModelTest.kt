@@ -991,7 +991,7 @@ class TripsViewModelTest {
 
     doAnswer { invocation ->
           val onFailure = invocation.arguments[2] as (Exception) -> Unit
-          onFailure(exception) // Simulate failure
+          onFailure(exception)
           null
         }
         .`when`(tripInviteRepository)
