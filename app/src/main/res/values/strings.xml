@@ -192,4 +192,6 @@
     <string name="pending_trip_invites">Pending Trip Invites (%1$d)</string>
     <string name="no_pending_invites">No pending trip invites</string>
     <string name="from">From: %1$s</string>
+    <string name="from_user">From: %1$s</string>
+    <string name="trip_id">Trip ID: %1$s</string>
 </resources>

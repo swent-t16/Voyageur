@@ -568,4 +568,20 @@ open class TripsViewModel(
     tripInviteRepository.createTripInvite(
         req = tripInvite, onSuccess = onSuccess, onFailure = onFailure)
   }
+
+  /**
+   * Fetches a trip by its ID and invokes the provided callback with the result.
+   *
+   * @param tripId The ID of the trip to fetch.
+   * @param onResult Callback to be invoked with the fetched trip or null if the fetch fails.
+   */
+  fun getTripById(tripId: String, onResult: (Trip?) -> Unit) {
+    tripsRepository.getTripById(
+        tripId,
+        onSuccess = { trip -> onResult(trip) },
+        onFailure = { exception ->
+          Log.e("TripsViewModel", "Failed to fetch trip by ID: $exception")
+          onResult(null)
+        })
+  }
 }
