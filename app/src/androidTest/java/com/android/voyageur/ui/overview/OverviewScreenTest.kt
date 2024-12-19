@@ -256,8 +256,8 @@ class OverviewScreenTest {
     val result1 = generateParticipantString(1)
     val result2 = generateParticipantString(2)
     assert(result0 == "No participants.")
-    assert(result1 == "1 Other Participant:")
-    assert(result2 == "2 Other Participants:")
+    assert(result1 == "1 Participant:")
+    assert(result2 == "2 Participants:")
   }
 
   @Test

@@ -33,6 +33,17 @@ private val LightColorScheme =
         */
         )
 
+/**
+ * A composable function that applies the correct theme (dark or light) based on system settings
+ * or user preference.
+ *
+ * @param darkTheme A boolean to specify whether to use the dark theme. By default, this is
+ *                  determined by `isSystemInDarkTheme()`.
+ * @param dynamicColor A boolean to specify whether dynamic color should be used on Android 12+.
+ *                     If true and the device runs Android 12 or higher, dynamic color will be
+ *                     applied based on the system theme.
+ * @param content The composable content to apply the theme to.
+ */
 @Composable
 fun VoyageurTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

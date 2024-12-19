@@ -23,6 +23,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * A composable search bar component that allows the user to input search queries.
+ * It includes a leading search icon, a text input field, and a trailing clear icon
+ * which resets the search query when clicked.
+ *
+ * @param placeholderId The resource ID of the string to be used as the placeholder text for the search input field.
+ * @param onQueryChange A lambda function that is invoked whenever the search query changes.
+ * It provides the updated query string as a parameter.
+ * @param modifier A [Modifier] to customize the layout and appearance of the search bar. Default is [Modifier].
+ */
 @Composable
 fun SearchBar(placeholderId: Int, onQueryChange: (String) -> Unit, modifier: Modifier = Modifier) {
   var query by remember { mutableStateOf("") }

@@ -6,14 +6,30 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
+/**
+ * Implementation of [TripRepository] that interacts with Firebase Firestore to manage trips.
+ * This class provides methods for creating, reading, updating, and deleting trips,
+ * as well as fetching and listening for trip updates.
+ */
 class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository {
   private val collectionPath = "trips"
   private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
+    /**
+     * Generates a new unique trip ID by creating a new document in the "trips" collection.
+     *
+     * @return The new trip ID as a string.
+     */
   override fun getNewTripId(): String {
     return db.collection(collectionPath).document().id
   }
 
+    /**
+     * Initializes the repository by adding an authentication state listener to FirebaseAuth.
+     * If a user is logged in, the onSuccess callback is invoked.
+     *
+     * @param onSuccess The callback to be invoked when initialization is successful.
+     */
   override fun init(onSuccess: () -> Unit) {
     auth.addAuthStateListener { auth ->
       val user: FirebaseUser? = auth.currentUser
@@ -25,6 +41,13 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
     }
   }
 
+    /**
+     * Retrieves a list of trips that the specified creator is a participant of.
+     *
+     * @param creator The ID of the creator whose trips are to be fetched.
+     * @param onSuccess The callback to be invoked with the list of trips if the operation is successful.
+     * @param onFailure The callback to be invoked if the operation fails, with the exception details.
+     */
   override fun getTrips(
       creator: String,
       onSuccess: (List<Trip>) -> Unit,
@@ -43,6 +66,13 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
         }
   }
 
+    /**
+     * Creates a new trip in the Firestore database.
+     *
+     * @param trip The `Trip` object containing the details of the trip to be created.
+     * @param onSuccess The callback to be invoked when the trip is successfully created.
+     * @param onFailure The callback to be invoked if the operation fails, with the exception details.
+     */
   override fun createTrip(trip: Trip, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
     db.collection(collectionPath)
         .document(trip.id)
@@ -54,6 +84,13 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
         }
   }
 
+    /**
+     * Deletes a trip by its ID from the Firestore database.
+     *
+     * @param id The ID of the trip to be deleted.
+     * @param onSuccess The callback to be invoked when the trip is successfully deleted.
+     * @param onFailure The callback to be invoked if the operation fails, with the exception details.
+     */
   override fun deleteTripById(id: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
     db.collection(collectionPath)
         .document(id)
@@ -122,6 +159,13 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
         }
   }
 
+    /**
+     * Updates an existing trip in the Firestore database.
+     *
+     * @param trip The `Trip` object containing the updated details of the trip.
+     * @param onSuccess The callback to be invoked when the trip is successfully updated.
+     * @param onFailure The callback to be invoked if the operation fails, with the exception details.
+     */
   override fun updateTrip(trip: Trip, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
     db.collection(collectionPath)
         .document(trip.id)
@@ -133,6 +177,13 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
         }
   }
 
+    /**
+     * Retrieves a specific trip by its ID.
+     *
+     * @param tripId The ID of the trip to be fetched.
+     * @param onSuccess The callback to be invoked with the `Trip` object if the operation is successful.
+     * @param onFailure The callback to be invoked if the operation fails, with the exception details.
+     */
   override fun getTripById(
       tripId: String,
       onSuccess: (Trip) -> Unit,

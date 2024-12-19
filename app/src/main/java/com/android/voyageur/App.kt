@@ -30,6 +30,15 @@ import com.android.voyageur.ui.trip.activities.EditActivityScreen
 import com.android.voyageur.ui.trip.assistant.AssistantScreen
 import com.google.android.libraries.places.api.net.PlacesClient
 
+/**
+ * Composable function that sets up the main navigation and screens for the Voyageur app.
+ *
+ * The function configures and initializes the navigation controller, sets up the ViewModels
+ * for various data sources (Trips, User, Places), and establishes navigation routes
+ * for authentication, overview, trip management, user profiles, and activity-related screens.
+ *
+ * @param placesClient The client used to interact with the Google Places API, providing place data.
+ */
 @Composable
 fun VoyageurApp(placesClient: PlacesClient) {
   val navController = rememberNavController()

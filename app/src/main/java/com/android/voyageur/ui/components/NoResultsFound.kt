@@ -32,16 +32,6 @@ import androidx.compose.ui.unit.sp
  * - A main "No results found" message
  * - Additional guidance text suggesting how to adjust the search
  *
- * The component uses Material Design 3 theming and is styled with rounded corners and appropriate
- * spacing.
- *
- * Usage example:
- * ```
- * NoResultsFound(
- *     modifier = Modifier.testTag("noSearchResults")
- * )
- * ```
- *
  * @param modifier Modifier to be applied to the component for test tags, if necessary
  */
 @Composable
