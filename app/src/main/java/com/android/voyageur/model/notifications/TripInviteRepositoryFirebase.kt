@@ -72,11 +72,7 @@ class TripInviteRepositoryFirebase(private val db: FirebaseFirestore) : TripInvi
    * @param onSuccess Callback to execute after successful resolution.
    * @param onFailure Exception handling callback.
    */
-  private fun resolveTripName(
-      tripId: String,
-      onSuccess: (String) -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
+  fun resolveTripName(tripId: String, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
     db.collection("trips")
         .document(tripId)
         .get()
