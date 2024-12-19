@@ -212,4 +212,7 @@
     <string name="from">From: %1$s</string>
     <string name="from_user">From: %1$s</string>
     <string name="trip_id">Trip ID: %1$s</string>
+    <string name="new_trip_invite">New Trip Invite</string>
+    <string name="trip_invite_message">%1$s invited you to join the trip: %2$s</string>
+    <string name="unknown_trip">Unknown Trip</string>
 </resources>

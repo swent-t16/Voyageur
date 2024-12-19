@@ -43,4 +43,21 @@ open class AndroidNotificationProvider(override val context: Context) : Notifica
         iconResId = R.drawable.app_logo,
         priority = NotificationCompat.PRIORITY_HIGH)
   }
+
+  /**
+   * Displays a notification for a new trip invite.
+   *
+   * @param tripName The name of the trip being invited.
+   * @param senderName The name of the user who sent the invite.
+   */
+  override fun showNewTripInviteNotification(tripName: String, senderName: String) {
+    val notificationId = System.currentTimeMillis().toInt()
+    NotificationHelper.showNotification(
+        context = context,
+        notificationId = notificationId,
+        title = context.getString(R.string.new_trip_invite),
+        text = context.getString(R.string.trip_invite_message, senderName, tripName),
+        iconResId = R.drawable.app_logo,
+        priority = NotificationCompat.PRIORITY_HIGH)
+  }
 }

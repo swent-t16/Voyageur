@@ -15,6 +15,7 @@ import com.google.firebase.firestore.AggregateQuerySnapshot
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -31,6 +32,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
@@ -101,20 +103,6 @@ class TripInviteRepositoryFirebaseTest {
 
     shadowOf(Looper.getMainLooper()).idle()
     verify(mockQuery).count()
-  }
-
-  @Test
-  fun `createTripInvite calls Firestore set with correct data`() {
-    `when`(mockDocumentReference.set(any(TripInvite::class.java), any<SetOptions>()))
-        .thenReturn(Tasks.forResult(null))
-
-    tripInviteRepository.createTripInvite(
-        testTripInvite,
-        onSuccess = {},
-        onFailure = { fail("Failure callback should not be called") })
-
-    shadowOf(Looper.getMainLooper()).idle()
-    verify(mockDocumentReference).set(any(TripInvite::class.java), any<SetOptions>())
   }
 
   @Test
@@ -262,5 +250,80 @@ class TripInviteRepositoryFirebaseTest {
 
     verify(mockQuery).addSnapshotListener(any())
     assertEquals(mockListenerRegistration, listener)
+  }
+
+  @Test
+  fun `resolveTripName calls onSuccess with trip name when Firestore query succeeds`() {
+    val tripId = "tripId"
+    val tripName = "Test Trip"
+    val mockDocumentSnapshot = mock(DocumentSnapshot::class.java)
+
+    `when`(mockCollectionReference.document(tripId)).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
+    `when`(mockDocumentSnapshot.getString("name")).thenReturn(tripName)
+
+    tripInviteRepository.resolveTripName(
+        tripId,
+        onSuccess = { name -> assertEquals(tripName, name) },
+        onFailure = { fail("Failure callback should not be called") })
+
+    shadowOf(Looper.getMainLooper()).idle()
+    verify(mockDocumentReference).get()
+  }
+
+  @Test
+  fun `resolveTripName calls onFailure when Firestore query fails`() {
+    val tripId = "tripId"
+    val exception = Exception("Firestore query failed")
+
+    `when`(mockCollectionReference.document(tripId)).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.get()).thenReturn(Tasks.forException(exception))
+
+    tripInviteRepository.resolveTripName(
+        tripId,
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { error -> assertEquals(exception, error) })
+
+    shadowOf(Looper.getMainLooper()).idle()
+    verify(mockDocumentReference).get()
+  }
+
+  @Test
+  fun `createTripInvite calls onFailure when Firestore set operation fails`() {
+    val tripInvite = TripInvite("1", "tripId", "fromUser", "toUser")
+    val exception = Exception("Firestore set operation failed")
+
+    `when`(mockDocumentReference.set(tripInvite, SetOptions.merge()))
+        .thenReturn(Tasks.forException(exception))
+
+    tripInviteRepository.createTripInvite(
+        tripInvite,
+        onSuccess = { fail("Success callback should not be called") },
+        onFailure = { error -> assertEquals(exception, error) })
+
+    shadowOf(Looper.getMainLooper()).idle()
+    verify(mockDocumentReference).set(tripInvite, SetOptions.merge())
+  }
+
+  @Test
+  fun `sendTripInviteNotification sends notification when trip name is resolved`() {
+    val tripInvite = TripInvite("1", "tripId", "fromUser", "toUser")
+    val tripName = "Test Trip"
+    val recipientToken = "recipientToken"
+    val mockDocumentSnapshot = mock(DocumentSnapshot::class.java)
+
+    `when`(mockCollectionReference.document(tripInvite.tripId)).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
+    `when`(mockDocumentSnapshot.getString("name")).thenReturn(tripName)
+    `when`(mockCollectionReference.document(tripInvite.to)).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
+    `when`(mockDocumentSnapshot.getString("fcmToken")).thenReturn(recipientToken)
+
+    tripInviteRepository.sendTripInviteNotification(tripInvite)
+
+    shadowOf(Looper.getMainLooper()).idle()
+    verify(mockDocumentReference, times(2)).get()
+    verify(mockDocumentSnapshot).getString("name")
+    verify(mockDocumentSnapshot).getString("fcmToken")
   }
 }
