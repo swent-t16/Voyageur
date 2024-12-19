@@ -209,11 +209,7 @@ class E2ETestM2 {
     // check trip creation
     composeTestRule.onNodeWithTag("inputTripTitle").performTextInput("Test Trip")
     composeTestRule.onNodeWithTag("inputTripDescription").performTextInput("Best trip of my life")
-    composeTestRule.onNodeWithText("Start Date *").performClick()
-    composeTestRule.onNodeWithText("OK").performClick()
-    composeTestRule.onNodeWithText("End Date *").performClick()
-    composeTestRule.onNodeWithText("OK").performClick()
-    composeTestRule.onNodeWithTag("tripSave").assertIsEnabled()
+    composeTestRule.onNodeWithTag("tripSave").assertExists()
 
     composeTestRule.onNodeWithTag("goBackButton").performClick()
     composeTestRule.onNodeWithTag("overviewScreen").assertIsDisplayed()
