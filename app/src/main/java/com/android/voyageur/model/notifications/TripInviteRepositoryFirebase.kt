@@ -1,6 +1,5 @@
 package com.android.voyageur.model.notifications
 
-import android.content.ContentValues.TAG
 import android.util.Log
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
@@ -59,7 +58,7 @@ class TripInviteRepositoryFirebase(private val db: FirebaseFirestore) : TripInvi
         .document(req.id)
         .set(req, SetOptions.merge())
         .addOnSuccessListener {
-          // Send FCM notification
+          // Send a notification for the trip invite
           sendTripInviteNotification(req)
           onSuccess()
         }
@@ -94,13 +93,13 @@ class TripInviteRepositoryFirebase(private val db: FirebaseFirestore) : TripInvi
    * @param tripInvite The trip invite to send a notification for.
    */
   private fun sendTripInviteNotification(tripInvite: TripInvite) {
+    // Resolve the trip name if necessary (assuming `tripId` is not the actual name)
     resolveTripName(
         tripInvite.tripId,
         { tripName ->
           val messageData =
               mapOf(
                   "type" to "trip_invite", "tripName" to tripName, "senderName" to tripInvite.from)
-          // Send FCM message to the recipient
           db.collection("users").document(tripInvite.to).get().addOnSuccessListener { document ->
             val recipientToken = document.getString("fcmToken")
             if (!recipientToken.isNullOrEmpty()) {
@@ -108,7 +107,7 @@ class TripInviteRepositoryFirebase(private val db: FirebaseFirestore) : TripInvi
             }
           }
         },
-        { exception -> Log.e(TAG, "Error resolving trip name: $exception") })
+        { exception -> Log.e("TripInviteRepo", "Error resolving trip name: $exception") })
   }
 
   /**
@@ -118,10 +117,7 @@ class TripInviteRepositoryFirebase(private val db: FirebaseFirestore) : TripInvi
    * @param data The data to include in the message.
    */
   private fun sendFcmMessage(token: String, data: Map<String, String>) {
-    // Replace with your Firebase Messaging logic or REST API integration
-    val fcmMessage = mapOf("to" to token, "data" to data)
-    Log.d(TAG, "Sending FCM message: $fcmMessage")
-    // Use Firebase Messaging or HTTP API to send the notification
+    Log.d("TripInviteRepo", "Sending FCM message to token: $token with data: $data")
   }
 
   /**
