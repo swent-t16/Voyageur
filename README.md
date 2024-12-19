@@ -115,3 +115,4 @@ Figma design visible [here](https://www.figma.com/design/TZ4qU0PNmMv3T6EpesSrL9/
 
 The apk and release for the M1 can be found [here](https://github.com/swent-t16/Voyageur/releases/tag/M1-Release)
 The apk and release for the M2 can be found [here](https://github.com/swent-t16/Voyageur/releases/tag/M2-RELEASE)
+The apk and release for the M3 can be found [here](https://github.com/swent-t16/Voyageur/releases/tag/M3Release)
