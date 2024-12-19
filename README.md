@@ -69,7 +69,7 @@ Architrecure type: MVVM; Diagram visible [here](https://github.com/swent-t16/Voy
 
   - ViewModel for managing trip-related data and operations in the app.
 
-  - This ViewModel interacts with the `TripRepository` to fetch, create, update, and delete trips. It
+  - This ViewModel interacts with the `TripRepository` to fetch, create, update, and delete trips.
   - Handles the management of trip-related states such as the selected trip, selected day, activities, and UI state.
   - It's responsible for handling file uploads to Firebase Storage and integrating with the AI assistant to generate trip activities.
 
@@ -87,7 +87,7 @@ Architrecure type: MVVM; Diagram visible [here](https://github.com/swent-t16/Voy
   - `PlacesRepository`: Interface for managing places-related interactions with a location (map-based) data source.
   - `FriendRequestRepository` and `TripInviteRepository`: used managing friend requests and trip invites.
 
-- Repositproies (implementing the interfaces for Firestore and Google Maps API use cases):
+- Repositories (implementing the interfaces for Firestore and Google Maps API use cases):
   - `UserRepositoryFirebase`
   - `TripRepositoryFirebase`
   - `GooglePlacesRepository`
@@ -104,6 +104,8 @@ Figma design visible [here](https://www.figma.com/design/TZ4qU0PNmMv3T6EpesSrL9/
 - `Search` screen: Allows users to search for other users and places based on location. It also displays a feed of public trips.
 - Trip screens:
   - `WeeklyView` / `ByDay` screens: Display the trip itinerary in a weekly view or in a certain day, allowing users to view and edit activities. It also allows users to generate a schedule for a day using the AI assitant.
+  - `ActivitiesForOneDay` screen: Displays a list of activities for a day, allowing users to view and edit details.
+  - `Assistant` screen: Displays a list of suggested activities for a day, allowing users to view and add them to the trip as either drafts (missing date) or complete (with suggested dates).
   - `Map` screen: Displays a map with markers for places and activities, allowing users to view details in a trip.
   - `Phtos` screen: Displays photos shared by participants in a trip.
   - `Activities` screen: Displays a list of activities in a trip, allowing users to view and edit details.
