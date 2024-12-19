@@ -18,6 +18,13 @@ interface NotificationProvider {
    * @param acceptorName The name of the user who accepted the friend request.
    */
   fun showFriendRequestAcceptedNotification(acceptorName: String)
+  /**
+   * Displays a notification for a new trip invite.
+   *
+   * @param tripName The name of the trip being invited.
+   * @param senderName The name of the user who sent the invite.
+   */
+  fun showNewTripInviteNotification(tripName: String, senderName: String)
 
   val context: Context
 }

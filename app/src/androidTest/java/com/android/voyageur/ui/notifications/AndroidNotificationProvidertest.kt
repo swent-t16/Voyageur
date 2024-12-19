@@ -186,4 +186,65 @@ class AndroidNotificationProviderTest {
         "Notification should have correct icon",
         notification.notification.smallIcon.resId == R.drawable.app_logo)
   }
+
+  @Test
+  fun testNewTripInviteNotification() {
+    // Wait for activity to be fully created
+    SystemClock.sleep(1000)
+
+    // Send the notification
+    val testTripName = "Beach Adventure"
+    activityScenario.onActivity { activity ->
+      notificationProvider.showNewTripInviteNotification(testTripName, TEST_SENDER_NAME)
+    }
+
+    // Wait for notification processing
+    SystemClock.sleep(1000)
+
+    // Open notification shade
+    uiDevice.openNotification()
+
+    // Wait for notification to appear
+    val notificationTitle = context.getString(R.string.new_trip_invite)
+    val notificationExists =
+        uiDevice.wait(Until.hasObject(By.text(notificationTitle)), NOTIFICATION_TIMEOUT)
+    assertTrue("Notification should be visible", notificationExists)
+
+    // Verify notification content
+    val titleObject = uiDevice.findObject(By.text(notificationTitle))
+    assertNotNull("Notification title should exist", titleObject)
+
+    val expectedMessage =
+        context.getString(R.string.trip_invite_message, TEST_SENDER_NAME, testTripName)
+    val messageObject = uiDevice.findObject(By.textContains(testTripName))
+    assertNotNull("Notification text should exist", messageObject)
+    assertTrue(
+        "Notification should contain trip name and sender name",
+        messageObject.text.contains(testTripName) && messageObject.text.contains(TEST_SENDER_NAME))
+  }
+
+  @Test
+  fun testTripInviteNotificationIcon() {
+    // Wait for activity to be fully created
+    SystemClock.sleep(1000)
+
+    // Send the notification
+    val testTripName = "Forest Escape"
+    activityScenario.onActivity { activity ->
+      notificationProvider.showNewTripInviteNotification(testTripName, TEST_SENDER_NAME)
+    }
+
+    // Wait for notification processing
+    SystemClock.sleep(1000)
+
+    // Get active notifications
+    val notifications = notificationManager.activeNotifications
+    assertTrue("Should have at least one notification", notifications.isNotEmpty())
+
+    // Verify icon
+    val notification = notifications[0]
+    assertTrue(
+        "Notification should have correct icon",
+        notification.notification.smallIcon.resId == R.drawable.app_logo)
+  }
 }

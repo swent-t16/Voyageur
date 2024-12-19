@@ -20,6 +20,7 @@ import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.util.Assert.fail
 import junit.framework.TestCase
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -145,15 +146,52 @@ class TripRepositoryFirebaseTest {
     verify(mockTask).addOnFailureListener(any())
   }
 
-  @Test
   fun createTrip_shouldCallFirestoreCollection() {
-    `when`(mockDocumentReference.set(any())).thenReturn(Tasks.forResult(null)) // Simulate success
+    // Simulate a successful Firestore document set operation
+    `when`(mockDocumentReference.set(any())).thenReturn(Tasks.forResult(null))
 
-    tripRepository.createTrip(trip, onSuccess = {}, onFailure = {})
+    // Create mock callbacks
+    var successCalled = false
+    var failureCalled = false
 
+    // Call the createTrip method
+    tripRepository.createTrip(
+        trip, onSuccess = { successCalled = true }, onFailure = { failureCalled = true })
+
+    // Simulate the passage of time in the main looper
     shadowOf(Looper.getMainLooper()).idle()
 
+    // Verify Firestore was called
     verify(mockDocumentReference).set(any())
+
+    // Assert that the success callback was called and failure was not
+    assertTrue("onSuccess should be called", successCalled)
+    assertFalse("onFailure should not be called", failureCalled)
+  }
+
+  @Test
+  fun createTrip_shouldHandleFirestoreFailure() {
+    // Simulate a failure in Firestore document set operation
+    val exception = Exception("Firestore error")
+    `when`(mockDocumentReference.set(any())).thenReturn(Tasks.forException(exception))
+
+    // Create mock callbacks
+    var successCalled = false
+    var failureCalled = false
+
+    // Call the createTrip method
+    tripRepository.createTrip(
+        trip, onSuccess = { successCalled = true }, onFailure = { failureCalled = true })
+
+    // Simulate the passage of time in the main looper
+    shadowOf(Looper.getMainLooper()).idle()
+
+    // Verify Firestore was called
+    verify(mockDocumentReference).set(any())
+
+    // Assert that the failure callback was called and success was not
+    assertFalse("onSuccess should not be called", successCalled)
+    assertTrue("onFailure should be called", failureCalled)
   }
 
   @Test

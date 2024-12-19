@@ -33,6 +33,8 @@ class VoyageurMessagingService : FirebaseMessagingService() {
 
     /** The name of the shared preferences file. */
     const val PREFS_NAME = "voyageur_prefs"
+    /** The type identifier for trip invite notifications. */
+    const val TYPE_TRIP_INVITE = "trip_invite"
   }
 
   private val TAG = "VoyageurMessagingService"
@@ -70,6 +72,12 @@ class VoyageurMessagingService : FirebaseMessagingService() {
           val acceptorName = data["acceptorName"] ?: getString(R.string.unknown)
           notificationProvider.showFriendRequestAcceptedNotification(acceptorName)
         }
+        TYPE_TRIP_INVITE -> { // Handle trip invite notifications
+          val tripName = data["tripName"] ?: getString(R.string.unknown_trip)
+          val senderName = data["senderName"] ?: getString(R.string.unknown)
+          notificationProvider.showNewTripInviteNotification(tripName, senderName)
+        }
+        else -> Log.d(TAG, "Unknown message type: ${data["type"]}")
       }
     }
 
