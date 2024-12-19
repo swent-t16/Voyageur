@@ -1,5 +1,7 @@
 package com.android.voyageur.model.notifications
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -56,8 +58,70 @@ class TripInviteRepositoryFirebase(private val db: FirebaseFirestore) : TripInvi
     db.collection(collectionPath)
         .document(req.id)
         .set(req, SetOptions.merge())
-        .addOnSuccessListener { onSuccess() }
+        .addOnSuccessListener {
+          // Send FCM notification
+          sendTripInviteNotification(req)
+          onSuccess()
+        }
         .addOnFailureListener { exception -> onFailure(exception) }
+  }
+
+  /**
+   * Resolves the trip name from the trip ID.
+   *
+   * @param tripId The ID of the trip.
+   * @param onSuccess Callback to execute after successful resolution.
+   * @param onFailure Exception handling callback.
+   */
+  private fun resolveTripName(
+      tripId: String,
+      onSuccess: (String) -> Unit,
+      onFailure: (Exception) -> Unit
+  ) {
+    db.collection("trips")
+        .document(tripId)
+        .get()
+        .addOnSuccessListener { document ->
+          val tripName = document.getString("name") ?: "Unknown Trip"
+          onSuccess(tripName)
+        }
+        .addOnFailureListener { exception -> onFailure(exception) }
+  }
+
+  /**
+   * Sends a trip invite notification.
+   *
+   * @param tripInvite The trip invite to send a notification for.
+   */
+  private fun sendTripInviteNotification(tripInvite: TripInvite) {
+    resolveTripName(
+        tripInvite.tripId,
+        { tripName ->
+          val messageData =
+              mapOf(
+                  "type" to "trip_invite", "tripName" to tripName, "senderName" to tripInvite.from)
+          // Send FCM message to the recipient
+          db.collection("users").document(tripInvite.to).get().addOnSuccessListener { document ->
+            val recipientToken = document.getString("fcmToken")
+            if (!recipientToken.isNullOrEmpty()) {
+              sendFcmMessage(recipientToken, messageData)
+            }
+          }
+        },
+        { exception -> Log.e(TAG, "Error resolving trip name: $exception") })
+  }
+
+  /**
+   * Sends an FCM message.
+   *
+   * @param token The recipient's FCM token.
+   * @param data The data to include in the message.
+   */
+  private fun sendFcmMessage(token: String, data: Map<String, String>) {
+    // Replace with your Firebase Messaging logic or REST API integration
+    val fcmMessage = mapOf("to" to token, "data" to data)
+    Log.d(TAG, "Sending FCM message: $fcmMessage")
+    // Use Firebase Messaging or HTTP API to send the notification
   }
 
   /**
