@@ -59,46 +59,16 @@ fun ActivitiesForOneDayScreen(
   // States for filtering and search
   var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
   var searchQuery by remember { mutableStateOf("") }
-
   var activities by remember {
-    mutableStateOf(
-        tripsViewModel
-            .getActivitiesForSelectedTrip()
-            .filter {
-              val matchesDate =
-                  it.startTime.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() ==
-                      day
-              val matchesSearch =
-                  searchQuery.isEmpty() || it.title.contains(searchQuery, ignoreCase = true)
-              val matchesFilter = selectedFilters.isEmpty() || it.activityType in selectedFilters
-              matchesDate && matchesSearch && matchesFilter
-            }
-            .sortedWith(compareBy({ it.startTime }, { it.endTime })))
+    mutableStateOf(getFilteredActivities(tripsViewModel, day, searchQuery, selectedFilters))
   }
-
   var showDialog by remember { mutableStateOf(false) }
   var activityToDelete by remember { mutableStateOf<Activity?>(null) }
   var pricePerDay by remember { mutableStateOf(0.0) }
 
   // Update activities when search query or filters change
   LaunchedEffect(searchQuery, selectedFilters) {
-    activities =
-        tripsViewModel
-            .getActivitiesForSelectedTrip()
-            .filter {
-              val matchesDate =
-                  it.startTime.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() ==
-                      day
-              val matchesSearch =
-                  searchQuery.isEmpty() || it.title.contains(searchQuery, ignoreCase = true)
-              val matchesFilter = selectedFilters.isEmpty() || it.activityType in selectedFilters
-              matchesDate && matchesSearch && matchesFilter
-            }
-            .sortedWith(
-                compareBy(
-                    { it.startTime }, // First, sort by startTime
-                    { it.endTime } // If startTime is equal, sort by endTime
-                    ))
+    activities = getFilteredActivities(tripsViewModel, day, searchQuery, selectedFilters)
   }
 
   // Calculate the total estimated price whenever the activities change
@@ -125,7 +95,7 @@ fun ActivitiesForOneDayScreen(
                     selectedFilters = selectedFilters,
                     onFiltersChanged = { newFilters -> selectedFilters = newFilters })
               },
-              modifier = Modifier.height(80.dp).testTag("topAppBar"))
+              modifier = Modifier.testTag("topAppBar"))
         }
       },
       floatingActionButton = {
@@ -180,6 +150,51 @@ fun ActivitiesForOneDayScreen(
       })
 }
 
+/**
+ * Filters and sorts activities based on specified criteria.
+ *
+ * @param tripsViewModel The ViewModel containing the activities data
+ * @param day The specific date for which to filter activities
+ * @param searchQuery The search string to filter activities by title (case-insensitive)
+ * @param selectedFilters Set of activity types to filter by. If empty, all types are included
+ * @return A sorted list of activities that match all the filtering criteria
+ *
+ * The function applies three filters:
+ * 1. Date matching: Activities must occur on the specified day
+ * 2. Search matching: Activity title must contain the search query (if non-empty)
+ * 3. Type matching: Activity type must be in the selected filters (if any)
+ *
+ * The resulting list is sorted first by start time, then by end time for activities with the same
+ * start time.
+ */
+private fun getFilteredActivities(
+    tripsViewModel: TripsViewModel,
+    day: LocalDate,
+    searchQuery: String,
+    selectedFilters: Set<ActivityType>
+): List<Activity> {
+  return tripsViewModel
+      .getActivitiesForSelectedTrip()
+      .filter {
+        val matchesDate =
+            it.startTime.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() == day
+        val matchesSearch =
+            searchQuery.isEmpty() || it.title.contains(searchQuery, ignoreCase = true)
+        val matchesFilter = selectedFilters.isEmpty() || it.activityType in selectedFilters
+        matchesDate && matchesSearch && matchesFilter
+      }
+      .sortedWith(compareBy({ it.startTime }, { it.endTime }))
+}
+
+/**
+ * Formats a LocalDate into a localized string representation with day, abbreviated month, and year.
+ *
+ * @return A formatted string in the pattern "d MMM yyyy" according to the default locale. For
+ *   example: "15 Dec 2024" for English locale
+ *
+ * The function uses the system's default locale for month abbreviation, making it suitable for
+ * international use. The pattern ensures consistent formatting across the application.
+ */
 fun LocalDate.toDateWithYearString(): String {
   val formatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.getDefault())
   return this.format(formatter)

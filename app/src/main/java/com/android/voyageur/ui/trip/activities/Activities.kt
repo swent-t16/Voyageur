@@ -233,16 +233,17 @@ fun ActivitiesScreen(
             item { EstimatedPriceBox(totalEstimatedPrice) }
           }
 
-        if (showDialog) {
-          DeleteActivityAlertDialog(
-              onDismissRequest = { showDialog = false },
-              activityToDelete = activityToDelete,
-              tripsViewModel = tripsViewModel,
-              confirmButtonOnClick = {
-                showDialog = false
-                final = final.filter { it != activityToDelete }
-                drafts = drafts.filter { it != activityToDelete }
-              })
+          if (showDialog) {
+            DeleteActivityAlertDialog(
+                onDismissRequest = { showDialog = false },
+                activityToDelete = activityToDelete,
+                tripsViewModel = tripsViewModel,
+                confirmButtonOnClick = {
+                  showDialog = false
+                  final = final.filter { it != activityToDelete }
+                  drafts = drafts.filter { it != activityToDelete }
+                })
+          }
         }
       })
 }
