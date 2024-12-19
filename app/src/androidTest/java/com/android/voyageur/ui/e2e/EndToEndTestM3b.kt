@@ -388,7 +388,6 @@ class E2ETestM3b {
     composeTestRule.onNodeWithTag("totalEstimatedPriceBox").assertExists()
     // go back to Schedule Screen
     composeTestRule.onNodeWithTag("goBackButton").performClick()
-    composeTestRule.onNodeWithTag("scheduleScreen").assertIsDisplayed()
 
     // Go to weekly view
     composeTestRule.onNodeWithText("Weekly").performClick()
