@@ -10,7 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.UserViewModel
-import com.android.voyageur.ui.authentication.SignInScreen
+import com.android.voyageur.ui.authentication.AuthenticationWrapper
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
@@ -59,8 +59,9 @@ fun VoyageurApp(placesClient: PlacesClient) {
         startDestination = Screen.AUTH,
         route = Route.AUTH,
     ) {
-      composable(Screen.AUTH) { SignInScreen(navigationActions) }
+      composable(Screen.AUTH) { AuthenticationWrapper(navigationActions) }
     }
+
     navigation(
         startDestination = Screen.OVERVIEW,
         route = Route.OVERVIEW,
@@ -76,6 +77,7 @@ fun VoyageurApp(placesClient: PlacesClient) {
             placesViewModel = placesViewModel)
       }
     }
+
     navigation(
         startDestination = Screen.SEARCH,
         route = Route.SEARCH,
@@ -88,6 +90,7 @@ fun VoyageurApp(placesClient: PlacesClient) {
       }
       composable(Screen.PLACE_DETAILS) { PlaceDetailsScreen(navigationActions, placesViewModel) }
     }
+
     navigation(
         startDestination = Screen.PROFILE,
         route = Route.PROFILE,
