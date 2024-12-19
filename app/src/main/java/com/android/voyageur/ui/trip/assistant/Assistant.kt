@@ -334,45 +334,54 @@ fun SettingsDialog(
           }
           Spacer(modifier = Modifier.height(16.dp))
 
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            // Switch to provide final activities
-            Text(stringResource(R.string.provide_final_activities), modifier = Modifier.weight(1f))
-            Switch(
-                checked = provideDraftActivities,
-                onCheckedChange = onProvideFinalActivitiesChanged,
-                modifier = Modifier.testTag("provideFinalActivitiesSwitch"))
-          }
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Switch to provide final activities
+                Text(
+                    stringResource(R.string.provide_final_activities),
+                    modifier = Modifier.weight(1f))
+                Switch(
+                    checked = provideDraftActivities,
+                    onCheckedChange = onProvideFinalActivitiesChanged,
+                    modifier = Modifier.testTag("provideFinalActivitiesSwitch"))
+              }
           Spacer(modifier = Modifier.height(4.dp))
 
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            // Switch to use only the current user's interests
-            Text(stringResource(R.string.use_user_interests), modifier = Modifier.weight(1f))
-            Switch(
-                checked = useInterests,
-                onCheckedChange = { isChecked ->
-                  onUseInterestsChanged(isChecked)
-                  if (isChecked) {
-                    onUseParticipantsInterestsChanged(false) // Turn off the other switch
-                  }
-                },
-                modifier = Modifier.testTag("useUserInterestsSwitch"))
-          }
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Switch to use only the current user's interests
+                Text(stringResource(R.string.use_user_interests), modifier = Modifier.weight(1f))
+                Switch(
+                    checked = useInterests,
+                    onCheckedChange = { isChecked ->
+                      onUseInterestsChanged(isChecked)
+                      if (isChecked) {
+                        onUseParticipantsInterestsChanged(false) // Turn off the other switch
+                      }
+                    },
+                    modifier = Modifier.testTag("useUserInterestsSwitch"))
+              }
           Spacer(modifier = Modifier.height(4.dp))
 
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            // Switch to use the participants' interests
-            Text(
-                stringResource(R.string.use_participants_interests), modifier = Modifier.weight(1f))
-            Switch(
-                checked = useParticipantsInterests,
-                onCheckedChange = { isChecked ->
-                  onUseParticipantsInterestsChanged(isChecked)
-                  if (isChecked) {
-                    onUseInterestsChanged(false) // Turn off the other switch
-                  }
-                },
-                modifier = Modifier.testTag("useParticipantsInterestsSwitch"))
-          }
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Switch to use the participants' interests
+                Text(
+                    stringResource(R.string.use_participants_interests),
+                    modifier = Modifier.weight(1f))
+                Switch(
+                    checked = useParticipantsInterests,
+                    onCheckedChange = { isChecked ->
+                      onUseParticipantsInterestsChanged(isChecked)
+                      if (isChecked) {
+                        onUseInterestsChanged(false) // Turn off the other switch
+                      }
+                    },
+                    modifier = Modifier.testTag("useParticipantsInterestsSwitch"))
+              }
         }
       },
       confirmButton = {
