@@ -118,12 +118,14 @@ fun OverviewScreen(
   var sortedDecreasing by remember { mutableStateOf(true) }
   var showOnlyFavorites by remember { mutableStateOf(false) }
   val user by userViewModel.user.collectAsState()
+
   if (user == null) {
     // Don't compose the UI yet if the user is not loaded
     return
   }
+
   LaunchedEffect(user) {
-    //   update favorite trips by removing deleted trips or trips that the user is no longer a
+    // Update favorite trips by removing deleted trips or trips that the user is no longer a
     // participant of
     val updatedFavoriteTrips =
         user!!.favoriteTrips.filter { tripId -> unfilteredTrips.any { trip -> trip.id == tripId } }
@@ -133,9 +135,13 @@ fun OverviewScreen(
     }
   }
 
+  val activeTrips = unfilteredTrips.filter { !it.isArchived }
   val trips =
-      if (showOnlyFavorites) unfilteredTrips.filter { user!!.favoriteTrips.contains(it.id) }
-      else unfilteredTrips
+      if (showOnlyFavorites) {
+        activeTrips.filter { user!!.favoriteTrips.contains(it.id) }
+      } else {
+        activeTrips
+      }
 
   LaunchedEffect(isLoadingUser, isLoadingTrip) { isLoading = isLoadingUser || isLoadingTrip }
 
@@ -145,41 +151,50 @@ fun OverviewScreen(
       floatingActionButton = { AddTripFAB(isConnected, navigationActions) },
       modifier = Modifier.testTag("overviewScreen"),
       topBar = {
-        FlowRow(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalArrangement = Arrangement.SpaceBetween) {
-              SearchBar(
-                  placeholderId = R.string.overview_searchbar_placeholder,
-                  onQueryChange = { searchQuery = it },
-                  modifier = Modifier.testTag("searchField").weight(1f).fillMaxWidth(0.9f))
+        Column {
+          FlowRow(
+              modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp),
+              verticalArrangement = Arrangement.Center,
+              horizontalArrangement = Arrangement.SpaceBetween) {
+                SearchBar(
+                    placeholderId = R.string.overview_searchbar_placeholder,
+                    onQueryChange = { searchQuery = it },
+                    modifier = Modifier.testTag("searchField").weight(1f).fillMaxWidth(0.9f))
 
-              IconButton(
-                  onClick = { sortedDecreasing = !sortedDecreasing },
-                  modifier = Modifier.testTag("reverseTripsOrderButton")) {
-                    Icon(imageVector = Icons.Default.SwapVert, contentDescription = "H")
-                  }
-              IconButton(
-                  onClick = { showOnlyFavorites = !showOnlyFavorites },
-                  modifier = Modifier.testTag("favoriteFilterButton")) {
-                    Icon(
-                        imageVector =
-                            if (showOnlyFavorites) Icons.Filled.Favorite
-                            else Icons.Default.FavoriteBorder,
-                        contentDescription =
-                            if (showOnlyFavorites) stringResource(R.string.show_all_trips)
-                            else stringResource(R.string.show_favorite_trips),
-                        tint = MaterialTheme.colorScheme.onSurface)
-                  }
-            }
+                IconButton(
+                    onClick = { sortedDecreasing = !sortedDecreasing },
+                    modifier = Modifier.testTag("reverseTripsOrderButton")) {
+                      Icon(imageVector = Icons.Default.SwapVert, contentDescription = "Sort order")
+                    }
+
+                IconButton(
+                    onClick = { showOnlyFavorites = !showOnlyFavorites },
+                    modifier = Modifier.testTag("favoriteFilterButton")) {
+                      Icon(
+                          imageVector =
+                              if (showOnlyFavorites) Icons.Filled.Favorite
+                              else Icons.Default.FavoriteBorder,
+                          contentDescription =
+                              if (showOnlyFavorites) stringResource(R.string.show_all_trips)
+                              else stringResource(R.string.show_favorite_trips),
+                          tint = MaterialTheme.colorScheme.onSurface)
+                    }
+              }
+
+          Box(
+              modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+              contentAlignment = Alignment.Center) {
+                ArchiveButton(onClick = { navigationActions.navigateTo(Screen.ARCHIVED_TRIPS) })
+              }
+        }
       },
       bottomBar = {
         BottomNavigationMenu(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute(),
-            userViewModel,
-            tripsViewModel)
+            userViewModel = userViewModel,
+            tripsViewModel = tripsViewModel)
       },
       content = { pd ->
         OverviewContent(
@@ -196,209 +211,6 @@ fun OverviewScreen(
       })
 }
 
-/**
- * Side effect composable that loads participant data when trips are updated.
- *
- * This composable monitors the trips list and updates the user contacts when the list changes,
- * ensuring that participant information is always current.
- *
- * @param trips The current list of trips to extract participants from
- * @param userViewModel The ViewModel containing user-related state and logic
- */
-@Composable
-private fun LoadParticipantsEffect(trips: List<Trip>, userViewModel: UserViewModel) {
-  LaunchedEffect(trips) {
-    if (trips.isNotEmpty()) {
-      userViewModel.getUsersByIds(
-          trips
-              .map { it.participants + (userViewModel._user.value?.contacts ?: listOf()) }
-              .flatten()
-              .toSet()
-              .toList()) {
-            userViewModel._contacts.value = it
-          }
-    }
-  }
-}
-
-/**
- * Composable that renders the Floating Action Button for adding new trips.
- *
- * This button is disabled when there's no internet connection and shows a toast message informing
- * the user about the connectivity requirement.
- *
- * @param isConnected Boolean indicating whether the device has internet connectivity
- * @param navigationActions Actions to handle navigation between screens
- */
-@Composable
-private fun AddTripFAB(isConnected: Boolean, navigationActions: NavigationActions) {
-  val context = LocalContext.current
-  FloatingActionButton(
-      onClick = {
-        if (isConnected) {
-          navigationActions.navigateTo(Screen.ADD_TRIP)
-        } else {
-          Toast.makeText(context, R.string.notification_no_internet_text, Toast.LENGTH_SHORT).show()
-        }
-      },
-      modifier = Modifier.testTag("createTripButton")) {
-        Icon(
-            Icons.Outlined.Add,
-            stringResource(R.string.floating_button),
-            modifier = Modifier.testTag("addIcon"))
-      }
-}
-
-/**
- * Composable that renders the main content of the overview screen.
- *
- * Handles the display of loading indicator, empty state, and the list of trips based on the current
- * state of the app.
- *
- * @param isLoading Boolean indicating whether data is currently being loaded
- * @param trips List of all available trips
- * @param searchQuery Current search query for filtering trips
- * @param showOnlyFavorites Boolean indicating whether the user is viewing only favorite trips
- * @param padding PaddingValues to apply to the content
- * @param tripsViewModel ViewModel containing trips-related state and logic
- * @param navigationActions Actions to handle navigation between screens
- * @param userViewModel ViewModel containing user-related state and logic
- * @param user The current user data
- */
-@Composable
-private fun OverviewContent(
-    isLoading: Boolean,
-    trips: List<Trip>,
-    searchQuery: String,
-    showOnlyFavorites: Boolean,
-    padding: PaddingValues,
-    tripsViewModel: TripsViewModel,
-    navigationActions: NavigationActions,
-    userViewModel: UserViewModel,
-    descending: Boolean = true,
-    user: User
-) {
-  if (isLoading) {
-    CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
-    return
-  }
-
-  Column(
-      modifier = Modifier.padding(padding).testTag("overviewColumn"),
-  ) {
-    if (trips.isEmpty()) {
-      EmptyTripsMessage(showOnlyFavorites)
-    } else {
-      TripsList(
-          trips = trips,
-          searchQuery = searchQuery,
-          tripsViewModel = tripsViewModel,
-          navigationActions = navigationActions,
-          userViewModel = userViewModel,
-          descending = descending,
-          user = user)
-    }
-  }
-}
-
-/**
- * Composable that displays a message when no trips are available.
- *
- * Shows a centered message prompting the user to create their first trip or indicating that no
- * favorite trips are available.
- *
- * @param showOnlyFavorites Boolean indicating whether the user is viewing only favorite trips
- */
-@Composable
-private fun EmptyTripsMessage(showOnlyFavorites: Boolean) {
-  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    Text(
-        modifier = Modifier.testTag("emptyTripPrompt"),
-        text =
-            if (!showOnlyFavorites) stringResource(R.string.empty_trip_prompt)
-            else stringResource(R.string.no_favorite_trips))
-  }
-}
-
-/**
- * Composable that renders the list of trips.
- *
- * Displays a scrollable list of trip items, filtered according to the search query. Shows a "no
- * results" message when the search yields no matches.
- *
- * @param trips List of all available trips
- * @param searchQuery Current search query for filtering trips
- * @param tripsViewModel ViewModel containing trips-related state and logic
- * @param navigationActions Actions to handle navigation between screens
- * @param userViewModel ViewModel containing user-related state and logic
- * @param user The current user data
- */
-@Composable
-private fun TripsList(
-    trips: List<Trip>,
-    searchQuery: String,
-    tripsViewModel: TripsViewModel,
-    navigationActions: NavigationActions,
-    userViewModel: UserViewModel,
-    descending: Boolean = true,
-    user: User
-) {
-  var filteredTrips = filterTrips(trips, searchQuery)
-  if (!descending) {
-    filteredTrips = filteredTrips.reversed()
-  }
-  if (searchQuery.isNotEmpty() && filteredTrips.isEmpty()) {
-    NoResultsFound(modifier = Modifier.testTag("noSearchResults"))
-    return
-  }
-
-  LazyColumn(
-      verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
-      horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
-        items(filteredTrips) { trip ->
-          TripItem(
-              tripsViewModel = tripsViewModel,
-              trip = trip,
-              navigationActions = navigationActions,
-              userViewModel = userViewModel,
-              user = user)
-        }
-      }
-}
-
-/**
- * Filters and sorts the list of trips based on a search query.
- *
- * If no search query is provided, returns all trips sorted by start date. If a search query exists,
- * returns trips whose names contain the query (case-insensitive), sorted by start date.
- *
- * @param trips List of trips to filter
- * @param searchQuery Search query to filter trips by
- * @return Filtered and sorted list of trips
- */
-private fun filterTrips(trips: List<Trip>, searchQuery: String): List<Trip> {
-  return if (searchQuery.isEmpty()) {
-    trips.sortedByDescending { it.startDate }
-  } else {
-    trips
-        .filter { it.name.contains(searchQuery, ignoreCase = true) }
-        .sortedByDescending { it.startDate }
-  }
-}
-
-/**
- * Composable function that renders an individual trip item card in the overview screen.
- *
- * Each card displays the trip's name, date range, and participants. The user can expand the card to
- * see additional options such as adding the trip to the calendar or deleting it.
- *
- * @param tripsViewModel The ViewModel containing the state and logic for handling trips.
- * @param trip The trip data to display in this card.
- * @param navigationActions Actions to handle navigation between screens.
- * @param userViewModel The ViewModel containing the state and logic for user data.
- * @param user The current user data.
- */
 @SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
@@ -418,22 +230,18 @@ fun TripItem(
   val status by connectivityState()
   val isConnected = status === ConnectionState.Available
 
-  // Permission launcher to access calendar
   val requestPermissionLauncher =
-      rememberLauncherForActivityResult(
-          ActivityResultContracts.RequestPermission(),
-      ) { isGranted: Boolean ->
+      rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+          isGranted: Boolean ->
         if (isGranted) {
-          // Launch the calendar when permission is granted
           openGoogleCalendar(context, trip)
         } else {
-          // Inform the user that the permission is required
           Toast.makeText(context, R.string.denied_calendar_permission, Toast.LENGTH_SHORT).show()
         }
       }
+
   Card(
       onClick = {
-        // When opening a trip, navigate to the Schedule screen, with the daily view enabled
         navigationActions.getNavigationState().currentTabIndexForTrip = 0
         navigationActions.getNavigationState().isDailyViewSelected = true
         navigationActions.getNavigationState().isReadOnlyView = false
@@ -452,7 +260,6 @@ fun TripItem(
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(3.dp)) {
               Box(modifier = Modifier.aspectRatio(0.55f).fillMaxSize().testTag("tripImageBox")) {
-                // Display image or default image
                 if (trip.imageUri.isNotEmpty()) {
                   Image(
                       painter = rememberAsyncImagePainter(model = trip.imageUri),
@@ -467,7 +274,7 @@ fun TripItem(
                       modifier = Modifier.fillMaxSize().testTag("defaultTripImage"))
                 }
 
-                // Heart icon on top of the image
+                // Heart icon
                 IconButton(
                     onClick = {
                       val updatedFavoriteTrips =
@@ -495,7 +302,6 @@ fun TripItem(
                               else Color.DarkGray,
                           modifier =
                               Modifier.drawBehind {
-                                // Draw white outline for the heart button
                                 drawCircle(
                                     color = Color.White.copy(alpha = 0.5f),
                                     radius = size.minDimension / 2 + 4.dp.toPx(),
@@ -503,7 +309,7 @@ fun TripItem(
                               })
                     }
               }
-              // modifier.weight(2f) is used here to set the column to 2/3 of the card
+
               Column(
                   modifier = Modifier.fillMaxSize().padding(16.dp).weight(2f),
                   verticalArrangement = Arrangement.Top) {
@@ -544,43 +350,71 @@ fun TripItem(
                               if (isExpanded) stringResource(R.string.collapse_text)
                               else stringResource(R.string.expand_text))
                     }
+
                 DropdownMenu(
                     expanded = isExpanded,
                     onDismissRequest = { isExpanded = false },
                     modifier = Modifier.background(MaterialTheme.colorScheme.secondaryContainer)) {
-                      DropdownMenuItem(
-                          onClick = {
-                            isExpanded = false
-                            showDialog = true
-                          },
-                          text = { Text(stringResource(R.string.delete_text)) },
-                          modifier = Modifier.testTag("deleteMenuItem_${trip.name}"))
-                      DropdownMenuItem(
-                          onClick = {
-                            isExpanded = false
-                            if (ContextCompat.checkSelfPermission(
-                                context, Manifest.permission.WRITE_CALENDAR) ==
-                                PackageManager.PERMISSION_GRANTED) {
-                              // Permission is already granted
-                              openGoogleCalendar(context, trip)
-                            } else { // Request calendar permission to user
-                              requestPermissionLauncher.launch(Manifest.permission.WRITE_CALENDAR)
-                            }
-                          },
-                          text = { Text(stringResource(R.string.add_to_calendar_text)) },
-                          modifier = Modifier.testTag("addToCalendarMenuItem_${trip.name}"))
-                      DropdownMenuItem(
-                          onClick = {
-                            isExpanded = false
-                            leaveTrip = true
-                          },
-                          text = { Text(stringResource(R.string.leave_trip_text)) },
-                          modifier = Modifier.testTag("leaveMenuItem_${trip.name}"))
+                      if (!trip.isArchived) {
+                        DropdownMenuItem(
+                            onClick = {
+                              isExpanded = false
+                              showDialog = true
+                            },
+                            text = { Text(stringResource(R.string.delete_text)) },
+                            modifier = Modifier.testTag("deleteMenuItem_${trip.name}"))
+                        DropdownMenuItem(
+                            onClick = {
+                              isExpanded = false
+                              if (ContextCompat.checkSelfPermission(
+                                  context, Manifest.permission.WRITE_CALENDAR) ==
+                                  PackageManager.PERMISSION_GRANTED) {
+                                openGoogleCalendar(context, trip)
+                              } else {
+                                requestPermissionLauncher.launch(Manifest.permission.WRITE_CALENDAR)
+                              }
+                            },
+                            text = { Text(stringResource(R.string.add_to_calendar_text)) },
+                            modifier = Modifier.testTag("addToCalendarMenuItem_${trip.name}"))
+                        DropdownMenuItem(
+                            onClick = {
+                              isExpanded = false
+                              leaveTrip = true
+                            },
+                            text = { Text(stringResource(R.string.leave_trip_text)) },
+                            modifier = Modifier.testTag("leaveMenuItem_${trip.name}"))
+                        DropdownMenuItem(
+                            onClick = {
+                              isExpanded = false
+                              val updatedTrip = trip.copy(isArchived = true)
+                              tripsViewModel.updateTrip(
+                                  updatedTrip,
+                                  onSuccess = {
+                                    tripsViewModel.getTrips()
+                                    Toast.makeText(
+                                            context, R.string.trip_archived, Toast.LENGTH_SHORT)
+                                        .show()
+                                  })
+                            },
+                            text = { Text(stringResource(R.string.archive_trip)) },
+                            modifier = Modifier.testTag("archiveMenuItem_${trip.name}"))
+                      } else {
+                        DropdownMenuItem(
+                            onClick = {
+                              isExpanded = false
+                              tripsViewModel.unarchiveTrip(trip)
+                              Toast.makeText(context, R.string.trip_unarchived, Toast.LENGTH_SHORT)
+                                  .show()
+                            },
+                            text = { Text(stringResource(R.string.unarchive_trip)) },
+                            modifier = Modifier.testTag("unarchiveMenuItem_${trip.name}"))
+                      }
                     }
               }
             }
       })
-  // Confirmation Dialog for deleting the trip
+
+  // Delete confirmation dialog
   if (showDialog) {
     AlertDialog(
         onDismissRequest = { showDialog = false },
@@ -602,7 +436,8 @@ fun TripItem(
           }
         })
   }
-  // confirmation button for leaving a trip
+
+  // Leave trip confirmation dialog
   if (leaveTrip) {
     AlertDialog(
         onDismissRequest = { leaveTrip = false },
@@ -633,7 +468,7 @@ fun TripItem(
                               .show()
                         })
                   } else {
-                    // if no participants left, delete the trip
+                    // If no participants left, delete the trip
                     tripsViewModel.deleteTripById(trip.id)
                   }
                 }
@@ -647,6 +482,142 @@ fun TripItem(
         })
   }
 }
+
+@Composable
+private fun OverviewContent(
+    isLoading: Boolean,
+    trips: List<Trip>,
+    searchQuery: String,
+    showOnlyFavorites: Boolean,
+    padding: PaddingValues,
+    tripsViewModel: TripsViewModel,
+    navigationActions: NavigationActions,
+    userViewModel: UserViewModel,
+    descending: Boolean = true,
+    user: User
+) {
+  if (isLoading) {
+    CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
+    return
+  }
+
+  Column(
+      modifier = Modifier.padding(padding).testTag("overviewColumn"),
+  ) {
+    if (trips.isEmpty()) {
+      EmptyTripsMessage(showOnlyFavorites)
+    } else {
+      TripsList(
+          trips = trips,
+          searchQuery = searchQuery,
+          tripsViewModel = tripsViewModel,
+          navigationActions = navigationActions,
+          userViewModel = userViewModel,
+          descending = descending,
+          user = user)
+    }
+  }
+}
+
+@Composable
+private fun LoadParticipantsEffect(trips: List<Trip>, userViewModel: UserViewModel) {
+  LaunchedEffect(trips) {
+    if (trips.isNotEmpty()) {
+      userViewModel.getUsersByIds(
+          trips
+              .map { it.participants + (userViewModel._user.value?.contacts ?: listOf()) }
+              .flatten()
+              .toSet()
+              .toList()) {
+            userViewModel._contacts.value = it
+          }
+    }
+  }
+}
+
+@Composable
+private fun AddTripFAB(isConnected: Boolean, navigationActions: NavigationActions) {
+  val context = LocalContext.current
+  FloatingActionButton(
+      onClick = {
+        if (isConnected) {
+          navigationActions.navigateTo(Screen.ADD_TRIP)
+        } else {
+          Toast.makeText(context, R.string.notification_no_internet_text, Toast.LENGTH_SHORT).show()
+        }
+      },
+      modifier = Modifier.testTag("createTripButton")) {
+        Icon(
+            Icons.Outlined.Add,
+            stringResource(R.string.floating_button),
+            modifier = Modifier.testTag("addIcon"))
+      }
+}
+
+/**
+ * Composable that displays a message when no trips are available.
+ *
+ * Shows a centered message prompting the user to create their first trip or indicating that no
+ * favorite trips are available.
+ *
+ * @param showOnlyFavorites Boolean indicating whether the user is viewing only favorite trips
+ */
+@Composable
+private fun EmptyTripsMessage(showOnlyFavorites: Boolean) {
+  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Text(
+        modifier = Modifier.testTag("emptyTripPrompt"),
+        text =
+            if (!showOnlyFavorites) stringResource(R.string.empty_trip_prompt)
+            else stringResource(R.string.no_favorite_trips))
+  }
+}
+
+@Composable
+private fun TripsList(
+    trips: List<Trip>,
+    searchQuery: String,
+    tripsViewModel: TripsViewModel,
+    navigationActions: NavigationActions,
+    userViewModel: UserViewModel,
+    descending: Boolean = true,
+    user: User
+) {
+  var filteredTrips = filterTrips(trips, searchQuery)
+  if (!descending) {
+    filteredTrips = filteredTrips.reversed()
+  }
+
+  if (searchQuery.isNotEmpty() && filteredTrips.isEmpty()) {
+    NoResultsFound(modifier = Modifier.testTag("noSearchResults"))
+    return
+  }
+
+  LazyColumn(
+      verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      modifier = Modifier.fillMaxSize().testTag("lazyColumn")) {
+        items(filteredTrips) { trip ->
+          TripItem(
+              tripsViewModel = tripsViewModel,
+              trip = trip,
+              navigationActions = navigationActions,
+              userViewModel = userViewModel,
+              user = user)
+        }
+      }
+}
+
+private fun filterTrips(trips: List<Trip>, searchQuery: String): List<Trip> {
+  return if (searchQuery.isEmpty()) {
+    trips.sortedByDescending { it.startDate }
+  } else {
+    trips
+        .filter { it.name.contains(searchQuery, ignoreCase = true) }
+        .sortedByDescending { it.startDate }
+  }
+}
+
 /**
  * Composable function that displays the list of participants in a trip.
  *
