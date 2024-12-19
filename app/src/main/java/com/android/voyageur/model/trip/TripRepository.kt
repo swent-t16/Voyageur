@@ -48,4 +48,16 @@ interface TripRepository {
       onSuccess: (Trip) -> Unit,
       onFailure: (Exception) -> Unit,
   )
+
+  fun archiveTrip(
+      trip: Trip,
+      onSuccess: () -> Unit,
+      onFailure: (Exception) -> Unit,
+  )
+
+  fun unarchiveTrip(
+      trip: Trip,
+      onSuccess: () -> Unit,
+      onFailure: (Exception) -> Unit,
+  )
 }

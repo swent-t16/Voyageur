@@ -33,6 +33,7 @@
     <string name="trip_copied_message">%1$s copied successfully to the overview screen!</string>
     <string name="no_weeks_weekly_view">You have no weeks scheduled yet.</string>
     <string name="view_details">View Details</string>
+    <string name="archive_trip_confirmation">Are you sure you want to archive %1$s?</string>
 
 <!-- Search bar -->
     <string name="search_places">Search places…</string>

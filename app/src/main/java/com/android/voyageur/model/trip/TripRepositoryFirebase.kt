@@ -65,6 +65,30 @@ class TripRepositoryFirebase(private val db: FirebaseFirestore) : TripRepository
         }
   }
 
+  override fun archiveTrip(trip: Trip, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    db.collection(collectionPath)
+        .document(trip.id)
+        .update("archived", true)
+        .addOnSuccessListener {
+          Log.d("TripRepositoryFirebase", "Successfully archived trip ${trip.id}")
+          onSuccess()
+        }
+        .addOnFailureListener { exception ->
+          Log.e("TripRepositoryFirebase", "Error archiving trip: ", exception)
+          onFailure(exception)
+        }
+  }
+
+  override fun unarchiveTrip(trip: Trip, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    db.collection(collectionPath)
+        .document(trip.id)
+        .update("archived", false)
+        .addOnSuccessListener { onSuccess() }
+        .addOnFailureListener { exception ->
+          Log.e("TripRepositoryFirebase", "Error unarchiving trip: ", exception)
+          onFailure(exception)
+        }
+  }
   /**
    * Fetches trips that are discoverable and not created by the user.
    *

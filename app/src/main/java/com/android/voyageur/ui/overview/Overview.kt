@@ -70,6 +70,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewModelScope
 import coil.compose.rememberAsyncImagePainter
 import com.android.voyageur.R
 import com.android.voyageur.model.trip.Trip
@@ -90,6 +91,8 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import java.util.TimeZone
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * Composable function that renders the main overview screen of the app.
@@ -135,7 +138,7 @@ fun OverviewScreen(
     }
   }
 
-  val activeTrips = unfilteredTrips.filter { !it.isArchived }
+  val activeTrips = unfilteredTrips.filter { !it.archived }
   val trips =
       if (showOnlyFavorites) {
         activeTrips.filter { user!!.favoriteTrips.contains(it.id) }
@@ -355,7 +358,7 @@ fun TripItem(
                     expanded = isExpanded,
                     onDismissRequest = { isExpanded = false },
                     modifier = Modifier.background(MaterialTheme.colorScheme.secondaryContainer)) {
-                      if (!trip.isArchived) {
+                      if (!trip.archived) {
                         DropdownMenuItem(
                             onClick = {
                               isExpanded = false
@@ -386,13 +389,18 @@ fun TripItem(
                         DropdownMenuItem(
                             onClick = {
                               isExpanded = false
-                              val updatedTrip = trip.copy(isArchived = true)
-                              tripsViewModel.updateTrip(
-                                  updatedTrip,
+                              tripsViewModel.archiveTrip(
+                                  trip,
                                   onSuccess = {
-                                    tripsViewModel.getTrips()
                                     Toast.makeText(
                                             context, R.string.trip_archived, Toast.LENGTH_SHORT)
+                                        .show()
+                                  },
+                                  onFailure = { error ->
+                                    Toast.makeText(
+                                            context,
+                                            "Failed to archive trip: ${error.message}",
+                                            Toast.LENGTH_SHORT)
                                         .show()
                                   })
                             },
@@ -402,9 +410,28 @@ fun TripItem(
                         DropdownMenuItem(
                             onClick = {
                               isExpanded = false
-                              tripsViewModel.unarchiveTrip(trip)
-                              Toast.makeText(context, R.string.trip_unarchived, Toast.LENGTH_SHORT)
-                                  .show()
+                              tripsViewModel.unarchiveTrip(
+                                  trip,
+                                  onSuccess = {
+                                    // Launch a coroutine to handle the delay
+                                    tripsViewModel.viewModelScope.launch {
+                                      delay(300) // Wait 300ms
+                                      tripsViewModel.getTrips()
+                                      Toast.makeText(
+                                              context, R.string.trip_archived, Toast.LENGTH_SHORT)
+                                          .show()
+                                    }
+                                    Toast.makeText(
+                                            context, R.string.trip_archived, Toast.LENGTH_SHORT)
+                                        .show()
+                                  },
+                                  onFailure = { error ->
+                                    Toast.makeText(
+                                            context,
+                                            "Failed to unarchive trip: ${error.message}",
+                                            Toast.LENGTH_SHORT)
+                                        .show()
+                                  })
                             },
                             text = { Text(stringResource(R.string.unarchive_trip)) },
                             modifier = Modifier.testTag("unarchiveMenuItem_${trip.name}"))

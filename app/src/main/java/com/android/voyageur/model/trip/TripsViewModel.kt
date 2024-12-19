@@ -202,7 +202,7 @@ open class TripsViewModel(
     tripsRepository.getTrips(
         creator = firebaseAuth.uid.orEmpty(),
         onSuccess = { trips ->
-          Log.d("TripsViewModel", "Got trips: ${trips.map { "${it.name}: ${it.isArchived}" }}")
+          Log.d("TripsViewModel", "Got trips: ${trips.map { "${it.name}: ${it.archived}" }}")
 
           /*
               This is a trick to force a recompose, because the reference wouldn't
@@ -288,6 +288,16 @@ open class TripsViewModel(
    */
   fun updateTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
     tripsRepository.updateTrip(
+        trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = { onFailure(it) })
+  }
+
+  fun archiveTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
+    tripsRepository.archiveTrip(
+        trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = { onFailure(it) })
+  }
+
+  fun unarchiveTrip(trip: Trip, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
+    tripsRepository.unarchiveTrip(
         trip = trip, onSuccess = { getTrips(onSuccess) }, onFailure = { onFailure(it) })
   }
 
@@ -458,21 +468,6 @@ open class TripsViewModel(
     }
   }
   // ****************************************************************************************************
-  fun archiveTrip(trip: Trip) {
-    val updatedTrip = trip.copy(isArchived = true)
-    tripsRepository.updateTrip(
-        trip = updatedTrip,
-        onSuccess = { getTrips() },
-        onFailure = { exception -> Log.e("TripsViewModel", "Failed to archive trip", exception) })
-  }
-
-  fun unarchiveTrip(trip: Trip) {
-    val updatedTrip = trip.copy(isArchived = false)
-    tripsRepository.updateTrip(
-        trip = updatedTrip,
-        onSuccess = { getTrips() },
-        onFailure = { exception -> Log.e("TripsViewModel", "Failed to unarchive trip", exception) })
-  }
 
   // ****************************************************************************************************
   // AI assistant

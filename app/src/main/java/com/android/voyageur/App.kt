@@ -17,6 +17,7 @@ import com.android.voyageur.ui.navigation.Screen
 import com.android.voyageur.ui.notifications.AndroidNotificationProvider
 import com.android.voyageur.ui.notifications.AndroidStringProvider
 import com.android.voyageur.ui.overview.AddTripScreen
+import com.android.voyageur.ui.overview.ArchivedTripsScreen
 import com.android.voyageur.ui.overview.OverviewScreen
 import com.android.voyageur.ui.profile.EditProfileScreen
 import com.android.voyageur.ui.profile.ProfileScreen
@@ -117,6 +118,9 @@ fun VoyageurApp(placesClient: PlacesClient) {
       }
       composable(Screen.EDIT_ACTIVITY) {
         EditActivityScreen(navigationActions, tripsViewModel, placesViewModel)
+      }
+      composable(Screen.ARCHIVED_TRIPS) {
+        ArchivedTripsScreen(tripsViewModel, navigationActions, userViewModel)
       }
     }
   }
