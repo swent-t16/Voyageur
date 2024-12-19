@@ -80,7 +80,7 @@ fun ActivitiesMapTab(
     onActivitiesChanged(activities)
   }
 
-  Column {
+  Column(modifier = Modifier.testTag("mapScreen")) {
     // Search Bar with Filter Button
     Row(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
