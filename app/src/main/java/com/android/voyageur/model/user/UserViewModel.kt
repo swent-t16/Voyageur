@@ -1,13 +1,18 @@
 package com.android.voyageur.model.user
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.android.voyageur.R
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
 import com.android.voyageur.model.notifications.FriendRequestRepositoryFirebase
+import com.android.voyageur.ui.notifications.NotificationProvider
+import com.android.voyageur.ui.notifications.StringProvider
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -21,21 +26,30 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel responsible for managing user data and interactions with the Firebase authentication
- * and user repository. It provides functionality to load, update, and observe user data, and to
- * handle user-related actions such as signing out, adding/removing contacts, and searching users.
+ * ViewModel responsible for managing user data and interactions with Firebase authentication and
+ * user repository. It provides functionality to load, update, and observe user data, and to handle
+ * user-related actions such as signing out, adding/removing contacts, and searching users.
  *
- * @property userRepository The repository used to manage user data.
- * @property firebaseAuth The FirebaseAuth instance used for authentication.
- * @property friendRequestRepository The repository used to manage friend requests.
- * @property addAuthStateListener Flag to control the auth state listener.
+ * This ViewModel is tightly integrated with Firebase services and manages real-time updates to user
+ * data and friend requests using Firebase Firestore listeners.
+ *
+ * @param userRepository The repository used to manage user data.
+ * @param firebaseAuth The FirebaseAuth instance used for authentication.
+ * @param friendRequestRepository The repository used to manage friend requests.
+ * @param stringProvider Optional provider for string resources.
+ * @param notificationProvider Optional provider for notifications.
+ * @param addAuthStateListener Flag indicating whether to add an auth state listener.
+ * @constructor Creates an instance of [UserViewModel].
  */
-open class UserViewModel(
+open class UserViewModel
+@SuppressLint("StaticFieldLeak")
+constructor(
     private val userRepository: UserRepository,
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val friendRequestRepository: FriendRequestRepository,
-    private val addAuthStateListener: Boolean =
-        true // New parameter to control the auth state listener
+    private val stringProvider: StringProvider? = null,
+    private val notificationProvider: NotificationProvider? = null,
+    private val addAuthStateListener: Boolean = true
 ) : ViewModel() {
 
   /** Flow holding the current user data. */
@@ -100,14 +114,9 @@ open class UserViewModel(
       FirebaseAuth.AuthStateListener { auth ->
         val firebaseUser = auth.currentUser
         if (firebaseUser != null) {
-          // User is signed in, start listening to user data
-          loadUser(firebaseUser.uid, firebaseUser)
-          // Listen to friend requests (incoming)
-          listenToFriendRequests()
-          // Listen to friend requests (sent)
-          getSentFriendRequests()
+          handleUserSignIn(firebaseUser)
         } else {
-          // User is signed out, clear data and remove listeners
+          handleUserSignOut()
           userListenerRegistration?.remove()
           userListenerRegistration = null
           _user.value = null
@@ -115,8 +124,6 @@ open class UserViewModel(
           sentFriendRequestsListener?.remove()
           sentFriendRequestsListener = null
           _sentFriendRequests.value = emptyList()
-
-          // Remove friend requests listener
           friendRequestsListener?.remove()
           friendRequestsListener = null
           _friendRequests.value = emptyList()
@@ -151,18 +158,6 @@ open class UserViewModel(
     getUsersByIds(contactIds) { users -> _contacts.value = users }
   }
 
-  public override fun onCleared() {
-    super.onCleared()
-    if (addAuthStateListener) {
-      // Remove the authentication listener when ViewModel is destroyed
-      firebaseAuth.removeAuthStateListener(authStateListener)
-    }
-    // Remove Firestore listener
-    userListenerRegistration?.remove()
-    sentFriendRequestsListener?.remove()
-    sentFriendRequestsListener = null
-  }
-
   /**
    * Loads user data from the repository. If the user does not exist, creates a new user profile
    * using Firebase authentication data.
@@ -187,20 +182,30 @@ open class UserViewModel(
               firebaseUser?.let {
                 // Create a new user profile if not found in the repository
                 val newUser =
-                    User(
-                        id = it.uid,
-                        name = it.displayName ?: "Unknown",
-                        email = it.email ?: "No Email",
-                        profilePicture = it.photoUrl?.toString() ?: "",
-                        bio = "",
-                        username = it.email?.split("@")?.get(0) ?: "")
-                userRepository.createUser(
-                    newUser,
-                    onSuccess = {
-                      _user.value = newUser
-                      _isLoading.value = false
-                    },
-                    onFailure = { _isLoading.value = false })
+                    (it.displayName ?: stringProvider?.getString(R.string.unknown))?.let { it1 ->
+                      (it.email ?: stringProvider?.getString(R.string.no_email))?.let { it2 ->
+                        (it.email?.split("@")?.get(0)
+                                ?: stringProvider?.getString(R.string.unknown))
+                            ?.let { it3 ->
+                              User(
+                                  id = it.uid,
+                                  name = it1,
+                                  email = it2,
+                                  profilePicture = it.photoUrl?.toString() ?: "",
+                                  bio = "",
+                                  username = it3)
+                            }
+                      }
+                    }
+                if (newUser != null) {
+                  userRepository.createUser(
+                      newUser,
+                      onSuccess = {
+                        _user.value = newUser
+                        _isLoading.value = false
+                      },
+                      onFailure = { _isLoading.value = false })
+                }
               }
                   ?: run {
                     _user.value = null
@@ -233,9 +238,9 @@ open class UserViewModel(
    */
   fun addContact(userId: String, friendRequestId: String) {
     val currentUser = user.value ?: return
-    val contacts = currentUser.contacts?.toMutableSet()
-    contacts?.add(userId)
-    val newUser = currentUser.copy(contacts = contacts?.toList().orEmpty())
+    val contacts = currentUser.contacts.toMutableSet()
+    contacts.add(userId)
+    val newUser = currentUser.copy(contacts = contacts.toList().orEmpty())
     updateUser(newUser)
     // Deletes Friend Request since the user has been added as a contact
     deleteFriendRequest(friendRequestId)
@@ -292,6 +297,80 @@ open class UserViewModel(
     }
   }
 
+  // Add this function to manually trigger token update
+  fun refreshFCMToken() {
+    firebaseAuth.currentUser?.uid?.let { userId -> updateStoredFCMToken(userId) }
+  }
+
+  /**
+   * Called when the ViewModel is being destroyed. This method is used to clean up resources such as
+   * listeners and state observers to prevent memory leaks.
+   *
+   * This implementation removes the authentication state listener, user listener registration, sent
+   * friend requests listener, and friend requests listener.
+   */
+  override fun onCleared() {
+    super.onCleared()
+
+    // Remove and nullify auth state listener
+    if (addAuthStateListener) {
+      firebaseAuth.removeAuthStateListener(authStateListener)
+    }
+
+    // Remove and nullify user listener registration
+    userListenerRegistration?.remove()
+    userListenerRegistration = null
+
+    // Remove and nullify sent friend requests listener
+    sentFriendRequestsListener?.remove()
+    sentFriendRequestsListener = null
+
+    // Remove and nullify friend requests listener
+    friendRequestsListener?.remove()
+    friendRequestsListener = null
+  }
+
+  private fun handleUserSignOut() {
+    val currentUser = _user.value
+    if (currentUser != null) {
+      // Clear FCM token before signing out
+      val updatedUser = currentUser.copy(fcmToken = null)
+      updateUser(
+          updatedUser,
+          onSuccess = {
+            // Clear stored token
+            notificationProvider?.context?.let { context ->
+              context
+                  .getSharedPreferences("voyageur_prefs", Context.MODE_PRIVATE)
+                  .edit()
+                  .remove("fcm_token")
+                  .apply()
+            }
+            clearUserState()
+          },
+          onFailure = { error ->
+            Log.e("UserViewModel", "Failed to clear FCM token: ${error.message}")
+            clearUserState()
+          })
+    } else {
+      clearUserState()
+    }
+  }
+
+  private fun clearUserState() {
+    userListenerRegistration?.remove()
+    userListenerRegistration = null
+    _user.value = null
+    _isLoading.value = false
+    sentFriendRequestsListener?.remove()
+    sentFriendRequestsListener = null
+    _sentFriendRequests.value = emptyList()
+    friendRequestsListener?.remove()
+    friendRequestsListener = null
+    _friendRequests.value = emptyList()
+    _notificationUsers.value = emptyList()
+  }
+
   /**
    * Clears the friend request state for a specific user.
    *
@@ -327,6 +406,13 @@ open class UserViewModel(
           Log.e("USER_UPDATE", "Failed to update user: $error")
           onFailure(error)
         })
+  }
+
+  private fun handleUserSignIn(firebaseUser: FirebaseUser) {
+    loadUser(firebaseUser.uid, firebaseUser)
+    listenToFriendRequests() // Start listening for friend requests
+    getSentFriendRequests() // Start listening for sent friend requests
+    updateStoredFCMToken(firebaseUser.uid) // Update FCM token if needed
   }
 
   /**
@@ -403,11 +489,34 @@ open class UserViewModel(
             updateUser(
                 updatedSender,
                 onSuccess = {
-                  // Optimistically update the state flow
-                  _friendRequests.value =
-                      _friendRequests.value.filterNot { it.id == friendRequest.id }
-                  // Clear the friend request after successful updates
-                  friendRequestRepository.deleteRequest(friendRequest.id, {}, {})
+                  // Mark the request as accepted to trigger the sender's notification
+                  val acceptedRequest = friendRequest.copy(accepted = true)
+                  friendRequestRepository.createRequest(
+                      acceptedRequest,
+                      onSuccess = {
+                        // Remove the old request from this device's local state immediately
+                        _friendRequests.value =
+                            _friendRequests.value.filterNot { it.id == friendRequest.id }
+
+                        // After a short delay, delete the accepted request from Firestore
+                        // This gives the sender time to see the acceptance state and show a
+                        // notification
+                        viewModelScope.launch {
+                          kotlinx.coroutines.delay(1000)
+                          friendRequestRepository.deleteRequest(
+                              reqId = acceptedRequest.id,
+                              onSuccess = {},
+                              onFailure = { e ->
+                                Log.e(
+                                    "ACCEPT_REQUEST",
+                                    "Failed to delete friend request: ${e.message}")
+                              })
+                        }
+                      },
+                      onFailure = { error ->
+                        Log.e(
+                            "ACCEPT_REQUEST", "Failed to create accepted request: ${error.message}")
+                      })
                 },
                 onFailure = { error ->
                   Log.e("ACCEPT_REQUEST", "Failed to update sender: ${error.message}")
@@ -472,16 +581,24 @@ open class UserViewModel(
 
   companion object {
     /** Factory for creating instances of UserViewModel, supplying the required UserRepository. */
-    val Factory: ViewModelProvider.Factory =
-        object : ViewModelProvider.Factory {
-          @Suppress("UNCHECKED_CAST")
-          override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return UserViewModel(
-                UserRepositoryFirebase.create(),
-                friendRequestRepository = FriendRequestRepositoryFirebase.create())
-                as T
-          }
+    fun provideFactory(
+        stringProvider: StringProvider,
+        notificationProvider: NotificationProvider
+    ): ViewModelProvider.Factory {
+      return object : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+          return UserViewModel(
+              userRepository = UserRepositoryFirebase.create(),
+              firebaseAuth = FirebaseAuth.getInstance(),
+              friendRequestRepository = FriendRequestRepositoryFirebase.create(),
+              addAuthStateListener = true,
+              stringProvider = stringProvider,
+              notificationProvider = notificationProvider)
+              as T
         }
+      }
+    }
   }
 
   /**
@@ -528,23 +645,6 @@ open class UserViewModel(
   }
 
   /**
-   * Retrieves the sent friend requests for the current user.
-   *
-   * @param onSuccess Callback to execute after successful retrieval.
-   */
-  fun getSentFriendRequests() {
-    val userId = Firebase.auth.uid.orEmpty()
-    // Remove any existing listener to prevent duplicates
-    sentFriendRequestsListener?.remove()
-
-    sentFriendRequestsListener =
-        friendRequestRepository.listenToSentFriendRequests(
-            userId = userId,
-            onSuccess = { requests -> _sentFriendRequests.value = requests },
-            onFailure = { exception -> Log.e("USER_VIEW_MODEL", exception.message.orEmpty()) })
-  }
-
-  /**
    * Fetches all the users in the give list
    *
    * @param userIds the list of userIDs to fetch
@@ -579,39 +679,167 @@ open class UserViewModel(
    * @param reqId the request ID of the friend request to delete
    */
   fun deleteFriendRequest(reqId: String) {
-    // Optimistically update the state flow
     _sentFriendRequests.value = _sentFriendRequests.value.filterNot { it.id == reqId }
     friendRequestRepository.deleteRequest(
         reqId = reqId,
-        onSuccess = {
-          Log.d("FRIEND_REQUEST", "Friend request $reqId successfully deleted")
-          // No need to call getSentFriendRequests() since we've updated the state
-        },
+        onSuccess = { Log.d("FRIEND_REQUEST", "Friend request $reqId successfully deleted") },
         onFailure = { exception ->
           Log.e("FRIEND_REQUEST", "Failed to delete friend request: ${exception.message}")
-          // Optionally revert the state flow if needed
         })
   }
-  /** Sets up a listener for incoming friend requests so that the UI updates in real-time. */
+
+  /**
+   * Updates the status of a friend request. If the request is accepted, it adds the sender to the
+   * user's contacts and marks the request as accepted. If the request is not accepted, it deletes
+   * the friend request.
+   *
+   * @param friendRequest The friend request to update.
+   * @param accepted A boolean indicating whether the friend request is accepted.
+   */
+  fun updateFriendRequest(friendRequest: FriendRequest, accepted: Boolean) {
+    if (accepted) {
+      // Update the friend request to mark it as accepted
+      val acceptedRequest = friendRequest.copy(accepted = true)
+      friendRequestRepository.createRequest(
+          acceptedRequest,
+          onSuccess = {
+            // Add the user as a contact
+            addContact(friendRequest.from, friendRequest.id)
+          },
+          onFailure = { exception ->
+            Log.e("UserViewModel", "Failed to update friend request", exception)
+          })
+    } else {
+      // Delete the friend request if not accepted
+      deleteFriendRequest(friendRequest.id)
+    }
+  }
+  /**
+   * Sets up a listener for incoming friend requests so that the UI updates in real-time. Also
+   * triggers notifications for new friend requests when appropriate.
+   */
   fun listenToFriendRequests() {
     val userId = Firebase.auth.uid.orEmpty()
     if (userId.isEmpty()) return
 
-    // Remove any existing listener to prevent duplicates
     friendRequestsListener?.remove()
 
     friendRequestsListener =
         friendRequestRepository.listenToFriendRequests(
             userId = userId,
             onSuccess = { requests ->
+              val oldRequests = _friendRequests.value
               _friendRequests.value = requests
-              // Update notification count based on the number of incoming friend requests
               _notificationCount.value = requests.size.toLong()
-              // Fetch associated user data for notifications
-              getUsersByIds(requests.map { it.from }) { users -> _notificationUsers.value = users }
+
+              getUsersByIds(requests.map { it.from }) { users ->
+                _notificationUsers.value = users
+
+                // Check for new requests and show notifications
+                val oldRequestIds = oldRequests.map { it.id }.toSet()
+                requests
+                    .filterNot { oldRequestIds.contains(it.id) }
+                    .forEach { newRequest ->
+                      val senderUser = users.find { it.id == newRequest.from }
+                      val senderName =
+                          senderUser?.name ?: stringProvider?.getString(R.string.unknown)
+                      senderName?.let { notificationProvider?.showNewFriendRequestNotification(it) }
+                    }
+              }
             },
             onFailure = { exception ->
-              Log.e("USER_VIEW_MODEL", "Failed to listen to friend requests: ${exception.message}")
+              Log.e("UserViewModel", "Failed to listen to friend requests", exception)
             })
+  }
+
+  /**
+   * Sets up a listener for sent friend requests and handles notifications when requests are
+   * accepted.
+   */
+  fun getSentFriendRequests() {
+    val userId = Firebase.auth.uid.orEmpty()
+    if (userId.isEmpty()) return
+
+    val oldSentRequests = _sentFriendRequests.value
+    sentFriendRequestsListener?.remove()
+
+    sentFriendRequestsListener =
+        friendRequestRepository.listenToSentFriendRequests(
+            userId = userId,
+            onSuccess = { requests ->
+              val oldRequestsMap = oldSentRequests.associateBy { it.id }
+              _sentFriendRequests.value = requests
+
+              // Find newly accepted requests
+              requests
+                  .filter { newReq ->
+                    newReq.accepted && oldRequestsMap[newReq.id]?.accepted == false
+                  }
+                  .forEach { acceptedReq ->
+                    userRepository.getUserById(
+                        id = acceptedReq.to,
+                        onSuccess = { acceptorUser ->
+                          val acceptorName =
+                              acceptorUser.name ?: stringProvider?.getString(R.string.unknown)
+                          acceptorName?.let {
+                            notificationProvider?.showFriendRequestAcceptedNotification(it)
+                          }
+
+                          // Delete the request after showing notification
+                          deleteFriendRequest(acceptedReq.id)
+                        },
+                        onFailure = { exception ->
+                          Log.e("UserViewModel", "Failed to fetch user", exception)
+                        })
+                  }
+            },
+            onFailure = { exception ->
+              Log.e("UserViewModel", "Failed to listen to sent friend requests", exception)
+            })
+  }
+
+  private fun updateStoredFCMToken(userId: String) {
+    notificationProvider?.context?.let { context ->
+      val sharedPrefs = context.getSharedPreferences("voyageur_prefs", Context.MODE_PRIVATE)
+      val storedToken = sharedPrefs.getString("fcm_token", null)
+
+      // Add debug log
+      Log.d("UserViewModel", "Stored token: $storedToken")
+
+      if (storedToken != null) {
+        val currentUser = _user.value
+        // Add debug log
+        Log.d("UserViewModel", "Current user: $currentUser")
+
+        if (currentUser != null) {
+          val updatedUser = currentUser.copy(fcmToken = storedToken)
+          // Add debug log
+          Log.d("UserViewModel", "Updating user with token: ${updatedUser.fcmToken}")
+
+          updateUser(
+              updatedUser,
+              onSuccess = { Log.d("UserViewModel", "FCM token updated successfully") },
+              onFailure = { error ->
+                Log.e("UserViewModel", "Failed to update FCM token: ${error.message}")
+              })
+        }
+      }
+    }
+  }
+
+  /**
+   * Fetches a user by their ID and invokes the provided callback with the result.
+   *
+   * @param userId The ID of the user to fetch.
+   * @param onResult Callback to be invoked with the fetched user or null if the fetch fails.
+   */
+  fun getUserById(userId: String, onResult: (User?) -> Unit) {
+    userRepository.getUserById(
+        userId,
+        onSuccess = { user -> onResult(user) },
+        onFailure = { exception ->
+          Log.e("UserViewModel", "Failed to fetch user by ID: $exception")
+          onResult(null)
+        })
   }
 }

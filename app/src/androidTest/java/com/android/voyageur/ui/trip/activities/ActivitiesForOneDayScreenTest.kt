@@ -2,23 +2,28 @@ package com.android.voyageur.ui.trip.activities
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.navigation.NavHostController
 import com.android.voyageur.model.activity.Activity
 import com.android.voyageur.model.activity.ActivityType
 import com.android.voyageur.model.trip.Trip
 import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.NavigationState
 import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.doReturn
 
 class ActivitiesForOneDayScreenTest {
   private val sampleTrip =
@@ -47,6 +52,8 @@ class ActivitiesForOneDayScreenTest {
               ))
 
   private lateinit var navigationActions: NavigationActions
+  private lateinit var mockNavigationActions: NavigationActions
+  private lateinit var navHostController: NavHostController
   private lateinit var tripsViewModel: TripsViewModel
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -54,7 +61,9 @@ class ActivitiesForOneDayScreenTest {
   @Before
   fun setUp() {
     tripsViewModel = mock(TripsViewModel::class.java)
-    navigationActions = mock(NavigationActions::class.java)
+    navHostController = Mockito.mock(NavHostController::class.java)
+    navigationActions = NavigationActions(navHostController)
+    mockNavigationActions = mock(NavigationActions::class.java)
     val selectedTripFlow = MutableStateFlow(sampleTrip)
     `when`(tripsViewModel.selectedTrip).thenReturn(selectedTripFlow)
     val selectedDayFlow = MutableStateFlow<LocalDate?>(LocalDate.of(2022, 1, 1))
@@ -111,5 +120,33 @@ class ActivitiesForOneDayScreenTest {
         .onNodeWithTag("cardItem_${sampleTrip.activities[1].title}")
         .assertIsNotDisplayed()
     verify(tripsViewModel).removeActivityFromTrip(sampleTrip.activities[1])
+  }
+
+  @Test
+  fun deleteAndEditButtons_NotDisplayedInROV() {
+    // Mock NavigationActions to return a NavigationState with isReadOnlyView = true
+    val navigationState = NavigationState()
+    navigationState.isReadOnlyView = true
+    doReturn(navigationState).`when`(mockNavigationActions).getNavigationState()
+    composeTestRule.setContent { ActivitiesForOneDayScreen(tripsViewModel, mockNavigationActions) }
+
+    // Assert the delete button is not displayed
+    composeTestRule.onNodeWithTag("expandIcon_${sampleTrip.activities[1].title}").isDisplayed()
+    composeTestRule
+        .onNodeWithTag("deleteIcon_${sampleTrip.activities[1].title}")
+        .assertDoesNotExist()
+    composeTestRule.onNodeWithTag("deleteActivityAlertDialog").assertDoesNotExist()
+    // Assert the edit button is not displayed
+    composeTestRule.onNodeWithTag("editIcon_${sampleTrip.activities[1].title}").assertDoesNotExist()
+  }
+
+  @Test
+  fun createActivityButton_notDisplayedInROV() {
+    val navigationState = NavigationState()
+    navigationState.isReadOnlyView = true
+    doReturn(navigationState).`when`(mockNavigationActions).getNavigationState()
+    composeTestRule.setContent { ActivitiesForOneDayScreen(tripsViewModel, mockNavigationActions) }
+
+    composeTestRule.onNodeWithTag("createActivityButton").assertDoesNotExist()
   }
 }

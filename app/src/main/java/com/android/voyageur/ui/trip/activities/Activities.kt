@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -53,11 +54,14 @@ import com.google.firebase.Timestamp
  * @param navigationActions Provides actions for navigating between screens.
  * @param userViewModel The [UserViewModel] instance for managing user-related data.
  * @param tripsViewModel The [TripsViewModel] instance for accessing trip and activity data.
+ * @param isReadOnly Boolean which determines if the user is in Read Only View and cannot
+ *   edit/add/delete activities.
  */
 fun ActivitiesScreen(
     navigationActions: NavigationActions,
     userViewModel: UserViewModel,
-    tripsViewModel: TripsViewModel
+    tripsViewModel: TripsViewModel,
+    isReadOnly: Boolean = false
 ) {
   // States for filtering
   var selectedFilters by remember { mutableStateOf(setOf<ActivityType>()) }
@@ -131,7 +135,8 @@ fun ActivitiesScreen(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute(),
-            userViewModel = userViewModel)
+            userViewModel = userViewModel,
+            tripsViewModel = tripsViewModel)
       },
       topBar = {
         TopAppBar(
@@ -152,62 +157,81 @@ fun ActivitiesScreen(
             },
             modifier = Modifier.height(80.dp).testTag("topAppBar"))
       },
-      floatingActionButton = { AddActivityButton(navigationActions) },
-      content = { pd ->
-        LazyColumn(
-            modifier = Modifier.padding(pd).fillMaxWidth().testTag("lazyColumn"),
-            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
-        ) {
-          item {
-            Text(
-                text = stringResource(R.string.drafts),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 10.dp))
-          }
-          drafts.forEach { activity ->
-            item {
-              if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
-                ActivityItem(
-                    activity,
-                    true,
-                    onClickButton = {
-                      activityToDelete = activity
-                      showDialog = true
-                    },
-                    ButtonType.DELETE,
-                    navigationActions,
-                    tripsViewModel)
-                Spacer(modifier = Modifier.height(10.dp))
-              }
-            }
-          }
-          item {
-            Text(
-                text = stringResource(R.string.final_activities),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 10.dp))
-          }
-          final.forEach { activity ->
-            item {
-              if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
-                ActivityItem(
-                    activity,
-                    true,
-                    onClickButton = {
-                      activityToDelete = activity
-                      showDialog = true
-                    },
-                    ButtonType.DELETE,
-                    navigationActions,
-                    tripsViewModel)
-                Spacer(modifier = Modifier.height(10.dp))
-              }
-            }
-          }
-          item { EstimatedPriceBox(totalEstimatedPrice) }
+      floatingActionButton = {
+        if (!isReadOnly) {
+          AddActivityButton(navigationActions)
         }
+      },
+      content = { pd ->
+        if (drafts.isEmpty() && final.isEmpty()) {
+          // Display empty prompt if there are no activities
+          Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                modifier = Modifier.testTag("emptyActivitiesPrompt"),
+                text = stringResource(R.string.no_activities_scheduled),
+            )
+          }
+        } else {
+          val isEditable = !isReadOnly
+          val buttonType = if (isEditable) ButtonType.DELETE else ButtonType.NOTHING
+          LazyColumn(
+              modifier = Modifier.padding(pd).fillMaxWidth().testTag("lazyColumn"),
+              verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+          ) {
+            item {
+              if (drafts.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.drafts),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 10.dp))
+              }
+            }
+            drafts.forEach { activity ->
+              item {
+                if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
+                  ActivityItem(
+                      activity,
+                      isEditable,
+                      onClickButton = {
+                        activityToDelete = activity
+                        showDialog = true
+                      },
+                      buttonType,
+                      navigationActions,
+                      tripsViewModel)
+                  Spacer(modifier = Modifier.height(10.dp))
+                }
+              }
+            }
+            item {
+              if (final.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.final_activities),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 10.dp))
+              }
+            }
+            final.forEach { activity ->
+              item {
+                if (selectedFilters.isEmpty() || activity.activityType in selectedFilters) {
+                  ActivityItem(
+                      activity,
+                      isEditable,
+                      onClickButton = {
+                        activityToDelete = activity
+                        showDialog = true
+                      },
+                      buttonType,
+                      navigationActions,
+                      tripsViewModel)
+                  Spacer(modifier = Modifier.height(10.dp))
+                }
+              }
+            }
+            item { EstimatedPriceBox(totalEstimatedPrice) }
+          }
 
         if (showDialog) {
           DeleteActivityAlertDialog(

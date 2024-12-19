@@ -1,8 +1,7 @@
 package com.android.voyageur
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -15,6 +14,8 @@ import com.android.voyageur.ui.authentication.SignInScreen
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.Route
 import com.android.voyageur.ui.navigation.Screen
+import com.android.voyageur.ui.notifications.AndroidNotificationProvider
+import com.android.voyageur.ui.notifications.AndroidStringProvider
 import com.android.voyageur.ui.overview.AddTripScreen
 import com.android.voyageur.ui.overview.OverviewScreen
 import com.android.voyageur.ui.profile.EditProfileScreen
@@ -34,7 +35,22 @@ fun VoyageurApp(placesClient: PlacesClient) {
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val tripsViewModel: TripsViewModel = viewModel(factory = TripsViewModel.Factory)
-  val userViewModel: UserViewModel = viewModel(factory = UserViewModel.Factory)
+  // Retrieve context from the UI layer
+  val context = LocalContext.current
+
+  // Create the providers here
+  val stringProvider = AndroidStringProvider(context)
+  val notificationProvider = AndroidNotificationProvider(context)
+
+  // Use UserViewModel.provideFactory(context) instead of UserViewModel.Factory
+  val userViewModel: UserViewModel =
+      viewModel(
+          factory =
+              UserViewModel.provideFactory(
+                  notificationProvider = notificationProvider,
+                  stringProvider = stringProvider,
+              ))
+
   val placesViewModel: PlacesViewModel =
       viewModel(factory = PlacesViewModel.provideFactory(placesClient))
 
@@ -76,8 +92,10 @@ fun VoyageurApp(placesClient: PlacesClient) {
         startDestination = Screen.PROFILE,
         route = Route.PROFILE,
     ) {
-      composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigationActions) }
-      composable(Screen.EDIT_PROFILE) { EditProfileScreen(userViewModel, navigationActions) }
+      composable(Screen.PROFILE) { ProfileScreen(userViewModel, tripsViewModel, navigationActions) }
+      composable(Screen.EDIT_PROFILE) {
+        EditProfileScreen(userViewModel, navigationActions, tripsViewModel)
+      }
     }
 
     navigation(startDestination = Screen.TOP_TABS, route = Route.TOP_TABS) {

@@ -1,5 +1,6 @@
 package com.android.voyageur.ui.search
 
+import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -7,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
@@ -18,15 +20,19 @@ import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.NavigationActions
 import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Route
+import com.android.voyageur.ui.navigation.Screen
 import com.google.android.libraries.places.api.model.Place
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.whenever
 
 class SearchScreenTest {
   private lateinit var navigationActions: NavigationActions
@@ -35,6 +41,7 @@ class SearchScreenTest {
   private lateinit var placesViewModel: PlacesViewModel
   private lateinit var placesRepository: PlacesRepository
   private lateinit var tripsRepository: TripRepository
+  private lateinit var tripInviteRepository: TripInviteRepository
   private lateinit var tripsViewModel: TripsViewModel
   private lateinit var navigationState: NavigationState
   private lateinit var friendRequestRepository: FriendRequestRepository
@@ -49,7 +56,8 @@ class SearchScreenTest {
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     userViewModel = UserViewModel(userRepository, friendRequestRepository = friendRequestRepository)
     placesViewModel = PlacesViewModel(placesRepository)
-    tripsViewModel = TripsViewModel(tripsRepository)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripsRepository, tripInviteRepository)
     navigationState = NavigationState()
     `when`(navigationActions.currentRoute()).thenReturn(Route.SEARCH)
     `when`(navigationActions.getNavigationState()).thenReturn(navigationState)
@@ -153,5 +161,53 @@ class SearchScreenTest {
 
     composeTestRule.onNodeWithTag("discoverTab").performClick()
     composeTestRule.onNodeWithTag("noTripsFound").assertIsDisplayed()
+  }
+
+  @Test
+  fun testDetailsButtonUpdatesNavActions() = runTest {
+    composeTestRule.awaitIdle()
+    `when`(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
+      onSuccess(listOf(Trip(id = "1"))) // Provide a valid Trip for testing
+    }
+    composeTestRule.onNodeWithTag("discoverTab").performClick()
+    composeTestRule.awaitIdle()
+    composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("viewTripDetailsButton").performClick()
+    // Check the user will be redirected to daily view
+    assert(navigationActions.getNavigationState().isDailyViewSelected)
+    // Check the user navigates in Read Only Mode for the trip
+    assert(navigationActions.getNavigationState().isReadOnlyView)
+    // Assert the navigation action navigates to the TOP_TABS screen
+    verify(navigationActions).navigateTo(Screen.TOP_TABS)
+  }
+
+  @Test
+  fun testCopyButton() = runTest {
+    composeTestRule.awaitIdle()
+    whenever(tripsRepository.getFeed(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (List<Trip>) -> Unit
+      onSuccess(listOf(Trip(id = "1"))) // Return a test Trip
+    }
+
+    val mockListenerRegistration = mock(ListenerRegistration::class.java)
+    whenever(userRepository.listenToUser(any(), any(), any())).thenAnswer {
+      val onSuccess = it.arguments[1] as (User) -> Unit
+      onSuccess(User(id = "test"))
+      mockListenerRegistration
+    }
+
+    // Mock Context to ensure Toast executes
+    val context = mock<Context>()
+    whenever(context.applicationContext).thenReturn(context)
+
+    userViewModel.loadUser("test")
+
+    composeTestRule.onNodeWithTag("discoverTab").performClick()
+    composeTestRule.awaitIdle()
+    composeTestRule.onNodeWithTag("tripCard_1").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("copyTripDetailsButton").performClick()
+
+    verify(tripsRepository).createTrip(any(), any(), any())
   }
 }

@@ -11,6 +11,11 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.voyageur.model.notifications.FriendRequest
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.notifications.TripInvite
+import com.android.voyageur.model.notifications.TripInviteRepository
+import com.android.voyageur.model.trip.Trip
+import com.android.voyageur.model.trip.TripRepository
+import com.android.voyageur.model.trip.TripsViewModel
 import com.android.voyageur.model.user.User
 import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
@@ -27,15 +32,21 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 
 class ProfileScreenTest {
 
   private lateinit var navigationActions: NavigationActions
   private lateinit var userRepository: UserRepository
   private lateinit var userViewModel: UserViewModel
+  private lateinit var tripsViewModel: TripsViewModel
   private lateinit var firebaseAuth: FirebaseAuth
   private lateinit var firebaseUser: FirebaseUser
   private lateinit var friendRequestRepository: FriendRequestRepository
+  private lateinit var tripInviteRepository: TripInviteRepository
+  private lateinit var tripsRepository: TripRepository
+
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
@@ -46,6 +57,8 @@ class ProfileScreenTest {
     friendRequestRepository = mock(FriendRequestRepository::class.java)
     firebaseAuth = mock(FirebaseAuth::class.java)
     firebaseUser = mock(FirebaseUser::class.java)
+    tripsRepository = mock(TripRepository::class.java)
+    tripInviteRepository = mock(TripInviteRepository::class.java)
 
     // Mock FirebaseAuth to return our mocked firebaseUser
     `when`(firebaseAuth.currentUser).thenReturn(firebaseUser)
@@ -117,12 +130,17 @@ class ProfileScreenTest {
             )
     userViewModel.shouldFetch = false
 
+    tripsViewModel = TripsViewModel(tripsRepository, tripInviteRepository, false, firebaseAuth)
+
     // Mocking initial navigation state
     `when`(navigationActions.currentRoute()).thenReturn(Route.PROFILE)
 
     // Set the content for Compose rule
     composeTestRule.setContent {
-      ProfileScreen(userViewModel = userViewModel, navigationActions = navigationActions)
+      ProfileScreen(
+          userViewModel = userViewModel,
+          tripsViewModel = tripsViewModel,
+          navigationActions = navigationActions)
       FriendReqMenu(
           friendRequests = friendRequests.value,
           notificationUsers = notificationUsers.value,
@@ -304,5 +322,141 @@ class ProfileScreenTest {
     // Assert: Verify the notification badge is displayed on the profile tab
     composeTestRule.onNodeWithTag("notificationBadge", useUnmergedTree = true).assertIsDisplayed()
     composeTestRule.onNodeWithText("5", useUnmergedTree = true).assertIsDisplayed()
+  }
+
+  @Test
+  fun declineTripInviteCallsRepository() {
+    // Set up logged in user first
+    val user = User("123", "Jane Doe", "jane@example.com", interests = emptyList())
+    userViewModel._user.value = user
+    userViewModel._isLoading.value = false
+
+    // Create test invite
+    val invite = TripInvite(id = "invite1", from = "user1", to = "user2", tripId = "trip1")
+    tripsViewModel.set_tripInvites(listOf(invite))
+
+    // Let the UI update
+    composeTestRule.waitForIdle()
+
+    // Verify trip invite card is displayed
+    composeTestRule.onNodeWithTag("tripInviteCard").assertIsDisplayed()
+
+    // Verify deny button is displayed and click it
+    composeTestRule.onNodeWithTag("denyButton").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("denyButton").performClick()
+
+    // Verify repository method was called
+    verify(tripInviteRepository).deleteTripInvite(eq("invite1"), anyOrNull(), anyOrNull())
+  }
+
+  @Test
+  fun tripInvitesShowCorrectCount() {
+    // Set up logged in user first
+    val user = User("123", "Jane Doe", "jane@example.com", interests = emptyList())
+    userViewModel._user.value = user
+    userViewModel._isLoading.value = false
+
+    // Create multiple invites
+    val invites =
+        listOf(
+            TripInvite(id = "1", from = "user1", to = "user2", tripId = "trip1"),
+            TripInvite(id = "2", from = "user3", to = "user2", tripId = "trip2"))
+    tripsViewModel.set_tripInvites(invites)
+
+    // Let the UI update
+    composeTestRule.waitForIdle()
+
+    // Verify count is displayed correctly
+    composeTestRule.onNodeWithText("Pending Trip Invites (2)").assertIsDisplayed()
+  }
+
+  @Test
+  fun acceptingTripInviteUpdatesInvitesList() {
+    // Set up logged in user first
+    val user = User("123", "Jane Doe", "jane@example.com", interests = emptyList())
+    userViewModel._user.value = user
+    userViewModel._isLoading.value = false
+
+    // Create test invite
+    val invite = TripInvite(id = "invite1", from = "user1", to = "user2", tripId = "trip1")
+    tripsViewModel.set_tripInvites(listOf(invite))
+
+    // Let the UI update
+    composeTestRule.waitForIdle()
+
+    // Verify trip invite card is displayed
+    composeTestRule.onNodeWithTag("tripInviteCard").assertIsDisplayed()
+
+    // Verify accept button is displayed and click it
+    composeTestRule.onNodeWithTag("acceptButton").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("acceptButton").performClick()
+  }
+
+  @Test
+  fun tripInviteMenuShowsEmptyState() {
+    // Set up logged in user first
+    val user = User("123", "Jane Doe", "jane@example.com", interests = emptyList())
+    userViewModel._user.value = user
+    userViewModel._isLoading.value = false
+
+    // Set empty invites
+    tripsViewModel.set_tripInvites(emptyList())
+
+    // Let the UI update
+    composeTestRule.waitForIdle()
+
+    // Verify empty state is shown
+    composeTestRule.onNodeWithTag("tripInviteCard").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("noInvitesBox").assertIsDisplayed()
+  }
+
+  @Test
+  fun displaysTripInviteFromInfo() {
+    // Set up logged in user
+    val user = User("123", "Jane Doe", "jane@example.com", interests = emptyList())
+    userViewModel._user.value = user
+    userViewModel._isLoading.value = false
+
+    // Mock trip and sender details
+    val trip = Trip(id = "trip1", name = "Adventure Trip")
+    val sender = User(id = "sender123", name = "Alice")
+
+    // Mock tripInviteRepository and userRepository behavior
+    doAnswer { invocation ->
+          val tripId = invocation.getArgument<String>(0)
+          val onSuccess = invocation.getArgument<(Trip?) -> Unit>(1)
+          if (tripId == "trip1") {
+            onSuccess(trip)
+          } else {
+            onSuccess(null)
+          }
+          null
+        }
+        .`when`(tripsRepository)
+        .getTripById(eq("trip1"), anyOrNull(), anyOrNull())
+
+    doAnswer { invocation ->
+          val userId = invocation.getArgument<String>(0)
+          val onSuccess = invocation.getArgument<(User?) -> Unit>(1)
+          if (userId == "sender123") {
+            onSuccess(sender)
+          } else {
+            onSuccess(null)
+          }
+          null
+        }
+        .`when`(userRepository)
+        .getUserById(eq("sender123"), anyOrNull(), anyOrNull())
+
+    // Create test invite
+    val invite = TripInvite(id = "invite1", from = "sender123", to = "user2", tripId = "trip1")
+    tripsViewModel.set_tripInvites(listOf(invite))
+
+    // Let the UI update
+    composeTestRule.waitForIdle()
+
+    // Verify the sender's name and trip name are displayed
+    composeTestRule.onNodeWithText("Adventure Trip").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Invited by: Alice").assertIsDisplayed()
   }
 }

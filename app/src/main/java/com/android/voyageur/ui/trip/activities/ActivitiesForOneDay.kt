@@ -46,8 +46,9 @@ import java.util.Locale
 @Composable
 fun ActivitiesForOneDayScreen(
     tripsViewModel: TripsViewModel,
-    navigationActions: NavigationActions
+    navigationActions: NavigationActions,
 ) {
+  val isReadOnlyView = navigationActions.getNavigationState().isReadOnlyView
   val trip =
       tripsViewModel.selectedTrip.value
           ?: return Text(text = "No trip selected. Should not happen", color = Color.Red)
@@ -127,7 +128,11 @@ fun ActivitiesForOneDayScreen(
               modifier = Modifier.height(80.dp).testTag("topAppBar"))
         }
       },
-      floatingActionButton = { AddActivityButton(navigationActions) },
+      floatingActionButton = {
+        if (!isReadOnlyView) {
+          AddActivityButton(navigationActions)
+        }
+      },
       content = { pd ->
         if (activities.isEmpty()) {
           Box(modifier = Modifier.padding(pd).fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -137,6 +142,8 @@ fun ActivitiesForOneDayScreen(
             )
           }
         } else {
+          val isEditable = !isReadOnlyView
+          val buttonType = if (isEditable) ButtonType.DELETE else ButtonType.NOTHING
           LazyColumn(
               modifier =
                   Modifier.padding(pd).padding(top = 16.dp).fillMaxWidth().testTag("lazyColumn"),
@@ -146,12 +153,12 @@ fun ActivitiesForOneDayScreen(
               item {
                 ActivityItem(
                     activity,
-                    true,
+                    isEditable,
                     onClickButton = {
                       activityToDelete = activity
                       showDialog = true
                     },
-                    ButtonType.DELETE,
+                    buttonType,
                     navigationActions,
                     tripsViewModel)
                 Spacer(modifier = Modifier.height(10.dp))

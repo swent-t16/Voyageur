@@ -20,6 +20,8 @@ import com.google.firebase.firestore.Exclude
  * @property activities A list of [Activity] instances planned for the trip.
  * @property type The type of the trip, as defined by the [TripType] enum.
  * @property imageUri A URI string pointing to an image associated with the trip.
+ * @property photos A list of URIs pointing to photos associated with the trip.
+ * @property discoverable A flag indicating whether the trip is discoverable by other users.
  */
 data class Trip(
     val id: String = "",
@@ -92,6 +94,14 @@ data class Trip(
 
 /** Enum representing the type of a trip - Business or Tourism. */
 enum class TripType {
-  BUSINESS,
   TOURISM,
+  BUSINESS,
+  ADVENTURE,
+  CULTURAL,
+  FAMILY,
+  CULINARY,
+  FESTIVAL,
+  VOLUNTEER,
+  EDUCATIONAL,
+  OTHER
 }

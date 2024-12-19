@@ -231,7 +231,8 @@ fun SearchScreen(
             onTabSelect = { route -> navigationActions.navigateTo(route) },
             tabList = LIST_TOP_LEVEL_DESTINATION,
             selectedItem = navigationActions.currentRoute(),
-            userViewModel)
+            userViewModel,
+            tripsViewModel)
       },
       floatingActionButton = {
         if (navigationActions.getNavigationState().currentTabForSearch ==
@@ -260,6 +261,7 @@ fun SearchScreen(
                         when (navigationActions.getNavigationState().currentTabForSearch) {
                           FilterType.PLACES.ordinal -> R.string.search_places
                           FilterType.USERS.ordinal -> R.string.search_users
+                          2 -> R.string.search_trips
                           else -> R.string.empty
                         },
                     onQueryChange = { query ->
@@ -397,7 +399,7 @@ fun SearchScreen(
                   }
                 }
           } else {
-            DiscoverContent(tripsViewModel, userViewModel)
+            DiscoverContent(searchQuery.text, tripsViewModel, userViewModel, navigationActions)
           }
         }
       }
@@ -536,7 +538,7 @@ fun UserSearchResultItem(
 /**
  * Composable function to display a place search result item.
  *
- * @param place The place to display.
+ * @param customPlace The place to display.
  * @param modifier Modifier for the composable.
  */
 @Composable

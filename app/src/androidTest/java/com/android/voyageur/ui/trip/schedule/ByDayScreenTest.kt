@@ -15,6 +15,7 @@ import com.android.voyageur.model.user.UserRepository
 import com.android.voyageur.model.user.UserViewModel
 import com.android.voyageur.ui.navigation.LIST_TOP_LEVEL_DESTINATION
 import com.android.voyageur.ui.navigation.NavigationActions
+import com.android.voyageur.ui.navigation.NavigationState
 import com.android.voyageur.ui.navigation.Screen
 import com.android.voyageur.ui.trip.activities.createTimestamp
 import java.time.LocalDate
@@ -28,6 +29,7 @@ import org.mockito.Mockito.doNothing
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.doReturn
 
 class ByDayScreenTest {
   // Create one activity trip to check for activity box and Day card
@@ -104,6 +106,7 @@ class ByDayScreenTest {
 
     `when`(tripsViewModel.selectedTrip).thenReturn(selectedTripFlow)
     `when`(tripsViewModel.getActivitiesForSelectedTrip()).thenReturn(oneActivityTrip.activities)
+    doReturn(NavigationState()).`when`(navigationActions).getNavigationState()
   }
 
   @Test
@@ -154,7 +157,7 @@ class ByDayScreenTest {
 
     // Check that the empty state message is displayed
     composeTestRule.onNodeWithTag("emptyByDayPrompt").assertIsDisplayed()
-    composeTestRule.onNodeWithText("You have no activities yet.").assertIsDisplayed()
+    composeTestRule.onNodeWithText("There are no activities scheduled.").assertIsDisplayed()
   }
 
   @Test
@@ -320,5 +323,15 @@ class ByDayScreenTest {
     composeTestRule.onNodeWithTag("cardItem").performClick()
     verify(navigationActions).navigateTo(Screen.ACTIVITIES_FOR_ONE_DAY)
     verify(tripsViewModel).selectDay(LocalDate.of(2022, 1, 1))
+  }
+
+  @Test
+  fun floatingActionButtonNotDisplayedInROV() {
+    // set the isReadOnlyView parameter as true
+    composeTestRule.setContent {
+      ByDayScreen(tripsViewModel, oneActivityTrip, navigationActions, userViewModel, true)
+    }
+    // Test floating button is displayed
+    composeTestRule.onNodeWithTag("createActivityButton").assertDoesNotExist()
   }
 }

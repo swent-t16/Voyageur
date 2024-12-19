@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.voyageur.model.notifications.FriendRequestRepository
+import com.android.voyageur.model.notifications.TripInviteRepository
 import com.android.voyageur.model.place.PlacesRepository
 import com.android.voyageur.model.place.PlacesViewModel
 import com.android.voyageur.model.trip.Trip
@@ -53,6 +54,7 @@ class E2ETest {
   private lateinit var userRepository: UserRepository
   private lateinit var userViewModel: UserViewModel
 
+  private lateinit var tripInviteRepository: TripInviteRepository
   private lateinit var firebaseAuth: FirebaseAuth
   private lateinit var mockUser: FirebaseUser
   private lateinit var mockAuthResult: AuthResult
@@ -64,8 +66,8 @@ class E2ETest {
   fun setUp() {
     tripRepository = mock(TripRepository::class.java)
     navigationActions = mock(NavigationActions::class.java)
-    tripsViewModel = TripsViewModel(tripRepository)
-
+    tripInviteRepository = mock(TripInviteRepository::class.java)
+    tripsViewModel = TripsViewModel(tripRepository, tripInviteRepository)
     friendRequestRepository = mock(FriendRequestRepository::class.java)
 
     placesRepository = mock(PlacesRepository::class.java)
@@ -131,6 +133,8 @@ class E2ETest {
   @Suppress("RememberReturnType")
   @Test
   fun e2ETest() {
+    userViewModel._user.value = User("1")
+
     composeTestRule.setContent {
       val navController = rememberNavController()
       val navigation = remember { NavigationActions(navController) }
@@ -139,7 +143,7 @@ class E2ETest {
           startDestination = Route.OVERVIEW,
       ) {
         composable(Route.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
-        composable(Route.PROFILE) { ProfileScreen(userViewModel, navigation) }
+        composable(Route.PROFILE) { ProfileScreen(userViewModel, tripsViewModel, navigation) }
         composable(Route.SEARCH) {
           SearchScreen(userViewModel, placesViewModel, tripsViewModel, navigation)
         }
@@ -150,7 +154,7 @@ class E2ETest {
           AddTripScreen(tripsViewModel, navigation, placesViewModel = placesViewModel)
         }
         composable(Screen.OVERVIEW) { OverviewScreen(tripsViewModel, navigation, userViewModel) }
-        composable(Screen.PROFILE) { ProfileScreen(userViewModel, navigation) }
+        composable(Screen.PROFILE) { ProfileScreen(userViewModel, tripsViewModel, navigation) }
         composable(Screen.SEARCH) {
           SearchScreen(userViewModel, placesViewModel, tripsViewModel, navigation)
         }
